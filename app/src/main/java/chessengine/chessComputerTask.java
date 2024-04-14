@@ -2,6 +2,8 @@ package chessengine;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,31 +22,45 @@ public class chessComputerTask extends Task<Void> {
     private Computer c;
 
     private ExecutorService executor;
+
+    private Logger logger;
     public chessComputerTask(Computer c, mainScreenController controller){
+        this.logger = LogManager.getLogger(this.toString());
         this.c = c;
         this.executor = Executors.newFixedThreadPool(6);
         this.controller = controller;
+
+    }
+
+    public void updateBoard(long[] newWhites, long[] newBlacks,boolean isWhite){
+        logger.info("Updating board");
+        this.currentWhiteBoard = newWhites;
+        this.currentBlackBoard = newBlacks;
+        this.currentIsWhite = isWhite;
     }
 
     public void evalRequest(){
-        // stop old minimax
-        if(!evaluationRequest){
+        logger.info("Called Evaluation Request");
+        if(!isCurrentlyEvaluating){
             evaluationRequest = true;
         }
+
+
     }
+    private boolean isCurrentlyEvaluating = false;
     @Override
     public Void call(){
         while (running){
             try {
                 if (evaluationRequest) {
-                    System.out.println("Evaluating");
-
-
-                    BestMoveCallable evalCallable = new BestMoveCallable(c, currentIsWhite,currentWhiteBoard, currentBlackBoard);
-                    Future<chessMove> eval = executor.submit(evalCallable);
-                    controller.makeComputerMove(eval.get()); // blocking call, consider timeout
+                    isCurrentlyEvaluating = true;
+                    logger.info("Starting a best move evaluation");
+//                  BestMoveCallable evalCallable = new BestMoveCallable(c, currentIsWhite,currentWhiteBoard, currentBlackBoard);
+//                  Future<chessMove> eval = executor.submit(evalCallable);
+                    controller.makeComputerMove(c.getComputerMove(currentIsWhite,currentWhiteBoard,currentBlackBoard)); // blocking call, consider timeout
                     // Update UI elements on the JavaFX Application Thread
                     evaluationRequest = false;
+                    isCurrentlyEvaluating = false;
 
                 }
 

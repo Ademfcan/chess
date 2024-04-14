@@ -1,6 +1,6 @@
 package chessengine;
 
-import javafx.beans.binding.Bindings;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
@@ -14,6 +14,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -122,6 +125,12 @@ public class mainScreenController implements Initializable {
     ComboBox<String> bgColorSelector;
 
     @FXML
+    ComboBox<String> pieceSelector;
+
+    @FXML
+    ComboBox<Integer> evalSelector;
+
+    @FXML
     StackPane sidePanel;
 
     @FXML
@@ -147,11 +156,13 @@ public class mainScreenController implements Initializable {
 
     pieceLocationHandler pieceHandler;
 
-    Computer chessAi;
+    Computer chessAiForBestMove;
+    Computer chessAiForEvalBar;
 
     evaluationbartask evalTask;
     chessComputerTask computerTask;
 
+    private Logger logger;
 
     private boolean GameOver = false;
 
@@ -159,14 +170,18 @@ public class mainScreenController implements Initializable {
 
     public boolean isVsComputer;
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        logger = LogManager.getLogger(this.toString());
         chessPieceBoard.setMouseTransparent(true);
         pieceHandler = new pieceLocationHandler(GameOver, eatenWhites, eatenBlacks,chessPieceBoard);
-        chessAi = new Computer(pieceHandler);
-        evalTask = new evaluationbartask(chessAi,this,4);
+        chessAiForBestMove = new Computer(pieceHandler,5);
+        chessAiForEvalBar = new Computer(pieceHandler,5);
+        logger.debug("initializing Main Screen");
+        evalTask = new evaluationbartask(chessAiForEvalBar,this,4);
         new Thread(evalTask).start();
-        computerTask = new chessComputerTask(chessAi,this);
+        computerTask = new chessComputerTask(chessAiForBestMove,this);
         new Thread(computerTask).start();
         chessPieceBoard.prefWidthProperty().bind(chessPieceBoard.heightProperty());
 
@@ -194,13 +209,6 @@ public class mainScreenController implements Initializable {
         initLabelBindings(pieceLabel);
 
 
-        player1Select.setOnMouseClicked(e ->{
-            System.out.println("1 clicked");
-        });
-
-        player2Select.setOnMouseClicked(e ->{
-            System.out.println("2 clicked");
-        });
 
         initPlayerSelector(true,player1Selector);
         initPlayerSelector(false,player2Selector);
@@ -218,6 +226,29 @@ public class mainScreenController implements Initializable {
         bgColorSelector.setOnAction(e ->{
             changeChessBg(bgColorSelector.getValue());
         });
+        bgColorSelector.getSelectionModel().selectFirst();
+
+        pieceSelector.getItems().addAll(
+                "Traditional",
+                "Ice", "Halloween", "Summer","Cherry"
+        );
+        pieceSelector.setOnAction(e ->{
+            changeChessBg(bgColorSelector.getValue());
+        });
+
+        pieceSelector.getSelectionModel().selectFirst();
+
+
+        evalSelector.getItems().addAll(
+                1,2,3,4,5,6,7,8
+        );
+        evalSelector.setOnAction(e ->{
+            chessAiForBestMove.setEvalDepth(evalSelector.getValue());
+        });
+
+        evalSelector.getSelectionModel().select(4);
+
+
         settingsButton.setOnMouseClicked(e -> {
             toggleSettings();
             toggleGameControls();
@@ -290,22 +321,29 @@ public class mainScreenController implements Initializable {
             isPlayer1 ? "Player1" : "Player2","Computer"
         );
         box.getSelectionModel().selectFirst();
+        box.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(2));
+        box.prefHeightProperty().bind(player1Select.fitHeightProperty());
         box.setOnAction(e ->{
             if(box.getValue().equals("Computer")){
                 changePlayer(isPlayer1,false);
+//                logger.debug("Changing to computer as " + (isPlayer1 ? "Player 1" : "Player 2"));
             }
             else{
                 changePlayer(isPlayer1,true);
+//                logger.debug("Changing to player as " + (isPlayer1 ? "Player 1" : "Player 2"));
+
             }
         });
     }
 
     private void changePlayer(boolean isFirstPlayer, boolean isPlayer){
         int indx = isFirstPlayer ? 0 : 1;
+        int isPindx = isPlayer ? 0 : 1;
+        // very bad naming scheme
         // cant cast boolean to int :(
         if(isPlayer != currentStates[indx]){
             // only change if not already current state
-            players[indx].setImage(images[indx]);
+            players[indx].setImage(images[isPindx]);
             currentStates[indx] = isPlayer;
         }
     }
@@ -400,7 +438,6 @@ public class mainScreenController implements Initializable {
     private void setEvalBar(Label whiteEval, Label blackEval, Rectangle whiteBar, Rectangle blackBar, double advantage){
         double barModPercent = passThroughAsymptote(Math.abs(advantage))/5;
         DecimalFormat decimalFormat = new DecimalFormat("0.0");
-        System.out.println(advantage);
         if(advantage >= 0){
             // white advantage or equal position
             if(advantage < 1000000){
@@ -416,7 +453,6 @@ public class mainScreenController implements Initializable {
             
         }
         else{
-            System.out.println("here");
             if(advantage > -1000000){
                 blackEval.setText(decimalFormat.format(advantage));
             }
@@ -468,14 +504,12 @@ public class mainScreenController implements Initializable {
                 curr = clrStr[1];
                 isLight = true;
             }
-            // System.out.println(count);
             if (count < 63) {
                 count++;
             }
             int x = count / 8;
             int y = count % 8;
-            //System.out.println("x: " + y);
-            //System.out.println("y: " + x);
+
 
 
             // currBgColors[count] = curr;
@@ -595,7 +629,7 @@ public class mainScreenController implements Initializable {
 
             // super proud of progress so far :))))
 
-            //System.out.println("Is castle?" + moveInfo[1]);
+            //logger.debug"Is castle?" + moveInfo[1]);
 
             if (isCastle || moveInfo[1]) {
                 int jump = endX == 6 ? 1 : -1;
@@ -606,8 +640,8 @@ public class mainScreenController implements Initializable {
                 GridPane.setColumnIndex(peicesAtLocations[endX - jump][endY], endX - jump);
                 peicesAtLocations[endX + jump][endY] = null;
                 pieceHandler.removeCastlingRight(prevPieceColor);
-                System.out.println("Castle right black: " + pieceHandler.blackCastleRight);
-                System.out.println("Short rook black: " + pieceHandler.blackShortRookMove);
+                logger.debug("Castle right black: " + pieceHandler.blackCastleRight);
+                logger.debug("Short rook black: " + pieceHandler.blackShortRookMove);
             }
 
             int pieceIndex = chessFunctions.getBoardWithPiece(startX, startY, prevPieceColor, pieceHandler.whitePiecesC, pieceHandler.blackPiecesC);
@@ -677,7 +711,7 @@ public class mainScreenController implements Initializable {
 
 
     private void promoPawn(int peiceIndx){
-        System.out.println("Promoting pawn at " + pawnX + "," + pawnY + " to a " + chessFunctions.getPieceType(peiceIndx));
+        logger.info("Promoting pawn at " + pawnX + "," + pawnY + " to a " + chessFunctions.getPieceType(peiceIndx));
         ImageView promoPeice = chessBoardGUIHandler.createNewPeice(peiceIndx,isWhiteP,chessPieceBoard,false);
         ImageView oldPeice = peicesAtLocations[pawnX][pawnY];
         if(oldPeice != null){
@@ -692,11 +726,19 @@ public class mainScreenController implements Initializable {
     // what actually happens when you click a square on the board
     private boolean waitingForComputer = false;
     public void makeComputerMove(chessMove move){
-        System.out.println("Looking at best move for " + (isWhiteTurn ? "WhitePeices" : "BlackPeices"));
-        System.out.println("Computer thinks move: \n" + move.toString());
+        logger.info("Looking at best move for " + (isWhiteTurn ? "WhitePeices" : "BlackPeices"));
+        logger.info("Computer thinks move: \n" + move.toString());
         // computers move
         selectedPeice = peicesAtLocations[move.getOldX()][move.getOldY()];
-        MoveAPeice(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),false,move.isCastleMove(),true,move.getPromoIndx());
+        // since when eating a piece you have to change visuals, need to hanndle it differently
+        if(move.isEating()){
+            Platform.runLater(() -> {
+                MoveAPeice(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),false,move.isCastleMove(),true,move.getPromoIndx());
+            });
+        }
+        else{
+            MoveAPeice(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),false,move.isCastleMove(),true,move.getPromoIndx());
+        }
         isWhiteTurn = !isWhiteTurn;
         waitingForComputer = false;
 
@@ -706,30 +748,27 @@ public class mainScreenController implements Initializable {
 
     private void setUpSquareClickEvent(StackPane square) {
         square.setOnMouseClicked(event -> {
-            System.out.println(isWhiteTurn);
+            logger.info("Square clicked");
             StackPane pane = (StackPane) event.getSource();
             String[] xy = pane.getUserData().toString().split(",");
             int x = Integer.parseInt(xy[0]);
             int y = Integer.parseInt(xy[1]);
-            //System.out.println("X: " + x);
-            //System.out.println("Y: " + y);
+            //logger.info("X: " + x);
+            //logger.info("Y: " + y);
             if (event.getButton() == MouseButton.PRIMARY && !GameOver && !waitingForComputer) {
-
                 boolean[] boardInfo = chessFunctions.checkIfContains(x, y, pieceHandler.whitePiecesC, pieceHandler.blackPiecesC);
-                //System.out.println("IsHit:" + boardInfo[0] + " isWhite: " + boardInfo[1]);
+                //logger.debug("IsHit:" + boardInfo[0] + " isWhite: " + boardInfo[1]);
                 // possible move
-                //System.out.println("PrevPeice Selected: " + peiceSelected);
                 if (peiceSelected) {
                     boolean prevPeiceClr = (selectedPeiceInfo[2] > 0);
                     int oldX = selectedPeiceInfo[0];
                     int oldY = selectedPeiceInfo[1];
-                    //System.out.println(prevPeiceClr);
-                    //System.out.println(boardInfo[1]);
+
                     boolean canMove = checkIfMovePossible(oldHighights,x,y)[0];
                     if ((!boardInfo[0] || prevPeiceClr != boardInfo[1]) && canMove) {
                         // enemy colors or empty square
 
-                        System.out.println("Moving " + prevPeiceClr + " peice from " + oldX + "," + oldY + " to " + x + "," + y);
+                        logger.debug("Moving " + prevPeiceClr + " peice from " + oldX + "," + oldY + " to " + x + "," + y);
                         MoveAPeice(oldX,oldY,x,y,boardInfo[0],prevPeiceClr,false,false,-10);
 
 
@@ -739,7 +778,7 @@ public class mainScreenController implements Initializable {
 
                         oldHighights = null;
                         if(pieceHandler.isCheckmated(pieceHandler.whitePiecesC, pieceHandler.blackPiecesC)){
-                            double eval = chessAi.getFullEval(pieceHandler.whitePiecesC, pieceHandler.blackPiecesC);
+                            double eval = chessAiForBestMove.getFullEval(pieceHandler.whitePiecesC, pieceHandler.blackPiecesC);
                             victoryLabel.setText("Winner : " + (eval > 0 ? "White" : "Black"));
                             setEvalBar(whiteEval,blackEval,whiteadvantage,blackadvantage,eval);
                             GameOver = true;
@@ -763,8 +802,6 @@ public class mainScreenController implements Initializable {
                     }
                     else if(boardInfo[0] && isWhiteTurn == boardInfo[1]){
                         // your own peice color
-                        //System.out.println("Own color");
-                        //System.out.println(peiceHandler.getPieceType(x,y,boardInfo[1]));
 
                         int clr = (boardInfo[1]) ? 1 : -1;
                         selectedPeiceInfo[0] = x;
@@ -809,7 +846,6 @@ public class mainScreenController implements Initializable {
                     // no prev selection
 
 
-                        //System.out.println(peiceHandler.getPieceType(x,y,boardInfo[1]));
 
                         List<XYcoord> moves = pieceHandler.getPossibleMoves(x,y,boardInfo[1], pieceHandler.whitePiecesC, pieceHandler.blackPiecesC);
                         oldHighights = moves;
@@ -835,9 +871,9 @@ public class mainScreenController implements Initializable {
 
                 }
 //                if(peiceSelected){
-//                    //System.out.println("PrevPeice Selected x: " + selectedPeiceInfo[0]);
-//                    //System.out.println("PrevPeice Selected y: " + selectedPeiceInfo[1]);
-//                    //System.out.println("PrevPeice Selected isWhite: " + selectedPeiceInfo[2]);
+//                    //logger.debug("PrevPeice Selected x: " + selectedPeiceInfo[0]);
+//                    //logger.debug("PrevPeice Selected y: " + selectedPeiceInfo[1]);
+//                    //logger.debug("PrevPeice Selected isWhite: " + selectedPeiceInfo[2]);
 //                }
 
 
@@ -853,7 +889,6 @@ public class mainScreenController implements Initializable {
     // toggle square highlight with two different types of colors
     // todo: make square highlights different depending on background color
     private void highlightSquare(int x, int y, boolean isPieceSelection) {
-        //System.out.println(Bgpanes[x][y].getStyle());;
         if (isPieceSelection) {
             highlightColor = "rgba(44, 212, 255, 0.25)";
         } else {

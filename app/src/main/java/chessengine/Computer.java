@@ -1,5 +1,8 @@
 package chessengine;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,17 +10,24 @@ import java.util.List;
 
 public class Computer{
     pieceLocationHandler gameHandler;
-    public int evalDepth = 7;
+
+
+
+    private int evalDepth;
 
     private HashMap<Integer,Double> transTable;
     private int repetitionCount;
     private chessMove lastMove;
 
     public volatile boolean stop;
-    public Computer(pieceLocationHandler gameHandler){
+
+    private Logger logger;
+    public Computer(pieceLocationHandler gameHandler,int evalDepth){
         transTable = new HashMap<Integer,Double>();
+        logger = LogManager.getLogger(this.toString());
         this.gameHandler = gameHandler;
         reset();
+        this.evalDepth = evalDepth;
     }
 
     public void reset(){
@@ -25,20 +35,23 @@ public class Computer{
         lastMove = null;
     }
 
+    public void setEvalDepth(int evalDepth) {
+        this.evalDepth = evalDepth;
+    }
+
     public chessMove getComputerMove(boolean isWhite, long[] whitePeices,long[] blackPieces){
-        System.out.println("Transtable size: " + transTable.size());
+        logger.debug("Transtable size: " + transTable.size());
         chessPosition currentPos = new chessPosition(whitePeices,blackPieces);
         chessPosition bestMove = null;
         double bestEval = isWhite ? -10000000 : 10000000;
 
         for(chessPosition childPos : currentPos.getAllChildPositions(gameHandler,isWhite)){
-            //System.out.println(childPos);
             if(childPos.moveThatCreatedThis.equals(lastMove)){
                 repetitionCount++;
                 if(repetitionCount > 1){
                     // at 2 repetitions now, means that this move would lead to a third repetition so break
                     repetitionCount = 0;
-                    break;
+                    continue;
                 }
             }
 
@@ -46,7 +59,7 @@ public class Computer{
 
             if(isWhite){
                 if(miniMaxEval > bestEval){
-                    //System.out.println("Changing to better move with eval of: " + miniMaxEval);
+                    //logger.debug("Changing to better move with eval of: " + miniMaxEval);
                     bestEval = miniMaxEval;
                     bestMove = childPos;
                 }
@@ -54,7 +67,7 @@ public class Computer{
             else{
 
                 if(miniMaxEval < bestEval){
-                    //System.out.println("Changing to better move with eval of: " + miniMaxEval);
+                    //logger.debug("Changing to better move with eval of: " + miniMaxEval);
                     bestEval = miniMaxEval;
                     bestMove = childPos;
                 }
@@ -64,11 +77,12 @@ public class Computer{
         return bestMove.moveThatCreatedThis;
 
     }
-    public final double Stopped = -999999;
+    public static final double Stopped = -999999;
+
     //alpha default -inf beta default +inf
     public double miniMax(chessPosition position, int depth, double alpha, double beta, boolean isWhite){
         if(stop){
-            System.out.println("Stopping");
+            logger.info("Stopping Minimax due to flag");
             stop = false;
             return Stopped;
         }
@@ -79,6 +93,7 @@ public class Computer{
             return eval;
         }
         if(transTable.containsKey(key)){
+            logger.info("Transtable value being used");
             return transTable.get(key);
         }
 

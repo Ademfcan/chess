@@ -4,6 +4,9 @@ import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Loggers;
 
 
 import java.util.*;
@@ -61,6 +64,7 @@ public class pieceLocationHandler {
 
     private GridPane chessPeiceBoard;
 
+    private Logger logger;
 
 
     public pieceLocationHandler(boolean gameOver, HBox eatenWhites, HBox eatenBlacks, GridPane chessPeiceboard) {
@@ -68,6 +72,7 @@ public class pieceLocationHandler {
         this.eatenWhites = eatenWhites;
         this.eatenBlacks = eatenBlacks;
         this.chessPeiceBoard = chessPeiceboard;
+        this.logger  = LogManager.getLogger(this.toString());
     }
 
     public void removePeice(boolean isWhite,int x ,int y,boolean istest, long[] whitePieces, long[] blackPieces,boolean isPromo){
@@ -608,7 +613,7 @@ public class pieceLocationHandler {
 
     private final String[] rookLocations = {"7,7,s,w","0,7,l,w","0,0,l,b","7,0,s,b"};
     public void removeRookMoveRight(int x, int y){
-        System.out.println("Removing rook right at x: " + x + ", y: " + y);
+        logger.debug("Removing rook right at x: " + x + ", y: " + y);
         for(String s : rookLocations){
             String[] rInfo = s.split(",");
             int rookX = Integer.parseInt(rInfo[0]);
@@ -798,7 +803,7 @@ public class pieceLocationHandler {
         if (moveIndx != boardSave.size() - 1) {
             clearIndx();
         }
-        System.out.println("Saving..");
+        logger.info("Creating board entry");
 
         boardSave.add(new long[][]{Arrays.copyOf(whitePieces,whitePieces.length),Arrays.copyOf(blackPieces,blackPieces.length)});
         //System.out.println("Save size: " + boardSave.size());
@@ -811,7 +816,7 @@ public class pieceLocationHandler {
     public void clearIndx(){
         int to = boardSave.size();
         if (to > moveIndx + 1) {
-            System.out.println("Removing old entries");
+            logger.debug(String.format("Clearing board entries from %d",moveIndx+1));
 
             boardSave.subList(moveIndx + 1, to).clear();
         }

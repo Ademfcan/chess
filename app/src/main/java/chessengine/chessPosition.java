@@ -69,7 +69,6 @@ public class chessPosition {
         moveThatCreatedThis = new chessMove(oldX,oldY,newX,newY,isCastle,isEating,isPawnPromo,peiceType);
         moveThatCreatedThis.setPawnPromo(isPawnPromo);
         moveThatCreatedThis.setPromoIndx(promoIndex);
-        //System.out.println(moveThatCreatedThis.toString());
     }
 
     public List<chessPosition> getAllChildPositions(pieceLocationHandler myPeiceHandler, boolean isWhite){

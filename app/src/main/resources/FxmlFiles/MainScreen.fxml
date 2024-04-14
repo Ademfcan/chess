@@ -15,7 +15,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<GridPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #312F2F;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.mainScreenController">
+<GridPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #7A82AB;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.mainScreenController">
     <columnConstraints>
         <ColumnConstraints percentWidth="70.0" />
         <ColumnConstraints percentWidth="30.0" />
@@ -130,8 +130,8 @@
             </VBox>
          </children>
       </HBox>
-      <HBox fx:id="eatenBlacks" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #A6D9F7; -fx-border-width: 2; -fx-border-color: #312F2F;" GridPane.rowIndex="2" />
-      <HBox fx:id="eatenWhites" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #A6D9F7; -fx-border-width: 2; -fx-border-color: #312F2F;" />
+      <HBox fx:id="eatenBlacks" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #7A82AB#7A82AB; -fx-border-width: 2; -fx-border-color: #312F2F;" GridPane.rowIndex="2" />
+      <HBox fx:id="eatenWhites" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #7A82AB#7A82AB; -fx-border-width: 2; -fx-border-color: #312F2F;" />
       <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
          <children>
             <ImageView fx:id="player1Select" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
@@ -139,7 +139,7 @@
                   <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
                </image>
             </ImageView>
-            <ComboBox fx:id="player1Selector" prefWidth="150.0" />
+            <ComboBox fx:id="player1Selector" prefWidth="150.0" style="-fx-background-color: #C6D4FF;" />
          </children>
       </HBox>
       <HBox prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
@@ -150,21 +150,21 @@
                   <Rectangle fx:id="whiteadvantage" arcHeight="5.0" arcWidth="5.0" fill="#f5f5f5" height="160.0" stroke="BLACK" strokeType="INSIDE" width="20.0" />
                </children>
             </VBox>
-            <StackPane fx:id="sidePanel" prefHeight="338.0" prefWidth="114.0">
+            <StackPane fx:id="sidePanel" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity">
                <children>
                   <AnchorPane fx:id="gameControls" prefHeight="117.0" prefWidth="144.0">
                      <children>
                         <Label fx:id="victoryLabel" AnchorPane.rightAnchor="80.0" AnchorPane.topAnchor="0.0" />
                         <HBox fx:id="topControls" alignment="CENTER" prefHeight="80.0" prefWidth="160.0" spacing="20.0">
                            <children>
-                              <Button fx:id="settingsButton" mnemonicParsing="false" text="⚙">
+                              <Button fx:id="settingsButton" mnemonicParsing="false" style="-fx-background-color: #307473;" text="⚙" textFill="#c6d4ff">
                                  <font>
-                                    <Font size="20.0" />
+                                    <Font name="Gabriola" size="24.0" />
                                  </font>
                               </Button>
-                              <Button fx:id="homeButton" mnemonicParsing="false" text="↩">
+                              <Button fx:id="homeButton" mnemonicParsing="false" style="-fx-background-color: #307473;" text="↩" textFill="#c6d4ff">
                                  <font>
-                                    <Font size="21.0" />
+                                    <Font name="Gabriola" size="24.0" />
                                  </font>
                               </Button>
                            </children>
@@ -173,20 +173,23 @@
                            <children>
                               <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="20.0">
                                  <children>
-                                    <Button fx:id="reset" mnemonicParsing="false" prefHeight="33.0" prefWidth="63.0" text="Reset" />
+                                    <Button fx:id="reset" mnemonicParsing="false" prefHeight="33.0" prefWidth="102.0" style="-fx-background-color: #307473;" text="Reset" textFill="#c6d4ff">
+                                       <font>
+                                          <Font name="Gabriola" size="24.0" />
+                                       </font></Button>
                                     <Label fx:id="saveIndicator" text="0/0" textFill="#f5f3f3" />
                                  </children>
                               </HBox>
                               <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="20.0">
                                  <children>
-                                    <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="⬅">
+                                    <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" style="-fx-background-color: #307473;" text="⬅" textFill="#c6d4ff">
                                        <font>
-                                          <Font name="Impact" size="24.0" />
+                                          <Font name="Gabriola" size="24.0" />
                                        </font>
                                     </Button>
-                                    <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="➡">
+                                    <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" style="-fx-background-color: #307473;" text="➡" textFill="#c6d4ff">
                                        <font>
-                                          <Font size="24.0" />
+                                          <Font name="Gabriola" size="24.0" />
                                        </font>
                                     </Button>
                                  </children>
@@ -220,10 +223,12 @@
                            </font>
                         </Label>
                         <Label fx:id="pieceLabel" layoutX="10.0" layoutY="87.0" text="Piece Type: " textFill="#f2eeee" GridPane.rowIndex="2" />
-                        <Label layoutX="10.0" layoutY="30.0" text="Option: " textFill="#f2eeee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
+                        <Label layoutX="10.0" layoutY="30.0" text="Eval Depth: " textFill="#f2eeee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" />
                         <Label layoutX="10.0" layoutY="30.0" text="Option: " textFill="#f2eeee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" />
                         <Label layoutX="10.0" layoutY="30.0" text="Option: " textFill="#f2eeee" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" />
                         <ComboBox fx:id="bgColorSelector" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="pieceSelector" layoutX="90.0" layoutY="83.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <ComboBox fx:id="evalSelector" layoutX="10.0" layoutY="26.0" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                      </children>
                   </GridPane>
                </children>
@@ -232,9 +237,18 @@
       </HBox>
       <AnchorPane fx:id="test" prefHeight="342.0" prefWidth="21.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
          <children>
-            <Label fx:id="blackEval" alignment="TOP_CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#f2eeee" AnchorPane.topAnchor="5.0" StackPane.alignment="CENTER" />
-            <Label fx:id="whiteEval" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" AnchorPane.bottomAnchor="5.0" StackPane.alignment="CENTER" />
-            <Label fx:id="evalDepth" alignment="CENTER" layoutY="200.0" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" />
+            <Label fx:id="blackEval" alignment="TOP_CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff" AnchorPane.topAnchor="5.0" StackPane.alignment="CENTER">
+               <font>
+                  <Font size="8.0" />
+               </font></Label>
+            <Label fx:id="whiteEval" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff" AnchorPane.bottomAnchor="5.0" StackPane.alignment="CENTER">
+               <font>
+                  <Font size="8.0" />
+               </font></Label>
+            <Label fx:id="evalDepth" alignment="CENTER" layoutY="200.0" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff" AnchorPane.leftAnchor="0.0">
+               <font>
+                  <Font size="8.0" />
+               </font></Label>
          </children>
       </AnchorPane>
       <HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1">
@@ -244,7 +258,7 @@
                   <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
                </image>
             </ImageView>
-            <ComboBox fx:id="player2Selector" prefWidth="150.0" />
+            <ComboBox fx:id="player2Selector" prefWidth="150.0" style="-fx-background-color: #C6D4FF;" />
          </children>
       </HBox>
    </children>
