@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: java-app
-          path: '${{ github.workspace }}/src/serverside/build/lib/app.war'
+          path: '${{ github.workspace }}/src/serverside/build/libs/*.war'
 
   deploy:
     runs-on: ubuntu-latest
