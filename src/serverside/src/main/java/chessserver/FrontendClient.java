@@ -1,6 +1,6 @@
 package chessserver;
 
-import jakarta.websocket.Session;
+import javax.websocket.Session;
 
 public class FrontendClient extends Client{
 

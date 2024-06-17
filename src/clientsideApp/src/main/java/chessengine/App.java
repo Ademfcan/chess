@@ -12,7 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import jakarta.websocket.DeploymentException;
+import javax.websocket.DeploymentException;
 import java.io.*;
 import java.net.ConnectException;
 import java.util.ArrayList;

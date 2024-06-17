@@ -6,7 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
-import jakarta.websocket.*;
+import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 

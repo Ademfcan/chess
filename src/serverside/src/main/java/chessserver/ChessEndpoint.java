@@ -3,8 +3,8 @@ package chessserver;
 import chessserver.Client;
 import chessserver.ClientHandler;
 
-import jakarta.websocket.*;
-import jakarta.websocket.server.ServerEndpoint;
+import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
 @ServerEndpoint("/home")
