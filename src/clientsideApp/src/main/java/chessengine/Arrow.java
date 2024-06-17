@@ -45,13 +45,17 @@ public class Arrow {
 
         double xDiff = endXCoordCenter-startXCoordCenter;
         double yDiff = startYCoordCenter-endYCoordCenter;
-        double angArrow = Math.atan(yDiff/(xDiff)); // since tan goes to infinity at 90 degrees to avoid a division by zero add tiny value
+        double angArrow = Math.atan(yDiff/(xDiff));
         System.out.println("Angle: " + Math.toDegrees(angArrow));
 
 //        double sinArrow = Math.sin(3*Math.PI/4);
 //        double cosArrow = Math.cos(3*Math.PI/4);
+        if(angArrow < -90){
+            angArrow = 180-angArrow;
+        }
         double sinArrow = Math.sin(-(Math.PI-angArrow));
         double cosArrow = Math.cos(-(Math.PI-angArrow));
+
 
 
         double arrowbaseWidth = ((boxWidth+boxHeight)/4)*arrowWidth; // half of the average of width and height;

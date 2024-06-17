@@ -241,9 +241,10 @@ public class chessActionHandler {
         int[] xy = myControl.chessBoardGUIHandler.turnLayoutXyintoBoardXy(e.getX(),e.getY());
         if(e.getButton() == MouseButton.PRIMARY){
             dragging =false;
+            boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], xy[1], myControl.gameHandler.currentGame.currentPosition.board);
+
             // check if we did not click on an empty square
-            if(myControl.chessBoardGUIHandler.piecesAtLocations[xy[0]][xy[1]] != null){
-                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], xy[1], myControl.gameHandler.currentGame.currentPosition.board);
+            if(boardInfo[0]){
                 boolean isWhitePiece = boardInfo[1];
                 int boardIndex = GeneralChessFunctions.getBoardWithPiece(xy[0], xy[1], isWhitePiece, myControl.gameHandler.currentGame.currentPosition.board);
 

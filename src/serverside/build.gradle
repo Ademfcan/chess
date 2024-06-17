@@ -56,4 +56,12 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+tasks.named('build'){
+    dependsOn printBuildDir
+}
 
+task printBuildDir {
+    doLast {
+        println "Build directory: ${buildDir}"
+    }
+}
