@@ -21,8 +21,8 @@ jobs:
         with:
           java-version: 'java21'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Build severside with gradle
+        run: gradle :serverside:build 
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
