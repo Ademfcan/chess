@@ -4,7 +4,7 @@ import chessserver.FrontendClient;
 import chessserver.INTENT;
 import org.junit.jupiter.api.Test;
 
-import javax.websocket.DeploymentException;
+import jakarta.websocket.DeploymentException;
 import java.io.IOException;
 
 public class websocketTests {

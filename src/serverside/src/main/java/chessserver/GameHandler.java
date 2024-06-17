@@ -1,6 +1,6 @@
 package chessserver;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
 import java.util.HashMap;
 
 public class GameHandler {

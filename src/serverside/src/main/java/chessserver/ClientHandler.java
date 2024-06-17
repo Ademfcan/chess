@@ -2,7 +2,7 @@ package chessserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
 import java.io.IOException;
 import java.util.*;
 
