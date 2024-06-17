@@ -22,7 +22,7 @@ jobs:
           java-version: '21'
 
       - name: Build serverside with gradle
-        run: ./gradlew :serverside:build 
+        run: gradle :serverside:build 
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
