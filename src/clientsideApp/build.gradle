@@ -1,0 +1,58 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'java'
+}
+
+javafx {
+    version = "20"
+    modules = [ 'javafx.controls', 'javafx.fxml','javafx.media' ]
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'com.google.guava:guava:32.0.0-android'
+    implementation 'org.nd4j:nd4j-native-platform:1.0.0-beta7'
+    implementation 'org.datavec:datavec-api:1.0.0-beta7'
+    implementation 'org.apache.logging.log4j:log4j-api:2.23.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
+    implementation 'javax.websocket:javax.websocket-api:1.1'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+    implementation project(':serverside')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(20)
+    }
+
+}
+
+application {
+    mainClass = 'chessengine.Main'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'chessengine.Main'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+}

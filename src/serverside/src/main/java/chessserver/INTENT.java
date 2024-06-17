@@ -1,0 +1,15 @@
+package chessserver;
+
+public enum INTENT {
+    CREATEGAME,
+    MAKEMOVE,
+    LEAVEGAME,
+    SENDCHAT,
+    PULLTOTALPLAYERCOUNT,
+    GETNUMBEROFPOOLERS,
+    GETPOOLERS,
+    CLOSESESS,
+    GAMEFINISHED;
+
+
+}
