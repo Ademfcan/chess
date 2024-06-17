@@ -11,6 +11,7 @@ plugins {
 }
 
 rootProject.name = 'chessEngine'
+include 'clientsideApp', 'serverside'
 
-include 'chessengine'
-include 'server'
+project(':clientsideApp').projectDir = file('src/clientsideApp')
+project(':serverside').projectDir = file('src/serverside')
