@@ -56,6 +56,10 @@ public class ChessMove {
         return new ChessMove(oldX,boardSize-oldY,newX,boardSize-newX,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,isCustomMove);
     }
 
+    public ChessMove reverseMove(){
+        return new ChessMove(newX,newY,oldX,oldY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,isCastleMove);
+    }
+
 
     public boolean isPawnPromo() {
         return isPawnPromo;

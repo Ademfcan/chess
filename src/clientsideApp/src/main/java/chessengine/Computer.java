@@ -50,11 +50,13 @@ public class Computer{
         for(int i = 0;i<nMoves;i++){
             ComputerOutput out = getComputerMoveWithCondiditon(isWhite,pos,gameState,prevMoves,true);
             if(out.equals(ChessConstants.emptyOutput)){
+                stop = false;
                 return null;
             }
             BestMoves.add(out);
             prevMoves.add(out.move);
         }
+        stop = false;
         return BestMoves;
     }
 
@@ -69,6 +71,7 @@ public class Computer{
         double bestEval = isWhite ? -10000000 : 10000000;
         running = true;
         List<BackendChessPosition> filteredPositions;
+        // this is how i avoid duplicate best moves
         if(isHashCheck){
             filteredPositions = pos.getAllChildPositions(isWhite,gameState).stream().filter(p->!alreadyPlayedMoves.contains(p.getMoveThatCreatedThis())).toList();
         }
@@ -76,13 +79,17 @@ public class Computer{
             filteredPositions = pos.getAllChildPositions(isWhite,gameState);
         }
         for(BackendChessPosition childPos : filteredPositions){
-                // this is how i avoid duplicate best moves
             if(stop){
                 stop = false;
+                System.out.println("Stopped nmoves");
                 return ChessConstants.emptyOutput;
             }
             double miniMaxEval = miniMax(childPos, childPos.gameState,evalDepth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
-
+            if(miniMaxEval == Stopped){
+                System.out.println("Stopped nmoves");
+                stop =false;
+                return ChessConstants.emptyOutput;
+            }
             if(isWhite){
                 if(miniMaxEval > bestEval){
                     //logger.debug("Changing to better move with eval of: " + miniMaxEval);
@@ -100,6 +107,11 @@ public class Computer{
             }
 
 
+        }
+        if(bestMove == null){
+            stop = false;
+            System.out.println("null bestmovesoutput");
+            return ChessConstants.emptyOutput;
         }
         lastMove = bestMove.getMoveThatCreatedThis();
         running = false;

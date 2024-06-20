@@ -13,10 +13,14 @@ public class ChessCentralControl {
     public ThreadController asyncController;
 
 
-    private boolean isGuiHandlerInitialized = false;
+    private boolean isInit = false;
+
+    public boolean isInit(){
+        return this.isInit;
+    }
 
     public ChessGameHandler gameHandler;
-    public chessActionHandler chessActionHandler;
+    public ChessActionHandler chessActionHandler;
 
 
     public ChessCentralControl(){
@@ -28,8 +32,8 @@ public class ChessCentralControl {
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(chessPieceBoard,eatenWhites,eatenBlacks,piecesAtLocations,ArrowBoard,bgPanes,chessHighlightBoard);
         this.asyncController = new ThreadController(5,5);
         this.gameHandler = new ChessGameHandler(this);
-        this.chessActionHandler = new chessActionHandler(this,bestmovesBox,localInfo,sandboxPieces,gameInfo,chatInput,sendMessageButton);
-
+        this.chessActionHandler = new ChessActionHandler(this,bestmovesBox,localInfo,sandboxPieces,gameInfo,chatInput,sendMessageButton);
+        isInit = true;
 
     }
 }

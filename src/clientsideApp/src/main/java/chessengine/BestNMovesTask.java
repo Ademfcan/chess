@@ -69,6 +69,9 @@ public class BestNMovesTask extends Task<Void> {
 
                         });
                     }
+                    else{
+                        System.out.println("null best moves");
+                    }
                     evaluationRequest = false;
                     isCurrentlyEvaluating = false;
 

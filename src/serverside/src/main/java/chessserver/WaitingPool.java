@@ -13,11 +13,11 @@ public class WaitingPool{
     }
 
     public List<BackendClient> getWaitingClientsOfType(BackendClient currentClient, Gametype wantedGametype, int maxEloDiff){
-        return waitingClients.get(wantedGametype).stream().filter(c ->Math.abs(c.getElo()-currentClient.getElo()) <= maxEloDiff).collect(Collectors.toList());
+        return waitingClients.get(wantedGametype).stream().filter(c ->Math.abs((c.getInfo().getUserelo())-currentClient.getInfo().getUserelo()) <= maxEloDiff).collect(Collectors.toList());
     }
 
     public int getWaitingClientsOfTypeCount(BackendClient currentClient, Gametype wantedGametype, int maxEloDiff){
-        return (int) waitingClients.get(wantedGametype).stream().filter(c ->Math.abs(c.getElo()-currentClient.getElo()) <= maxEloDiff).count();
+        return (int) waitingClients.get(wantedGametype).stream().filter(c ->Math.abs((c.getInfo().getUserelo())-currentClient.getInfo().getUserelo()) <= maxEloDiff).count();
     }
 
     public int getPoolCount(){
@@ -51,7 +51,7 @@ public class WaitingPool{
         }
         else {
             for(BackendClient c : clients){
-                if(Math.abs(c.getElo()-newClient.getElo()) <= maxEloDiff){
+                if((Math.abs(c.getInfo().getUserelo())-newClient.getInfo().getUserelo()) <= maxEloDiff){
                     return c;
                 }
             }

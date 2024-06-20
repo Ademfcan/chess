@@ -1,6 +1,7 @@
 package chessserver;
 
 public enum INTENT {
+    GETUSER,
     CREATEGAME,
     MAKEMOVE,
     LEAVEGAME,

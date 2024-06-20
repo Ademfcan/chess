@@ -1,6 +1,8 @@
 package chessserver;
 
 public enum ServerResponseType {
+    CLIENTVAIDATIONSUCESS,
+    CLIENTVALIDATIONFAIL,
     INVALIDOPERATION,
     ENTEREDGAME,
     INWAITINGPOOL,

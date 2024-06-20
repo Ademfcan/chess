@@ -1,7 +1,6 @@
 package chessengine;
 
-import chessserver.Gametype;
-import chessserver.INTENT;
+import chessserver.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -11,21 +10,23 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class StartScreenController implements Initializable {
 
     @FXML
-    GridPane fullscreen;
+    StackPane fullscreen;
+
+    @FXML
+    GridPane content;
+
+    @FXML
+    Pane startMessageBoard;
 
     @FXML
     HBox leftMain;
@@ -49,6 +50,9 @@ public class StartScreenController implements Initializable {
 
     @FXML
     HBox userSettingScreen;
+
+    @FXML
+    HBox generalSettingsScreen;
 
     @FXML
     HBox sandboxScreen;
@@ -86,6 +90,7 @@ public class StartScreenController implements Initializable {
     @FXML
     StackPane mainArea;
 
+    // side panel stuff
     @FXML
     VBox sideButtons;
 
@@ -108,11 +113,9 @@ public class StartScreenController implements Initializable {
     Button sandboxButton;
 
 
-    @FXML
-    ChoiceBox<String> themeSelection;
 
 
-
+    // multiplayer options
     @FXML
     ComboBox<String> gameTypes;
 
@@ -123,6 +126,77 @@ public class StartScreenController implements Initializable {
     Label poolCount;
 
     @FXML
+    Button reconnectButton;
+
+    // general settings
+    @FXML
+    ScrollPane generalSettingsScrollpane;
+
+    @FXML
+    VBox generalSettingsVbox;
+
+
+
+
+
+    @FXML
+    Label themeLabel;
+
+    @FXML
+    ChoiceBox<String> themeSelection;
+
+    @FXML
+    Label bgLabel;
+
+    @FXML
+    ComboBox<String> bgColorSelector;
+
+    @FXML
+    Label pieceLabel;
+
+    @FXML
+    ComboBox<String> pieceSelector;
+
+    @FXML
+    Label audioMuteBG;
+
+    @FXML
+    Button audioMuteBGButton;
+
+    @FXML
+    Label audioLabelBG;
+
+    @FXML
+    Slider audioSliderBG;
+
+    @FXML
+    Label audioMuteEff;
+
+    @FXML
+    Button audioMuteEffButton;
+
+    @FXML
+    Label audioLabelEff;
+
+    @FXML
+    Slider audioSliderEff;
+
+    @FXML
+    Label evalLabel;
+
+    @FXML
+    ComboBox<Integer> evalOptions;
+
+    @FXML
+    Label computerLabel;
+
+    @FXML
+    ComboBox<Integer> computerOptions;
+
+
+
+    // user settings
+    @FXML
     Label nameLabel;
 
     @FXML
@@ -132,10 +206,14 @@ public class StartScreenController implements Initializable {
     Label eloLabel;
 
     @FXML
-    TextField eloInput;
+    TextField passwordInput;
 
     @FXML
-    ImageView userSettingToggle;
+    ImageView profileButton;
+
+
+
+
 
     @FXML
     Button saveUserOptions;
@@ -143,33 +221,22 @@ public class StartScreenController implements Initializable {
     List<ChessGame> oldGames;
     private StartScreenState currentState;
 
+    private StartScreenState lastStateBeforeUserSettings;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        startMessageBoard.setMouseTransparent(true);
 
         setSelection(StartScreenState.REGULAR);
 
 
-        themeSelection.getItems().addAll("Light","Dark");
-        themeSelection.getSelectionModel().selectFirst();
-        themeSelection.setOnAction(e->{
-            boolean isLight = themeSelection.getValue().equals("Light");
-            App.updateGlobalTheme(isLight ? ThemesGlobal.Light : ThemesGlobal.Dark);
-        });
 
-        userSettingToggle.setOnMouseClicked(e->{
-            // toggle between regular and usersettings
-            if(currentState.equals(StartScreenState.REGULAR)){
-                setSelection(StartScreenState.USERSETTINGS);
-            }
-            else{
-                setSelection(StartScreenState.REGULAR);
-            }
-        });
 
         setUpLocalOptions();
         setUpPgnOptions();
         setUpMultiOptions();
-        setUpUserOptions();
+        setUpUserSettings();
+        setUpGeneralSettings();
         setUpSideNavButtons();
         setupSandboxOptions();
 
@@ -206,6 +273,9 @@ public class StartScreenController implements Initializable {
         sandboxButton.setOnMouseClicked(e->{
             setSelection(StartScreenState.SANDBOX);
         });
+        settingsButton.setOnMouseClicked(e->{
+            setSelection(StartScreenState.GENERALSETTINGS);
+        });
         backgroundAudioButton.setOnMouseClicked(e->{
             boolean isMuted = App.soundPlayer.toggleAudio();
             if(isMuted){
@@ -214,33 +284,119 @@ public class StartScreenController implements Initializable {
             else{
                 backgroundAudioButton.setText("🔉");
             }
+            // muted = opposite of is bg music
+            App.userPreferenceManager.setBackgroundmusic(!isMuted);
         });
     }
 
 
-    private void setUpUserOptions(){
-        nameInput.setText(App.appUser.getName());
-        eloInput.setText(Integer.toString(App.appUser.getElo()));
+    private void setUpUserSettings(){
+        profileButton.setOnMouseClicked(e->{
+           if(currentState.equals(StartScreenState.USERSETTINGS)){
+               setSelection(lastStateBeforeUserSettings);
+           }
+           else{
+               setSelection(StartScreenState.USERSETTINGS);
+           }
+        });
+
         saveUserOptions.setOnMouseClicked(e->{
             if(nameInput.getText().isEmpty()){
                 nameInput.setPromptText("please enter a name");
             }
-            if(eloInput.getText().isEmpty()){
-                eloInput.setPromptText("please enter a number");
+            if(passwordInput.getText().isEmpty()){
+                passwordInput.setPromptText("please enter a password");
             }
             else{
-                try {
-                    int elo = Integer.parseInt(eloInput.getText());
-                    App.changeClient(nameInput.getText(),elo);
-                }
-                catch (NumberFormatException exception){
-                    eloInput.clear();
-                    eloInput.setPromptText("please enter a valid number!");
-                }
+                App.webclient.validateClientRequest(nameInput.getText(),passwordInput.getText());
+
 
             }
 
         });
+
+    }
+
+    private void setUpGeneralSettings(){
+
+        themeSelection.getItems().addAll("Light","Dark");
+        themeSelection.setOnAction(e->{
+            boolean isLight = themeSelection.getValue().equals("Light");
+            App.userPreferenceManager.setGlobalTheme(isLight ? GlobalTheme.Light : GlobalTheme.Dark);
+        });
+
+        bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
+        bgColorSelector.setOnAction(e ->{
+            App.userPreferenceManager.setChessboardTheme(ChessboardTheme.getCorrespondingTheme(bgColorSelector.getValue()));
+        });
+
+        pieceSelector.getItems().addAll(
+                Arrays.stream(ChessboardTheme.values()).map(ChessboardTheme::toString).toList()
+        );
+        pieceSelector.setOnAction(e ->{
+            // todo
+            App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
+        });
+
+        audioMuteBGButton.setOnMouseClicked(e->{
+
+        });
+
+        audioSliderBG.valueProperty().addListener(e->{
+            App.userPreferenceManager.setBackgroundVolume(audioSliderBG.getValue());
+        });
+
+        audioMuteEffButton.setOnMouseClicked(e->{
+
+        });
+
+        audioSliderEff.valueProperty().addListener(e->{
+            App.userPreferenceManager.setEffectVolume(audioSliderBG.getValue());
+        });
+
+        evalOptions.getItems().addAll(
+                1,2,3,4,5,6,7,8
+        );
+        evalOptions.setOnAction(e ->{
+            App.userPreferenceManager.setEvalDepth(evalOptions.getValue());
+
+        });
+
+
+        computerOptions.getItems().addAll(
+                1,2,3,4,5,6,7,8
+        );
+        computerOptions.setOnAction(e ->{
+            App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());
+
+        });
+
+
+
+
+
+
+
+        // container bindings
+        generalSettingsScrollpane.prefWidthProperty().bind(leftMain.widthProperty().subtract(sideButtons.widthProperty()).subtract(oldGamesPanel.widthProperty()));
+        generalSettingsScrollpane.prefHeightProperty().bind(leftMain.heightProperty());
+
+        generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
+        generalSettingsVbox.prefHeightProperty().bind(generalSettingsScrollpane.heightProperty());
+
+
+
+        // binding selectors and buttons
+        BindingController.bindChildWidthToParentWidthWithMaxSize(fullscreen,themeSelection,200,.25);
+        BindingController.bindChildHeightToParentHeightWithMaxSize(fullscreen,themeSelection,75,.20);
+        bgColorSelector.prefWidthProperty().bind(themeSelection.widthProperty());
+        bgColorSelector.prefHeightProperty().bind(themeSelection.heightProperty());
+
+
+        // binding labels
+//        BindingController.bindChildTextToParentWidth(themeSelection,themeLabel,.1);
+
+
     }
 
     private void setUpMultiOptions(){
@@ -255,8 +411,48 @@ public class StartScreenController implements Initializable {
             }
 
         });
+        // handle no internet connection
+        if(App.webclient == null){
+            disableMultioptions();
+        }
+        else{
+            enableMultioptions(false);
+        }
+        reconnectButton.setOnMouseClicked(e->{
+            App.messager.sendMessageQuick("Trying to connect",true);
+            boolean isSucess = App.attemptReconnection();
+            if(isSucess){
+                enableMultioptions(true);
+            }
+            else{
+                disableMultioptions();
+            }
+
+        });
 
 
+
+    }
+
+    public void disableMultioptions(){
+        gameTypes.setDisable(true);
+        multiplayerStart.setDisable(true);
+        poolCount.setText("No Internet Connection!");
+        reconnectButton.setVisible(true);
+        reconnectButton.setMouseTransparent(false);
+    }
+
+    public void enableMultioptions(boolean showMessage){
+        gameTypes.setDisable(false);
+        multiplayerStart.setDisable(false);
+        if(showMessage){
+            poolCount.setText("Connected To Internet");
+        }
+        else{
+            poolCount.setText("");
+        }
+        reconnectButton.setVisible(false);
+        reconnectButton.setMouseTransparent(true);
     }
 
     private void setUpPgnOptions(){
@@ -301,6 +497,9 @@ public class StartScreenController implements Initializable {
     }
     private final int maxNewGameButtonSize = 100;
     private void setUpBindings(){
+        content.prefWidthProperty().bind(fullscreen.widthProperty());
+        content.prefHeightProperty().bind(fullscreen.heightProperty());
+
         mainArea.prefWidthProperty().bind(leftMain.widthProperty().subtract(sideButtons.widthProperty()));
         mainArea.prefHeightProperty().bind(leftMain.heightProperty());
         DoubleProperty smallLabelsFontSize = new SimpleDoubleProperty();
@@ -309,8 +508,8 @@ public class StartScreenController implements Initializable {
         BindingController.bindChildTextToParentWidth(mainArea,nameLabel,.7);
         BindingController.bindChildTextToParentWidth(mainArea,eloLabel,7);
 
-        BindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,eloInput,350,.7);
-        BindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,nameInput,350,.7);
+        BindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput,350,.45);
+        BindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,nameInput,350,.45);
 
         BindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,addNewGame,maxNewGameButtonSize,.1);
         addNewGame.prefHeightProperty().bind(addNewGame.widthProperty());
@@ -320,6 +519,8 @@ public class StartScreenController implements Initializable {
         BindingController.bindChildWidthToParentWidthWithMaxSize(mainArea,themeSelection,100,.1);
         oldGamesPanelContent.prefWidthProperty().bind(oldGamesPanel.widthProperty());
         oldGamesLabel.styleProperty().bind(Bindings.concat("-fx-font-size: ",smallLabelsFontSize.toString()));
+        reconnectButton.prefWidthProperty().bind(mainArea.widthProperty().divide(8));
+        reconnectButton.prefHeightProperty().bind(reconnectButton.prefWidthProperty().multiply(0.75));
     }
 
     private void setUpMiscelaneus(){
@@ -343,10 +544,11 @@ public class StartScreenController implements Initializable {
         multiplayerButton.setStyle("");
         userSettingScreen.setVisible(false);
         userSettingScreen.setMouseTransparent(true);
+        generalSettingsScreen.setVisible(false);
+        generalSettingsScreen.setMouseTransparent(true);
 
     }
     private void setSelection(StartScreenState state){
-        this.currentState = state;
         hideAllScreens();
         switch (state){
             case PGN -> {
@@ -365,8 +567,13 @@ public class StartScreenController implements Initializable {
                 multiplayerSelectionScreen.setMouseTransparent(false);
             }
             case USERSETTINGS -> {
+                lastStateBeforeUserSettings = currentState;
                 userSettingScreen.setVisible(true);
                 userSettingScreen.setMouseTransparent(false);
+            }
+            case GENERALSETTINGS -> {
+                generalSettingsScreen.setVisible(true);
+                generalSettingsScreen.setMouseTransparent(false);
             }
             case SANDBOX -> {
                 sandboxButton.setStyle("-fx-border-style: 2px black");
@@ -374,6 +581,8 @@ public class StartScreenController implements Initializable {
                 sandboxScreen.setMouseTransparent(false);
             }
         }
+        this.currentState = state;
+
 
     }
 
@@ -446,13 +655,13 @@ public class StartScreenController implements Initializable {
     }
 
     private void removeFromOldGames(String hashCode){
-        App.removeGameFromData(hashCode);
+        PersistentSaveManager.removeGameFromData(hashCode);
         oldGamesPanelContent.getChildren().removeIf(e-> e.getUserData().equals(hashCode));
     }
 
     private List<ChessGame> loadGamesFromSave(){
 
-        return App.readFromAppData();
+        return PersistentSaveManager.readFromAppData();
     }
 
     private void setupOldGamesBox(List<ChessGame> gamesToLoad){

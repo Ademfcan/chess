@@ -6,30 +6,14 @@ import java.util.Objects;
 public class Client implements Comparable<Client>{
 
 
-    public String getName() {
-        return name;
-    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
-    public int getElo() {
-        return Elo;
-    }
-
-    public void setElo(int elo) {
-        Elo = elo;
-    }
-
-    private String name;
+    UserInfo info;
 
 
 
-    private int Elo;
-    public Client(String name,int elo){
-        this.name = name;
-        this.Elo = elo;
+    public Client(UserInfo info){
+        this.info = info;
 
     }
 
@@ -37,14 +21,19 @@ public class Client implements Comparable<Client>{
         // for json serialization
     }
 
+    public UserInfo getInfo() {
+        return info;
+    }
 
+    public void setInfo(UserInfo info) {
+        this.info = info;
+    }
 
 
 
     @Override
     public int compareTo(Client other) {
-        // Define comparison logic, e.g., based on ELO or another attribute
-        return Integer.compare(this.Elo, other.Elo);
+        return Integer.compare(this.info.userelo, other.info.userelo);
     }
 
 

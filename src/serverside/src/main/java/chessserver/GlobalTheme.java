@@ -1,6 +1,6 @@
-package chessengine;
+package chessserver;
 
-public enum ThemesGlobal {
+public enum GlobalTheme {
     Light("/CSSFiles/nord-light.css",true){
         @Override
         String getCssLocation() {
@@ -14,9 +14,9 @@ public enum ThemesGlobal {
         }
     };
     abstract String getCssLocation();
-    final String cssLocation;
+    public final String cssLocation;
     final Boolean isLight;
-    private ThemesGlobal(String cssLocation,boolean isLight){
+    private GlobalTheme(String cssLocation, boolean isLight){
         this.cssLocation = cssLocation;
         this.isLight = isLight;
     }

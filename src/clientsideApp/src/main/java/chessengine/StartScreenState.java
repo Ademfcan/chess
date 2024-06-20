@@ -5,5 +5,6 @@ public enum StartScreenState {
     REGULAR,
     MULTIPLAYER,
     USERSETTINGS,
+    GENERALSETTINGS,
     SANDBOX;
 }

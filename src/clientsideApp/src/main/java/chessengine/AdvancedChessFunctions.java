@@ -923,7 +923,11 @@ public class AdvancedChessFunctions {
 
     }
 
-    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType,int AmbigousFile,boolean isWhite,boolean isEating,BitBoardWrapper board,ChessStates gameState){
+    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType,int ambgX,int ambgY,boolean isWhite,boolean isEating,BitBoardWrapper board,ChessStates gameState){
+        // either will be no ambiguity, or it will both, or either x/y ambiguity
+        boolean noAmbg = ambgX == ChessConstants.EMPTYINDEX && ambgY == ChessConstants.EMPTYINDEX;
+        boolean bothAmbg = ambgX != ChessConstants.EMPTYINDEX && ambgY != ChessConstants.EMPTYINDEX;
+        boolean xAmbg = ambgX != ChessConstants.EMPTYINDEX;
         List<XYcoord> possibleOrigins;
         if(pieceType == ChessConstants.KINGINDEX){
             possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhite,board);
@@ -939,11 +943,23 @@ public class AdvancedChessFunctions {
         for(XYcoord c : possibleOrigins){
             boolean isPieceThere = GeneralChessFunctions.checkIfContains(c.x,c.y,isWhite ? board.getWhitePieces()[pieceType] : board.getBlackPieces()[pieceType]);
             if(isPieceThere){
-                if(AmbigousFile == ChessConstants.EMPTYINDEX){
+                if(noAmbg){
                     return c;
                 }
-                else if(c.x == AmbigousFile){
-                    return c;
+                else if(bothAmbg){
+                    if(c.x == ambgX && c.y == ambgY){
+                        return c;
+                    }
+                }
+                else if(xAmbg){
+                    if(c.x == ambgX) {
+                        return c;
+                    }
+                }
+                else{
+                    if(c.y == ambgY) {
+                        return c;
+                    }
                 }
             }
 
@@ -952,21 +968,48 @@ public class AdvancedChessFunctions {
         return null;
     }
     // returns -1 if not ambigous, 1 for singular ambiguity, 2 for double ambiguity and 3 for triple ambiguity
-    public static int isAmbigousMove(int moveX,int moveY,int pieceType,boolean isWhiteMove,boolean isEatingMove,BitBoardWrapper board){
+    public static String getAmbigiousStr(int oldX, int oldY, int newX, int newY, int pieceType, boolean isWhiteMove, boolean isEatingMove, BitBoardWrapper board){
         List<XYcoord> possibleOrigins;
         if(pieceType == ChessConstants.KINGINDEX){
-            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(moveX,moveY,!isWhiteMove,board);
+            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhiteMove,board);
 
         }
         else if(pieceType == ChessConstants.PAWNINDEX){
-            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(moveX,moveY,!isWhiteMove,isEatingMove,board);
+            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(newX,newY,!isWhiteMove,isEatingMove,board);
         }
         else {
             // dont need gamestate so passing in dummy variable
-            possibleOrigins = AdvancedChessFunctions.getMoveOfType(moveX,moveY,!isWhiteMove,pieceType,board,ChessConstants.NEWGAMESTATE,true);
+            possibleOrigins = AdvancedChessFunctions.getMoveOfType(newX,newY,!isWhiteMove,pieceType,board,ChessConstants.NEWGAMESTATE,true);
         }
-        long count = possibleOrigins.stream().filter(p -> GeneralChessFunctions.checkIfContains(p.x,p.y,isWhiteMove ? board.getWhitePieces()[pieceType] : board.getBlackPieces()[pieceType])).count();
-        return (int) count;
+        List<XYcoord> originsWithPiece = possibleOrigins.stream().filter(p -> GeneralChessFunctions.checkIfContains(p.x,p.y,isWhiteMove ? board.getWhitePieces()[pieceType] : board.getBlackPieces()[pieceType])).toList();
+        int XMatchCount = 0;
+        int YMatchCount = 0;
+        for(XYcoord xy : originsWithPiece){
+            if(xy.x == oldX){
+                XMatchCount++;
+            }
+            if(xy.y == oldY){
+                YMatchCount++;
+            }
+        }
+        String ambgStr = "";
+        if(XMatchCount > 0 && YMatchCount > 0){
+            // triple ambiguity, include x and y coords
+            ambgStr = Character.toString(PgnFunctions.turnIntToFileStr(oldX)) + Integer.toString(7-oldY+1);
+        }
+        else if(XMatchCount > 0){
+            // double ambiguity on the x axis so we differentiate by y
+            // in pgn y is not zero indexed, thus we add 1
+            // also the board is flipped in pgn so we invert the y coordinate
+            ambgStr = Integer.toString(7-oldY+1);
+        }
+        else if(YMatchCount > 0){
+            // double ambiguity on the y axis so we differentiate by x
+
+            ambgStr = Character.toString(PgnFunctions.turnIntToFileStr(oldX));
+
+        }
+        return ambgStr;
 
     }
 

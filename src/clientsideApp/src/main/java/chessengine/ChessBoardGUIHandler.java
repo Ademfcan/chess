@@ -1,8 +1,9 @@
 package chessengine;
 
+import chessserver.ChessboardTheme;
+import javafx.animation.Interpolator;
 import javafx.animation.PathTransition;
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
+import javafx.animation.Transition;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -11,6 +12,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.LineTo;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class ChessBoardGUIHandler {
     private final AnchorPane arrowBoard;
@@ -44,12 +47,10 @@ public class ChessBoardGUIHandler {
         this.chessHighlightBoard = chessHighlightBoard;
         arrows = new ArrayList<>();
         chessPieceBoard.widthProperty().addListener(e->{
-            System.out.println("changing width");
             redrawArrows();
 
         });
         chessPieceBoard.heightProperty().addListener(e->{
-            System.out.println("changing height");
 
             redrawArrows();
 
@@ -94,9 +95,11 @@ public class ChessBoardGUIHandler {
     }
 
     public void removeLayoutBindings(ImageView piece){
+        if(piece.layoutXProperty().isBound()){
+            piece.layoutXProperty().unbind();
+            piece.layoutYProperty().unbind();
 
-        piece.layoutXProperty().unbind();
-        piece.layoutYProperty().unbind();
+        }
 
     }
 
@@ -153,16 +156,21 @@ public class ChessBoardGUIHandler {
     }
 
     public void removeFromChessBoard(int x, int y,boolean isWhite){
-        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + y));
+        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + y + "," + isWhite));
         piecesAtLocations[x][y] = null;
         if(!isRemoved){
             logger.error(String.format("No pieces were removed at X:%d ,Y:%d",x,y));
         }
 
     }
+
+    public void removeFromChessBoard(ImageView piece){
+        chessPieceBoard.getChildren().remove(piece);
+    }
+
     public void addToChessBoard(int x, int y,int brdIndex,boolean isWhite){
         ImageView peice = createNewPiece(brdIndex,isWhite,false);
-        peice.setUserData(x + "," + y);
+        peice.setUserData(x + "," + y + "," + isWhite);
         peice.layoutXProperty().bind(chessPieceBoard.widthProperty().divide(8).multiply(x).add(chessPieceBoard.widthProperty().divide(16).subtract(peice.fitWidthProperty().divide(2))));
         peice.layoutYProperty().bind(chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(peice.fitHeightProperty().divide(2))));
         chessPieceBoard.getChildren().add(peice);
@@ -170,28 +178,54 @@ public class ChessBoardGUIHandler {
 
     }
 
-    public void movePieceOnBoard(int oldX, int oldY,int newX, int newY){
+    public void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite){
+        ImageView piece = piecesAtLocations[oldX][oldY];
+        piecesAtLocations[oldX][oldY] = null;
+        removeLayoutBindings(piece);
+        movePieceOnBoard(oldX,oldY,newX,newY,isWhite,piece);
+
+
+
+
+    }
+
+    public void moveNewPieceOnBoard(int oldX, int oldY,int newX, int newY,int boardIndex,boolean isWhite){
+        int[] xyOld = calcXY(oldX,oldY);
+        ImageView piece = createNewPiece(boardIndex,isWhite,false);
+        piece.setLayoutX(xyOld[0]);
+        piece.setLayoutY(xyOld[1]);
+        chessPieceBoard.getChildren().add(piece);
+        movePieceOnBoard(oldX,oldY,newX,newY,isWhite,piece);
+
+
+    }
+
+    public boolean inTransition;
+    private void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite,ImageView piece){
         PathTransition transition = new PathTransition();
-        transition.setDuration(Duration.seconds(.5));
+        inTransition = true;
+        transition.setDuration(Duration.seconds(.25));
         int[] xyOld = calcXY(oldX,oldY);
         int[] xyNew = calcXY(newX,newY);
-        transition.setPath(new Line(xyOld[0],xyOld[1],xyNew[0],xyNew[1]));
-        ImageView piece = piecesAtLocations[oldX][oldY];
+        double offsetX = chessPieceBoard.getWidth()/(2*pieceSize);
+        double offsetY = chessPieceBoard.getHeight()/(2*pieceSize);
+        transition.setPath(new Line(offsetX,offsetY,xyNew[0]-xyOld[0]+offsetX,xyNew[1]-xyOld[1]+offsetY));
+        transition.setInterpolator(Interpolator.EASE_OUT);
         transition.setNode(piece);
+        transition.setOnFinished(e->{
+            piece.setTranslateX(0);
+            piece.setTranslateY(0);
+            putBackLayoutBindings(piece,newX,newY);
+            piecesAtLocations[newX][newY] = piece;
+            piece.setUserData(newX + "," + newY + "," + isWhite);
+            inTransition = false;
+        });
         transition.play();
     }
 
 
 
-    public void playAnimation(){
-        Circle c = new Circle(5);
-        chessPieceBoard.getChildren().add(c);
-        c.setFill(Paint.valueOf("red"));
-        PathTransition waaa = new PathTransition(Duration.seconds(4),new Line(0,0,1500,1500));
-        waaa.setNode(c);
-        waaa.play();
 
-    }
 
     public int[] calcXY(int x, int y){
         double gridX = chessPieceBoard.getWidth()/8;
@@ -199,6 +233,14 @@ public class ChessBoardGUIHandler {
         double offsetX = chessPieceBoard.getWidth()/(2*pieceSize);
         double offsetY = chessPieceBoard.getHeight()/(2*pieceSize);
         return new int[]{(int)(gridX*x+gridX/2-offsetX),(int)(gridY*y+gridY/2-offsetY)};
+
+    }
+
+    public int[] calcXYWithoutOffset(int x, int y){
+        double gridX = chessPieceBoard.getWidth()/8;
+        double gridY = chessPieceBoard.getHeight()/8;
+
+        return new int[]{(int)(gridX*x+gridX/2),(int)(gridY*y+gridY/2)};
 
     }
 
@@ -244,10 +286,13 @@ public class ChessBoardGUIHandler {
                     XYcoord kingLocation = isWhite ? position.board.getWhiteKingLocation() : position.board.getBlackKingLocation();
                     addToChessBoard(kingLocation.x, kingLocation.y, ChessConstants.KINGINDEX,isWhite);
                 }
-                List<XYcoord> coords = GeneralChessFunctions.getPieceCoords(pieces[i]);
-                for(XYcoord c : coords){
-                    addToChessBoard(c.x,c.y,i,isWhite);
+                else{
+                    List<XYcoord> coords = GeneralChessFunctions.getPieceCoords(pieces[i]);
+                    for(XYcoord c : coords){
+                        addToChessBoard(c.x,c.y,i,isWhite);
+                    }
                 }
+
             }
             isWhite = !isWhite;
         }
@@ -329,6 +374,11 @@ public class ChessBoardGUIHandler {
 
         }
     }
+    public void highlightMove(ChessMove move){
+        highlightSquare(move.getOldX(),move.getOldY(),true);
+        highlightSquare(move.getNewX(),move.getNewY(),true);
+    }
+
     String highlightColor = "";
 
     public void clearHighlights()
@@ -344,17 +394,16 @@ public class ChessBoardGUIHandler {
     public void changeChessBg(String colorType) {
 
         boolean isLight = true;
-        highlightColor = colorType;
-        String[] clrStr = getColorStr(colorType);
+        ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
         int count = 0;
 
         for (Node n : chessHighlightBoard.getChildren()) {
             String curr = "";
             if (isLight) {
-                curr = clrStr[0];
+                curr = theme.lightColor;
                 isLight = false;
             } else {
-                curr = clrStr[1];
+                curr = theme.darkColor;
                 isLight = true;
             }
             if (count < 63) {

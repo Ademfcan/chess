@@ -45,16 +45,15 @@ public class Arrow {
 
         double xDiff = endXCoordCenter-startXCoordCenter;
         double yDiff = startYCoordCenter-endYCoordCenter;
-        double angArrow = Math.atan(yDiff/(xDiff));
+        double angArrow = Math.atan(yDiff/xDiff);
         System.out.println("Angle: " + Math.toDegrees(angArrow));
-
+//        if(angArrow < 0){
+//            angArrow = Math.PI+angArrow;
+//        }
 //        double sinArrow = Math.sin(3*Math.PI/4);
 //        double cosArrow = Math.cos(3*Math.PI/4);
-        if(angArrow < -90){
-            angArrow = 180-angArrow;
-        }
-        double sinArrow = Math.sin(-(Math.PI-angArrow));
-        double cosArrow = Math.cos(-(Math.PI-angArrow));
+        double sinArrow = Math.sin(2*Math.PI-angArrow);
+        double cosArrow = Math.cos(2*Math.PI-angArrow);
 
 
 

@@ -70,13 +70,13 @@ public class BindingController {
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.toString()));
     }
 
-    public static void bindChildTextToParentMin(Region parent,Region child, double parentToChildScaleFactor,String textColor){
+    public static void bindChildTextToParentValuesMin(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
         fontSize.bind(Bindings.min(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.toString(),"; -fx-text-fill: ",textColor));
     }
 
-    public static void bindChildTextToParentMax(Region parent,Region child, double parentToChildScaleFactor,String textColor){
+    public static void bindChildTextToParentValuesMax(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
         fontSize.bind(Bindings.max(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.toString(),"; -fx-text-fill: ",textColor));

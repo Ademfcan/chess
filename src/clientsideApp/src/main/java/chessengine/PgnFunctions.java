@@ -62,8 +62,7 @@ public class PgnFunctions {
             }
         }
         String start = turnPieceIndexToPgn(move.getBoardIndex());
-        boolean isAmbiguous = AdvancedChessFunctions.isAmbigousMove(move.getNewX(),move.getNewY(),move.getBoardIndex(),move.isWhite(),move.isEating(),board) > 0;
-        String ambiguityChar = isAmbiguous ? Character.toString(turnIntToFileStr(move.getOldX())) : "";
+        String ambiguityChar = AdvancedChessFunctions.getAmbigiousStr(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.getBoardIndex(),move.isWhite(),move.isEating(),board);
         String eatingChar = move.isEating() ? "x" : "";
         char xChar = turnIntToFileStr(move.getNewX());
         // flip y
@@ -81,7 +80,6 @@ public class PgnFunctions {
     }
 
     public static String invertPgn(String pgn){
-        // number will be at the end if not very close
         StringBuilder sb = new StringBuilder();
         for(int i = 0;i<pgn.length();i++){
             char c = pgn.charAt(i);

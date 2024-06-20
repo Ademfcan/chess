@@ -6,8 +6,8 @@ public class ChessGame {
         this.client2 = client2;
         this.isClient1Turn = isClient1Turn;
         this.gameLength = gameLength;
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getName() + "," + client2.getElo());
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getName() + "," + client1.getElo());
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo());
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo());
         ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TURNINDICATOR,"");
         client1.setCurrentGame(this);
         client2.setCurrentGame(this);
@@ -46,15 +46,15 @@ public class ChessGame {
         int[] finalElos;
         if(isEarlyExit){
             // if a client quits the game early, the other player automatically wins and the game is forfeited
-            finalElos = calcEloWin(client1.getElo(),client2.getElo(),!isClient1Request,false);
+            finalElos = calcEloWin(client1.getInfo().getUserelo(), client2.getInfo().getUserelo(), !isClient1Request,false);
         }
         else{
-            finalElos = calcEloWin(client1.getElo(),client2.getElo(),isClient1Winner,isDraw);
+            finalElos = calcEloWin(client1.getInfo().getUserelo(), client2.getInfo().getUserelo(), isClient1Winner,isDraw);
         }
 
-        String requester = isClient1Request ? client1.getName() : client2.getName();
-        String opponent = isClient1Request ? client2.getName() : client1.getName();
-        String winner = isEarlyExit ? (opponent) : (isClient1Winner ?  client1.getName() : client2.getName());
+        String requester = isClient1Request ? client1.getInfo().getUserName() : client2.getInfo().getUserName();
+        String opponent = isClient1Request ? client2.getInfo().getUserName() : client1.getInfo().getUserName();
+        String winner = isEarlyExit ? (opponent) : (isClient1Winner ?  client1.getInfo().getUserName() : client2.getInfo().getUserName());
         String extraInfo = isEarlyExit ? requester + " closed the game early" : winner + " won the game";
 
         // update clients about game closing

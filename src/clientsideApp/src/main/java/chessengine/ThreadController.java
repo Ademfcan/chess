@@ -39,22 +39,34 @@ public class ThreadController {
     }
 
     public void setComputerDepth(int depth){
-        if(!chessAiForBestMove.isRunning()){
-            computerTask.stop();
+        if(chessAiForBestMove.isRunning()) {
+            computerTask.setOnSucceeded(e -> {
+                chessAiForBestMove.setEvalDepth(depth);
+            });
+        }
+        else{
             chessAiForBestMove.setEvalDepth(depth);
-
         }
     }
     public void setEvalDepth(int depth){
-        if(!chessAiForEvalBar.isRunning()){
-            evalTask.stop();
-            chessAiForEvalBar.setEvalDepth(depth);
+        if(chessAiForEvalBar.isRunning()){
+            evalTask.setOnScheduled(e->{
+                chessAiForEvalBar.setEvalDepth(depth);
+            });
 
+        }
+        else{
+            chessAiForEvalBar.setEvalDepth(depth);
         }
     }
     public void setNmovesDepth(int depth){
-        if(!nMovesTask.isRunning()){
-            nMovesTask.stop();
+        if(nMovesTask.isRunning()){
+            nMovesTask.setOnSucceeded(e->{
+                chessAiForNMoves.setEvalDepth(depth);
+            });
+
+        }
+        else{
             chessAiForNMoves.setEvalDepth(depth);
 
         }

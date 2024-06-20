@@ -1,6 +1,8 @@
 package chessengine;
 
+import chessserver.ChessboardTheme;
 import chessserver.INTENT;
+import chessserver.UserPreferences;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -11,27 +13,28 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nd4j.common.primitives.Atomic;
 
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class mainScreenController implements Initializable {
 
-    Boolean peiceSelected = false;
-    // [0] = x ,[1] =  y coords [2] =( 1 = white, -1 = black)
-    int[] selectedPeiceInfo = {0, 0, 0};
-
-    List<XYcoord> oldHighights = null;
-    ImageView selectedPeice;
+    public UserPreferences initPreferences = null;
 
     StackPane[][] Bgpanes = new StackPane[8][8];
     private ImageView[][] peicesAtLocations = new ImageView[8][8];
+
+    @FXML
+    StackPane fullScreen;
+    @FXML
+    GridPane content;
+
+    @FXML
+    Pane mainMessageBoard;
 
     @FXML
     Button LeftButton;
@@ -123,8 +126,7 @@ public class mainScreenController implements Initializable {
     @FXML
     HBox promoContainer;
 
-    @FXML
-    GridPane fullScreen;
+
 
     @FXML
     GridPane settingsScreen;
@@ -246,6 +248,7 @@ public class mainScreenController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        mainMessageBoard.setMouseTransparent(true);
         logger = LogManager.getLogger(this.toString());
 
         logger.debug("initializing Main Screen");
@@ -265,7 +268,13 @@ public class mainScreenController implements Initializable {
         setUpSettingScreenMain();
         setUpDragAction();
 
-        ChessCentralControl.chessBoardGUIHandler.changeChessBg("Traditional");
+        if(initPreferences != null){
+            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
+            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
+            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString());
+        }
+        setEvalBar(0,0,false,false);
+
 
     }
 
@@ -301,18 +310,14 @@ public class mainScreenController implements Initializable {
     }
 
     private void setUpSettingScreenMain(){
-        bgColorSelector.getItems().addAll(
-                "Traditional",
-                "Ice", "Halloween", "Summer","Cherry"
-        );
+        bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(ChessboardTheme::toString).toList());
         bgColorSelector.setOnAction(e ->{
             ChessCentralControl.chessBoardGUIHandler.changeChessBg(bgColorSelector.getValue());
         });
         bgColorSelector.getSelectionModel().selectFirst();
 
         pieceSelector.getItems().addAll(
-                "Traditional",
-                "Ice", "Halloween", "Summer","Cherry"
+                Arrays.stream(ChessboardTheme.values()).map(ChessboardTheme::toString).toList()
         );
         pieceSelector.setOnAction(e ->{
             // todo
@@ -388,7 +393,7 @@ public class mainScreenController implements Initializable {
     private void setupresetToHome(Button gameoverHomebutton) {
         gameoverHomebutton.setOnMouseClicked(e ->{
             if(ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX)){
-                App.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
             }
             if(ChessCentralControl.gameHandler.currentGame.isWebGame()){
                 ChessCentralControl.gameHandler.currentGame.leaveWebGame();
@@ -404,7 +409,7 @@ public class mainScreenController implements Initializable {
 
     public void processChatInput() {
         App.soundPlayer.playEffect(Effect.MESSAGE);
-        ChessCentralControl.chessActionHandler.appendNewMessageToInfo("("+ ChessCentralControl.gameHandler.currentGame.getPlayer1name() + ") " + chatInput.getText());
+        ChessCentralControl.chessActionHandler.appendNewMessageToChat("("+ ChessCentralControl.gameHandler.currentGame.getPlayer1name() + ") " + chatInput.getText());
         if(ChessCentralControl.gameHandler.currentGame.isWebGame() && ChessCentralControl.gameHandler.currentGame.isWebGameInitialized()){
             App.webclient.sendRequest(INTENT.SENDCHAT,chatInput.getText());
         }
@@ -413,6 +418,9 @@ public class mainScreenController implements Initializable {
 
     public void setUpBindings(){
         // chess board
+        content.prefWidthProperty().bind(fullScreen.widthProperty());
+        content.prefHeightProperty().bind(fullScreen.heightProperty());
+
         chessBoardContainer.prefHeightProperty().bind(fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2)));
         chessBoardContainer.prefWidthProperty().bind(chessBoardContainer.prefHeightProperty().multiply(1.1));
         chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
@@ -656,6 +664,8 @@ public class mainScreenController implements Initializable {
     // change the board to a previosly saved position
     private void changeMove(int direction, boolean isReset){
         ChessCentralControl.chessActionHandler.updateSidePanel(currentState,false,"");
+        ChessCentralControl.chessBoardGUIHandler.clearHighlights();
+        ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Changing move by " + direction);
         if(isReset){
             ChessCentralControl.gameHandler.currentGame.reset();
@@ -672,8 +682,6 @@ public class mainScreenController implements Initializable {
         else{
             showGameOver();
         }
-        ChessCentralControl.chessBoardGUIHandler.clearHighlights();
-        ChessCentralControl.chessBoardGUIHandler.clearArrows();
         updateSimpleAdvantageLabels();
     }
 
@@ -775,9 +783,8 @@ public class mainScreenController implements Initializable {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isPlayer1Turn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move.toString());
             // computers move
-            selectedPeice = peicesAtLocations[move.getOldX()][move.getOldY()];
             // since when eating a piece you have to change visuals, need to hanndle it differently
-            ChessCentralControl.chessActionHandler.handleMakingMove(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),false,move.isCastleMove(),true,false,move.getPromoIndx(),currentState);
+            ChessCentralControl.chessActionHandler.handleMakingMove(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),false,move.isCastleMove(),true,false,move.getPromoIndx(),currentState,false);
 
         }
 

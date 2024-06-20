@@ -6,13 +6,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
-import javax.websocket.*;
+import jakarta.websocket.*;
 import java.io.IOException;
 import java.net.URI;
+import org.glassfish.tyrus.client.ClientManager;
 
 @ClientEndpoint
 public class WebSocketClient {
     private final Logger logger = LogManager.getLogger(this.getClass());
+//    private final URI serverUri = URI.create("wss://ademchessserver.azurewebsites.net/app/home");
     private final URI serverUri = URI.create("ws://localhost:8080/app/home");
     private final ObjectMapper objectMapper;
     private final FrontendClient client;
@@ -25,9 +27,8 @@ public class WebSocketClient {
         this.linkedGame = null;
         this.objectMapper = new ObjectMapper();
         this.client = client;
-        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        container.connectToServer(this, serverUri);
-
+        ClientManager clientManager = ClientManager.createClient();
+        clientManager.connectToServer(this, serverUri);
     }
 
     public void setLinkedGame(ChessGame chessGame){
@@ -46,7 +47,16 @@ public class WebSocketClient {
         try {
             OutputMessage out = objectMapper.readValue(message, OutputMessage.class);
             switch (out.getServerResponseType()){
-                case INWAITINGPOOL->{
+                case CLIENTVAIDATIONSUCESS -> {
+                    // sucessfuly accesed acount on
+                    UserInfo info = objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
+                    App.changeClient(info);
+                }
+                case CLIENTVALIDATIONFAIL -> {
+                    // username password did not match
+                    System.out.println("incorrect");
+                }
+                case INWAITINGPOOL -> {
                     linkedGame.sendMessageToInfo("Waiting in queue");
                     System.out.println("Added to wait pool");
                 }
@@ -59,18 +69,18 @@ public class WebSocketClient {
                     String opponentName = info[0];
                     int opponentElo = Integer.parseInt(info[1]);
                     linkedGame.setWebGameInitialized(true);
-                    linkedGame.initWebGame(opponentName,opponentElo);
+                    linkedGame.initWebGame(opponentName, opponentElo);
                     linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                 }
                 case LEFTGAMESUCESS -> {
                     System.out.println("Left game");
                 }
                 case INVALIDOPERATION -> {
-                    System.err.println("Invalid opp");
+                    System.err.println("Invalid operation");
                 }
                 case NUMBEROFPOOLERS -> {
                     System.out.println("Number in specific pool is: " + out.getExtraInformation());
-                    Platform.runLater(() ->{
+                    Platform.runLater(() -> {
                         App.startScreenController.poolCount.setText("number of players in pool: " + out.getExtraInformation());
                     });
                 }
@@ -82,7 +92,7 @@ public class WebSocketClient {
                     linkedGame.setPlayer1Turn(true);
                 }
                 case CHATFROMOPPONENT -> {
-                    System.out.println("(" + linkedGame.getPlayer2name() + ")" +  out.getExtraInformation());
+                    System.out.println("(" + linkedGame.getPlayer2name() + ")" + out.getExtraInformation());
                     linkedGame.sendMessageToInfo("(" + linkedGame.getPlayer2name() + ")" + out.getExtraInformation());
                     App.soundPlayer.playEffect(Effect.MESSAGE);
                 }
@@ -90,33 +100,33 @@ public class WebSocketClient {
                     linkedGame.makeNewMove(out.getExtraInformation());
                     System.out.println("Your opponent played: " + out.getExtraInformation());
                 }
-
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @OnError
     public void onError(Throwable t) {
-        System.out.println( "Error occurred: "+ t.toString());
+        System.out.println("Error occurred: " + t.toString());
     }
 
-    public void sendRequest(INTENT intent, String extraInfo){
+    public void sendRequest(INTENT intent, String extraInfo) {
         try {
-            String message = objectMapper.writeValueAsString(new InputMessage(this.client,intent,extraInfo));
+            String message = objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
             session.getBasicRemote().sendText(message);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void close() throws IOException {
-        session.close();;
+    public void validateClientRequest(String userName,String userPassword){
+        // todo: encrypt!!
+        sendRequest(INTENT.GETUSER,userName + "," + userPassword);
+
     }
 
-
+    public void close() throws IOException {
+        session.close();
+    }
 }
-

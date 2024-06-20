@@ -16,8 +16,8 @@ public class BackendClient extends Client{
 
 
 
-    public BackendClient(String name, int elo){
-        super(name,elo);
+    public BackendClient(UserInfo info){
+        super(info);
         this.currentGame = null;
     }
 

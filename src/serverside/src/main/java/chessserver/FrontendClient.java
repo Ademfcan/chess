@@ -8,12 +8,12 @@ public class FrontendClient extends Client{
 
     }
 
-    public FrontendClient(String name, int elo) {
-        super(name, elo);
+    public FrontendClient(UserInfo info) {
+        super(info);
     }
 
     public BackendClient createBackend(Session session){
-        BackendClient b = new BackendClient(this.getName(),this.getElo());
+        BackendClient b = new BackendClient(this.getInfo());
         b.setClientSession(session);
         return b;
     }

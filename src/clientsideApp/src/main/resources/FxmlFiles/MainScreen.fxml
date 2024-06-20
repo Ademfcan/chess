@@ -20,7 +20,9 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<GridPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.mainScreenController">
+<StackPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.mainScreenController">
+   <children>
+      <GridPane fx:id="content" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
     <columnConstraints>
       <ColumnConstraints minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
         <ColumnConstraints percentWidth="60.0" />
@@ -334,3 +336,6 @@
       <Label fx:id="BlackNumericalAdv" layoutX="10.0" layoutY="385.0" />
    </children>
 </GridPane>
+      <Pane fx:id="mainMessageBoard" prefHeight="200.0" prefWidth="200.0" />
+   </children>
+</StackPane>

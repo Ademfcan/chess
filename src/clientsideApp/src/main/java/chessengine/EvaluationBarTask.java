@@ -49,7 +49,7 @@ public class EvaluationBarTask extends Task<Void> {
                 if (evaluationRequest) {
                     System.out.println("Evaluating");
 
-                    for(int i = 2;i<maxD+1;i++){
+                    for(int i = 1;i<maxD;i++){
                         EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition,currentGameState, i, currentIsWhite);
                         Future<Double> eval = executor.submit(evalCallable);
                         double evaluationOutput = eval.get(); // blocking call, consider timeout

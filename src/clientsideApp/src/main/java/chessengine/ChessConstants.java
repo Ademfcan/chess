@@ -1,6 +1,7 @@
 package chessengine;
 
-import chessserver.FrontendClient;
+import chessserver.*;
+import chessserver.GlobalTheme;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,7 +51,11 @@ public class ChessConstants {
     public static final int WHITECHECKMATEVALUE = 1000000;
     public static final int BLACKCHECKMATEVALUE = -1000000;
 
-    public static final FrontendClient defaultClient = new FrontendClient("anonymous",0);
+    public static final String NOEMAIL = "no-email";
+    public static final String NOPASS = "no-password";
+
+    public static final UserPreferences defaultPreferences = new UserPreferences(true,.75,true,.75,5,5, GlobalTheme.Light, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
+    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0,"anonymous",NOEMAIL,NOPASS));
     public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false),0);
 
 }

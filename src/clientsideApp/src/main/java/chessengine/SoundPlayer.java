@@ -49,28 +49,31 @@ public class SoundPlayer {
 
     }
 
+    public void muteBackgroundMusic(){
+        isMuted = true;
+        stopMusic();
+    }
+
     public void stopMusic(){
-        currentSong.clip.stop();
         isStopped =true;
+        if(currentSong != null){
+            currentSong.clip.stop();
+        }
+
     }
     private boolean isMuted = false;
     public boolean toggleAudio(){
         if(isMuted){
-            currentVolumeBackground = defaultBGVolume;
-            if(isStopped){
-                startBackgroundMusic();
-            }
             isMuted = false;
+            startBackgroundMusic();
         }
         else{
             isMuted = true;
-            currentVolumeBackground = 0;
-            if(!isStopped){
-                stopMusic();
-            }
+            stopMusic();
         }
         return isMuted;
     }
+
 
 
 
