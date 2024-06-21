@@ -116,6 +116,7 @@ public class ChessBoardGUIHandler {
     }
     public final int pieceSize = 9;
     public ImageView createNewPiece(int brdIndex, boolean isWhite, boolean isEaten){
+        System.out.println("Trying to create a: " + GeneralChessFunctions.getPieceType(brdIndex));
         String restOfPath ="";
         String pathStart = isWhite ? "w_" : "b_";
         switch (brdIndex) {
@@ -164,7 +165,8 @@ public class ChessBoardGUIHandler {
 
     }
 
-    public void removeFromChessBoard(ImageView piece){
+    public void removeFromChessBoard(ImageView piece,int x, int y){
+        piecesAtLocations[x][y] = null;
         chessPieceBoard.getChildren().remove(piece);
     }
 
@@ -204,13 +206,12 @@ public class ChessBoardGUIHandler {
     private void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite,ImageView piece){
         PathTransition transition = new PathTransition();
         inTransition = true;
-        transition.setDuration(Duration.seconds(.25));
+        transition.setDuration(Duration.seconds(.22));
         int[] xyOld = calcXY(oldX,oldY);
         int[] xyNew = calcXY(newX,newY);
         double offsetX = chessPieceBoard.getWidth()/(2*pieceSize);
         double offsetY = chessPieceBoard.getHeight()/(2*pieceSize);
         transition.setPath(new Line(offsetX,offsetY,xyNew[0]-xyOld[0]+offsetX,xyNew[1]-xyOld[1]+offsetY));
-        transition.setInterpolator(Interpolator.EASE_OUT);
         transition.setNode(piece);
         transition.setOnFinished(e->{
             piece.setTranslateX(0);

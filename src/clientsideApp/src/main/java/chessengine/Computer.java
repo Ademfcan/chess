@@ -40,6 +40,12 @@ public class Computer{
         lastMove = null;
     }
 
+    private void clearFlags(){
+        stop = false;
+        running = false;
+
+    }
+
     public void setEvalDepth(int evalDepth) {
         this.evalDepth = evalDepth;
     }
@@ -47,16 +53,17 @@ public class Computer{
     public List<ComputerOutput> getNMoves(boolean isWhite, ChessPosition pos,ChessStates gameState,int nMoves){
         List<ComputerOutput> BestMoves = new ArrayList<>(nMoves);
         HashSet<ChessMove> prevMoves = new HashSet<>(nMoves);
+        running = true;
         for(int i = 0;i<nMoves;i++){
             ComputerOutput out = getComputerMoveWithCondiditon(isWhite,pos,gameState,prevMoves,true);
             if(out.equals(ChessConstants.emptyOutput)){
-                stop = false;
+                clearFlags();
                 return null;
             }
             BestMoves.add(out);
             prevMoves.add(out.move);
         }
-        stop = false;
+        clearFlags();
         return BestMoves;
     }
 
@@ -80,14 +87,14 @@ public class Computer{
         }
         for(BackendChessPosition childPos : filteredPositions){
             if(stop){
-                stop = false;
-                System.out.println("Stopped nmoves");
+                clearFlags();
+                System.out.println("Stopped nmoves1");
                 return ChessConstants.emptyOutput;
             }
             double miniMaxEval = miniMax(childPos, childPos.gameState,evalDepth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
             if(miniMaxEval == Stopped){
-                System.out.println("Stopped nmoves");
-                stop =false;
+                System.out.println("Stopped nmoves2");
+                clearFlags();
                 return ChessConstants.emptyOutput;
             }
             if(isWhite){
@@ -109,13 +116,12 @@ public class Computer{
 
         }
         if(bestMove == null){
-            stop = false;
-            System.out.println("null bestmovesoutput");
+            clearFlags();
+            ChessConstants.mainLogger.error("null bestmovesoutput");
             return ChessConstants.emptyOutput;
         }
         lastMove = bestMove.getMoveThatCreatedThis();
-        running = false;
-        stop = false;
+        clearFlags();
         return new ComputerOutput(lastMove,bestEval);
     }
 
@@ -162,6 +168,9 @@ public class Computer{
             List<BackendChessPosition> childPos = position.getAllChildPositions(true,gameState);
             for(BackendChessPosition c : childPos){
                 double eval = miniMax(c,c.gameState, depth - 1, alpha, beta, false);
+                if(eval == Stopped){
+                    return Stopped;
+                }
                 maxEval = Math.max(eval, maxEval);
                 alpha = Math.max(alpha, eval);  // Update alpha after the recursive call
                 if(beta <= alpha){
@@ -176,6 +185,9 @@ public class Computer{
             List<BackendChessPosition> childPos = position.getAllChildPositions(false,gameState);
             for(BackendChessPosition c : childPos){
                 double eval = miniMax(c,c.gameState, depth - 1, alpha, beta, true);
+                if(eval == Stopped){
+                    return Stopped;
+                }
                 minEval = Math.min(eval, minEval);
                 beta = Math.min(beta, eval);  // Update beta after the recursive call
                 if(beta <= alpha){
@@ -200,6 +212,7 @@ public class Computer{
         running = true;
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,pos.board,gameState)){
             // possiblity of a checkmate, else draw
+            clearFlags();
             if(AdvancedChessFunctions.isChecked(true,pos.board)){
                 return ChessConstants.BLACKCHECKMATEVALUE;
             }
@@ -207,6 +220,7 @@ public class Computer{
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(false,pos.board,gameState)){
             // possiblity of a checkmate, else draw
+            clearFlags();
             if(AdvancedChessFunctions.isChecked(false,pos.board)){
                 return ChessConstants.WHITECHECKMATEVALUE;
             }
@@ -214,10 +228,14 @@ public class Computer{
         }
         for(BackendChessPosition c : pos.getAllChildPositions(isWhite,gameState)){
             if(stop){
-                stop = false;
+                clearFlags();
                 return Stopped;
             }
             double eval =  miniMax(c,c.gameState,depth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+            if(eval == Stopped){
+                clearFlags();
+                return Stopped;
+            }
             if(isWhite){
                 bestEval = Math.max(eval,bestEval);
             }
@@ -225,8 +243,7 @@ public class Computer{
                 bestEval = Math.min(eval,bestEval);
             }
         }
-        running = false;
-        stop = false;
+        clearFlags();
         return bestEval;
     }
 

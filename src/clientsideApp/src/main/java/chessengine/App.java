@@ -170,7 +170,7 @@ public class App extends Application {
 
     public static void adjustGameToUserPreferences(UserPreferences preferences){
         if(!preferences.isBackgroundmusic()){
-            soundPlayer.muteBackgroundMusic();
+//            soundPlayer.muteBackgroundMusic();
             App.startScreenController.backgroundAudioButton.setText("✖");
         }
         else{

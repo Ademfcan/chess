@@ -32,8 +32,10 @@ public class EvaluationBarTask extends Task<Void> {
 
     public void evalRequest(){
         // stop old minimax
-        c.stop = true;
         evaluationRequest = true;
+        if(!isCurrentlyEvaluating){
+            evaluationRequest = true;
+        }
     }
 
     public void stop(){
@@ -42,11 +44,15 @@ public class EvaluationBarTask extends Task<Void> {
         }
 
     }
+    private boolean isCurrentlyEvaluating = false;
+
     @Override
     public Void call(){
         while (running){
             try {
                 if (evaluationRequest) {
+                    evaluationRequest = false;
+                    isCurrentlyEvaluating = true;
                     System.out.println("Evaluating");
 
                     for(int i = 1;i<maxD;i++){
@@ -63,9 +69,9 @@ public class EvaluationBarTask extends Task<Void> {
                         }
 
                     }
+                    isCurrentlyEvaluating = false;
 
 
-                    evaluationRequest = false;
                 }
 
 

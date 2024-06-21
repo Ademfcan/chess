@@ -52,8 +52,8 @@ public class Arrow {
 //        }
 //        double sinArrow = Math.sin(3*Math.PI/4);
 //        double cosArrow = Math.cos(3*Math.PI/4);
-        double sinArrow = Math.sin(2*Math.PI-angArrow);
-        double cosArrow = Math.cos(2*Math.PI-angArrow);
+        double sinArrow = Math.sin(-(Math.PI-angArrow));
+        double cosArrow = Math.cos(-(Math.PI-angArrow));
 
 
 

@@ -382,7 +382,7 @@ public class ChessActionHandler {
                             if(isEating){
                                 myControl.chessBoardGUIHandler.removeFromChessBoard(newX, newY, oldIsWhite);
                             }
-                            myControl.chessBoardGUIHandler.removeFromChessBoard(selected);
+                            myControl.chessBoardGUIHandler.removeFromChessBoard(selected,oldX,oldY);
 
                         }
                         handleMakingMove(oldX, oldY, newX, newY, isEating, oldIsWhite, isCastle, false, false, ChessConstants.EMPTYINDEX, currentState,true);

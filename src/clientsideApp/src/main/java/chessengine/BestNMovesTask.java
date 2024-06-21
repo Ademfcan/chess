@@ -37,8 +37,11 @@ public class BestNMovesTask extends Task<Void> {
 
     public void evalRequest(){
         logger.info("Called Evaluation Request");
-        c.stop = true;
         if(!isCurrentlyEvaluating){
+            evaluationRequest = true;
+        }
+        else{
+            c.stop = true;
             evaluationRequest = true;
         }
 
@@ -59,6 +62,7 @@ public class BestNMovesTask extends Task<Void> {
             try {
                 if (evaluationRequest) {
                     isInvalidated = false;
+                    evaluationRequest = false;
                     isCurrentlyEvaluating = true;
                     logger.info("Starting a best n moves evaluation");
                     List<ComputerOutput> nmoves = c.getNMoves(currentIsWhite, currentPosition,currentGameState,nSuggestions);
@@ -72,7 +76,6 @@ public class BestNMovesTask extends Task<Void> {
                     else{
                         System.out.println("null best moves");
                     }
-                    evaluationRequest = false;
                     isCurrentlyEvaluating = false;
 
                 }

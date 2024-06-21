@@ -32,33 +32,52 @@ public class SoundPlayer {
     }
     private boolean isStopped = false;
     public void startBackgroundMusic(){
-        isStopped = false;
-        currentSong = BGMusic.values()[songCount];
+        if(isStopped){
+            isStopped = false;
+            if(currentSong == null){
+                currentSong = getNextSong();
+            }
+            currentSong.clip.setOnEndOfMedia(()->{
+//                if(!isStopped) {
+//                    startBackgroundMusic();
+//                }
+//                else{
+//                    currentSong
+//                }
+            });
+        }
+        else{
+            ChessConstants.mainLogger.debug("Music already playing");
+        }
 
-        currentSong.clip.setVolume(currentVolumeBackground);
-        currentSong.clip.play();
+
+    }
+
+    private BGMusic getNextSong(){
+        BGMusic Song = BGMusic.values()[songCount];
+
+        Song.clip.setVolume(currentVolumeBackground);
         songCount++;
         if(songCount >= BGMusic.values().length){
             songCount = 0;
         }
-        currentSong.clip.setOnEndOfMedia(()->{
-            if(!isStopped) {
-                startBackgroundMusic();
-            }
-        });
-
-    }
-
-    public void muteBackgroundMusic(){
-        isMuted = true;
-        stopMusic();
+        return currentSong;
     }
 
     public void stopMusic(){
-        isStopped =true;
-        if(currentSong != null){
-            currentSong.clip.stop();
+        if(!isStopped){
+            isStopped =true;
+            if(currentSong != null){
+                currentSong.clip.pause();
+            }
+            else{
+                ChessConstants.mainLogger.error("Null song trying to stop");
+            }
         }
+        else{
+            ChessConstants.mainLogger.debug("Music Already stopped");
+        }
+
 
     }
     private boolean isMuted = false;
