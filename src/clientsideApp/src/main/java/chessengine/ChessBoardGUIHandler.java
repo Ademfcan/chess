@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ChessBoardGUIHandler {
-    private final AnchorPane arrowBoard;
+    private final Pane arrowBoard;
     private final StackPane[][] bgPanes;
     private final GridPane chessHighlightBoard;
     public Pane chessPieceBoard;
@@ -36,7 +36,7 @@ public class ChessBoardGUIHandler {
     private Logger logger;
 
     private List<Arrow> arrows;
-    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, AnchorPane ArrowBoard, StackPane[][] bgPanes,GridPane chessHighlightBoard){
+    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, StackPane[][] bgPanes,GridPane chessHighlightBoard){
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhites = eatenWhites;
         this.eatenBlacks = eatenBlacks;
@@ -116,7 +116,6 @@ public class ChessBoardGUIHandler {
     }
     public final int pieceSize = 9;
     public ImageView createNewPiece(int brdIndex, boolean isWhite, boolean isEaten){
-        System.out.println("Trying to create a: " + GeneralChessFunctions.getPieceType(brdIndex));
         String restOfPath ="";
         String pathStart = isWhite ? "w_" : "b_";
         switch (brdIndex) {

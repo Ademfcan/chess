@@ -58,7 +58,7 @@ public class mainScreenController implements Initializable {
     GridPane chessBgBoard;
 
     @FXML
-    AnchorPane arrowBoard;
+    Pane arrowBoard;
 
     @FXML
     GridPane promotionScreen;
@@ -422,9 +422,13 @@ public class mainScreenController implements Initializable {
         content.prefHeightProperty().bind(fullScreen.heightProperty());
 
         chessBoardContainer.prefHeightProperty().bind(fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2)));
-        chessBoardContainer.prefWidthProperty().bind(chessBoardContainer.prefHeightProperty().multiply(1.1));
+        chessBoardContainer.prefWidthProperty().bind(chessBoardContainer.heightProperty().multiply(1.1));
         chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
+        chessHighlightBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        chessHighlightBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
+        chessBgBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        chessBgBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
         arrowBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         arrowBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
 

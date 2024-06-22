@@ -393,6 +393,12 @@ public class ChessActionHandler {
                     }
                 }
             }
+            else{
+                if(selected != null){
+                    resetDragSelected(selected);
+                }
+            }
+
             selected = null;
             dragging = false;
         }

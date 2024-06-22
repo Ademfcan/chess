@@ -170,12 +170,12 @@ public class App extends Application {
 
     public static void adjustGameToUserPreferences(UserPreferences preferences){
         if(!preferences.isBackgroundmusic()){
-//            soundPlayer.muteBackgroundMusic();
             App.startScreenController.backgroundAudioButton.setText("✖");
+            soundPlayer.pauseSong(true);
         }
         else{
             App.startScreenController.backgroundAudioButton.setText("🔉");
-            soundPlayer.startBackgroundMusic();
+            soundPlayer.playSong(true);
         }
         soundPlayer.changeVolumeBackground(preferences.getBackgroundVolume());
         soundPlayer.changeVolumeEffects(preferences.getEffectVolume());
@@ -224,7 +224,9 @@ public class App extends Application {
         isStartScreen = true;
         mainScene.setRoot(startRoot);
         updateGlobalTheme(globalTheme);
-        soundPlayer.startBackgroundMusic();
+        if(!soundPlayer.isUserPrefPaused()){
+            soundPlayer.playSong(false);
+        }
 
 
     }
@@ -234,7 +236,7 @@ public class App extends Application {
         mainScene.setRoot(mainRoot);
         updateGlobalTheme(globalTheme);
         mainScreenController.setUp(isVsComputer,gameName,null,appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(),state);
-        soundPlayer.stopMusic();
+        soundPlayer.pauseSong(false);
 
     }
 
@@ -245,13 +247,13 @@ public class App extends Application {
         mainScene.setRoot(mainRoot);
         updateGlobalTheme(globalTheme);
         mainScreenController.setUp(isVsComputer,"",loadedGame,appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(),state);
-        soundPlayer.stopMusic();
+        soundPlayer.pauseSong(false);
 
 
     }
 
     public static void changeToMainScreenMultiplayer(String player1Name, int player1Elo, ChessGame webGame){
-        soundPlayer.stopMusic();
+        soundPlayer.pauseSong(false);
 
     }
 

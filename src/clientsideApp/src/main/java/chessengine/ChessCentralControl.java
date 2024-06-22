@@ -28,7 +28,7 @@ public class ChessCentralControl {
 
     }
 
-    public void init(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, AnchorPane ArrowBoard, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput, Button sendMessageButton, StackPane[][] bgPanes,GridPane chessHighlightBoard){
+    public void init(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput, Button sendMessageButton, StackPane[][] bgPanes,GridPane chessHighlightBoard){
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(chessPieceBoard,eatenWhites,eatenBlacks,piecesAtLocations,ArrowBoard,bgPanes,chessHighlightBoard);
         this.asyncController = new ThreadController(5,5);
         this.gameHandler = new ChessGameHandler(this);

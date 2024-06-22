@@ -277,15 +277,18 @@ public class StartScreenController implements Initializable {
             setSelection(StartScreenState.GENERALSETTINGS);
         });
         backgroundAudioButton.setOnMouseClicked(e->{
-            boolean isMuted = App.soundPlayer.toggleAudio();
-            if(isMuted){
-                backgroundAudioButton.setText("✖");
-            }
-            else{
+            boolean isCurPaused = App.soundPlayer.getPaused();
+            if(isCurPaused){
+                // unpause so change to playing icon
                 backgroundAudioButton.setText("🔉");
             }
+            else{
+                // pause so make not playing icon
+                backgroundAudioButton.setText("✖");
+
+            }
             // muted = opposite of is bg music
-            App.userPreferenceManager.setBackgroundmusic(!isMuted);
+            App.userPreferenceManager.setBackgroundmusic(isCurPaused);
         });
     }
 

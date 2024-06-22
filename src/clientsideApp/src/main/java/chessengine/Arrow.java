@@ -47,9 +47,9 @@ public class Arrow {
         double yDiff = startYCoordCenter-endYCoordCenter;
         double angArrow = Math.atan(yDiff/xDiff);
         System.out.println("Angle: " + Math.toDegrees(angArrow));
-//        if(angArrow < 0){
-//            angArrow = Math.PI+angArrow;
-//        }
+        if(xDiff < 0){
+            angArrow = Math.PI+angArrow;
+        }
 //        double sinArrow = Math.sin(3*Math.PI/4);
 //        double cosArrow = Math.cos(3*Math.PI/4);
         double sinArrow = Math.sin(-(Math.PI-angArrow));

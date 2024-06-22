@@ -4,6 +4,12 @@ public class SoundPlayer {
     private final double defaultVolume = 1;
     private final double defaultBGVolume = .1d;
 
+    private boolean isPaused;
+
+
+
+    private boolean userPrefPaused;
+
     private int songCount = 0;
 
     private BGMusic currentSong;
@@ -16,10 +22,16 @@ public class SoundPlayer {
     public SoundPlayer(double volumeEffects,double volumeBackground){
         this.currentVolumeBackground = volumeBackground;
         this.currentVolumeEffects = volumeEffects;
+        this.currentSong = getNextSong();
+        this.isPaused = false;
+
     }
     public SoundPlayer(){
         this.currentVolumeBackground = defaultBGVolume;
         this.currentVolumeEffects = defaultVolume;
+        this.currentSong = getNextSong();
+        this.isPaused = false;
+        
 
 
     }
@@ -30,24 +42,12 @@ public class SoundPlayer {
         effect.playClip(currentVolumeEffects);
 
     }
-    private boolean isStopped = false;
-    public void startBackgroundMusic(){
-        if(isStopped){
-            isStopped = false;
-            if(currentSong == null){
-                currentSong = getNextSong();
-            }
-            currentSong.clip.setOnEndOfMedia(()->{
-//                if(!isStopped) {
-//                    startBackgroundMusic();
-//                }
-//                else{
-//                    currentSong
-//                }
-            });
+    private void checkStartNextSong(){
+        if(!isPaused){
+            currentSong.clip.play();
         }
         else{
-            ChessConstants.mainLogger.debug("Music already playing");
+            ChessConstants.mainLogger.debug("Not starting song paused");
         }
 
 
@@ -57,40 +57,49 @@ public class SoundPlayer {
         BGMusic Song = BGMusic.values()[songCount];
 
         Song.clip.setVolume(currentVolumeBackground);
+        Song.clip.setOnEndOfMedia(()->{
+            currentSong = getNextSong();
+            checkStartNextSong();
+        });
         songCount++;
         if(songCount >= BGMusic.values().length){
             songCount = 0;
         }
-        return currentSong;
+        return Song;
     }
 
-    public void stopMusic(){
-        if(!isStopped){
-            isStopped =true;
-            if(currentSong != null){
-                currentSong.clip.pause();
-            }
-            else{
-                ChessConstants.mainLogger.error("Null song trying to stop");
-            }
+    public void pauseSong(boolean isCauseOfUserPref) {
+        if(isCauseOfUserPref){
+            userPrefPaused = true;
+        }
+        if(!isPaused){
+            currentSong.clip.pause();
+            isPaused = true;
         }
         else{
-            ChessConstants.mainLogger.debug("Music Already stopped");
+            ChessConstants.mainLogger.debug("Song already paused");
         }
-
-
     }
-    private boolean isMuted = false;
-    public boolean toggleAudio(){
-        if(isMuted){
-            isMuted = false;
-            startBackgroundMusic();
+
+    public void playSong(boolean isCauseOfUserPref){
+        if(isCauseOfUserPref){
+            userPrefPaused = false;
+        }
+        if(isPaused){
+            currentSong.clip.play();
+            isPaused = false;
         }
         else{
-            isMuted = true;
-            stopMusic();
+            ChessConstants.mainLogger.debug("Song already playing");
         }
-        return isMuted;
+    }
+
+    public boolean getPaused(){
+        return isPaused;
+    }
+
+    public boolean isUserPrefPaused() {
+        return userPrefPaused;
     }
 
 
