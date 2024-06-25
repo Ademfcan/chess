@@ -1,16 +1,29 @@
 package chessengine;
 
 import chessserver.*;
+import javafx.animation.*;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.*;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -28,8 +41,7 @@ public class StartScreenController implements Initializable {
     @FXML
     Pane startMessageBoard;
 
-    @FXML
-    HBox leftMain;
+
 
     @FXML
     Button vsPlayer;
@@ -37,8 +49,11 @@ public class StartScreenController implements Initializable {
     @FXML
     Button vsComputer;
 
-
-
+    // main area screens
+    @FXML
+    StackPane campaignScreen;
+    @FXML
+    ScrollPane campaignScroller;
     @FXML
     HBox pgnSelectionScreen;
 
@@ -61,7 +76,16 @@ public class StartScreenController implements Initializable {
     Button enterSandboxButton;
 
 
+    // campaign screen
+    @FXML
+    StackPane levelContainer;
+    @FXML
+    Pane levelContainerPath;
+    @FXML
+    Pane levelContainerElements;
 
+
+    // pgn screen
 
     @FXML
     TextArea pgnTextArea;
@@ -93,6 +117,9 @@ public class StartScreenController implements Initializable {
     // side panel stuff
     @FXML
     VBox sideButtons;
+
+    @FXML
+    Button campaignButton;
 
     @FXML
     Button localButton;
@@ -208,8 +235,15 @@ public class StartScreenController implements Initializable {
     @FXML
     TextField passwordInput;
 
+    // profile
     @FXML
     ImageView profileButton;
+    @FXML
+    Label nameProfileLabel;
+    @FXML
+    Label eloProfileLabel;
+
+
 
 
 
@@ -217,6 +251,7 @@ public class StartScreenController implements Initializable {
 
     @FXML
     Button saveUserOptions;
+
 
     List<ChessGame> oldGames;
     private StartScreenState currentState;
@@ -226,9 +261,7 @@ public class StartScreenController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         startMessageBoard.setMouseTransparent(true);
-
         setSelection(StartScreenState.REGULAR);
-
 
 
 
@@ -243,13 +276,213 @@ public class StartScreenController implements Initializable {
         setUpMiscelaneus();
         setUpBindings();
 
+        setUpCampaignScreen();
+
+
         oldGames = loadGamesFromSave();
         setupOldGamesBox(oldGames);
 
 
 
+
     }
 
+    public void setProfileInfo(ProfilePicture picture, String name, int elo){
+        profileButton.setImage(new Image(picture.urlString));
+        System.out.println("Changing image: " + picture.urlString);
+        nameProfileLabel.setText(name);
+        eloProfileLabel.setText(Integer.toString(elo));
+    }
+
+    private final int NLevels = 15;
+    private final ImageView[][] pawnStars = new ImageView[NLevels][3];
+    private void setUpCampaignScreen(){
+        campaignScreen.prefWidthProperty().bind(mainArea.widthProperty());
+        campaignScreen.prefHeightProperty().bind(mainArea.heightProperty());
+        campaignScroller.prefWidthProperty().bind(campaignScreen.prefWidthProperty());
+        campaignScroller.prefHeightProperty().bind(campaignScreen.heightProperty());
+        levelContainer.prefWidthProperty().bind(campaignScreen.prefWidthProperty());
+        levelContainerElements.prefWidthProperty().bind(campaignScreen.prefWidthProperty());
+        levelContainerPath.prefWidthProperty().bind(campaignScreen.prefWidthProperty());
+        levelContainerPath.setMouseTransparent(true);
+        levelContainerElements.toFront();
+        drawLevels(levelContainer.widthProperty());
+    }
+
+    private void scrollToBottomAnimation(){
+        Animation scrollAnimation = new Timeline(new KeyFrame(Duration.seconds(2),new KeyValue(campaignScroller.vvalueProperty(),1)));
+        scrollAnimation.play();
+    }
+
+    private final float widthToJump = .63f;
+    private final float widthToXoffset = .05f;
+    private final float widthToOffsetY = .02f;
+    private final float widthToLevelRadius = .12f;
+    private final float widthToLevelWidth = .45f;
+    private final float widthToLevelHeight = .40f;
+    private final float widthToInfoSpacing = .1f;
+    private final float infoWidthToLvlBtnWidth = .8f;
+    private final float infoHeightToLvlBtnHeight = .4f;
+    private final float infoWidthToPawnWidth = .2f;
+    private final int[] challengepfpIndexes = new int[]{3,2,5,7,8,6,1,10,9,11,12,14,13,15,18};
+    private void drawLevels(ReadOnlyDoubleProperty widthProperty){
+        // each level has a circle you click on to play the level
+        // additionaly there is a vbox that contains the level information/play button
+        DoubleBinding circleRadius = widthProperty.multiply(widthToLevelRadius);
+        DoubleBinding levelInfoHeight = widthProperty.multiply(widthToLevelHeight);
+        DoubleBinding levelInfoWidth = widthProperty.multiply(widthToLevelWidth);
+        DoubleBinding levelButtonWidth = levelInfoWidth.multiply(infoWidthToLvlBtnWidth);
+        DoubleBinding levelButtonHeight = levelInfoHeight.multiply(infoHeightToLvlBtnHeight);
+
+        DoubleBinding yJumpPerLevel = widthProperty.multiply(widthToJump);
+        DoubleBinding xOffset = widthProperty.multiply(widthToXoffset);
+        DoubleBinding xShiftPerLevelB = widthProperty.subtract(xOffset.add(circleRadius).multiply(2));
+        DoubleBinding xSpacing = widthProperty.multiply(widthToInfoSpacing);
+        boolean isShiftToRight = true;
+        // since we are going down -> up, and the y coordinate system grows downwards
+        // we need to start at the very end then decrease our y value
+        DoubleBinding offsetYBottom = widthProperty.multiply(widthToOffsetY);
+        DoubleBinding largestY = yJumpPerLevel.multiply(NLevels-1).add(offsetYBottom.multiply(2).add(Bindings.max(circleRadius.multiply(2),levelInfoHeight.multiply(2))));
+
+        DoubleBinding startYB = largestY.subtract(offsetYBottom).subtract(Bindings.max(circleRadius.multiply(2),levelInfoHeight));
+        DoubleBinding startXB = xOffset.add(circleRadius);
+        // set size of container
+        levelContainer.prefHeightProperty().bind(largestY);
+        levelContainerElements.prefHeightProperty().bind(largestY);
+        levelContainerPath.prefHeightProperty().bind(largestY);
+
+        // for info panel content
+        DoubleBinding pawnWidth = levelInfoWidth.multiply(infoWidthToPawnWidth);
+
+        // for creating the path
+        DoubleBinding lastXB = null;
+        DoubleBinding lastYB = null;
+        for(int i = 0;i<NLevels;i++){
+            // play level circle
+            Circle newLevelToggle = new Circle();
+            int challengeIndex = challengepfpIndexes[i];
+            Image buttonProfile = new Image(ProfilePicture.values()[challengeIndex].urlString);
+            newLevelToggle.setUserData(Integer.toString(challengeIndex));
+            newLevelToggle.setFill(new ImagePattern(buttonProfile));
+            // level information panel
+            VBox newLevelPanel = new VBox();
+            newLevelPanel.setStyle("-fx-background-color: white");
+            newLevelPanel.setVisible(false);
+            newLevelPanel.setMouseTransparent(true);
+            newLevelPanel.setAlignment(Pos.CENTER);
+            newLevelPanel.setSpacing(10);
+
+
+
+            newLevelPanel.prefWidthProperty().bind(levelInfoWidth);
+            newLevelPanel.prefHeightProperty().bind(levelInfoHeight);
+
+            newLevelToggle.radiusProperty().bind(circleRadius);
+
+            newLevelToggle.setOnMouseClicked(e->{
+                //toggleCircleColor(newLevelToggle);
+//                cycleProfilePicture(newLevelToggle);
+                System.out.println("Clicking");
+                newLevelPanel.setVisible(!newLevelPanel.isVisible());
+                newLevelPanel.setMouseTransparent(!newLevelPanel.isMouseTransparent());
+            });
+            // positioning stuff
+            DoubleBinding startXL;
+            if(isShiftToRight){
+                startXL = startXB.add(circleRadius).add(xSpacing);
+            }
+            else{
+                startXL = startXB.subtract(circleRadius).subtract(xSpacing).subtract(levelInfoWidth);
+            }
+            newLevelPanel.layoutXProperty().bind(startXL);
+            DoubleBinding startYL = startYB.subtract(levelInfoHeight.divide(2));
+            newLevelPanel.layoutYProperty().bind(startYL);
+
+            newLevelToggle.layoutXProperty().bind(startXB);
+            newLevelToggle.layoutYProperty().bind(startYB);
+            // drawing path curve
+            if(lastYB != null){
+                QuadCurve path = new QuadCurve();
+//                path.toBack();
+                path.startXProperty().bind(lastXB);
+                path.startYProperty().bind(lastYB);
+                path.controlXProperty().bind(lastXB.add(startXB).divide(2.1));
+                path.controlYProperty().bind(lastYB.add(startYB).divide(1.9));
+                path.endXProperty().bind(startXB);
+                path.endYProperty().bind(startYB);
+                path.setFill(null);
+                path.setStroke(Paint.valueOf("Black"));
+                levelContainerPath.getChildren().add(path);
+            }
+
+            // setting oldCoordinates
+            lastXB = startXB;
+            lastYB = startYB;
+
+            // changing to new coordinates
+            if(isShiftToRight){
+                startXB = startXB.add(xShiftPerLevelB);
+            }
+            else{
+                startXB = startXB.subtract(xShiftPerLevelB);
+
+            }
+            startYB = startYB.subtract(yJumpPerLevel);
+            isShiftToRight = !isShiftToRight;
+            int level = i;
+
+            // children of infoPanel
+            Label title = new Label("Opponent");
+            BindingController.bindChildTextToParentWidth(mainArea,title,.4);
+            // will contain the pawns showing your score
+            // like 3 stars in a game
+            HBox pawnContainer = new HBox(5);
+            pawnContainer.setAlignment(Pos.CENTER);
+            for(int j = 0;j<3;j++){
+                ImageView pawn = new ImageView();
+                pawnStars[i][j] = pawn;
+                pawn.setImage(new Image("/ChessAssets/StartScreenPawn/pawnUnfilled.png"));
+                pawn.fitWidthProperty().bind(pawnWidth);
+                pawn.setPreserveRatio(true);
+                int j1 = j;
+                pawn.setOnMouseClicked(e->{
+                    System.out.println("pawn#" + j1);
+                });
+                pawnContainer.getChildren().add(pawn);
+            }
+            Button enterLevelButton = new Button("Play");
+            enterLevelButton.prefWidthProperty().bind(levelButtonWidth);
+            enterLevelButton.prefHeightProperty().bind(levelButtonHeight);
+            enterLevelButton.setOnMouseClicked(e->{
+                System.out.println("entering level " + level);
+            });
+            newLevelPanel.getChildren().add(title);
+            newLevelPanel.getChildren().add(pawnContainer);
+            newLevelPanel.getChildren().add(enterLevelButton);
+            levelContainerElements.getChildren().add(newLevelToggle);
+            levelContainerElements.getChildren().add(newLevelPanel);
+        }
+
+    }
+    private final float infoWidthToStarSideLen = .25f;
+
+
+    private void cycleProfilePicture(Circle clicked){
+        if(clicked.getUserData() == null){
+            clicked.setUserData("1");
+        }
+        int index  = Integer.parseInt(clicked.getUserData().toString());
+        System.out.println(ProfilePicture.values()[index].urlString);
+        Image newImage = new Image(ProfilePicture.values()[index].urlString);
+        index++;
+        if(index >= ProfilePicture.values().length){
+            index = 0;
+        }
+        clicked.setFill(new ImagePattern(newImage));
+        clicked.setUserData(Integer.toString(index));
+
+
+    }
     private void setUpLocalOptions(){
         vsPlayer.setOnMouseClicked(e -> {
             App.changeToMainScreenWithoutAny("game" ,false,MainScreenState.LOCAL);
@@ -261,6 +494,10 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpSideNavButtons(){
+        campaignButton.setOnMouseClicked(e->{
+            setSelection(StartScreenState.CAMPAIGN);
+            scrollToBottomAnimation();
+        });
         localButton.setOnMouseClicked(e->{
             setSelection(StartScreenState.REGULAR);
         });
@@ -291,6 +528,7 @@ public class StartScreenController implements Initializable {
             App.userPreferenceManager.setBackgroundmusic(isCurPaused);
         });
     }
+    boolean isRed = false;
 
 
     private void setUpUserSettings(){
@@ -302,8 +540,8 @@ public class StartScreenController implements Initializable {
                setSelection(StartScreenState.USERSETTINGS);
            }
         });
-
         saveUserOptions.setOnMouseClicked(e->{
+
             if(nameInput.getText().isEmpty()){
                 nameInput.setPromptText("please enter a name");
             }
@@ -321,58 +559,9 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpGeneralSettings(){
-
-        themeSelection.getItems().addAll("Light","Dark");
-        themeSelection.setOnAction(e->{
-            boolean isLight = themeSelection.getValue().equals("Light");
-            App.userPreferenceManager.setGlobalTheme(isLight ? GlobalTheme.Light : GlobalTheme.Dark);
-        });
-
-        bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
-        bgColorSelector.setOnAction(e ->{
-            App.userPreferenceManager.setChessboardTheme(ChessboardTheme.getCorrespondingTheme(bgColorSelector.getValue()));
-        });
-
-        pieceSelector.getItems().addAll(
-                Arrays.stream(ChessboardTheme.values()).map(ChessboardTheme::toString).toList()
-        );
-        pieceSelector.setOnAction(e ->{
-            // todo
-            App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
-        });
-
-        audioMuteBGButton.setOnMouseClicked(e->{
-
-        });
-
-        audioSliderBG.valueProperty().addListener(e->{
-            App.userPreferenceManager.setBackgroundVolume(audioSliderBG.getValue());
-        });
-
-        audioMuteEffButton.setOnMouseClicked(e->{
-
-        });
-
-        audioSliderEff.valueProperty().addListener(e->{
-            App.userPreferenceManager.setEffectVolume(audioSliderBG.getValue());
-        });
-
-        evalOptions.getItems().addAll(
-                1,2,3,4,5,6,7,8
-        );
-        evalOptions.setOnAction(e ->{
-            App.userPreferenceManager.setEvalDepth(evalOptions.getValue());
-
-        });
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection,bgColorSelector,pieceSelector,audioMuteBGButton,audioSliderBG,audioMuteEffButton,audioSliderEff,evalOptions,computerOptions);
 
 
-        computerOptions.getItems().addAll(
-                1,2,3,4,5,6,7,8
-        );
-        computerOptions.setOnAction(e ->{
-            App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());
-
-        });
 
 
 
@@ -381,11 +570,10 @@ public class StartScreenController implements Initializable {
 
 
         // container bindings
-        generalSettingsScrollpane.prefWidthProperty().bind(leftMain.widthProperty().subtract(sideButtons.widthProperty()).subtract(oldGamesPanel.widthProperty()));
-        generalSettingsScrollpane.prefHeightProperty().bind(leftMain.heightProperty());
+        generalSettingsScrollpane.prefWidthProperty().bind(mainArea.widthProperty());
+        generalSettingsScrollpane.prefHeightProperty().bind(mainArea.heightProperty());
 
         generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
-        generalSettingsVbox.prefHeightProperty().bind(generalSettingsScrollpane.heightProperty());
 
 
 
@@ -459,8 +647,11 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpPgnOptions(){
+        // default options
         computerRadioButton.setSelected(false);
         pvpRadioButton.setSelected(true);
+        // styling
+        pgnTextArea.setStyle("-fx-text-fill: Black");
 
 
         pvpRadioButton.setOnMouseClicked(e ->{
@@ -503,8 +694,8 @@ public class StartScreenController implements Initializable {
         content.prefWidthProperty().bind(fullscreen.widthProperty());
         content.prefHeightProperty().bind(fullscreen.heightProperty());
 
-        mainArea.prefWidthProperty().bind(leftMain.widthProperty().subtract(sideButtons.widthProperty()));
-        mainArea.prefHeightProperty().bind(leftMain.heightProperty());
+        mainArea.prefWidthProperty().bind(content.widthProperty().multiply(.8));
+        mainArea.prefHeightProperty().bind(content.heightProperty().multiply(.9));
         DoubleProperty smallLabelsFontSize = new SimpleDoubleProperty();
         smallLabelsFontSize.bind(oldGamesPanelContent.widthProperty().divide(18));
         // profile options
@@ -532,7 +723,10 @@ public class StartScreenController implements Initializable {
 
 
     }
-    private void hideAllScreens(){
+    private void hideAllScreensnButtons(){
+        campaignButton.setStyle("");
+        campaignScreen.setVisible(false);
+        campaignScreen.setMouseTransparent(true);
         sandboxScreen.setVisible(false);
         sandboxScreen.setMouseTransparent(true);
         sandboxButton.setStyle("");
@@ -552,7 +746,7 @@ public class StartScreenController implements Initializable {
 
     }
     private void setSelection(StartScreenState state){
-        hideAllScreens();
+        hideAllScreensnButtons();
         switch (state){
             case PGN -> {
                 pgnButton.setStyle("-fx-border-style: 2px black");
@@ -582,6 +776,11 @@ public class StartScreenController implements Initializable {
                 sandboxButton.setStyle("-fx-border-style: 2px black");
                 sandboxScreen.setVisible(true);
                 sandboxScreen.setMouseTransparent(false);
+            }
+            case CAMPAIGN -> {
+                campaignButton.setStyle("-fx-border-style: 2px black");
+                campaignScreen.setVisible(true);
+                campaignScreen.setMouseTransparent(false);
             }
         }
         this.currentState = state;

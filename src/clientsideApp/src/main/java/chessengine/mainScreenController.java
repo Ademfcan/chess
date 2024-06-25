@@ -11,6 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,6 +33,14 @@ public class mainScreenController implements Initializable {
     StackPane fullScreen;
     @FXML
     GridPane content;
+    @FXML
+    HBox sideAreaFull;
+    @FXML
+    VBox leftSideSpacer;
+
+    @FXML
+    HBox topRightInfo;
+
 
     @FXML
     Pane mainMessageBoard;
@@ -248,6 +257,8 @@ public class mainScreenController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+
         mainMessageBoard.setMouseTransparent(true);
         logger = LogManager.getLogger(this.toString());
 
@@ -274,8 +285,25 @@ public class mainScreenController implements Initializable {
             ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString());
         }
         setEvalBar(0,0,false,false);
+        bs = new Region[]{chessBgBoard,chessPieceBoard,arrowBoard,chessHighlightBoard};
 
-
+    }
+    int bindx = 0;
+    Region[] bs;
+    String[] names = new String[]{"bg","pb","arrb","hb"};
+    private void clearB(){
+        for(Region r : bs){
+            r.setStyle("");
+        }
+    }
+    private void switchB(){
+        clearB();
+        bs[bindx].setStyle("-fx-background-color: rgba(100,200,100,0.2)");
+        App.messager.sendMessage(names[bindx],false, Duration.seconds(2));
+        bindx++;
+        if(bindx >= bs.length){
+            bindx = 0;
+        }
     }
 
 
@@ -422,15 +450,13 @@ public class mainScreenController implements Initializable {
         content.prefHeightProperty().bind(fullScreen.heightProperty());
 
         chessBoardContainer.prefHeightProperty().bind(fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2)));
-        chessBoardContainer.prefWidthProperty().bind(chessBoardContainer.heightProperty().multiply(1.1));
+//        chessBoardContainer.prefWidthProperty().bind(chessBoardContainer.heightProperty().multiply(1.1));
+        chessBoardContainer.prefWidthProperty().bind(content.widthProperty().multiply(.6));
         chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        chessHighlightBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        chessHighlightBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        chessBgBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        chessBgBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
         arrowBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         arrowBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
+        // side panel
 
         // eval bar related
 
@@ -797,6 +823,7 @@ public class mainScreenController implements Initializable {
 
     private void setUpSquareClickEvent(StackPane square) {
         square.setOnMouseClicked(event -> {
+//            switchB();
             // finding which image view was clicked and getting coordinates
             StackPane pane = (StackPane) event.getSource();
             String[] xy = pane.getUserData().toString().split(",");

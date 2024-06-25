@@ -4,13 +4,17 @@ public class UserInfo {
     int userelo;
     String userName;
     String userEmail;
-    String password;
+    String passwordHash;
+    ProfilePicture profilePicture;
 
-    public UserInfo(int userelo, String userName, String userEmail, String password) {
+
+
+    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
-        this.password = password;
+        this.passwordHash = password;
+        this.profilePicture = profilePicture;
     }
 
     public UserInfo(){
@@ -22,8 +26,8 @@ public class UserInfo {
         return userelo;
     }
 
-    public void setUserelo(int userelo) {
-        this.userelo = userelo;
+    public void adjustElo(int change) {
+        this.userelo+=change;
     }
 
     public String getUserName() {
@@ -42,14 +46,21 @@ public class UserInfo {
         this.userEmail = userEmail;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
+    public ProfilePicture getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(ProfilePicture profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
 
 

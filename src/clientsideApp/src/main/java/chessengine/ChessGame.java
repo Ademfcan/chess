@@ -110,8 +110,8 @@ public class ChessGame{
         moves = new ArrayList<>();
         this.gameHash = String.valueOf(this.hashCode());
         isVsComputer = false;
-        this.player1name = App.appUser.getInfo().getUserName();
-        this.player1Elo = App.appUser.getInfo().getUserelo();
+        this.player1name = App.userManager.getUserName();
+        this.player1Elo = App.userManager.getUserElo();
         this.client = App.getWebclient();
         client.setLinkedGame(this);
         this.player2name = "";
@@ -127,7 +127,7 @@ public class ChessGame{
         this.player2Elo = player2Elo;
         if(isMainGame){
             Platform.runLater(() ->{
-                App.mainScreenController.setPlayerLabels(App.appUser.getInfo().getUserName(),App.appUser.getInfo().getUserelo(), player2name,player2Elo);
+                App.mainScreenController.setPlayerLabels(App.userManager.getUserName(),App.userManager.getUserElo(), player2name,player2Elo);
             });
         }
 

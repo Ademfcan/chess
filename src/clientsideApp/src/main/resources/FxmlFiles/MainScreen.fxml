@@ -134,7 +134,7 @@
             <Label fx:id="player1Label" text="Label" />
          </children>
       </HBox>
-      <HBox prefHeight="338.0" prefWidth="192.0" spacing="3.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+      <HBox fx:id="sideAreaFull" prefHeight="338.0" prefWidth="192.0" spacing="3.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
          <children>
             <VBox fx:id="evalBar" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="332.0" prefWidth="20.0">
                <children>
@@ -307,7 +307,7 @@
             </StackPane>
          </children>
       </HBox>
-      <HBox alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="211.0" GridPane.columnIndex="2">
+      <HBox fx:id="topRightInfo" alignment="CENTER_LEFT" layoutX="10.0" layoutY="10.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="211.0" GridPane.columnIndex="2">
          <children>
             <ImageView fx:id="player2Select" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                <image>
@@ -333,6 +333,7 @@
       </HBox>
       <Label fx:id="WhiteNumericalAdv" GridPane.rowIndex="2" />
       <Label fx:id="BlackNumericalAdv" layoutX="10.0" layoutY="385.0" />
+            <VBox fx:id="leftSideSpacer" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1" />
    </children>
 </GridPane>
       <Pane fx:id="mainMessageBoard" prefHeight="200.0" prefWidth="200.0" />

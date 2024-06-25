@@ -14,7 +14,6 @@ import javafx.stage.Stage;
 
 import jakarta.websocket.DeploymentException;
 import java.io.*;
-import java.util.Objects;
 
 public class App extends Application {
 
@@ -41,8 +40,8 @@ public class App extends Application {
 
     public static GlobalTheme globalTheme;
 
+    public static UserManager userManager;
     public static UserPreferenceManager userPreferenceManager;
-    public static FrontendClient appUser;
 
     public static WebSocketClient getWebclient() {
         return webclient;
@@ -79,14 +78,10 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        appUser = PersistentSaveManager.readUserFromAppData();
-
-        if(Objects.isNull(appUser)){
-            appUser = ChessConstants.defaultUser;
-        }
+        userManager = new UserManager();
 
         try {
-            webclient = new WebSocketClient(appUser);
+            webclient = userManager.getClientFromUser();
         }
         catch (DeploymentException e){
             System.out.println("No connection to server!");
@@ -118,6 +113,7 @@ public class App extends Application {
         messager.Init(startScreenController.startMessageBoard,mainScreenController.mainMessageBoard);
         mainScene = new Scene(startRoot);
         userPreferenceManager.init();
+        userManager.init(startScreenController);
         isStartScreen = true;
         primaryStage.setOnCloseRequest(e->{
             mainScreenController.endAsync();
@@ -125,7 +121,6 @@ public class App extends Application {
         });
 
         userPreferenceManager.setDefaultSelections();
-
 
 
         primaryStage.setScene(mainScene);
@@ -138,11 +133,10 @@ public class App extends Application {
 
 
 
-    public static void changeClient(UserInfo info){
-        appUser = new FrontendClient(info);
-        PersistentSaveManager.writeUserToAppData(appUser.getInfo());
+    public static void changeUser(UserInfo info){
+        userManager.changeAppUser(info);
         try {
-            webclient = new WebSocketClient(appUser);
+            webclient = userManager.getClientFromUser();
         }
         catch (DeploymentException e){
             System.out.println("No connection to server!");
@@ -154,7 +148,7 @@ public class App extends Application {
 
     public static boolean attemptReconnection(){
         try {
-            webclient = new WebSocketClient(appUser);
+            webclient = userManager.getClientFromUser();
             return true;
         }
         catch (DeploymentException e){
@@ -171,17 +165,19 @@ public class App extends Application {
     public static void adjustGameToUserPreferences(UserPreferences preferences){
         if(!preferences.isBackgroundmusic()){
             App.startScreenController.backgroundAudioButton.setText("✖");
+            App.startScreenController.audioMuteBGButton.setText("✖");
             soundPlayer.pauseSong(true);
         }
         else{
             App.startScreenController.backgroundAudioButton.setText("🔉");
+            App.startScreenController.audioMuteBGButton.setText("🔉");
             soundPlayer.playSong(true);
         }
+        App.startScreenController.audioMuteEffButton.setText(preferences.isEffectSounds() ? "🔉" : "✖");
         soundPlayer.changeVolumeBackground(preferences.getBackgroundVolume());
         soundPlayer.changeVolumeEffects(preferences.getEffectVolume());
-        if(!preferences.isEffectSounds()){
-            soundPlayer.changeVolumeEffects(0);
-        }
+        soundPlayer.setEffectsMuted(!preferences.isEffectSounds());
+
         updateGlobalTheme(preferences.getGlobalTheme());
         if(ChessCentralControl.isInit()){
             ChessCentralControl centralControl = mainScreenController.getChessCentralControl();
@@ -224,7 +220,7 @@ public class App extends Application {
         isStartScreen = true;
         mainScene.setRoot(startRoot);
         updateGlobalTheme(globalTheme);
-        if(!soundPlayer.isUserPrefPaused()){
+        if(!soundPlayer.isUserPrefBgPaused()){
             soundPlayer.playSong(false);
         }
 
@@ -235,7 +231,7 @@ public class App extends Application {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateGlobalTheme(globalTheme);
-        mainScreenController.setUp(isVsComputer,gameName,null,appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(),state);
+        mainScreenController.setUp(isVsComputer,gameName,null,userManager.getUserName(), userManager.getUserElo(), state);
         soundPlayer.pauseSong(false);
 
     }
@@ -246,7 +242,7 @@ public class App extends Application {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateGlobalTheme(globalTheme);
-        mainScreenController.setUp(isVsComputer,"",loadedGame,appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(),state);
+        mainScreenController.setUp(isVsComputer,"",loadedGame,userManager.getUserName(), userManager.getUserElo(),state);
         soundPlayer.pauseSong(false);
 
 

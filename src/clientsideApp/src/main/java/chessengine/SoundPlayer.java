@@ -6,9 +6,11 @@ public class SoundPlayer {
 
     private boolean isPaused;
 
+    private boolean isEffectsMuted;
 
 
-    private boolean userPrefPaused;
+
+    private boolean userPrefBgPaused;
 
     private int songCount = 0;
 
@@ -23,23 +25,34 @@ public class SoundPlayer {
         this.currentVolumeBackground = volumeBackground;
         this.currentVolumeEffects = volumeEffects;
         this.currentSong = getNextSong();
-        this.isPaused = false;
+        this.isPaused = true;
 
     }
     public SoundPlayer(){
         this.currentVolumeBackground = defaultBGVolume;
         this.currentVolumeEffects = defaultVolume;
         this.currentSong = getNextSong();
-        this.isPaused = false;
-        
+        this.isPaused = true;
+
 
 
     }
 
+    public void setEffectsMuted(boolean effectsMuted){
+        this.isEffectsMuted = effectsMuted;
+    }
+    public boolean isEffectsMuted(){
+        return this.isEffectsMuted;
+    }
 
 
     public void playEffect(Effect effect){
-        effect.playClip(currentVolumeEffects);
+        if(!isEffectsMuted){
+            effect.playClip(currentVolumeEffects);
+        }
+        else{
+            ChessConstants.mainLogger.debug("Not playing effect, effects are muted");
+        }
 
     }
     private void checkStartNextSong(){
@@ -70,7 +83,7 @@ public class SoundPlayer {
 
     public void pauseSong(boolean isCauseOfUserPref) {
         if(isCauseOfUserPref){
-            userPrefPaused = true;
+            userPrefBgPaused = true;
         }
         if(!isPaused){
             currentSong.clip.pause();
@@ -83,7 +96,7 @@ public class SoundPlayer {
 
     public void playSong(boolean isCauseOfUserPref){
         if(isCauseOfUserPref){
-            userPrefPaused = false;
+            userPrefBgPaused = false;
         }
         if(isPaused){
             currentSong.clip.play();
@@ -98,8 +111,8 @@ public class SoundPlayer {
         return isPaused;
     }
 
-    public boolean isUserPrefPaused() {
-        return userPrefPaused;
+    public boolean isUserPrefBgPaused() {
+        return userPrefBgPaused;
     }
 
 
@@ -110,5 +123,6 @@ public class SoundPlayer {
     }
     public void changeVolumeBackground(double newVolume){
         this.currentVolumeBackground = newVolume;
+        currentSong.clip.setVolume(newVolume);
     }
 }

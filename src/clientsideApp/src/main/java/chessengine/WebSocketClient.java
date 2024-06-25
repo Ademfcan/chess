@@ -50,11 +50,11 @@ public class WebSocketClient {
                 case CLIENTVAIDATIONSUCESS -> {
                     // sucessfuly accesed acount on
                     UserInfo info = objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
-                    App.changeClient(info);
+                    App.changeUser(info);
                 }
                 case CLIENTVALIDATIONFAIL -> {
                     // username password did not match
-                    System.out.println("incorrect");
+                    App.messager.sendMessageQuick("Validation Failed",true);
                 }
                 case INWAITINGPOOL -> {
                     linkedGame.sendMessageToInfo("Waiting in queue");
@@ -99,6 +99,10 @@ public class WebSocketClient {
                 case GAMEMOVEFROMOPPONENT -> {
                     linkedGame.makeNewMove(out.getExtraInformation());
                     System.out.println("Your opponent played: " + out.getExtraInformation());
+                }
+                case ELOUPDATE -> {
+                    int change = Integer.parseInt(out.getExtraInformation());
+                    App.userManager.updateUserElo(change);
                 }
             }
         } catch (Exception e) {
