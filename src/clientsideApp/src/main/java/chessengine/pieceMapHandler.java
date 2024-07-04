@@ -492,31 +492,32 @@ public class pieceMapHandler {
     };
 
     public static double[][][] getMap(int piecesOnTheBoardCount){
-        if(piecesOnTheBoardCount > 30){
-            // still at start of game
-            return maps1;
-        }
-        if(piecesOnTheBoardCount > 25){
-            return maps2;
-        }
-        if(piecesOnTheBoardCount > 20){
-            return maps3;
-        }
-        if(piecesOnTheBoardCount > 15){
-            return maps2;
-        }
-        if(piecesOnTheBoardCount > 10){
-            return maps4;
-        }
-        if(piecesOnTheBoardCount > 8){
-            return maps5;
-        }
-        if(piecesOnTheBoardCount > 6){
-            return maps6;
-        }
-        else{
-            return maps7;
-        }
+        return maps1;
+//        if(piecesOnTheBoardCount > 30){
+//            // still at start of game
+//            return maps1;
+//        }
+//        if(piecesOnTheBoardCount > 25){
+//            return maps2;
+//        }
+//        if(piecesOnTheBoardCount > 20){
+//            return maps3;
+//        }
+//        if(piecesOnTheBoardCount > 15){
+//            return maps2;
+//        }
+//        if(piecesOnTheBoardCount > 10){
+//            return maps4;
+//        }
+//        if(piecesOnTheBoardCount > 8){
+//            return maps5;
+//        }
+//        if(piecesOnTheBoardCount > 6){
+//            return maps6;
+//        }
+//        else{
+//            return maps7;
+//        }
 
 
 

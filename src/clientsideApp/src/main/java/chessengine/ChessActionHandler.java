@@ -262,7 +262,6 @@ public class ChessActionHandler {
         if(e.getButton() == MouseButton.PRIMARY){
             dragging =false;
             boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], xy[1], myControl.gameHandler.currentGame.currentPosition.board);
-
             // check if we did not click on an empty square
             if(boardInfo[0]){
                 boolean isWhitePiece = boardInfo[1];
@@ -310,7 +309,6 @@ public class ChessActionHandler {
         int[] xy = myControl.chessBoardGUIHandler.calcXY(oldX,oldY);
         piece.setLayoutX(xy[0]);
         piece.setLayoutY(xy[1]);
-        piece.setUserData(oldX + "," + oldY);
         myControl.chessBoardGUIHandler.putBackLayoutBindings(selected,oldX,oldY);
         myControl.chessBoardGUIHandler.piecesAtLocations[oldX][oldY] = selected;
 
@@ -320,7 +318,6 @@ public class ChessActionHandler {
         int[] newLayoutxy = myControl.chessBoardGUIHandler.calcXY(x,y);
         piece.setLayoutX(newLayoutxy[0]);
         piece.setLayoutY(newLayoutxy[1]);
-        piece.setUserData(x + "," + y);
         myControl.chessBoardGUIHandler.putBackLayoutBindings(selected,x,y);
         myControl.chessBoardGUIHandler.piecesAtLocations[x][y] = selected;
     }
@@ -552,7 +549,7 @@ public class ChessActionHandler {
             // else you are waiting for the player to chose their promotion
             clearPrevPiece(false);
             App.mainScreenController.updateSimpleAdvantageLabels();
-            updateSidePanel(currentState,true,PgnFunctions.moveToPgn(moveMade,myControl.gameHandler.currentGame.currentPosition.board));
+            updateSidePanel(currentState,true,PgnFunctions.moveToPgn(moveMade,myControl.gameHandler.currentGame.currentPosition.board,myControl.gameHandler.currentGame.gameStates));
 
         }
 
@@ -620,19 +617,20 @@ public class ChessActionHandler {
     }
 
     private ChessPosition lastPosSinceRequest;
+    private ChessStates lastStateSinceRequest;
     public void addBestMovesToViewer(List<ComputerOutput> bestMoves){
         for(int i = 0;i<bestMoves.size();i++){
             HBox moveGui = new HBox();
             moveGui.setAlignment(Pos.CENTER);
             moveGui.setSpacing(5);
             Label moveNumber = new Label( "#"+ (i+1));
-            Label moveAsPgn = new Label(PgnFunctions.moveToPgn(bestMoves.get(i).move,lastPosSinceRequest.board));
+            Label moveAsPgn = new Label(PgnFunctions.moveToPgn(bestMoves.get(i).move,lastPosSinceRequest.board,lastStateSinceRequest));
             double adv = bestMoves.get(i).advantage;
             String prefix = adv == 0 ? "" : adv > 0 ? "+" : "-";
             Label expectedAdvantage = new Label(prefix + Math.abs(adv));
-            BindingController.bindSmallText(moveNumber,true);
-            BindingController.bindSmallText(moveAsPgn,true);
-            BindingController.bindSmallText(expectedAdvantage,true);
+            App.bindingController.bindSmallText(moveNumber,true);
+            App.bindingController.bindSmallText(moveAsPgn,true);
+            App.bindingController.bindSmallText(expectedAdvantage,true);
             moveGui.prefWidthProperty().bind(bestmovesBox.widthProperty());
             moveGui.getChildren().addAll(moveNumber,moveAsPgn,expectedAdvantage);
             int finalI = i;
@@ -663,6 +661,7 @@ public class ChessActionHandler {
         myControl.asyncController.nMovesTask.currentGameState = myControl.gameHandler.currentGame.gameStates;
         myControl.asyncController.nMovesTask.currentIsWhite = myControl.gameHandler.currentGame.isPlayer1Turn();
         this.lastPosSinceRequest = myControl.gameHandler.currentGame.currentPosition;
+        this.lastStateSinceRequest = myControl.gameHandler.currentGame.gameStates;
     }
 
 

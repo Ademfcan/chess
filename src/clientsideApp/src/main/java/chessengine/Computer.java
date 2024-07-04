@@ -3,11 +3,10 @@ package chessengine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Computer{
 
@@ -15,11 +14,9 @@ public class Computer{
 
     private int evalDepth;
 
-    private HashMap<Integer,Double> transTable;
-    private int repetitionCount;
-    private ChessMove lastMove;
+    private Map<Integer,Double> transTable;
 
-    public volatile boolean stop;
+    public volatile AtomicBoolean stop;
 
     private boolean running = false;
 
@@ -28,20 +25,20 @@ public class Computer{
     }
 
     private Logger logger;
+
+    private final int maxEntries = 100000;
     public Computer(int evalDepth){
-        transTable = new HashMap<Integer,Double>();
+        this.transTable = Collections.synchronizedMap(new LimitedSizeMap<>(maxEntries));
         logger = LogManager.getLogger(this.toString());
-        reset();
+        stop = new AtomicBoolean(false);
         this.evalDepth = evalDepth;
     }
 
-    public void reset(){
-        repetitionCount = 0;
-        lastMove = null;
-    }
+
 
     private void clearFlags(){
-        stop = false;
+        logger.debug("Clearing flags");
+        stop.set(false);
         running = false;
 
     }
@@ -86,12 +83,14 @@ public class Computer{
             filteredPositions = pos.getAllChildPositions(isWhite,gameState);
         }
         for(BackendChessPosition childPos : filteredPositions){
-            if(stop){
+            if(stop.get()){
                 clearFlags();
                 System.out.println("Stopped nmoves1");
                 return ChessConstants.emptyOutput;
             }
-            double miniMaxEval = miniMax(childPos, childPos.gameState,evalDepth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+            double miniMaxEval= miniMax(childPos, childPos.gameState,evalDepth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+
+
             if(miniMaxEval == Stopped){
                 System.out.println("Stopped nmoves2");
                 clearFlags();
@@ -120,24 +119,26 @@ public class Computer{
             ChessConstants.mainLogger.error("null bestmovesoutput");
             return ChessConstants.emptyOutput;
         }
-        lastMove = bestMove.getMoveThatCreatedThis();
         clearFlags();
-        return new ComputerOutput(lastMove,bestEval);
+        return new ComputerOutput(bestMove.getMoveThatCreatedThis(),bestEval);
     }
 
 
 
 
-    public static final double Stopped = -999999;
+    public static final double Stopped = Double.NaN;
 
     //alpha default -inf beta default +inf
-    public double miniMax(BackendChessPosition position,ChessStates gameState, int depth, double alpha, double beta, boolean isWhiteTurn){
+    private double miniMax(BackendChessPosition position,ChessStates gameState, int depth, double alpha, double beta, boolean isWhiteTurn){
         // all recursive stop cases
-        if(stop){
+        if(stop.get()){
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
-        int key = position.board.hashCode() + (isWhiteTurn ? 1000 : -1000);
+        int key = Objects.hash(gameState.hashCode(),position.hashCode(),isWhiteTurn);
+        if(position.isDrawByRepetition()){
+            return 0;
+        }
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,position.board,gameState)){
             // possiblity of a checkmate, else draw
             if(AdvancedChessFunctions.isChecked(true,position.board)){
@@ -167,6 +168,7 @@ public class Computer{
             double maxEval = Double.NEGATIVE_INFINITY;
             List<BackendChessPosition> childPos = position.getAllChildPositions(true,gameState);
             for(BackendChessPosition c : childPos){
+
                 double eval = miniMax(c,c.gameState, depth - 1, alpha, beta, false);
                 if(eval == Stopped){
                     return Stopped;
@@ -208,6 +210,7 @@ public class Computer{
     int[] valueMap = {1,3,3,5,9,10000000};
 
     public double getFullEvalMinimax(ChessPosition pos,ChessStates gameState, int depth, boolean isWhite){
+        logger.debug(transTable.size());
         double bestEval = isWhite ? Double.MIN_VALUE : Double.MAX_VALUE;
         running = true;
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,pos.board,gameState)){
@@ -227,11 +230,12 @@ public class Computer{
             return 0;
         }
         for(BackendChessPosition c : pos.getAllChildPositions(isWhite,gameState)){
-            if(stop){
+            if(stop.get()){
                 clearFlags();
                 return Stopped;
             }
-            double eval =  miniMax(c,c.gameState,depth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+            double eval = miniMax(c,c.gameState,depth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+
             if(eval == Stopped){
                 clearFlags();
                 return Stopped;
@@ -266,23 +270,21 @@ public class Computer{
 
         }
 
-        XYcoord king1 = null;// = board.getWhiteKingLocation();
-        XYcoord king2 = null;// = board.getBlackKingLocation();
+        XYcoord king1 = board.getWhiteKingLocation();
+        XYcoord king2 = board.getBlackKingLocation();
 
         double sum1 = 0;
-        for(int i = 0; i< whiteP.length; i++){
-            List<XYcoord> coords = getPieceCoords(whiteP[i]);
-            if(i == 5){
-               king1 = coords.get(0);
-            }
-            for(XYcoord s : coords){
+        double sum2 = 0;
+        for(int i = 0; i< whiteP.length-1; i++){
+            List<XYcoord> coordsW = getPieceCoords(whiteP[i]);
+            for(XYcoord s : coordsW){
 
                 sum1 += valueMap[i] + currentMap[i][s.x][s.y];
                 if(i == 0){
                     float extraPawnPushValue = (float) (16 - whitePieceCount) /16;
                     sum1 += extraPawnPushValue;
                 }
-                if(i < 1 && i<5){
+                if(i > 1){
                     if(i == 4){
                         sum1 += addOpenFileValue(s.x,s.y,3,board);
                         sum1 += addOpenFileValue(s.x,s.y,2,board);
@@ -294,14 +296,8 @@ public class Computer{
 
 
             }
-        }
-        double sum2 = 0;
-        for(int i = 0; i< blackP.length; i++){
-            List<XYcoord> coords = getPieceCoords(blackP[i]);
-            for(XYcoord s : coords){
-                if(i == 5){
-                    king2 = coords.get(0);
-                }
+            List<XYcoord> coordsB = getPieceCoords(blackP[i]);
+            for(XYcoord s : coordsB){
                 if(i == 0){
                     float extraPawnPushValue = (float) (16 - blackPieceCount) /16;
                     sum2 += extraPawnPushValue;
@@ -311,7 +307,7 @@ public class Computer{
                 int Normx = s.x;
                 int Normy = 7-s.y;
                 sum2 += valueMap[i] + currentMap[i][Normx][Normy];
-                if(i < 1 && i < 5){
+                if(i > 1){
                     if(i == 4){
                         sum2 += addOpenFileValue(s.x,s.y,3,board);
                         sum2 += addOpenFileValue(s.x,s.y,2,board);
@@ -322,7 +318,6 @@ public class Computer{
 
 
             }
-
         }
         double total = sum1-sum2;
         total += kingDistanceAncCornerEval(king1,king2,isWhiteTurn ? whitePieceCount : blackPieceCount,isWhiteTurn) * (isWhiteTurn ? 1 : -1);
@@ -370,16 +365,7 @@ public class Computer{
     }
 
     private int getPieceCount(long board) {
-        int count = 0;
-        for (int z = 0; z < 64; z++) {
-            long mask = 1L << z;
-
-            if ((board & mask) != 0) {
-                count++;
-            }
-        }
-
-        return count;
+        return Long.bitCount(board);
     }
     // bishop then rook
     int[] bishopDx = {1,-1,-1,1};

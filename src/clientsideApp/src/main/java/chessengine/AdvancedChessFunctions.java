@@ -496,7 +496,7 @@ public class AdvancedChessFunctions {
         boolean shortRook = isWhite ? gameState.isWhiteShortRookRight() : gameState.isBlackShortRookRight();
         boolean longRook = isWhite ? gameState.isWhiteLongRookRight() : gameState.isBlackLongRookRight();
 
-        if(canCastle){
+        if(canCastle && !isChecked(x,y,isWhite,board)){
             // short castle
             if(!GeneralChessFunctions.checkIfContains(x+1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x+2,y,isWhite,board) && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board) && GeneralChessFunctions.isValidMove(x+2,y)){
                 moves.add(new XYcoord(x+2,y,true));

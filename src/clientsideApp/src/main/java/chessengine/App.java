@@ -41,6 +41,7 @@ public class App extends Application {
     public static GlobalTheme globalTheme;
 
     public static UserManager userManager;
+    public static BindingController bindingController;
     public static UserPreferenceManager userPreferenceManager;
 
     public static WebSocketClient getWebclient() {
@@ -120,11 +121,24 @@ public class App extends Application {
 
         });
 
+        primaryStage.maximizedProperty().addListener((obs, wasMaximized, isNowMaximized) -> {
+            if(isStartScreen){
+                startRoot.requestLayout();
+            }
+            else{
+                mainRoot.requestLayout();
+            }
+        });
+
         userPreferenceManager.setDefaultSelections();
+        bindingController = new BindingController(mainScreenController.content,startScreenController.content);
+        startScreenController.setup();
+        mainScreenController.oneTimeSetup();
 
 
         primaryStage.setScene(mainScene);
         primaryStage.show();
+        primaryStage.setMaximized(true);
         primaryStage.getIcons().add(new Image("/appIcon/icon.png"));
 
 
@@ -139,7 +153,7 @@ public class App extends Application {
             webclient = userManager.getClientFromUser();
         }
         catch (DeploymentException e){
-            System.out.println("No connection to server!");
+            messager.sendMessageQuick("No connection to server!",true);
         }
         catch (IOException e){
             System.out.println(e.getMessage());
@@ -152,7 +166,7 @@ public class App extends Application {
             return true;
         }
         catch (DeploymentException e){
-            System.out.println("No connection to server!");
+            ChessConstants.mainLogger.debug("Connection Failed");
             webclient = null;
         }
         catch (IOException e){

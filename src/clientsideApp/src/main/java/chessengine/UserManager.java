@@ -1,8 +1,6 @@
 package chessengine;
 
-import chessserver.FrontendClient;
-import chessserver.ProfilePicture;
-import chessserver.UserInfo;
+import chessserver.*;
 import jakarta.websocket.DeploymentException;
 
 import java.io.IOException;
@@ -87,8 +85,34 @@ public class UserManager {
         }
     }
 
+    public int getCurrentCampaignLevel(){
+        return appUser.getInfo().getUserCampaignProgress().getCurrentLevelOfTier();
+    }
+
+    public CampaignTier getCurrentCampaignTier(){
+        return appUser.getInfo().getUserCampaignProgress().getCurrentTier();
+    }
+
+    public CampaignProgress getCampaignProgress(){
+        return appUser.getInfo().getUserCampaignProgress();
+    }
+
+    public void moveToNewCampaignTier(CampaignTier newTier){
+        appUser.getInfo().getUserCampaignProgress().setCurrentTier(newTier);
+        loadChanges();
+        pushChangesToDatabase();
+    }
+
+    public void moveToNextLevel(int numStarsOnPrev){
+        appUser.getInfo().getUserCampaignProgress().moveToNextLevel(numStarsOnPrev);
+        loadChanges();
+        pushChangesToDatabase();
+
+    }
+
     private void loadChanges(){
         App.startScreenController.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(),appUser.getInfo().getUserelo());
+        App.startScreenController.campaignManager.setLevelUnlocksBasedOnProgress(appUser.getInfo().getUserCampaignProgress());
         PersistentSaveManager.writeUserToAppData(appUser.getInfo());
     }
 

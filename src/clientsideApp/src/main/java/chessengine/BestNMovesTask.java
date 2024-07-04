@@ -41,7 +41,7 @@ public class BestNMovesTask extends Task<Void> {
             evaluationRequest = true;
         }
         else{
-            c.stop = true;
+            c.stop.set(true);
             evaluationRequest = true;
         }
 
@@ -50,7 +50,7 @@ public class BestNMovesTask extends Task<Void> {
 
     public void stop(){
         if(c.isRunning()){
-            c.stop = true;
+            c.stop.set(true);
         }
     }
     private boolean isCurrentlyEvaluating = false;

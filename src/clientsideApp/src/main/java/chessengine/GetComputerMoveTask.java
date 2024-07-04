@@ -43,7 +43,7 @@ public class GetComputerMoveTask extends Task<Void> {
 
     public void stop(){
         if(c.isRunning()){
-            c.stop = true;
+            c.stop.set(true);
         }
     }
     private boolean isCurrentlyEvaluating = false;

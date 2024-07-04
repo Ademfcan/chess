@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
+import javafx.scene.layout.VBox;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -124,8 +125,9 @@ public class UserPreferenceManager {
         loadChanges();
     }
 
-    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<Integer> evalOptions, ComboBox<Integer> computerOptions){
+    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<Integer> evalOptions, ComboBox<Integer> computerOptions, boolean isMainScreen){
         themeSelection.getItems().addAll("Light","Dark");
+        App.bindingController.bindSmallText(themeSelection,isMainScreen);
         themeSelection.setOnAction(e->{
             if(!themeSelection.getSelectionModel().isEmpty()){
                 boolean isLight = themeSelection.getValue().equals("Light");
@@ -135,6 +137,7 @@ public class UserPreferenceManager {
             }
         });
 
+        App.bindingController.bindSmallText(bgColorSelector,isMainScreen);
         bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
         bgColorSelector.setOnAction(e ->{
             if(!bgColorSelector.getSelectionModel().isEmpty()){
@@ -143,16 +146,18 @@ public class UserPreferenceManager {
             }
         });
 
+        App.bindingController.bindSmallText(pieceSelector,isMainScreen);
         pieceSelector.getItems().addAll(
                 Arrays.stream(ChessPieceTheme.values()).map(ChessPieceTheme::toString).toList()
         );
-        pieceSelector.setOnAction(e ->{
+       pieceSelector.setOnAction(e ->{
             if(!pieceSelector.getSelectionModel().isEmpty()){
                 App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
                 App.messager.sendMessageQuick("Changed piece theme to: " + pieceSelector.getValue(),true);
             }
         });
 
+        App.bindingController.bindSmallText(audioMuteBGButton,isMainScreen);
         audioMuteBGButton.setOnMouseClicked(e->{
             boolean isBgCurMuted = App.soundPlayer.isUserPrefBgPaused();
             // isbgCurMuted is the opposite of setbackgroundmusics arg, so no flip needed
@@ -160,6 +165,7 @@ public class UserPreferenceManager {
             App.messager.sendMessageQuick(isBgCurMuted ? "Background Audio Unmuted" : "Background Audio Muted",true);
             audioMuteBGButton.setText(isBgCurMuted ? "🔉":"✖");
         });
+
         audioSliderBG.setMin(0);
         audioSliderBG.setMax(100);
         audioSliderBG.setOnMouseReleased(e->{
@@ -167,6 +173,7 @@ public class UserPreferenceManager {
             App.messager.sendMessageQuick("Background volume: " + audioSliderBG.getValue(),true);
         });
 
+        App.bindingController.bindSmallText(audioMuteEffButton,isMainScreen);
         audioMuteEffButton.setOnMouseClicked(e->{
             boolean isEffCurMuted = App.soundPlayer.isEffectsMuted();
             // isEffCurMuted is the opposite of effectson
@@ -174,6 +181,7 @@ public class UserPreferenceManager {
             App.messager.sendMessageQuick(isEffCurMuted ? "Effects Unmuted" : "Effects Muted",true);
             audioMuteEffButton.setText(isEffCurMuted ? "🔉":"✖");
         });
+
         audioSliderEff.setMin(0);
         audioSliderEff.setMax(100);
         audioSliderEff.setOnMouseReleased(e->{
@@ -181,6 +189,7 @@ public class UserPreferenceManager {
             App.messager.sendMessageQuick("Effect volume: " + audioSliderBG.getValue(),true);
         });
 
+        App.bindingController.bindSmallText(evalOptions,isMainScreen);
         evalOptions.getItems().addAll(
                 1,2,3,4,5,6,7,8
         );
@@ -191,6 +200,7 @@ public class UserPreferenceManager {
             }
         });
 
+        App.bindingController.bindSmallText(computerOptions,isMainScreen);
         computerOptions.setOnAction(e ->{
             if(!computerOptions.getSelectionModel().isEmpty()){
                 App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());

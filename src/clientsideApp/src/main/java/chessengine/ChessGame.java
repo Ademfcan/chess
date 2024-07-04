@@ -317,13 +317,13 @@ public class ChessGame{
         }
     }
 
-    private void moveToEndOfGame(){
+    public void moveToEndOfGame(){
         if(maxIndex != curMoveIndex){
             changeToDifferentMove(maxIndex-curMoveIndex);
         }
     }
     public void changeToDifferentMove(int dir){
-        if(!centralControl.chessBoardGUIHandler.inTransition){
+        if(!isMainGame || !centralControl.chessBoardGUIHandler.inTransition){
             int moveChange = Math.abs(dir%2);
             // if not an even number the turn flips
             if(moveChange == 1){
@@ -332,6 +332,7 @@ public class ChessGame{
             curMoveIndex += dir;
             ChessConstants.mainLogger.debug("New curIndex: " + curMoveIndex);
             ChessPosition newPos = getPos(curMoveIndex);
+            gameStates.updateAllStates(curMoveIndex,true);
             if(isMainGame){
                 if(Math.abs(dir) > 1 || App.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
                     // cannot try to animate move
@@ -352,7 +353,7 @@ public class ChessGame{
                         else{
                             move = newPos.getMoveThatCreatedThis();
                             if(!move.isCustomMove()){
-                                centralControl.chessActionHandler.addToLocalInfo(PgnFunctions.moveToPgn(newPos));
+                                centralControl.chessActionHandler.addToLocalInfo(PgnFunctions.moveToPgn(newPos,gameStates));
                             }
                         }
                         if(!move.isCustomMove()){
@@ -364,7 +365,6 @@ public class ChessGame{
 
                 }
             }
-            gameStates.updateAllStates(curMoveIndex);
             if(gameStates.isCheckMated()){
                 App.mainScreenController.setEvalBar(ChessConstants.generalComp.getFullEval(newPos.board,gameStates,false,false),-1,false,true);
             }
@@ -381,7 +381,7 @@ public class ChessGame{
         curMoveIndex = -1;
         ChessPosition newPos = getPos(curMoveIndex);
         updateChessBoardGui(newPos, currentPosition);
-        gameStates.updateAllStates(curMoveIndex);
+        gameStates.updateAllStates(curMoveIndex,true);
         currentPosition = newPos;
         clearIndx();
         centralControl.chessActionHandler.clearLocalInfo();
@@ -531,6 +531,7 @@ public class ChessGame{
 
             moves.subList(curMoveIndex+1, to).clear();
         }
+        gameStates.clearIndexes(curMoveIndex,false);
 
 
     }
@@ -574,6 +575,37 @@ public class ChessGame{
         maxIndex++;
         curMoveIndex++;
         moves.add(newPosition);
+        boolean isDraw = gameStates.makeNewMoveAndCheckDrawRep(newPosition,true);
+        if(!isMainGame || !App.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
+            if(isDraw){
+                gameStates.setStaleMated();
+                if(isMainGame){
+                    ChessConstants.mainLogger.debug("stalemate");
+                    App.mainScreenController.setEvalBar(0,-1,false,true);
+                    App.soundPlayer.playEffect(Effect.GAMEOVER);
+                }
+            }
+            else if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),newPosition.board,gameStates)){
+                if(AdvancedChessFunctions.isCheckmated(!move.isWhite(),newPosition.board,gameStates)){
+                    gameStates.setCheckMated();
+                    if(isMainGame){
+                        ChessConstants.mainLogger.debug("checkmate");
+                        App.mainScreenController.setEvalBar(move.isWhite() ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE,-1,false,true);
+                    }
+                }
+                else{
+                    gameStates.setStaleMated();
+                    if(isMainGame){
+                        ChessConstants.mainLogger.debug("stalemate");
+                        App.mainScreenController.setEvalBar(0,-1,false,true);
+                    }
+
+                }
+                if(isMainGame){
+                    App.soundPlayer.playEffect(Effect.GAMEOVER);
+                }
+            }
+        }
         if(isMainGame)
         {
             App.mainScreenController.setMoveLabels(curMoveIndex,maxIndex);
@@ -596,28 +628,9 @@ public class ChessGame{
                 }
 
             }
-            sendMessageToInfo("Move: " + PgnFunctions.moveToPgn(move,newPosition.board));
+            sendMessageToInfo("Move: " + PgnFunctions.moveToPgn(move,newPosition.board,gameStates));
         }
         currentPosition = newPosition;
-        gameStates.updateMoveIndex(curMoveIndex);
-        if(!App.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
-            if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),newPosition.board,gameStates)){
-                if(AdvancedChessFunctions.isCheckmated(!move.isWhite(),newPosition.board,gameStates)){
-                    ChessConstants.mainLogger.debug("checkmate");
-                    gameStates.setCheckMated();
-                    App.mainScreenController.setEvalBar(move.isWhite() ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE,-1,false,true);
-                }
-                else{
-                    ChessConstants.mainLogger.debug("stalemate");
-                    gameStates.setStaleMated();
-                    App.mainScreenController.setEvalBar(0,-1,false,true);
-
-                }
-                if(isMainGame){
-                    App.soundPlayer.playEffect(Effect.GAMEOVER);
-                }
-            }
-        }
         if(isMainGame){
             if(AdvancedChessFunctions.isChecked(!move.isWhite(),newPosition.board)){
                 App.soundPlayer.playEffect(Effect.CHECK);
@@ -638,7 +651,7 @@ public class ChessGame{
         }
         if(isWebGame && !isWebMove){
             // todo with other things: add time
-            client.sendRequest(INTENT.MAKEMOVE,PgnFunctions.invertPgn(PgnFunctions.moveToPgn(move,newPosition.board)) + ",10");
+            client.sendRequest(INTENT.MAKEMOVE,PgnFunctions.invertPgn(PgnFunctions.moveToPgn(move,newPosition.board,gameStates)) + ",10");
 
         }
     }
@@ -776,15 +789,18 @@ public class ChessGame{
         }
         StringBuilder sb = new StringBuilder(maxIndex);
         for(int i = 0;i<maxIndex+1;i++){
+            // need to update gamestates as we move along through the game
+            gameStates.updateMoveIndex(i);
             if(i%2 == 0){
                 int moveNum =(i/2)+1;
                 sb.append(moveNum).append(".");
             }
             ChessPosition p = getPos(i);
 
-            sb.append(PgnFunctions.moveToPgn(p)).append(" ");
+            sb.append(PgnFunctions.moveToPgn(p,gameStates)).append(" ");
 
         }
+        gameStates.updateMoveIndex(curMoveIndex);
         return sb.toString();
     }
 
@@ -810,6 +826,38 @@ public class ChessGame{
 
         return moves;
     }
+
+
+    // todo static constructors
+//    public static ChessGame gameFromPgn(String pgn,String gameName,boolean isVsComputer){
+//
+//    }
+//
+//
+//    public static ChessGame createGameFromSaveLoad(String pgn,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,boolean isVsComputer,String gameHash){
+//        this.gameStates = new ChessStates();
+//        if(pgn.trim().isEmpty()){
+//            moves = new ArrayList<>();
+//        }
+//        else{
+//            String[] splitPgn = PgnFunctions.splitPgn(pgn);
+//            String moveText = splitPgn[1];
+//            moveText = moveText.replaceAll("\\n", " ");
+//            moves = parseMoveText(moveText);
+//        }
+//        curMoveIndex = -1;
+//        maxIndex = moves.size()-1;
+//        currentPosition = getPos(curMoveIndex);
+//        this.gameName = gameName;
+//        this.player1name = player1name;
+//        this.player2name = isVsComputer ? "Computer" : player2name;
+//        this.player1Elo = player1Elo;
+//        this.player2Elo = player2Elo;
+//        this.isPlayer1Turn = firstTurnDefault;
+//        this.isVsComputer = isVsComputer;
+//        this.gameHash = gameHash;
+//        this.isWebGame =false;
+//    }
 
 
 }

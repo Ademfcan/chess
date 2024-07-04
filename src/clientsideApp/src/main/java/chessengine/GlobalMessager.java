@@ -35,7 +35,7 @@ public class GlobalMessager {
     }
 
     public void sendMessageQuick(String message,boolean isforStart){
-        sendMessage(message,isforStart,Duration.seconds(1.4));
+        sendMessage(message,isforStart,Duration.seconds(2));
 
 
 

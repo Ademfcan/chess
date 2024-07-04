@@ -2,19 +2,23 @@ package chessserver;
 
 public class UserInfo {
     int userelo;
+    CampaignProgress userCampaignProgress;
     String userName;
     String userEmail;
     String passwordHash;
     ProfilePicture profilePicture;
 
+    public CampaignProgress getUserCampaignProgress() {
+        return userCampaignProgress;
+    }
 
-
-    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture) {
+    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture,CampaignProgress userCampaignProgress) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
         this.passwordHash = password;
         this.profilePicture = profilePicture;
+        this.userCampaignProgress = userCampaignProgress;
     }
 
     public UserInfo(){

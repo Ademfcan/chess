@@ -48,7 +48,7 @@ public class PgnFunctions {
         return new String[]{pgn.substring(0,moveTextIndex),pgn.substring(moveTextIndex)};
     }
 
-    public static String moveToPgn(ChessMove move,BitBoardWrapper board){
+    public static String moveToPgn(ChessMove move,BitBoardWrapper board,ChessStates gameStates){
         StringBuilder sb1 = new StringBuilder();
         if(move.isCastleMove()){
             int xDiff = Math.abs(move.getNewX()-move.getOldX());
@@ -70,12 +70,21 @@ public class PgnFunctions {
         String promoChar = move.isPawnPromo() ? "=" : "";
         String promoTypeChar = move.isPawnPromo() ? turnPieceIndexToPgn(move.getPromoIndx()) : "";
         String checkedChar = AdvancedChessFunctions.isChecked(!move.isWhite(),board) ? "+" : "";
+        if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),board,gameStates)){
+            if(AdvancedChessFunctions.isChecked(!move.isWhite(),board)){
+                checkedChar = "#";
+            }
+            else{
+                checkedChar = "";
+            }
+
+        }
         return sb1.append(start).append(ambiguityChar).append(eatingChar).append(xChar).append(yChar).append(promoChar).append(promoTypeChar).append(checkedChar).toString();
 
     }
 
-    public static String moveToPgn(ChessPosition p){
-        return moveToPgn(p.getMoveThatCreatedThis(),p.board);
+    public static String moveToPgn(ChessPosition p,ChessStates gameStates){
+        return moveToPgn(p.getMoveThatCreatedThis(),p.board,gameStates);
 
     }
 
@@ -151,4 +160,14 @@ public class PgnFunctions {
 
 
     }
+//
+//    public static String positionToFEN(ChessPosition pos, ChessStates gameState){
+//        // example FEN: 8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50
+//        // go through each column in each row
+//        for(int row  = 0;row<8;row++){
+//            for(int col = 0;col<8;col++){
+//
+//            }
+//        }
+//    }
 }

@@ -156,6 +156,7 @@ public class ChessBoardGUIHandler {
     }
 
     public void removeFromChessBoard(int x, int y,boolean isWhite){
+        System.out.println("Trying to remove a piece at x:" + x + "y: " + y + " iswhite?:" + isWhite);
         boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + y + "," + isWhite));
         piecesAtLocations[x][y] = null;
         if(!isRemoved){
@@ -195,6 +196,7 @@ public class ChessBoardGUIHandler {
         ImageView piece = createNewPiece(boardIndex,isWhite,false);
         piece.setLayoutX(xyOld[0]);
         piece.setLayoutY(xyOld[1]);
+        piece.setUserData(newX + "," + newY + "," + isWhite);
         chessPieceBoard.getChildren().add(piece);
         movePieceOnBoard(oldX,oldY,newX,newY,isWhite,piece);
 
@@ -212,12 +214,12 @@ public class ChessBoardGUIHandler {
         double offsetY = chessPieceBoard.getHeight()/(2*pieceSize);
         transition.setPath(new Line(offsetX,offsetY,xyNew[0]-xyOld[0]+offsetX,xyNew[1]-xyOld[1]+offsetY));
         transition.setNode(piece);
+        piece.setUserData(newX + "," + newY + "," + isWhite);
+        piecesAtLocations[newX][newY] = piece;
         transition.setOnFinished(e->{
             piece.setTranslateX(0);
             piece.setTranslateY(0);
             putBackLayoutBindings(piece,newX,newY);
-            piecesAtLocations[newX][newY] = piece;
-            piece.setUserData(newX + "," + newY + "," + isWhite);
             inTransition = false;
         });
         transition.play();

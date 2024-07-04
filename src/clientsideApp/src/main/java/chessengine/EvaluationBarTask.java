@@ -40,7 +40,7 @@ public class EvaluationBarTask extends Task<Void> {
 
     public void stop(){
         if(c.isRunning()){
-            c.stop = true;
+            c.stop.set(true);
         }
 
     }

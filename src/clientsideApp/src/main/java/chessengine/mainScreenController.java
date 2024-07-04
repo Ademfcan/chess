@@ -274,7 +274,6 @@ public class mainScreenController implements Initializable {
         victoryLabel.setMouseTransparent(true);
         setPromoPeices(true);
         players = new ImageView[]{player1Select,player2Select};
-        setUpBindings();
         setUpButtons();
         setUpSettingScreenMain();
         setUpDragAction();
@@ -287,6 +286,10 @@ public class mainScreenController implements Initializable {
         setEvalBar(0,0,false,false);
         bs = new Region[]{chessBgBoard,chessPieceBoard,arrowBoard,chessHighlightBoard};
 
+    }
+
+    public void oneTimeSetup(){
+        setUpBindings();
     }
     int bindx = 0;
     Region[] bs;
@@ -466,13 +469,13 @@ public class mainScreenController implements Initializable {
 
         // sidepanel stuff
         sidePanel.prefHeightProperty().bind(chessPieceBoard.heightProperty());
-        BindingController.bindSmallText(stateLabel,true);
+        App.bindingController.bindSmallText(stateLabel,true);
 
-        BindingController.bindChildTextToParentWidth(chessPieceBoard,victoryLabel,.2);
-        BindingController.bindChildTextToParentWidth(chessPieceBoard,player1Label,.4);
-        BindingController.bindChildTextToParentWidth(chessPieceBoard,player2Label,.4);
-        BindingController.bindChildTextToParentWidth(chessPieceBoard,WhiteNumericalAdv,.2);
-        BindingController.bindChildTextToParentWidth(chessPieceBoard,BlackNumericalAdv,.2);
+        App.bindingController.bindLargeText(victoryLabel,true,"White");
+        App.bindingController.bindSmallText(player1Label,true);
+        App.bindingController.bindSmallText(player2Label,true);
+        App.bindingController.bindSmallText(WhiteNumericalAdv,true);
+        App.bindingController.bindSmallText(BlackNumericalAdv,true);
         arrowBoard.prefWidthProperty().bind(chessPieceBoard.widthProperty());
         arrowBoard.prefHeightProperty().bind(chessPieceBoard.heightProperty());
         whiteadvantage.heightProperty().bind(chessPieceBoard.heightProperty().divide(2));
@@ -693,7 +696,6 @@ public class mainScreenController implements Initializable {
     }
     // change the board to a previosly saved position
     private void changeMove(int direction, boolean isReset){
-        ChessCentralControl.chessActionHandler.updateSidePanel(currentState,false,"");
         ChessCentralControl.chessBoardGUIHandler.clearHighlights();
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Changing move by " + direction);
@@ -713,6 +715,8 @@ public class mainScreenController implements Initializable {
             showGameOver();
         }
         updateSimpleAdvantageLabels();
+        ChessCentralControl.chessActionHandler.updateSidePanel(currentState,false,"");
+
     }
 
     private void clearSimpleAdvantageLabels(){

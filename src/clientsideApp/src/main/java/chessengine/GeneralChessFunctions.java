@@ -39,7 +39,7 @@ public class GeneralChessFunctions {
         return (positionToBitboard(bitIndex) & bitboard) != 0L;
     }
     // [0] = isHitPiece [1] = isWhitePiece
-    public static boolean[] checkIfContains(int x, int y, BitBoardWrapper board){
+    public static boolean[] checkIfContainsOld(int x, int y, BitBoardWrapper board){
         long boardPosition  = GeneralChessFunctions.positionToBitboard(x,y);
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
@@ -54,6 +54,22 @@ public class GeneralChessFunctions {
             if(sum != 0L){
                 return new boolean[]{true, false};
             }
+        }
+        return new boolean[]{false,false};
+    }
+
+    public static boolean[] checkIfContains(int x, int y, BitBoardWrapper board){
+        long boardPosition  = GeneralChessFunctions.positionToBitboard(x,y);
+        long[] whitePieces = board.getWhitePieces();
+        long[] blackPieces = board.getBlackPieces();
+        long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
+        long bigBlackSum = blackPieces[0] | whitePieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
+
+        if((bigWhiteSum & boardPosition) != 0L){
+            return new boolean[]{true, true};
+        }
+        if((bigBlackSum & boardPosition) != 0L){
+            return new boolean[]{true, false};
         }
         return new boolean[]{false,false};
     }

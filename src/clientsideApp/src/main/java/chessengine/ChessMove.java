@@ -120,12 +120,12 @@ public class ChessMove {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChessMove chessMove = (ChessMove) o;
-        return oldX == chessMove.oldX && oldY == chessMove.oldY && newX == chessMove.newX && newY == chessMove.newY && isCastleMove == chessMove.isCastleMove && chessMove.isWhite == isWhite && chessMove.isCustomMove == isCustomMove;
+        return oldX == chessMove.oldX && oldY == chessMove.oldY && newX == chessMove.newX && newY == chessMove.newY && isCastleMove == chessMove.isCastleMove && chessMove.isWhite == isWhite && chessMove.isCustomMove == isCustomMove && chessMove.boardIndex == boardIndex;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(oldX, oldY, newX, newY, isCastleMove,isCustomMove);
+        return Objects.hash(oldX, oldY, newX, newY,boardIndex,isWhite, isCastleMove);
     }
 
     @Override

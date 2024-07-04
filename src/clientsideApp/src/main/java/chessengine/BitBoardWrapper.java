@@ -1,6 +1,7 @@
 package chessengine;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class BitBoardWrapper {
     private long[] whitePieces;
@@ -128,6 +129,10 @@ public class BitBoardWrapper {
     }
 
 
+    @Override
+    public int hashCode(){
+        return Arrays.hashCode(whitePieces) +  Arrays.hashCode(blackPieces);
+    }
 
 
 
