@@ -26,7 +26,6 @@ public class ChessPosition {
     }
 
     public ChessPosition(ChessPosition newPos,ChessStates newGameState, int peiceType, boolean isWhite, boolean isCastle, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex,boolean isCustomMove) {
-        newGameState.updateMoveIndex();
         BitBoardWrapper board = newPos.board;
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();

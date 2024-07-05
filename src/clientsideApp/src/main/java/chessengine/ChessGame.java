@@ -608,6 +608,7 @@ public class ChessGame{
         }
         if(isMainGame)
         {
+            //  chessboard gui stuff
             App.mainScreenController.setMoveLabels(curMoveIndex,maxIndex);
             if(App.mainScreenController.currentState.equals(MainScreenState.VIEWER)){
                 centralControl.chessActionHandler.updateViewerSuggestions();

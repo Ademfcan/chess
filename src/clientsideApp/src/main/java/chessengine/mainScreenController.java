@@ -727,12 +727,16 @@ public class mainScreenController implements Initializable {
     public void updateSimpleAdvantageLabels(){
         clearSimpleAdvantageLabels();
         int simpleAdvantage = AdvancedChessFunctions.getSimpleAdvantage(ChessCentralControl.gameHandler.currentGame.currentPosition.board);
-        if(simpleAdvantage >= 0){
-            WhiteNumericalAdv.setText(Integer.toString(simpleAdvantage));
+        if(simpleAdvantage > 0){
+            WhiteNumericalAdv.setText("+" + Integer.toString(simpleAdvantage));
+        }
+        else if(simpleAdvantage < 0){
+            // flip the sign from a negative to a positive
+            BlackNumericalAdv.setText("+" + Integer.toString(simpleAdvantage*-1));
         }
         else{
-            BlackNumericalAdv.setText(Integer.toString(simpleAdvantage));
-
+            // clear labels as zero advantage
+            clearSimpleAdvantageLabels();
         }
     }
     // draw the eval bar for the screen

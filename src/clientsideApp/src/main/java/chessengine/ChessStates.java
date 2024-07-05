@@ -1,5 +1,7 @@
 package chessengine;
 
+import chessserver.GameStatus;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -179,6 +181,11 @@ public class ChessStates {
     }
     public void updateMoveIndex(){
         currentIndex++;
+    }
+
+    public ChessStates updateMoveIndexHack(){
+        currentIndex++;
+        return this;
     }
 
     public void removeCastlingRight(boolean isWhite){
