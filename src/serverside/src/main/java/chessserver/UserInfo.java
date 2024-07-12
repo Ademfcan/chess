@@ -2,10 +2,16 @@ package chessserver;
 
 public class UserInfo {
     int userelo;
+
+    public void setUserCampaignProgress(CampaignProgress userCampaignProgress) {
+        this.userCampaignProgress = userCampaignProgress;
+    }
+
     CampaignProgress userCampaignProgress;
     String userName;
     String userEmail;
     String passwordHash;
+
     ProfilePicture profilePicture;
 
     public CampaignProgress getUserCampaignProgress() {
@@ -28,6 +34,10 @@ public class UserInfo {
 
     public int getUserelo() {
         return userelo;
+    }
+
+    public void setUserelo(int userelo) {
+        this.userelo = userelo;
     }
 
     public void adjustElo(int change) {

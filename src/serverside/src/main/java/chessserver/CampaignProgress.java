@@ -7,25 +7,64 @@ import java.util.List;
 public class CampaignProgress {
     CampaignTier currentTier;
 
+    public List<int[]> getStarsPerLevel() {
+        return starsPerLevel;
+    }
+
+    public void setStarsPerLevel(List<int[]> starsPerLevel) {
+        this.starsPerLevel = starsPerLevel;
+    }
+
     int currentLevelOfTier;
 
     public int getStarsForALevel(CampaignTier tier,int LevelOfTier) {
         return starsPerLevel.get(tier.ordinal())[LevelOfTier];
     }
 
+    public void setStarsForALevel(CampaignTier tier,int LevelOfTier,int numStars) {
+        int curStars = getStarsForALevel(tier,LevelOfTier);
+        if(numStars > curStars){
+            // dont penalize if you have done better before
+            starsPerLevel.get(tier.ordinal())[LevelOfTier] = numStars;
+        }
+        else{
+            System.out.println("No change needed");
+        }
+    }
+
     // 1-3 stars per level, like a score
     List<int[]> starsPerLevel;
 
-    public CampaignProgress(){
-        this.currentTier = CampaignTier.values()[0];
+    public CampaignProgress(CampaignTier currentTier,int currentLevelOfTier,List<int[]> starsPerLevel){
+        this.currentTier = currentTier;
         // zero indexed!
-        this.currentLevelOfTier = 6;
-        starsPerLevel = new ArrayList<>(CampaignTier.values().length);
+        this.currentLevelOfTier = currentLevelOfTier;
+        this.starsPerLevel = starsPerLevel;
         for(int i = 0;i<CampaignTier.values().length;i++){
             int[] stars = new int[CampaignTier.values()[i].NLevels];
             starsPerLevel.add(stars);
         }
-        setStarsPerLevelAll3(starsPerLevel.get(0),currentLevelOfTier);
+    }
+
+    public CampaignProgress(){
+        // json serialization
+        this.starsPerLevel = new ArrayList<>();
+        for (int i = 0; i < CampaignTier.values().length; i++) {
+            int[] stars = new int[CampaignTier.values()[i].NLevels];
+            starsPerLevel.add(stars);
+        }
+    }
+
+    public CampaignProgress(int flag){
+        // empty constructor without json serialization
+        this.currentTier = CampaignTier.values()[0];
+        // zero indexed!
+        this.currentLevelOfTier = 0;
+        this.starsPerLevel = new ArrayList<>();
+        for(int i = 0;i<CampaignTier.values().length;i++){
+            int[] stars = new int[CampaignTier.values()[i].NLevels];
+            starsPerLevel.add(stars);
+        }
     }
 
 
@@ -50,11 +89,10 @@ public class CampaignProgress {
         setStarsPerLevelAll3(starsPerLevel.get(currentTier.ordinal()),currentLevelOfTier);
     }
 
-    public void moveToNextLevel(int numStarsForPrev){
+    public void moveToNextLevel(){
         if(currentTier != CampaignTier.LastTier && currentLevelOfTier != currentTier.NLevels){
             // max level already
             hasTierChanged = false;
-            starsPerLevel.get(currentTier.ordinal())[currentLevelOfTier] = numStarsForPrev;
             currentLevelOfTier++;
             if(currentLevelOfTier > currentTier.NLevels){
                 // move to next tier

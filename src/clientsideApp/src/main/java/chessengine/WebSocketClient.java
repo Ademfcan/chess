@@ -68,8 +68,9 @@ public class WebSocketClient {
                     String[] info = out.getExtraInformation().split(",");
                     String opponentName = info[0];
                     int opponentElo = Integer.parseInt(info[1]);
+                    String pfpUrl = info[2];
                     linkedGame.setWebGameInitialized(true);
-                    linkedGame.initWebGame(opponentName, opponentElo);
+                    linkedGame.initWebGame(opponentName, opponentElo,pfpUrl);
                     linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                 }
                 case LEFTGAMESUCESS -> {

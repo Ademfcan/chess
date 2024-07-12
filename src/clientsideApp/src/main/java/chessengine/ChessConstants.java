@@ -5,6 +5,8 @@ import chessserver.GlobalTheme;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Random;
+
 public class ChessConstants {
     private static final long blackPawns = 0b0000000000000000000000000000000000000000000000001111111100000000L;
     private static final long blackKnights = 0b0000000000000000000000000000000000000000000000000000000001000010L;
@@ -25,14 +27,17 @@ public class ChessConstants {
     public static final long[] whitePiecesC = {whitePawns, whiteKnights, whiteBishops, whiteRooks, whiteQueens, whiteKings};
     public static final XYcoord whiteKingStart = new XYcoord(4,7);
     public static final XYcoord blackKingStart = new XYcoord(4,0);
-    public static final ChessPosition startBoardState = new ChessPosition(new BitBoardWrapper(whitePiecesC,blackPiecesC,whiteKingStart,blackKingStart),new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false));
+    public static final ChessPosition startBoardState = new ChessPosition(new BitBoardWrapper(whitePiecesC,blackPiecesC,whiteKingStart,blackKingStart),new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false,false));
 
+    public static final ChessMove startMove = new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false,false);
     public static final Logger mainLogger = LogManager.getLogger("Central Logger");
 
     public static ChessStates NEWGAMESTATE = new ChessStates();
 
+    public static final Random generalRandom = new Random(1226891211);
+
     public static final Computer generalComp = new Computer(10);
-    // only used for simple evals, no minimax
+    // only used for simple evals, no minimax so depth dosent matter
 
     public static final int EMPTYINDEX = -10;
 
@@ -55,7 +60,11 @@ public class ChessConstants {
     public static final String NOPASS = "no-password";
 
     public static final UserPreferences defaultPreferences = new UserPreferences(true,.75,true,.75,5,5, GlobalTheme.Light, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
-    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0,"anonymous",NOEMAIL,NOPASS,ProfilePicture.DEFAULT,new CampaignProgress()));
-    public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false),0);
+    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0,"anonymous",NOEMAIL,NOPASS,ProfilePicture.DEFAULT,new CampaignProgress(123)));
+    public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,false,false),0);
+
+    public static final String defaultBorderStyle = "-fx-border-color: gray; -fx-border-width: .5;";
+    public static final String highlightBorderStyle = "-fx-border-color: white; -fx-border-width: 3;";
+
 
 }

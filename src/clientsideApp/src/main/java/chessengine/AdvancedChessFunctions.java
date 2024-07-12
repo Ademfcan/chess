@@ -65,7 +65,7 @@ public class AdvancedChessFunctions {
 
     public AdvancedChessFunctions() {
         this.logger  = LogManager.getLogger(this.toString());
-        this.ChessCentralControl = App.getCentralControl();
+        this.ChessCentralControl = App.ChessCentralControl;
     }
 
 
@@ -74,20 +74,20 @@ public class AdvancedChessFunctions {
 
 
 
-    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, BitBoardWrapper board,ChessStates gameState){
-        int indx = GeneralChessFunctions.getBoardWithPiece(x,y,isWhite,board);
+    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos,ChessStates gameState){
+        int indx = GeneralChessFunctions.getBoardWithPiece(x,y,isWhite,pos.board);
         //System.out.println("Getting moves for peice at " + x + " " + y);
-        return getPossibleMoves(x,y,isWhite,board,gameState,indx);
+        return getPossibleMoves(x,y,isWhite,pos,gameState,indx);
 
     }
 
-    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, BitBoardWrapper board,ChessStates gameState, int boardIndex){
+    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos,ChessStates gameState, int boardIndex){
         //System.out.println("Getting moves for peice at " + x + " " + y);
-        List<XYcoord> baseMoves = getMoveOfType(x,y,isWhite,boardIndex,board,gameState);
-        if(isChecked(isWhite,board)){;
+        List<XYcoord> baseMoves = getMoveOfType(x,y,isWhite,boardIndex,pos,gameState);
+        if(isChecked(isWhite,pos.board)){;
             if(boardIndex != 5){
 
-                baseMoves.retainAll(getCheckedFile(isWhite,board));
+                baseMoves.retainAll(getCheckedFile(isWhite,pos.board));
 
             }
             return baseMoves;
@@ -98,32 +98,32 @@ public class AdvancedChessFunctions {
 
     }
 
-    private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, BitBoardWrapper board,ChessStates gameState){
+    private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, ChessPosition pos,ChessStates gameState){
         if(!GeneralChessFunctions.isValidIndex(indx)){
             ChessConstants.mainLogger.error("Invalid index passed into get move of type");
         }
         return switch (indx) {
-            case 0 -> calculatePawnMoves(x, y, isWhite,board,false);
-            case 1 -> calculateKnightMoves(x, y, isWhite, false,board,false);
-            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,board,false);
-            case 3 -> calculateRookMoves(x, y, isWhite, false,false,board,false);
-            case 4 -> calculateQueenMoves(x, y, isWhite, false,board,false);
-            case 5 -> calculateKingMoves(x, y, isWhite,board,gameState);
+            case 0 -> calculatePawnMoves(x, y, isWhite,pos,false);
+            case 1 -> calculateKnightMoves(x, y, isWhite, false,pos.board,false);
+            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,pos.board,false);
+            case 3 -> calculateRookMoves(x, y, isWhite, false,false,pos.board,false);
+            case 4 -> calculateQueenMoves(x, y, isWhite, false,pos.board,false);
+            case 5 -> calculateKingMoves(x, y, isWhite,pos.board,gameState);
             default -> (null);
         };
     }
 
-    private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, BitBoardWrapper board,ChessStates gameState,boolean isForCheck){
+    private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, ChessPosition pos,ChessStates gameState,boolean isForCheck){
         if(!GeneralChessFunctions.isValidIndex(indx)){
             ChessConstants.mainLogger.error("Invalid index passed into get move of type");
         }
         return switch (indx) {
-            case 0 -> calculatePawnMoves(x, y, isWhite,board,isForCheck);
-            case 1 -> calculateKnightMoves(x, y, isWhite, false,board,isForCheck);
-            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,board,isForCheck);
-            case 3 -> calculateRookMoves(x, y, isWhite, false,false,board,isForCheck);
-            case 4 -> calculateQueenMoves(x, y, isWhite, false,board,isForCheck);
-            case 5 -> calculateKingMoves(x, y, isWhite,board,gameState);
+            case 0 -> calculatePawnMoves(x, y, isWhite,pos,isForCheck);
+            case 1 -> calculateKnightMoves(x, y, isWhite, false,pos.board,isForCheck);
+            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,pos.board,isForCheck);
+            case 3 -> calculateRookMoves(x, y, isWhite, false,false,pos.board,isForCheck);
+            case 4 -> calculateQueenMoves(x, y, isWhite, false,pos.board,isForCheck);
+            case 5 -> calculateKingMoves(x, y, isWhite,pos.board,gameState);
             default -> (null);
         };
     }
@@ -293,7 +293,8 @@ public class AdvancedChessFunctions {
 
 
 
-    private static List<XYcoord> calculatePawnMoves(int x, int y, boolean isWhite, BitBoardWrapper board, boolean isforcheck){
+    private static List<XYcoord> calculatePawnMoves(int x, int y, boolean isWhite, ChessPosition pos, boolean isforcheck){
+        BitBoardWrapper board = pos.board;
         ArrayList<XYcoord> moves = new ArrayList<>();
         int pawnHome = isWhite ? 6 : 1;
         int pawnEnd = isWhite ? 0 : 7;
@@ -301,6 +302,29 @@ public class AdvancedChessFunctions {
         int eatY = y + move;
         int eatX1 = x + 1;
         int eatX2 = x - 1;
+        // en passant
+
+        if(!pos.equals(ChessConstants.startBoardState)){
+            // means we arent at the very beginning as there is not an actual move for the start position
+            ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
+            if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX){
+                // pawn move so possibilty of enpassant
+                if(Math.abs(moveThatCreated.getOldY()-moveThatCreated.getNewY()) > 1){
+                    // jumped 2 so means that there is a possibilty of en passant
+                    if(y == moveThatCreated.getNewY() && (x == moveThatCreated.getNewX()-1 || x == moveThatCreated.getNewX()+1)){
+                        // pawn is in the right position so add en passant
+                        int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY())/2;
+                        XYcoord passantMove = new XYcoord(moveThatCreated.getNewX(),midY);
+                        passantMove.setEnPassant(true);
+                        moves.add(passantMove);
+                    }
+
+
+
+                }
+            }
+        }
+
         if(GeneralChessFunctions.checkIfContains(eatX1,eatY,!isWhite, board) && GeneralChessFunctions.isValidMove(eatX1,eatY)){
             // pawn can capture to the right
             if(isforcheck){
@@ -498,12 +522,12 @@ public class AdvancedChessFunctions {
 
         if(canCastle && !isChecked(x,y,isWhite,board)){
             // short castle
-            if(!GeneralChessFunctions.checkIfContains(x+1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x+2,y,isWhite,board) && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board) && GeneralChessFunctions.isValidMove(x+2,y)){
+            if(!GeneralChessFunctions.checkIfContains(x+1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x+2,y,isWhite,board) && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board)){
                 moves.add(new XYcoord(x+2,y,true));
             }
             // long castle
-            if(!GeneralChessFunctions.checkIfContains(x-1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-2,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-3,y,isWhite,board) && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board) && longRook && GeneralChessFunctions.isValidMove(x-3,y)){
-                moves.add(new XYcoord(x-3,y,true));
+            if(!GeneralChessFunctions.checkIfContains(x-1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-2,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-3,y,isWhite,board) && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board) && longRook){
+                moves.add(new XYcoord(x-2,y,true));
 
             }
         }
@@ -531,10 +555,10 @@ public class AdvancedChessFunctions {
         return moves;
     }
 
-    public static boolean isAnyNotMovePossible(boolean isWhite, BitBoardWrapper board, ChessStates gameState){
-        List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePieces() : board.getBlackPieces());
+    public static boolean isAnyNotMovePossible(boolean isWhite, ChessPosition pos, ChessStates gameState){
+        List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? pos.board.getWhitePieces() : pos.board.getBlackPieces());
         for(XYcoord pcoord : peices){
-            List<XYcoord> piecePossibleMoves = getPossibleMoves(pcoord.x,pcoord.y,isWhite,board,gameState,pcoord.peiceType);
+            List<XYcoord> piecePossibleMoves = getPossibleMoves(pcoord.x,pcoord.y,isWhite,pos,gameState,pcoord.peiceType);
             if(!piecePossibleMoves.isEmpty()){
                 return false;
             }
@@ -546,7 +570,14 @@ public class AdvancedChessFunctions {
 
 
 
+    public static Boolean isAnyChecked(BitBoardWrapper board){
+        XYcoord wkingLocation = board.getWhiteKingLocation();
+        XYcoord bkingLocation = board.getBlackKingLocation();
+        return isChecked(wkingLocation.x,wkingLocation.y,true,board) || isChecked(bkingLocation.x,bkingLocation.y,false,board);
 
+
+        // king coordinates
+    }
 
 
 
@@ -557,7 +588,6 @@ public class AdvancedChessFunctions {
         return isChecked(kingLocation.x,kingLocation.y,isWhite,board);
 
 
-        // king coordinates
     }
 
     private static boolean isChecked(int x, int y, boolean isWhite, BitBoardWrapper board){
@@ -667,12 +697,12 @@ public class AdvancedChessFunctions {
 
 
 
-    public static boolean isCheckmated(boolean isWhite, BitBoardWrapper board, ChessStates gameState){
-        return isChecked(isWhite,board) && isAnyNotMovePossible(isWhite, board,gameState);
+    public static boolean isCheckmated(boolean isWhite, ChessPosition pos, ChessStates gameState){
+        return isChecked(isWhite,pos.board) && isAnyNotMovePossible(isWhite, pos,gameState);
     }
 
-    public static boolean isCheckmated(BitBoardWrapper board, ChessStates gameState ){
-        return (isChecked(false,board) && isAnyNotMovePossible(false, board,gameState))||( isChecked(true,board) && isAnyNotMovePossible(true, board,gameState));
+    public static boolean isCheckmated(ChessPosition pos, ChessStates gameState ){
+        return (isChecked(false,pos.board) && isAnyNotMovePossible(false,pos,gameState))||( isChecked(true,pos.board) && isAnyNotMovePossible(true, pos,gameState));
     }
 
 
@@ -923,25 +953,25 @@ public class AdvancedChessFunctions {
 
     }
 
-    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType,int ambgX,int ambgY,boolean isWhite,boolean isEating,BitBoardWrapper board,ChessStates gameState){
+    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType,int ambgX,int ambgY,boolean isWhite,boolean isEating,ChessPosition pos,ChessStates gameState){
         // either will be no ambiguity, or it will both, or either x/y ambiguity
         boolean noAmbg = ambgX == ChessConstants.EMPTYINDEX && ambgY == ChessConstants.EMPTYINDEX;
         boolean bothAmbg = ambgX != ChessConstants.EMPTYINDEX && ambgY != ChessConstants.EMPTYINDEX;
         boolean xAmbg = ambgX != ChessConstants.EMPTYINDEX;
         List<XYcoord> possibleOrigins;
         if(pieceType == ChessConstants.KINGINDEX){
-            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhite,board);
+            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhite,pos.board);
 
         }
         else if(pieceType == ChessConstants.PAWNINDEX){
-            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(newX,newY,!isWhite,isEating,board);
+            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(newX,newY,!isWhite,isEating,pos.board);
         }
         else {
-            possibleOrigins = AdvancedChessFunctions.getMoveOfType(newX,newY,!isWhite,pieceType,board,gameState,true);
+            possibleOrigins = AdvancedChessFunctions.getMoveOfType(newX,newY,!isWhite,pieceType,pos,gameState,true);
 
         }
         for(XYcoord c : possibleOrigins){
-            boolean isPieceThere = GeneralChessFunctions.checkIfContains(c.x,c.y,isWhite ? board.getWhitePieces()[pieceType] : board.getBlackPieces()[pieceType]);
+            boolean isPieceThere = GeneralChessFunctions.checkIfContains(c.x,c.y,isWhite ? pos.board.getWhitePieces()[pieceType] : pos.board.getBlackPieces()[pieceType]);
             if(isPieceThere){
                 if(noAmbg){
                     return c;
@@ -968,20 +998,20 @@ public class AdvancedChessFunctions {
         return null;
     }
     // returns -1 if not ambigous, 1 for singular ambiguity, 2 for double ambiguity and 3 for triple ambiguity
-    public static String getAmbigiousStr(int oldX, int oldY, int newX, int newY, int pieceType, boolean isWhiteMove, boolean isEatingMove, BitBoardWrapper board){
+    public static String getAmbigiousStr(int oldX, int oldY, int newX, int newY, int pieceType, boolean isWhiteMove, boolean isEatingMove, ChessPosition pos){
         List<XYcoord> possibleOrigins;
         if(pieceType == ChessConstants.KINGINDEX){
-            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhiteMove,board);
+            possibleOrigins = AdvancedChessFunctions.basicKingMoveCalc(newX,newY,!isWhiteMove,pos.board);
 
         }
         else if(pieceType == ChessConstants.PAWNINDEX){
-            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(newX,newY,!isWhiteMove,isEatingMove,board);
+            possibleOrigins = AdvancedChessFunctions.fullPawnMoveCalcPGN(newX,newY,!isWhiteMove,isEatingMove,pos.board);
         }
         else {
             // dont need gamestate so passing in dummy variable
-            possibleOrigins = AdvancedChessFunctions.getMoveOfType(newX,newY,!isWhiteMove,pieceType,board,ChessConstants.NEWGAMESTATE,true);
+            possibleOrigins = AdvancedChessFunctions.getMoveOfType(newX,newY,!isWhiteMove,pieceType,pos,ChessConstants.NEWGAMESTATE,true);
         }
-        List<XYcoord> originsWithPiece = possibleOrigins.stream().filter(p -> GeneralChessFunctions.checkIfContains(p.x,p.y,isWhiteMove ? board.getWhitePieces()[pieceType] : board.getBlackPieces()[pieceType])).toList();
+        List<XYcoord> originsWithPiece = possibleOrigins.stream().filter(p -> GeneralChessFunctions.checkIfContains(p.x,p.y,isWhiteMove ? pos.board.getWhitePieces()[pieceType] : pos.board.getBlackPieces()[pieceType])).toList();
         int XMatchCount = 0;
         int YMatchCount = 0;
         for(XYcoord xy : originsWithPiece){
@@ -1003,12 +1033,14 @@ public class AdvancedChessFunctions {
             // also the board is flipped in pgn so we invert the y coordinate
             ambgStr = Integer.toString(7-oldY+1);
         }
-        else if(YMatchCount > 0){
-            // double ambiguity on the y axis so we differentiate by x
-
+        else if(YMatchCount > 0 || !originsWithPiece.isEmpty()){
+            // two options:
+            // either double ambiguity on the y axis so we differentiate by x
+            // or it is simply a general ambiguity so we specify the x axis by default
             ambgStr = Character.toString(PgnFunctions.turnIntToFileStr(oldX));
 
         }
+
         return ambgStr;
 
     }
@@ -1026,7 +1058,27 @@ public class AdvancedChessFunctions {
                 break;
             }
         }
-        ChessConstants.mainLogger.error("No coulmn found for given file");
+        ChessConstants.mainLogger.error("No column found for given file");
+
+        return ChessConstants.EMPTYINDEX;
+
+    }
+
+    public static int getEnPassantOriginX(int newX,int newY,boolean isWhite,long board){
+        int backDir = isWhite ? 1 : -1;
+        // look to the left and the right of the new y
+        // because its en passant it will have to be one of there
+
+        // left
+        if(GeneralChessFunctions.checkIfContains(newX-1,newY+backDir,board)){
+            return newX-1;
+        }
+        // right
+        if(GeneralChessFunctions.checkIfContains(newX+1,newY+backDir,board)){
+            return newX+1;
+        }
+
+        ChessConstants.mainLogger.error("En passant origin not found");
 
         return ChessConstants.EMPTYINDEX;
 

@@ -10,15 +10,15 @@ public class ThreadController {
     public EvaluationBarTask evalTask;
     public GetComputerMoveTask computerTask;
     public BestNMovesTask nMovesTask;
-    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth){
+    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth,mainScreenController mainScreenController){
         chessAiForBestMove = new Computer(defaultComputerDepth);
         chessAiForEvalBar = new Computer(defaultEvaluationDepth);
         chessAiForNMoves = new Computer(defaultEvaluationDepth);
-        evalTask = new EvaluationBarTask(chessAiForEvalBar, App.mainScreenController,defaultEvaluationDepth);
+        evalTask = new EvaluationBarTask(chessAiForEvalBar, mainScreenController,defaultEvaluationDepth);
         new Thread(evalTask).start();
-        computerTask = new GetComputerMoveTask(chessAiForBestMove, App.mainScreenController);
+        computerTask = new GetComputerMoveTask(chessAiForBestMove, mainScreenController);
         new Thread(computerTask).start();
-        nMovesTask = new BestNMovesTask(chessAiForNMoves,App.mainScreenController,4);
+        nMovesTask = new BestNMovesTask(chessAiForNMoves,mainScreenController,4);
         new Thread((nMovesTask)).start();
     }
 

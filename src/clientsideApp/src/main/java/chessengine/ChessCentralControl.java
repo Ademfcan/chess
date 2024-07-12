@@ -8,6 +8,8 @@ import javafx.scene.layout.*;
 
 
 public class ChessCentralControl {
+
+    public mainScreenController mainScreenController;
     public ChessBoardGUIHandler chessBoardGUIHandler;
 
     public ThreadController asyncController;
@@ -28,11 +30,12 @@ public class ChessCentralControl {
 
     }
 
-    public void init(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput, Button sendMessageButton, StackPane[][] bgPanes,GridPane chessHighlightBoard){
-        this.chessBoardGUIHandler = new ChessBoardGUIHandler(chessPieceBoard,eatenWhites,eatenBlacks,piecesAtLocations,ArrowBoard,bgPanes,chessHighlightBoard);
-        this.asyncController = new ThreadController(5,5);
+    public void init(mainScreenController mainScreenController,Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput, Button sendMessageButton, StackPane[][] bgPanes,VBox[][] moveBoxes,GridPane chessBgBoard,GridPane chessHighlightBoard,GridPane chessMoveBoard,HBox movesPlayedBox){
+        this.mainScreenController = mainScreenController;
+        this.chessBoardGUIHandler = new ChessBoardGUIHandler(chessPieceBoard,eatenWhites,eatenBlacks,piecesAtLocations,ArrowBoard,bgPanes,moveBoxes,chessHighlightBoard,chessBgBoard,chessMoveBoard);
+        this.asyncController = new ThreadController(5,5,mainScreenController);
         this.gameHandler = new ChessGameHandler(this);
-        this.chessActionHandler = new ChessActionHandler(this,bestmovesBox,localInfo,sandboxPieces,gameInfo,chatInput,sendMessageButton);
+        this.chessActionHandler = new ChessActionHandler(this,bestmovesBox,localInfo,sandboxPieces,gameInfo,chatInput,sendMessageButton,movesPlayedBox);
         isInit = true;
 
     }

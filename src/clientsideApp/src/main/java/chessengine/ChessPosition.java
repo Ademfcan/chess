@@ -21,33 +21,50 @@ public class ChessPosition {
         this.moveThatCreatedThis = moveThatCreatedThis;
     }
     public ChessPosition(ChessPosition curPos,ChessStates gameState,ChessMove newMove) {
-        this(curPos.clonePosition(),gameState, newMove.getBoardIndex(), newMove.isWhite(), newMove.isCastleMove(), newMove.isPawnPromo(), newMove.getOldX(), newMove.getOldY(), newMove.getNewX(), newMove.getNewY(), newMove.getPromoIndx(),newMove.isCustomMove());
+        this(curPos.clonePosition(),gameState, newMove.getBoardIndex(), newMove.isWhite(), newMove.isCastleMove(),newMove.isEnPassant(),newMove.isPawnPromo(), newMove.getOldX(), newMove.getOldY(), newMove.getNewX(), newMove.getNewY(), newMove.getPromoIndx(),newMove.isCustomMove());
 
     }
 
-    public ChessPosition(ChessPosition newPos,ChessStates newGameState, int peiceType, boolean isWhite, boolean isCastle, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex,boolean isCustomMove) {
-        BitBoardWrapper board = newPos.board;
+
+    public ChessPosition(ChessPosition curPos,ChessStates curGamestate, int peiceType, boolean isWhite, boolean isCastle,boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex,boolean isCustomMove) {
+        BitBoardWrapper board = curPos.board;
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
         long[] currentBoardMod = isWhite ? whitePieces : blackPieces;
         long[] enemyBoardMod = isWhite ? blackPieces : whitePieces;
         // general stuff to do wether its a custom move or not
         boolean isEating = false;
-        if(GeneralChessFunctions.checkIfContains(newX,newY,!isWhite,board)){
-            // eating enemyPeice
-            isEating = true;
-            int boardWithPiece = GeneralChessFunctions.getBoardWithPiece(newX,newY,!isWhite,board);
-            enemyBoardMod[boardWithPiece] = GeneralChessFunctions.RemovePeice(newX,newY,enemyBoardMod[boardWithPiece]);
+        if(!isEnPassant){
+            if(GeneralChessFunctions.checkIfContains(newX,newY,!isWhite,board)){
+                // eating enemyPeice
+                isEating = true;
+                int boardWithPiece = GeneralChessFunctions.getBoardWithPiece(newX,newY,!isWhite,board);
+                enemyBoardMod[boardWithPiece] = GeneralChessFunctions.RemovePeice(newX,newY,enemyBoardMod[boardWithPiece]);
+
+                // check remove rook right if rook is eaten
+                curGamestate.checkRemoveRookMoveRight(newX, newY);
+
+            }
+            if(peiceType == ChessConstants.KINGINDEX){
+                // update king location + remove castling right
+                board.setKingLocation(isWhite,new XYcoord(newX,newY));
+                curGamestate.removeCastlingRight(isWhite);
+
+            }
+            // remove rook castling right
+            else if(peiceType == ChessConstants.ROOKINDEX) {
+                curGamestate.checkRemoveRookMoveRight(oldX, oldY, isWhite);
+            }
         }
-        if(peiceType == ChessConstants.KINGINDEX){
-            // update king location
-            board.setKingLocation(isWhite,new XYcoord(newX,newY));
-            newGameState.removeCastlingRight(isWhite);
+        else{
+            // en passant
+            int backwardsDir = isWhite ? 1 : -1;
+            // remove pawn
+            enemyBoardMod[ChessConstants.PAWNINDEX] = GeneralChessFunctions.RemovePeice(newX,newY+backwardsDir,enemyBoardMod[ChessConstants.PAWNINDEX]);
+
 
         }
-        else if(peiceType == ChessConstants.ROOKINDEX){
-            newGameState.checkRemoveRookMoveRight(oldX,oldY,isWhite);
-        }
+
         if(isCustomMove){
             // skip all logic, as these moves are for adding extra pieces in sandbox
             currentBoardMod[peiceType] = GeneralChessFunctions.AddPeice(newX,newY,currentBoardMod[peiceType]);
@@ -56,15 +73,15 @@ public class ChessPosition {
             // normal move
             if(isCastle){
                 // check if short or long castle and move appropiately
-                newGameState.removeCastlingRight(isWhite);
+                curGamestate.removeCastlingRight(isWhite);
                 boolean isShortCastle = newX == 6;
                 if(isShortCastle){
-                    currentBoardMod[3] = GeneralChessFunctions.RemovePeice(7,newY,currentBoardMod[3]);
-                    currentBoardMod[3] = GeneralChessFunctions.AddPeice(newX-1,newY,currentBoardMod[3]);
+                    currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(7,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
+                    currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX-1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 }
                 else{
-                    currentBoardMod[3] = GeneralChessFunctions.RemovePeice(0,newY,currentBoardMod[3]);
-                    currentBoardMod[3] = GeneralChessFunctions.AddPeice(newX+1,newY,currentBoardMod[3]);
+                    currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(0,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
+                    currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX+1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 }
             }
 
@@ -87,7 +104,7 @@ public class ChessPosition {
         this.board = board;
 
 
-        moveThatCreatedThis = new ChessMove(oldX,oldY,newX,newY,promoIndex,peiceType,isWhite,isCastle,isEating,isCustomMove);
+        moveThatCreatedThis = new ChessMove(oldX,oldY,newX,newY,promoIndex,peiceType,isWhite,isCastle,isEating,isEnPassant,isCustomMove);
 
     }
 
@@ -103,7 +120,7 @@ public class ChessPosition {
         List<BackendChessPosition> childPositionsPriority3 = new ArrayList<>();
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePieces() : board.getBlackPieces());
         for(XYcoord coord : peices){
-            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x,coord.y,isWhite,board,gameState);
+            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x,coord.y,isWhite,this,gameState);
             if(Objects.isNull(piecePossibleMoves)){
                 ChessConstants.mainLogger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
 
@@ -113,7 +130,7 @@ public class ChessPosition {
                 int endSquarePiece = GeneralChessFunctions.getBoardWithPiece(move.x,move.y,!isWhite,board);
                 // stupid way of making sure you cant eat a king, real fix is making sure no possible moves allow this.
 
-                if(endSquarePiece ==5){
+                if(endSquarePiece ==ChessConstants.KINGINDEX){
                     String type = GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(coord.x,coord.y,isWhite,board));
 
                     ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :((((((((((((((((((("));
@@ -121,18 +138,18 @@ public class ChessPosition {
                 else {
                     boolean isEating = endSquarePiece != -10;
                     if (isEating) {
-                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(), false, coord.x, coord.y, move.x, move.y, -10);
+                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), false, coord.x, coord.y, move.x, move.y, -10);
                         childPositionsPriority1.add(childPos);
                     } else if (move.isPawnPromo()) {
                         // pawn promo can be 4 options so have to add them all (knight, bishop,rook,queen)
                         for (int i = 1; i < 5; i++) {
-                            BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(),gameState.cloneState(), peiceType, isWhite, move.isCastleMove(), true, coord.x, coord.y, move.x, move.y, i);
+                            BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(),gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), true, coord.x, coord.y, move.x, move.y, i);
                             childPositionsPriority2.add(childPos);
 
                         }
 
                     } else {
-                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(), false, coord.x, coord.y, move.x, move.y, -10);
+                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), false, coord.x, coord.y, move.x, move.y, -10);
                         childPositionsPriority3.add(childPos);
                     }
                 }

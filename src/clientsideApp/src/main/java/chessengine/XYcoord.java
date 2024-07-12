@@ -18,8 +18,10 @@ public class XYcoord {
 
     private boolean isPawnPromo;
     private boolean isCastleMove;
-    int direction = -10;
 
+    private boolean enPassant;
+
+    int direction = -10;
     int peiceType = -10;
 
 
@@ -27,6 +29,7 @@ public class XYcoord {
         this.x = x;
         this.y = y;
         this.isCastleMove = false;
+        this.enPassant = false;
         this.direction = direction;
     }
 
@@ -35,6 +38,7 @@ public class XYcoord {
         this.x = x;
         this.y = y;
         this.isCastleMove = isCastleMove;
+        this.enPassant = false;
     }
 
 
@@ -43,7 +47,9 @@ public class XYcoord {
         this.x = x;
         this.y = y;
         this.isCastleMove = false;
+        this.enPassant = false;
     }
+
     @Override
     public boolean equals(Object obj){
         if(this == obj){
@@ -56,6 +62,13 @@ public class XYcoord {
         XYcoord xy = (XYcoord) obj;
         return (this.x == xy.x && this.y == xy.y);
 
+    }
+    public boolean isEnPassant() {
+        return enPassant;
+    }
+
+    public void setEnPassant(boolean enPassant) {
+        this.enPassant = enPassant;
     }
 
     public String toString(){

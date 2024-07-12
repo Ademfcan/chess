@@ -2,7 +2,7 @@ package chessengine;
 
 import java.util.concurrent.Callable;
 
-public class EvaluationBarCallable implements Callable<Double> {
+public class EvaluationBarCallable implements Callable<minimaxOutput> {
     final Computer c;
     final int d;
     final boolean isWhite;
@@ -17,7 +17,7 @@ public class EvaluationBarCallable implements Callable<Double> {
     }
 
     @Override
-    public Double call() throws Exception {
+    public minimaxOutput call() throws Exception {
         return c.getFullEvalMinimax(position,gameState,d,isWhite);
     }
 }

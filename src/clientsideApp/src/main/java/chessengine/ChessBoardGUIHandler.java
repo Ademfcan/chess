@@ -1,18 +1,13 @@
 package chessengine;
 
 import chessserver.ChessboardTheme;
-import javafx.animation.Interpolator;
 import javafx.animation.PathTransition;
-import javafx.animation.Transition;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.LineTo;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
@@ -21,22 +16,25 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 public class ChessBoardGUIHandler {
     private final Pane arrowBoard;
-    private final StackPane[][] bgPanes;
     private final GridPane chessHighlightBoard;
-    public Pane chessPieceBoard;
-    private HBox eatenWhites;
-    private HBox eatenBlacks;
+    private final GridPane chessMoveBoard;
+    private final GridPane chessBgBoard;
+    public final Pane chessPieceBoard;
+    private final HBox eatenWhites;
+    private final HBox eatenBlacks;
 
-    public ImageView[][] piecesAtLocations;
+    public final ImageView[][] piecesAtLocations;
+    private final StackPane[][] bgPanes;
+
+    private final VBox[][] moveBoxes;
 
     private Logger logger;
 
-    private List<Arrow> arrows;
-    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, StackPane[][] bgPanes,GridPane chessHighlightBoard){
+    private final List<Arrow> arrows;
+    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, StackPane[][] bgPanes,VBox[][] moveBoxes,GridPane chessBgBoard,GridPane chessHighlightBoard,GridPane chessMoveBoard){
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhites = eatenWhites;
         this.eatenBlacks = eatenBlacks;
@@ -45,6 +43,9 @@ public class ChessBoardGUIHandler {
         this.arrowBoard = ArrowBoard;
         this.bgPanes = bgPanes;
         this.chessHighlightBoard = chessHighlightBoard;
+        this.chessMoveBoard = chessMoveBoard;
+        this.chessBgBoard = chessBgBoard;
+        this.moveBoxes = moveBoxes;
         arrows = new ArrayList<>();
         chessPieceBoard.widthProperty().addListener(e->{
             redrawArrows();
@@ -75,15 +76,23 @@ public class ChessBoardGUIHandler {
 
 
     public void addArrow(Arrow newArrow){
-        arrows.add(newArrow);
-        drawArrow(newArrow);
+        // remove arrow when drawn into same location where there already is one. Like a toggle switch
+        boolean isAlreadyArrow = arrowBoard.getChildren().removeIf(a -> a.getUserData().toString().equals(newArrow.startX + "," + newArrow.startY + "," + newArrow.endX + "," + newArrow.endY));
+        if(!isAlreadyArrow){
+            arrows.add(newArrow);
+            drawArrow(newArrow);
+        }
+        else{
+            arrows.removeIf(a->a.equals(newArrow));
+        }
     }
 
     private void drawArrow(Arrow arrow){
         SVGPath path = arrow.generateSvg((int)arrowBoard.getPrefHeight(),(int)arrowBoard.getPrefWidth());
         arrowBoard.getChildren().add(path);
+        path.setUserData(arrow.startX + "," + arrow.startY + "," + arrow.endX + "," + arrow.endY);
 
-        System.out.println("Adding arrow: " + path.getContent());
+//        System.out.println("Adding arrow: " + path.getContent());
     }
 
     public int[] turnLayoutXyintoBoardXy(double lx,double ly){
@@ -203,11 +212,13 @@ public class ChessBoardGUIHandler {
 
     }
 
+    private float transitionTimePerSquare = .04f;
     public boolean inTransition;
     private void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite,ImageView piece){
+        double dist  = Math.sqrt(Math.pow(newY-oldY,2) + Math.pow(newX-oldX,2));
         PathTransition transition = new PathTransition();
         inTransition = true;
-        transition.setDuration(Duration.seconds(.22));
+        transition.setDuration(Duration.seconds(dist*transitionTimePerSquare));
         int[] xyOld = calcXY(oldX,oldY);
         int[] xyNew = calcXY(newX,newY);
         double offsetX = chessPieceBoard.getWidth()/(2*pieceSize);
@@ -377,17 +388,19 @@ public class ChessBoardGUIHandler {
         }
     }
     public void highlightMove(ChessMove move){
-        highlightSquare(move.getOldX(),move.getOldY(),true);
-        highlightSquare(move.getNewX(),move.getNewY(),true);
+        highlightSquare(move.getOldX(),move.getOldY(),false);
+        highlightSquare(move.getNewX(),move.getNewY(),false);
     }
 
     String highlightColor = "";
 
-    public void clearHighlights()
+    public void clearAllHighlights()
     {
         for(int i = 0;i<8;i++){
             for(int j = 0;j<8;j++){
                 removeHiglight(i,j);
+                removeHiglightBorder(i,j);
+                removeMoveSquare(i,j);
             }
         }
 
@@ -399,7 +412,7 @@ public class ChessBoardGUIHandler {
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
         int count = 0;
 
-        for (Node n : chessHighlightBoard.getChildren()) {
+        for (Node n : chessBgBoard.getChildren()) {
             String curr = "";
             if (isLight) {
                 curr = theme.lightColor;
@@ -439,11 +452,29 @@ public class ChessBoardGUIHandler {
             default -> null;
         };
     }
+
+    public void removeHiglightBorder(int x, int y){
+        moveBoxes[x][y].setStyle(ChessConstants.defaultBorderStyle);
+    }
+
+    public void higlightBorder(int x, int y){
+        moveBoxes[x][y].setStyle(ChessConstants.highlightBorderStyle);
+    }
+
+    public void removeMoveSquare(int x,int y){
+        moveBoxes[x][y].getChildren().get(0).setVisible(false);
+    }
+
+    public void showMoveSquare(int x,int y){
+        // only child is the circle
+        moveBoxes[x][y].getChildren().get(0).setVisible(true);
+    }
+
     public void highlightSquare(int x, int y, boolean isPieceSelection) {
         if (isPieceSelection) {
-            highlightColor = "rgba(44, 212, 255, 0.25)";
+            highlightColor = "rgba(223, 90, 37, 0.6)";
         } else {
-            highlightColor = "rgba(223, 90, 37, 0.4)";
+            highlightColor = "rgba(44, 212, 255, 0.6)";
         }
         bgPanes[x][y].setStyle("-fx-background-color: " + highlightColor);
 
@@ -451,9 +482,9 @@ public class ChessBoardGUIHandler {
 
     public void toggleSquareHighlight(int x, int y, boolean isPieceSelection){
         if (isPieceSelection) {
-            highlightColor = "rgba(44, 212, 255, 0.25)";
+            highlightColor = "rgba(223, 90, 37, 0.6)";
         } else {
-            highlightColor = "rgba(223, 90, 37, 0.4)";
+            highlightColor = "rgba(44, 212, 255, 0.6)";
         }
         if (!bgPanes[x][y].getStyle().contains("rgba")) {
             bgPanes[x][y].setStyle("-fx-background-color: " + highlightColor);

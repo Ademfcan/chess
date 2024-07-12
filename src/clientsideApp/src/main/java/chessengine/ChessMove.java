@@ -27,6 +27,7 @@ public class ChessMove {
 
     private boolean isEating;
 
+    private boolean isEnPassant;
 
 
     private boolean isCustomMove;
@@ -37,7 +38,7 @@ public class ChessMove {
 
 
 
-    public ChessMove(int oldX, int oldY, int newX, int newY,int promoIndx, int boardIndex, boolean isWhite,boolean isCastleMove, boolean isEating,boolean isCustomMove) {
+    public ChessMove(int oldX, int oldY, int newX, int newY,int promoIndx, int boardIndex, boolean isWhite,boolean isCastleMove, boolean isEating,boolean isEnPassant,boolean isCustomMove) {
         this.oldX = oldX;
         this.oldY = oldY;
         this.newX = newX;
@@ -49,15 +50,16 @@ public class ChessMove {
         this.boardIndex = boardIndex;
         this.isWhite = isWhite;
         this.isCustomMove = isCustomMove;
+        this.isEnPassant = isEnPassant;
 
     }
+
     private final int boardSize = 7;
     public ChessMove invertMove(){
-        return new ChessMove(oldX,boardSize-oldY,newX,boardSize-newX,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,isCustomMove);
+        return new ChessMove(oldX,boardSize-oldY,newX,boardSize-newX,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,isEnPassant,isCustomMove);
     }
-
     public ChessMove reverseMove(){
-        return new ChessMove(newX,newY,oldX,oldY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,isCastleMove);
+        return new ChessMove(newX,newY,oldX,oldY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,isEnPassant,isCustomMove);
     }
 
 
@@ -65,6 +67,10 @@ public class ChessMove {
         return isPawnPromo;
     }
 
+
+    public boolean isEnPassant() {
+        return isEnPassant;
+    }
 
 
     public int getPromoIndx() {
@@ -112,7 +118,7 @@ public class ChessMove {
 
     public ChessMove cloneMove(){
         // all by value
-        return new ChessMove(this.oldX,this.oldY,this.newX,this.newY,this.promoIndx,this.boardIndex,this.isWhite,this.isCastleMove,this.isEating,this.isCustomMove);
+        return new ChessMove(this.oldX,this.oldY,this.newX,this.newY,this.promoIndx,this.boardIndex,this.isWhite,this.isCastleMove,this.isEating,this.isEnPassant,this.isCustomMove);
     }
 
     @Override
@@ -140,6 +146,7 @@ public class ChessMove {
                 ", isPawnPromo=" + isPawnPromo +
                 ", pieceType=" + GeneralChessFunctions.getPieceType(boardIndex) +
                 ", isWhite=" + isWhite +
+                ", isEnPassant=" + isEnPassant +
                 ", isCustomMove=" + isCustomMove +
                 '}';
     }

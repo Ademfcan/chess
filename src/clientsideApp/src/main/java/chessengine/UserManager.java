@@ -39,6 +39,10 @@ public class UserManager {
         return appUser.getInfo().getUserelo();
     }
 
+    public String getUserPfpUrl(){
+        return appUser.getInfo().getProfilePicture().urlString;
+    }
+
     public void updateUserElo(int change){
         if(change != 0){
             appUser.getInfo().adjustElo(change);
@@ -103,8 +107,15 @@ public class UserManager {
         pushChangesToDatabase();
     }
 
-    public void moveToNextLevel(int numStarsOnPrev){
-        appUser.getInfo().getUserCampaignProgress().moveToNextLevel(numStarsOnPrev);
+    public void moveToNextLevel(){
+        appUser.getInfo().getUserCampaignProgress().moveToNextLevel();
+        loadChanges();
+        pushChangesToDatabase();
+
+    }
+
+    public void setLevelStars(CampaignTier completedTier, int levelOfTier, int numStars){
+        appUser.getInfo().getUserCampaignProgress().setStarsForALevel(completedTier,levelOfTier,numStars);
         loadChanges();
         pushChangesToDatabase();
 

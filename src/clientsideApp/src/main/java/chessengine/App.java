@@ -1,10 +1,7 @@
 
 package chessengine;
 
-import chessserver.FrontendClient;
-import chessserver.GlobalTheme;
-import chessserver.UserInfo;
-import chessserver.UserPreferences;
+import chessserver.*;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -43,6 +40,7 @@ public class App extends Application {
     public static UserManager userManager;
     public static BindingController bindingController;
     public static UserPreferenceManager userPreferenceManager;
+    public static CampaignMessager campaignMessager;
 
     public static WebSocketClient getWebclient() {
         return webclient;
@@ -51,7 +49,7 @@ public class App extends Application {
 
     public static WebSocketClient webclient;
 
-    public static void updateGlobalTheme(GlobalTheme newTheme){
+    public static void updateTheme(GlobalTheme newTheme){
         globalTheme = newTheme;
         mainScene.getStylesheets().clear();
         mainScene.getStylesheets().add(globalTheme.cssLocation);
@@ -62,12 +60,9 @@ public class App extends Application {
 
 
 
-    private static ChessCentralControl ChessCentralControl;
+    public static ChessCentralControl ChessCentralControl;
 
 
-    public static ChessCentralControl getCentralControl() {
-        return ChessCentralControl;
-    }
 
     public String getGreeting() {
         return "Hello World!";
@@ -97,6 +92,7 @@ public class App extends Application {
         mainStage = primaryStage;
         messager = new GlobalMessager();
         userPreferenceManager = new UserPreferenceManager();
+        campaignMessager = new CampaignMessager(ChessCentralControl);
 
         try {
 
@@ -130,10 +126,11 @@ public class App extends Application {
             }
         });
 
-        userPreferenceManager.setDefaultSelections();
         bindingController = new BindingController(mainScreenController.content,startScreenController.content);
         startScreenController.setup();
         mainScreenController.oneTimeSetup();
+
+        userPreferenceManager.setDefaultSelections();
 
 
         primaryStage.setScene(mainScene);
@@ -192,7 +189,7 @@ public class App extends Application {
         soundPlayer.changeVolumeEffects(preferences.getEffectVolume());
         soundPlayer.setEffectsMuted(!preferences.isEffectSounds());
 
-        updateGlobalTheme(preferences.getGlobalTheme());
+        updateTheme(preferences.getGlobalTheme());
         if(ChessCentralControl.isInit()){
             ChessCentralControl centralControl = mainScreenController.getChessCentralControl();
             // nmoves and eval use same depth for now
@@ -217,6 +214,9 @@ public class App extends Application {
     @Override
     public void stop(){
         mainScreenController.endAsync();
+        if(ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
+            PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+        }
     }
 
 
@@ -233,7 +233,7 @@ public class App extends Application {
     public static void changeToStart(){
         isStartScreen = true;
         mainScene.setRoot(startRoot);
-        updateGlobalTheme(globalTheme);
+        updateTheme(globalTheme);
         if(!soundPlayer.isUserPrefBgPaused()){
             soundPlayer.playSong(false);
         }
@@ -244,8 +244,8 @@ public class App extends Application {
     public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer,MainScreenState state){
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
-        updateGlobalTheme(globalTheme);
-        mainScreenController.setUp(isVsComputer,gameName,null,userManager.getUserName(), userManager.getUserElo(), state);
+        updateTheme(globalTheme);
+        mainScreenController.setupRegular(isVsComputer,gameName,null,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(), state);
         soundPlayer.pauseSong(false);
 
     }
@@ -255,17 +255,25 @@ public class App extends Application {
     public static void changeToMainScreenWithGame(ChessGame loadedGame,boolean isVsComputer,MainScreenState state){
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
-        updateGlobalTheme(globalTheme);
-        mainScreenController.setUp(isVsComputer,"",loadedGame,userManager.getUserName(), userManager.getUserElo(),state);
-        soundPlayer.pauseSong(false);
+        updateTheme(globalTheme);
+        mainScreenController.setupRegular(isVsComputer,loadedGame.getGameName(),loadedGame,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(),state);
 
 
     }
 
-    public static void changeToMainScreenMultiplayer(String player1Name, int player1Elo, ChessGame webGame){
+    public static void changeToMainScreenCampaign(CampaignTier campaignTier,int campaignLevelOfTier,int difficulty){
+        isStartScreen = false;
+        mainScene.setRoot(mainRoot);
+        updateTheme(globalTheme);
+        mainScreenController.setupCampaign(userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(),campaignTier,campaignLevelOfTier,difficulty);
         soundPlayer.pauseSong(false);
 
     }
+
+//    public static void changeToMainScreenMultiplayer(String player1Name, int player1Elo, ChessGame webGame){
+//        soundPlayer.pauseSong(false);
+//
+//    }
 
 
 

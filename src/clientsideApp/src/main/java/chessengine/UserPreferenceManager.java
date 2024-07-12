@@ -38,6 +38,15 @@ public class UserPreferenceManager {
         App.startScreenController.audioMuteBGButton.setText(userPref.isBackgroundmusic() ? "🔉" : "✖");
         App.startScreenController.audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
 
+
+        App.mainScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
+        App.mainScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDepth()-1);
+        App.mainScreenController.evalOptions.getSelectionModel().select(userPref.getEvalDepth()-1);
+        App.mainScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
+        App.mainScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
+        App.mainScreenController.pieceSelector.setValue(userPref.getPieceTheme().toString());
+        App.mainScreenController.audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
+
     }
 
 
@@ -126,91 +135,111 @@ public class UserPreferenceManager {
     }
 
     public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<Integer> evalOptions, ComboBox<Integer> computerOptions, boolean isMainScreen){
-        themeSelection.getItems().addAll("Light","Dark");
-        App.bindingController.bindSmallText(themeSelection,isMainScreen);
-        themeSelection.setOnAction(e->{
-            if(!themeSelection.getSelectionModel().isEmpty()){
-                boolean isLight = themeSelection.getValue().equals("Light");
-                App.userPreferenceManager.setGlobalTheme(isLight ? GlobalTheme.Light : GlobalTheme.Dark);
-                App.messager.sendMessageQuick("Changed Global Theme to: " + themeSelection.getValue().toLowerCase(),true);
+        if(themeSelection != null){
+            themeSelection.getItems().addAll("Light","Dark");
+            App.bindingController.bindSmallText(themeSelection,isMainScreen);
+            themeSelection.setOnAction(e->{
+                if(!themeSelection.getSelectionModel().isEmpty()){
+                    boolean isLight = themeSelection.getValue().equals("Light");
+                    App.userPreferenceManager.setGlobalTheme(isLight ? GlobalTheme.Light : GlobalTheme.Dark);
+                    App.messager.sendMessageQuick("Changed Global Theme to: " + themeSelection.getValue().toLowerCase(),App.isStartScreen);
 
-            }
-        });
+                }
+            });
+        }
 
-        App.bindingController.bindSmallText(bgColorSelector,isMainScreen);
-        bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
-        bgColorSelector.setOnAction(e ->{
-            if(!bgColorSelector.getSelectionModel().isEmpty()){
-                App.userPreferenceManager.setChessboardTheme(ChessboardTheme.getCorrespondingTheme(bgColorSelector.getValue()));
-                App.messager.sendMessageQuick("Changed chessboard theme to: " + bgColorSelector.getValue(),true);
-            }
-        });
+        if(bgColorSelector != null){
+            App.bindingController.bindSmallText(bgColorSelector,isMainScreen);
+            bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
+            bgColorSelector.setOnAction(e ->{
+                if(!bgColorSelector.getSelectionModel().isEmpty()){
+                    App.userPreferenceManager.setChessboardTheme(ChessboardTheme.getCorrespondingTheme(bgColorSelector.getValue()));
+                    App.messager.sendMessageQuick("Changed chessboard theme to: " + bgColorSelector.getValue(),App.isStartScreen);
+                }
+            });
+        }
 
-        App.bindingController.bindSmallText(pieceSelector,isMainScreen);
-        pieceSelector.getItems().addAll(
-                Arrays.stream(ChessPieceTheme.values()).map(ChessPieceTheme::toString).toList()
-        );
-       pieceSelector.setOnAction(e ->{
-            if(!pieceSelector.getSelectionModel().isEmpty()){
-                App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
-                App.messager.sendMessageQuick("Changed piece theme to: " + pieceSelector.getValue(),true);
-            }
-        });
+        if(pieceSelector != null){
+            App.bindingController.bindSmallText(pieceSelector,isMainScreen);
+            pieceSelector.getItems().addAll(
+                    Arrays.stream(ChessPieceTheme.values()).map(ChessPieceTheme::toString).toList()
+            );
+            pieceSelector.setOnAction(e ->{
+                if(!pieceSelector.getSelectionModel().isEmpty()){
+                    App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
+                    App.messager.sendMessageQuick("Changed piece theme to: " + pieceSelector.getValue(),App.isStartScreen);
+                }
+            });
+        }
 
-        App.bindingController.bindSmallText(audioMuteBGButton,isMainScreen);
-        audioMuteBGButton.setOnMouseClicked(e->{
-            boolean isBgCurMuted = App.soundPlayer.isUserPrefBgPaused();
-            // isbgCurMuted is the opposite of setbackgroundmusics arg, so no flip needed
-            App.userPreferenceManager.setBackgroundmusic(isBgCurMuted);
-            App.messager.sendMessageQuick(isBgCurMuted ? "Background Audio Unmuted" : "Background Audio Muted",true);
-            audioMuteBGButton.setText(isBgCurMuted ? "🔉":"✖");
-        });
+        if(audioMuteBGButton != null){
+            App.bindingController.bindSmallText(audioMuteBGButton,isMainScreen);
+            audioMuteBGButton.setOnMouseClicked(e->{
+                boolean isBgCurMuted = App.soundPlayer.isUserPrefBgPaused();
+                // isbgCurMuted is the opposite of setbackgroundmusics arg, so no flip needed
+                App.userPreferenceManager.setBackgroundmusic(isBgCurMuted);
+                App.messager.sendMessageQuick(isBgCurMuted ? "Background Audio Unmuted" : "Background Audio Muted",App.isStartScreen);
+                audioMuteBGButton.setText(isBgCurMuted ? "🔉":"✖");
+            });
+        }
 
-        audioSliderBG.setMin(0);
-        audioSliderBG.setMax(100);
-        audioSliderBG.setOnMouseReleased(e->{
-            App.userPreferenceManager.setBackgroundVolume(audioSliderBG.getValue());
-            App.messager.sendMessageQuick("Background volume: " + audioSliderBG.getValue(),true);
-        });
+        if(audioSliderBG != null){
 
-        App.bindingController.bindSmallText(audioMuteEffButton,isMainScreen);
-        audioMuteEffButton.setOnMouseClicked(e->{
-            boolean isEffCurMuted = App.soundPlayer.isEffectsMuted();
-            // isEffCurMuted is the opposite of effectson
-            App.userPreferenceManager.setEffectsOn(isEffCurMuted);
-            App.messager.sendMessageQuick(isEffCurMuted ? "Effects Unmuted" : "Effects Muted",true);
-            audioMuteEffButton.setText(isEffCurMuted ? "🔉":"✖");
-        });
+            audioSliderBG.setMin(0);
+            audioSliderBG.setMax(1);
+            audioSliderBG.setOnMouseReleased(e->{
+                App.userPreferenceManager.setBackgroundVolume(audioSliderBG.getValue());
+                App.messager.sendMessageQuick("Background volume: " + audioSliderBG.getValue(),App.isStartScreen);
+            });
+        }
 
-        audioSliderEff.setMin(0);
-        audioSliderEff.setMax(100);
-        audioSliderEff.setOnMouseReleased(e->{
-            App.userPreferenceManager.setEffectVolume(audioSliderBG.getValue());
-            App.messager.sendMessageQuick("Effect volume: " + audioSliderBG.getValue(),true);
-        });
+        if(audioMuteEffButton != null){
+            App.bindingController.bindSmallText(audioMuteEffButton,isMainScreen);
+            audioMuteEffButton.setOnMouseClicked(e->{
+                boolean isEffCurMuted = App.soundPlayer.isEffectsMuted();
+                // isEffCurMuted is the opposite of effectson
+                App.userPreferenceManager.setEffectsOn(isEffCurMuted);
+                App.messager.sendMessageQuick(isEffCurMuted ? "Effects Unmuted" : "Effects Muted",App.isStartScreen);
+                audioMuteEffButton.setText(isEffCurMuted ? "🔉":"✖");
+            });
+        }
 
-        App.bindingController.bindSmallText(evalOptions,isMainScreen);
-        evalOptions.getItems().addAll(
-                1,2,3,4,5,6,7,8
-        );
-        evalOptions.setOnAction(e ->{
-            if(!evalOptions.getSelectionModel().isEmpty()){
-                App.userPreferenceManager.setEvalDepth(evalOptions.getValue());
-                App.messager.sendMessageQuick("New Evalation Depth: " + evalOptions.getValue(),true);
-            }
-        });
+        if(audioSliderEff != null){
+            audioSliderEff.setMin(0);
+            audioSliderEff.setMax(1);
+            audioSliderEff.setOnMouseReleased(e->{
+                App.userPreferenceManager.setEffectVolume(audioSliderEff.getValue());
+                App.messager.sendMessageQuick("Effect volume: " + audioSliderEff.getValue(),App.isStartScreen);
+            });
+        }
 
-        App.bindingController.bindSmallText(computerOptions,isMainScreen);
-        computerOptions.setOnAction(e ->{
-            if(!computerOptions.getSelectionModel().isEmpty()){
-                App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());
-                App.messager.sendMessageQuick("New computer Depth: " + computerOptions.getValue(),true);
-            }
-        });
+        if(evalOptions != null){
+            App.bindingController.bindSmallText(evalOptions,isMainScreen);
+            evalOptions.getItems().addAll(
+                    1,2,3,4,5,6,7,8
+            );
+            evalOptions.setOnAction(e ->{
+                if(!evalOptions.getSelectionModel().isEmpty()){
+                    App.userPreferenceManager.setEvalDepth(evalOptions.getValue());
+                    App.messager.sendMessageQuick("New Evalation Depth: " + evalOptions.getValue(),App.isStartScreen);
+                }
+            });
+        }
 
-        computerOptions.getItems().addAll(
-                1,2,3,4,5,6,7,8
-        );
+        if(computerOptions != null){
+            App.bindingController.bindSmallText(computerOptions,isMainScreen);
+            computerOptions.setOnAction(e ->{
+                if(!computerOptions.getSelectionModel().isEmpty()){
+                    App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());
+                    App.messager.sendMessageQuick("New computer Depth: " + computerOptions.getValue(),App.isStartScreen);
+                }
+            });
+
+            computerOptions.getItems().addAll(
+                    1,2,3,4,5,6,7,8
+            );
+        }
+
     }
 
 

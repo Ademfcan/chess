@@ -3,6 +3,7 @@ package chessengine;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class PgnFunctions {
 
@@ -47,31 +48,31 @@ public class PgnFunctions {
         int moveTextIndex = pgn.indexOf("1.");
         return new String[]{pgn.substring(0,moveTextIndex),pgn.substring(moveTextIndex)};
     }
-
-    public static String moveToPgn(ChessMove move,BitBoardWrapper board,ChessStates gameStates){
+    // pgn examples: 1. e4 e5 2. Nf3 Nc6 3. Bb5...
+    public static String moveToPgn(ChessMove move,ChessPosition pos,ChessStates gameStates){
         StringBuilder sb1 = new StringBuilder();
         if(move.isCastleMove()){
-            int xDiff = Math.abs(move.getNewX()-move.getOldX());
-            if(xDiff > 2){
+            int xDiff = move.getNewX()-move.getOldX();
+            if(xDiff > 0){
+                // short castle
+                return "O-O";
+            }
+            else{
                 // long castle
                 return "O-O-O";
             }
-            else{
-                // short
-                return "O-O";
-            }
         }
-        String start = turnPieceIndexToPgn(move.getBoardIndex());
-        String ambiguityChar = AdvancedChessFunctions.getAmbigiousStr(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.getBoardIndex(),move.isWhite(),move.isEating(),board);
+        String start = turnPieceIndexToStr(move.getBoardIndex(),true);
+        String ambiguityChar = AdvancedChessFunctions.getAmbigiousStr(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.getBoardIndex(),move.isWhite(),move.isEating(),pos);
         String eatingChar = move.isEating() ? "x" : "";
         char xChar = turnIntToFileStr(move.getNewX());
         // flip y
         char yChar = intToChar(7-move.getNewY()+1);
         String promoChar = move.isPawnPromo() ? "=" : "";
-        String promoTypeChar = move.isPawnPromo() ? turnPieceIndexToPgn(move.getPromoIndx()) : "";
-        String checkedChar = AdvancedChessFunctions.isChecked(!move.isWhite(),board) ? "+" : "";
-        if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),board,gameStates)){
-            if(AdvancedChessFunctions.isChecked(!move.isWhite(),board)){
+        String promoTypeChar = move.isPawnPromo() ? turnPieceIndexToStr(move.getPromoIndx(),true) : "";
+        String checkedChar = AdvancedChessFunctions.isChecked(!move.isWhite(),pos.board) ? "+" : "";
+        if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),pos,gameStates)){
+            if(AdvancedChessFunctions.isChecked(!move.isWhite(),pos.board)){
                 checkedChar = "#";
             }
             else{
@@ -84,7 +85,7 @@ public class PgnFunctions {
     }
 
     public static String moveToPgn(ChessPosition p,ChessStates gameStates){
-        return moveToPgn(p.getMoveThatCreatedThis(),p.board,gameStates);
+        return moveToPgn(p.getMoveThatCreatedThis(),p,gameStates);
 
     }
 
@@ -142,7 +143,7 @@ public class PgnFunctions {
 
     }
 
-    public static String turnPieceIndexToPgn(int c){
+    public static String turnPieceIndexToStr(int c,boolean isPgn){
         switch (c){
             case ChessConstants.KINGINDEX:
                 return "K";
@@ -156,18 +157,121 @@ public class PgnFunctions {
                 return "N";
         }
         // if none match then it is a pawn(empty char)
-        return "";
+        if(isPgn){
+            return "";
+        }
+        else{
+            return "P";
+        }
 
 
     }
 //
-//    public static String positionToFEN(ChessPosition pos, ChessStates gameState){
-//        // example FEN: 8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50
-//        // go through each column in each row
-//        for(int row  = 0;row<8;row++){
-//            for(int col = 0;col<8;col++){
-//
-//            }
-//        }
-//    }
+    public static String positionToFEN(ChessPosition pos, ChessStates gameStateForPos,boolean isWhiteTurn,int numHalfMovesSinceCheckOrPawnMove,int numFullMoves){
+        // example FEN: 8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50
+        // go through each file in each row
+        StringBuilder fenBuilder = new StringBuilder();
+        for(int row  = 0;row<8;row++){
+            int emptySquareCount = 0;
+            for(int file = 0;file<8;file++){
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,pos.board);
+                if(boardInfo[0]){
+                    // means there is a piece there
+                    // first put the number of empty squares before this
+                    if(emptySquareCount > 0){
+                        fenBuilder.append(emptySquareCount);
+                    }
+                    emptySquareCount = 0;
+                    // now we put the string representing the piece
+                    int pieceIndex = GeneralChessFunctions.getBoardWithPiece(file,row,boardInfo[1],pos.board);
+                    String pieceString;
+                    if(boardInfo[1]){
+                        // means a white piece
+                        pieceString = turnPieceIndexToStr(pieceIndex,false);
+
+                    }
+                    else{
+                        pieceString = turnPieceIndexToStr(pieceIndex,false).toLowerCase();
+
+                    }
+                    fenBuilder.append(pieceString);
+
+                }
+                else{
+                    // no piece so we increment empty square count;
+                    if(file == 1 || file == 6){
+                        if(row == 1){
+                            System.out.println("empty night!?");
+                        }
+                    }
+                    emptySquareCount++;
+                }
+            }
+            // flush any empty squares
+            if(emptySquareCount > 0){
+                fenBuilder.append(emptySquareCount);
+            }
+
+
+            // add a slash after every row
+            if(row != 7){
+                fenBuilder.append("/");
+            }
+        }
+        // finally add all of the extra information, such as iswhiteturn, castling rights, en passant possibilities etc
+        if(isWhiteTurn){
+            fenBuilder.append(" w");
+        }
+        else{
+            fenBuilder.append(" b");
+        }
+        fenBuilder.append(" ");
+
+        boolean whiteCastle = gameStateForPos.isWhiteCastleRight();
+        boolean blackCastle = gameStateForPos.isBlackCastleRight();
+        String wksC = gameStateForPos.isWhiteShortRookRight() && whiteCastle ? "K" : "";
+        String wqsC = gameStateForPos.isWhiteLongRookRight() && whiteCastle ? "Q" : "";
+        String bksC = gameStateForPos.isWhiteShortRookRight() && blackCastle ? "k" : "";
+        String bqsC = gameStateForPos.isWhiteShortRookRight() && blackCastle ? "q" : "";
+        if(wksC.isEmpty() && wqsC.isEmpty() && bksC.isEmpty() && bqsC.isEmpty()){
+            fenBuilder.append("-");
+        }
+        else{
+            fenBuilder.append(wksC);
+            fenBuilder.append(wqsC);
+            fenBuilder.append(bksC);
+            fenBuilder.append(bqsC);
+        }
+        fenBuilder.append(" ");
+        boolean isPassant = false;
+        // now check enpassant
+        if(!pos.equals(ChessConstants.startBoardState)){
+            // means we arent at the very beginning as there is not an actual move for the start position
+            ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
+            if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX){
+                // pawn move so possibilty of enpassant
+                if(Math.abs(moveThatCreated.getOldY()-moveThatCreated.getNewY()) > 1){
+                    // jumped 2 so means that there is a possibilty of en passant, so add to the FEN
+                    isPassant = true;
+                    char fileChar = turnIntToFileStr(moveThatCreated.getNewX());
+                    int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY())/2;
+
+                    fenBuilder.append(fileChar);
+                    fenBuilder.append(midY);
+
+                }
+            }
+        }
+        if(!isPassant){
+            fenBuilder.append("-");
+        }
+        fenBuilder.append(" ");
+        fenBuilder.append(numHalfMovesSinceCheckOrPawnMove);
+        fenBuilder.append(" ");
+        fenBuilder.append(numFullMoves);
+
+
+
+        return fenBuilder.toString();
+    }
 }

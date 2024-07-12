@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class GeneralChessFunctions {
 
 
@@ -58,12 +59,13 @@ public class GeneralChessFunctions {
         return new boolean[]{false,false};
     }
 
+    // [0] = isHitPiece [1] = isWhitePiece
     public static boolean[] checkIfContains(int x, int y, BitBoardWrapper board){
         long boardPosition  = GeneralChessFunctions.positionToBitboard(x,y);
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
         long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
-        long bigBlackSum = blackPieces[0] | whitePieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
+        long bigBlackSum = blackPieces[0] | blackPieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
 
         if((bigWhiteSum & boardPosition) != 0L){
             return new boolean[]{true, true};
@@ -175,8 +177,30 @@ public class GeneralChessFunctions {
                 }
             }
         }
-//        mainLogger.error(callLocation);
-//        mainLogger.error(String.format("call from %s: no x,y satisified the getboardwith piece, index will be -10\ninfo: looking for coord x:%d y:%d isWhite?: %b kingLocation on boardfor color = X:%d Y:%d",callLocation,x,y,isWhite,isWhite ? board.getWhiteKingLocation().x : board.getBlackKingLocation().x,isWhite ? board.getWhiteKingLocation().y : board.getBlackKingLocation().y));
+//      mainLogger.error(callLocation);
+//      mainLogger.error(String.format("call from %s: no x,y satisified the getboardwith piece, index will be -10\ninfo: looking for coord x:%d y:%d isWhite?: %b kingLocation on boardfor color = X:%d Y:%d",callLocation,x,y,isWhite,isWhite ? board.getWhiteKingLocation().x : board.getBlackKingLocation().x,isWhite ? board.getWhiteKingLocation().y : board.getBlackKingLocation().y));
+        return -10;
+    }
+
+
+    public static int getBoardWithPiece(int x, int y, BitBoardWrapper board){
+        long bitIndex = GeneralChessFunctions.positionToBitboard(x,y);
+        long[] whitePieces = board.getWhitePieces();
+        long[] blackPieces = board.getBlackPieces();
+        for(int i = 0; i<whitePieces.length;i++){
+            long sum = bitIndex & whitePieces[i];
+            if(sum != 0L){
+                return i;
+            }
+        }
+        for(int i = 0; i<blackPieces.length;i++){
+            long sum = bitIndex & blackPieces[i];
+            if(sum != 0L){
+                return i;
+            }
+        }
+//      mainLogger.error(callLocation);
+//      mainLogger.error(String.format("call from %s: no x,y satisified the getboardwith piece, index will be -10\ninfo: looking for coord x:%d y:%d isWhite?: %b kingLocation on boardfor color = X:%d Y:%d",callLocation,x,y,isWhite,isWhite ? board.getWhiteKingLocation().x : board.getBlackKingLocation().x,isWhite ? board.getWhiteKingLocation().y : board.getBlackKingLocation().y));
         return -10;
     }
 
@@ -192,6 +216,67 @@ public class GeneralChessFunctions {
         } catch (IOException e) {
             ChessConstants.mainLogger.error(Arrays.toString(e.getStackTrace()));
         }
+    }
+
+    public static void printBoardSimple(BitBoardWrapper board){
+        System.out.println("Board detailed print: ");
+        for(int row  = 0;row<8;row++){
+            for(int file = 0;file<8;file++){
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,board);
+                if(boardInfo[0]){
+                    System.out.print("X");
+                }
+                else{
+                    // no piece
+                    System.out.print(" ");
+                }
+                if(file != 7){
+                    System.out.print("|");
+                }
+                else{
+                    System.out.println();
+                }
+            }
+
+
+        }
+
+    }
+
+    public static void printBoardDetailed(BitBoardWrapper board){
+        System.out.println("Board detailed print: ");
+        for(int row  = 0;row<8;row++){
+            for(int file = 0;file<8;file++){
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,board);
+                if(boardInfo[0]){
+                    int pieceIndex = GeneralChessFunctions.getBoardWithPiece(file,row,boardInfo[1],board);
+                    String pieceString;
+                    if(boardInfo[1]){
+                        // means a white piece
+                        pieceString = PgnFunctions.turnPieceIndexToStr(pieceIndex,false);
+
+                    }
+                    else{
+                        pieceString = PgnFunctions.turnPieceIndexToStr(pieceIndex,false).toLowerCase();
+
+                    }
+                    System.out.print(pieceString);
+                }
+                else{
+                    // no piece
+                    System.out.print(" ");
+                }
+                if(file != 7){
+                    System.out.print("|");
+                }
+                else{
+                    System.out.println();
+                }
+            }
+
+
+        }
+
     }
 
 

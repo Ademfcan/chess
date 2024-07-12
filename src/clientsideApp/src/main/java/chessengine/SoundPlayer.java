@@ -1,8 +1,8 @@
 package chessengine;
 
 public class SoundPlayer {
-    private final double defaultVolume = 1;
-    private final double defaultBGVolume = .1d;
+    private final double defaultVolume = .5d;
+    private final double defaultBGVolume = .3d;
 
     private boolean isPaused;
 
@@ -117,7 +117,7 @@ public class SoundPlayer {
 
 
 
-
+    // for both of these the
     public void changeVolumeEffects(double newVolume){
         this.currentVolumeEffects = newVolume;
     }

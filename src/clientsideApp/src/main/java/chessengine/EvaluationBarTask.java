@@ -19,6 +19,7 @@ public class EvaluationBarTask extends Task<Void> {
 
     public void setDepth(int maxD) {
         this.maxD = maxD;
+        c.setEvalDepth(maxD);
     }
 
     private int maxD;
@@ -57,14 +58,13 @@ public class EvaluationBarTask extends Task<Void> {
 
                     for(int i = 1;i<maxD;i++){
                         EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition,currentGameState, i, currentIsWhite);
-                        Future<Double> eval = executor.submit(evalCallable);
-                        double evaluationOutput = eval.get(); // blocking call, consider timeout
-                        int j = i;
+                        Future<minimaxOutput> evalOut = executor.submit(evalCallable);
+                        minimaxOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout
                         // Update UI elements on the JavaFX Application Thread
-                        if(evaluationOutput != c.Stopped){
+                        if(evaluationOutput != Computer.Stopped){
                             // output might have been stopped and output will be useless
                             Platform.runLater(() -> {
-                                controller.setEvalBar(evaluationOutput,j,true,false);
+                                controller.setEvalBar(evaluationOutput.getAdvantage(),evaluationOutput.getOutputDepth(),true,false);
                             });
                         }
 

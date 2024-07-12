@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -283,6 +284,7 @@ public class StartScreenController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         startMessageBoard.setMouseTransparent(true);
+        oldGamesPanelContent.setStyle("-fx-background-color: lightgray");
 
 
 
@@ -306,7 +308,6 @@ public class StartScreenController implements Initializable {
         setUpCampaignScreen();
         campaignManager = new CampaignManager(levelContainer,levelContainerElements,levelContainerPath,campaignScroller,mainArea,campaignBackground,campaignBackground2);
         campaignManager.setLevelUnlocksBasedOnProgress(App.userManager.getCampaignProgress());
-
         oldGames = loadGamesFromSave();
         setupOldGamesBox(oldGames);
     }
@@ -550,7 +551,7 @@ public class StartScreenController implements Initializable {
             }
             else{
                 try {
-                    ChessGame game = new ChessGame(pgnTextArea.getText(),"game",computerRadioButton.isSelected());
+                    ChessGame game = new ChessGame(pgnTextArea.getText(),"pgn game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected());
                     App.changeToMainScreenWithGame(game,computerRadioButton.isSelected(),MainScreenState.LOCAL);
                 }
                 catch (Exception ex){
@@ -582,7 +583,6 @@ public class StartScreenController implements Initializable {
         mainAreaReference.prefHeightProperty().bind(content.heightProperty().subtract(mainAreaTopSpacer.heightProperty()).subtract(bottomSpacer.heightProperty()));
         mainArea.prefWidthProperty().bind(mainAreaReference.widthProperty());
         mainArea.prefHeightProperty().bind(mainAreaReference.heightProperty());
-        mainArea.setStyle("-fx-border-color: black;-fx-border-width: 2px");
 
         // profile options
         App.bindingController.bindLargeText(loginTitle,false,"black");
@@ -610,21 +610,32 @@ public class StartScreenController implements Initializable {
 
 
     }
+
+//    private final Background buttonSelectedBg = new Background(new BackgroundFill(Color.LIGHTGRAY,new CornerRadii(3),null));
+//    private final Background buttonUnSelectedBg = new Background(new BackgroundFill(Color.DARKGRAY,new CornerRadii(3),null));
     private void hideAllScreensnButtons(){
         campaignScreen.setVisible(false);
         campaignScreen.setMouseTransparent(true);
+//        campaignButton.setBackground(buttonUnSelectedBg);
         sandboxScreen.setVisible(false);
         sandboxScreen.setMouseTransparent(true);
+//        sandboxButton.setBackground(buttonUnSelectedBg);
         pgnSelectionScreen.setVisible(false);
         pgnSelectionScreen.setMouseTransparent(true);
+//        pgnButton.setBackground(buttonUnSelectedBg);
         mainSelectionScreen.setVisible(false);
         mainSelectionScreen.setMouseTransparent(true);
+//        localButton.setBackground(buttonUnSelectedBg);
         multiplayerSelectionScreen.setVisible(false);
         multiplayerSelectionScreen.setMouseTransparent(true);
+//        multiplayerButton.setBackground(buttonUnSelectedBg);
         userSettingScreen.setVisible(false);
         userSettingScreen.setMouseTransparent(true);
+//        settingsButton.setBackground(buttonUnSelectedBg);
         generalSettingsScreen.setVisible(false);
         generalSettingsScreen.setMouseTransparent(true);
+//        profileButton.setStyle("");
+
 
     }
     private void setSelection(StartScreenState state){
@@ -633,31 +644,38 @@ public class StartScreenController implements Initializable {
             case PGN -> {
                 pgnSelectionScreen.setVisible(true);
                 pgnSelectionScreen.setMouseTransparent(false);
+//                pgnButton.setBackground(buttonSelectedBg);
             }
             case REGULAR -> {
                 mainSelectionScreen.setVisible(true);
                 mainSelectionScreen.setMouseTransparent(false);
+//                localButton.setBackground(buttonSelectedBg);
             }
             case MULTIPLAYER -> {
                 multiplayerSelectionScreen.setVisible(true);
                 multiplayerSelectionScreen.setMouseTransparent(false);
+//                multiplayerButton.setBackground(buttonSelectedBg);
             }
             case USERSETTINGS -> {
                 lastStateBeforeUserSettings = currentState;
                 userSettingScreen.setVisible(true);
                 userSettingScreen.setMouseTransparent(false);
+//                profileButton.setStyle("-fx-border-style: 1px black");
             }
             case GENERALSETTINGS -> {
                 generalSettingsScreen.setVisible(true);
                 generalSettingsScreen.setMouseTransparent(false);
+//                settingsButton.setBackground(buttonSelectedBg);
             }
             case SANDBOX -> {
                 sandboxScreen.setVisible(true);
                 sandboxScreen.setMouseTransparent(false);
+//                sandboxButton.setBackground(buttonSelectedBg);
             }
             case CAMPAIGN -> {
                 campaignScreen.setVisible(true);
                 campaignScreen.setMouseTransparent(false);
+//                campaignButton.setBackground(buttonSelectedBg);
             }
         }
         this.currentState = state;
@@ -684,10 +702,10 @@ public class StartScreenController implements Initializable {
         innerGameInfo.setAlignment(Pos.CENTER);
 
         Label gameName = new Label("Name: " + newGame.getGameName());
-        App.bindingController.bindMediumText(gameName, false,"Black");
+        App.bindingController.bindSmallText(gameName, false,"Black");
 
         Label playersName = new Label(newGame.getPlayer1name() + " vs " + newGame.getPlayer2name());
-        App.bindingController.bindMediumText(playersName, false,"Black");
+        App.bindingController.bindSmallText(playersName, false,"Black");
 
 
 

@@ -5,11 +5,14 @@ import chessserver.CampaignTier;
 import chessserver.ProfilePicture;
 import javafx.animation.*;
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -184,6 +187,8 @@ public class CampaignManager {
             }
 
         }
+        // lastly highlight the current players level
+
     }
 
     private final String cloudUrl = "BackgroundImages/cloud.png";
@@ -196,6 +201,9 @@ public class CampaignManager {
     private final float widthToLevelInfoWidth = .37f;
     private final float widthToLevelInfoHeight = .33f;
     private final float widthToInfoSpacing = .1f;
+
+    private final float infoWidthToLvlDiffWidth = .5f;
+    private final float infoHeightToLvlDiffHeight = .2f;
     private final float infoWidthToLvlBtnWidth = .5f;
     private final float infoHeightToLvlBtnHeight = .2f;
     private final float infoWidthToPawnWidth = .1f;
@@ -211,6 +219,8 @@ public class CampaignManager {
         DoubleBinding levelInfoWidth = widthProperty.multiply(widthToLevelInfoWidth);
         DoubleBinding levelButtonWidth = levelInfoWidth.multiply(infoWidthToLvlBtnWidth);
         DoubleBinding levelButtonHeight = levelInfoHeight.multiply(infoHeightToLvlBtnHeight);
+        DoubleBinding levelDiffWidth = levelInfoWidth.multiply(infoWidthToLvlDiffWidth);
+        DoubleBinding levelDiffHeight = levelInfoHeight.multiply(infoHeightToLvlDiffHeight);
 
         yJumpPerLevel = widthProperty.multiply(widthToJump);
         DoubleBinding xOffset = widthProperty.multiply(widthToXoffset);
@@ -255,11 +265,13 @@ public class CampaignManager {
                 // also contains the level info panel it self of course, which has 3 pawns to show your completion of the level, a play button and the name of the opponent
                 // play level circle
                 String levelName = currentTier.levelNames[j];
+                int levelElo = currentTier.eloIndexes[j];
                 int challengeIndex = currentTier.pfpIndexes[j];
                 Circle newLevelToggle = new Circle();
                 Image buttonProfile = new Image(ProfilePicture.values()[challengeIndex].urlString);
                 newLevelToggle.setUserData(Integer.toString(challengeIndex));
                 newLevelToggle.setFill(new ImagePattern(buttonProfile));
+                newLevelToggle.setUserData("nlt");
                 // level information panel
                 VBox newLevelPanel = new VBox();
                 newLevelPanel.setStyle("-fx-background-color: white;-fx-background-radius: 25px");
@@ -324,10 +336,9 @@ public class CampaignManager {
                 }
                 startYB = startYB.subtract(yJumpPerLevel);
                 isShiftToRight = !isShiftToRight;
-                int level = i;
 
                 // children of infoPanel
-                Label title = new Label(levelName);
+                Label title = new Label(levelName + " " + levelElo);
                 App.bindingController.bindLargeText(title,false,"black");
                 // will contain the pawns showing your score
                 // like 3 stars in a game
@@ -343,16 +354,26 @@ public class CampaignManager {
                     pawn.setUserData(k);
                     pawnContainer.getChildren().add(pawn);
                 }
+                ComboBox<String> difficulyBox = new ComboBox<>();
+                difficulyBox.getItems().addAll("Easy","Medium","Hard");
+                difficulyBox.prefWidthProperty().bind(levelDiffWidth);
+                difficulyBox.prefHeightProperty().bind(levelDiffHeight);
+                difficulyBox.getSelectionModel().select(1);
+
+
                 Button enterLevelButton = new Button("Play");
                 enterLevelButton.setUserData("elb");
                 enterLevelButton.prefWidthProperty().bind(levelButtonWidth);
                 enterLevelButton.prefHeightProperty().bind(levelButtonHeight);
                 enterLevelButton.setStyle("-fx-background-radius: 20px");
+                int levelOfTier = j;
                 enterLevelButton.setOnMouseClicked(e->{
-                    System.out.println("entering level " + level);
+                    // todo difficulty
+                    App.changeToMainScreenCampaign(currentTier, levelOfTier,difficulyBox.getSelectionModel().getSelectedIndex()+1);
                 });
                 newLevelPanel.getChildren().add(title);
                 newLevelPanel.getChildren().add(pawnContainer);
+                newLevelPanel.getChildren().add(difficulyBox);
                 newLevelPanel.getChildren().add(enterLevelButton);
                 levelContainerElements.getChildren().add(newLevelToggle);
                 levelContainerElements.getChildren().add(newLevelPanel);
