@@ -71,22 +71,22 @@ public class Arrow {
         double boxWidth = (double) containerWidth /8;
         double bHeightHalf = boxHeight/2;
         double bWidthHalf = boxWidth/2;
-        System.out.println("BoxHeight: " + boxHeight);
-        System.out.println("BoxWidth: " + boxWidth);
+//        System.out.println("BoxHeight: " + boxHeight);
+//        System.out.println("BoxWidth: " + boxWidth);
 
         double startXCoordCenter = bWidthHalf + startX*boxWidth;
         double startYCoordCenter = bHeightHalf + startY*boxHeight;
         double endXCoordCenter = bWidthHalf + endX*boxWidth;
         double endYCoordCenter = bHeightHalf + endY*boxHeight;
-        System.out.println("Start X" + startXCoordCenter);
-        System.out.println("Start Y" + startYCoordCenter);
-        System.out.println("End X" + endXCoordCenter);
-        System.out.println("End Y" + endYCoordCenter);
+//        System.out.println("Start X" + startXCoordCenter);
+//        System.out.println("Start Y" + startYCoordCenter);
+//        System.out.println("End X" + endXCoordCenter);
+//        System.out.println("End Y" + endYCoordCenter);
 
         double xDiff = endXCoordCenter-startXCoordCenter;
         double yDiff = startYCoordCenter-endYCoordCenter;
         double angArrow = Math.atan(yDiff/xDiff);
-        System.out.println("Angle: " + Math.toDegrees(angArrow));
+//        System.out.println("Angle: " + Math.toDegrees(angArrow));
         if(xDiff < 0){
             angArrow = Math.PI+angArrow;
         }
@@ -96,7 +96,7 @@ public class Arrow {
 
 
         double arrowbaseWidth = ((boxWidth+boxHeight)/4)*arrowWidth; // half of the average of width and height;
-        System.out.println("Arrow base width: " + arrowbaseWidth);
+//        System.out.println("Arrow base width: " + arrowbaseWidth);
         // start of arrow (absolute)
         int m1X = (int) startXCoordCenter;
         int m1Y = (int) startYCoordCenter;

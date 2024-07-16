@@ -64,7 +64,7 @@ public class PgnFunctions {
         }
         String start = turnPieceIndexToStr(move.getBoardIndex(),true);
         String ambiguityChar = AdvancedChessFunctions.getAmbigiousStr(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.getBoardIndex(),move.isWhite(),move.isEating(),pos);
-        String eatingChar = move.isEating() ? "x" : "";
+        String eatingChar = move.isEating() || move.isEnPassant() ? "x" : "";
         char xChar = turnIntToFileStr(move.getNewX());
         // flip y
         char yChar = intToChar(7-move.getNewY()+1);

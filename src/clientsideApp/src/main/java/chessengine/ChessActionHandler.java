@@ -256,6 +256,9 @@ public class ChessActionHandler {
     public void updateSidePanel(MainScreenState currentState,boolean isNewMoveMade,String extraInfo){
         // method called every time the board changes. Could be a move, or maybe changing to a previous move
         // extrainfo contains possible stuff to add
+        myControl.chessBoardGUIHandler.clearArrows();
+        myControl.chessBoardGUIHandler.clearAllHighlights();
+
         if(isNewMoveMade && !currentState.equals(MainScreenState.SANDBOX)){
             String pgn = PgnFunctions.moveToPgn(myControl.gameHandler.currentGame.currentPosition.getMoveThatCreatedThis(),myControl.gameHandler.currentGame.currentPosition,myControl.gameHandler.currentGame.gameStates);
             addToMovesPlayed(pgn);
@@ -424,36 +427,39 @@ public class ChessActionHandler {
 
     public void handleBoardPress(MouseEvent e,MainScreenState currentState){
         int[] xy = myControl.chessBoardGUIHandler.turnLayoutXyintoBoardXy(e.getX(),e.getY());
-        if(e.getButton() == MouseButton.PRIMARY){
-            dragging =false;
-            boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], xy[1], myControl.gameHandler.currentGame.currentPosition.board);
-            // check if we did not click on an empty square
-            if(boardInfo[0]){
-                boolean isWhitePiece = boardInfo[1];
-                int boardIndex = GeneralChessFunctions.getBoardWithPiece(xy[0], xy[1], isWhitePiece, myControl.gameHandler.currentGame.currentPosition.board);
+        if(GeneralChessFunctions.isValidMove(xy[0],xy[1])){
+            if(e.getButton() == MouseButton.PRIMARY){
+                dragging =false;
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], xy[1], myControl.gameHandler.currentGame.currentPosition.board);
+                // check if we did not click on an empty square
+                if(boardInfo[0]){
+                    boolean isWhitePiece = boardInfo[1];
+                    int boardIndex = GeneralChessFunctions.getBoardWithPiece(xy[0], xy[1], isWhitePiece, myControl.gameHandler.currentGame.currentPosition.board);
 
-                ImageView piece = myControl.chessBoardGUIHandler.piecesAtLocations[xy[0]][xy[1]];
-                if(currentState.equals(MainScreenState.SANDBOX)){
-                    // in sandbox mode players can move pieces anywhere
-                    prepareDragSelected(piece,xy[0],xy[1],isWhitePiece,boardIndex,true);
-                }
-                else if(checkIfCanMakeAction(currentState)){
+                    ImageView piece = myControl.chessBoardGUIHandler.piecesAtLocations[xy[0]][xy[1]];
+                    if(currentState.equals(MainScreenState.SANDBOX)){
+                        // in sandbox mode players can move pieces anywhere
+                        prepareDragSelected(piece,xy[0],xy[1],isWhitePiece,boardIndex,true);
+                    }
+                    else if(checkIfCanMakeAction(currentState)){
 
-                    if (isWhitePiece == myControl.gameHandler.currentGame.isPlayer1Turn()) {
-                        // matches the players turn
-                        prepareDragSelected(piece,xy[0],xy[1],isWhitePiece,boardIndex,false);
+                        if (isWhitePiece == myControl.gameHandler.currentGame.isPlayer1Turn()) {
+                            // matches the players turn
+                            prepareDragSelected(piece,xy[0],xy[1],isWhitePiece,boardIndex,false);
+                        }
+
+
                     }
 
 
                 }
-
-
+            }
+            else if(e.getButton() == MouseButton.SECONDARY){
+                oldArrowX = xy[0];
+                oldArrowY = xy[1];
             }
         }
-        else if(e.getButton() == MouseButton.SECONDARY){
-            oldArrowX = xy[0];
-            oldArrowY = xy[1];
-        }
+
 
     }
 
@@ -548,7 +554,7 @@ public class ChessActionHandler {
                 int newY = newXY[1];
                 if (currentState.equals(MainScreenState.SANDBOX)) {
                     // for sandbox we dont care about rules, we just move wherever we want
-                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldX, oldY, newX, newY, 0, oldDragPieceIndex, oldIsWhite, false,false, false, false), false,true);
+                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldX, oldY, newX, newY, 0, oldDragPieceIndex, oldIsWhite, false,false,ChessConstants.EMPTYINDEX,false, false), false,true);
                     placePiece(selected, newX, newY);
                 } else {
                     // all we have to do is check to see if where the piece has been released is a valid square
@@ -691,11 +697,12 @@ public class ChessActionHandler {
                     int oldY = selectedPeiceInfo[1];
                     clearPrevPiece(true);
                     boolean isEating = GeneralChessFunctions.checkIfContains(clickX,clickY,prevPeiceIsWhite,myControl.gameHandler.currentGame.currentPosition.board);
-                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldX, oldY, clickX, clickY, ChessConstants.EMPTYINDEX, pieceSelectedIndex, prevPeiceIsWhite, false, isEating,false, false), false,false);
+                    int eatingIndex = GeneralChessFunctions.getBoardWithPiece(clickX,clickY,!prevPeiceIsWhite,myControl.gameHandler.currentGame.currentPosition.board);
+                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldX, oldY, clickX, clickY, ChessConstants.EMPTYINDEX, pieceSelectedIndex, prevPeiceIsWhite, false, isEating,eatingIndex,false, false), false,false);
 
                 } else {
                     // adding a piece custom
-                    myControl.gameHandler.currentGame.makeCustomMoveSandbox(new ChessPosition(myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameStates, new ChessMove(0, 0, clickX, clickY, 0, pieceSelectedIndex, prevPeiceIsWhite,false, false, false, true)), prevPeiceIsWhite);
+                    myControl.gameHandler.currentGame.makeCustomMoveSandbox(new ChessPosition(myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameStates, new ChessMove(0, 0, clickX, clickY, 0, pieceSelectedIndex, prevPeiceIsWhite,false, false, ChessConstants.EMPTYINDEX,false, true)));
 
                 }
                 updateSidePanel(myControl.mainScreenController.currentState, true,"");
@@ -711,6 +718,7 @@ public class ChessActionHandler {
         myControl.chessBoardGUIHandler.clearAllHighlights();
         myControl.chessBoardGUIHandler.clearArrows();
         int boardIndex = GeneralChessFunctions.getBoardWithPiece(startX,startY,isWhitePiece,myControl.gameHandler.currentGame.currentPosition.board);
+        int eatingIndex = GeneralChessFunctions.getBoardWithPiece(endX,endY,!isWhitePiece,myControl.gameHandler.currentGame.currentPosition.board);
         int endSquare = isWhitePiece ? 0 : 7;
         boolean isPawnPromo = boardIndex == ChessConstants.PAWNINDEX && endY == endSquare;
         boolean pawnPromoToggled = false;
@@ -718,13 +726,13 @@ public class ChessActionHandler {
 
         if(promoIndx == ChessConstants.EMPTYINDEX && !isPawnPromo){
             // not promo
-            moveMade = new ChessMove(startX,startY,endX,endY,ChessConstants.EMPTYINDEX,boardIndex,isWhitePiece,isCastle,isEating,isEnPassant,false);
+            moveMade = new ChessMove(startX,startY,endX,endY,ChessConstants.EMPTYINDEX,boardIndex,isWhitePiece,isCastle,isEating,eatingIndex,isEnPassant,false);
             myControl.gameHandler.currentGame.makeNewMove(moveMade,isComputerMove,isDragMove);
 
         }
         else if(isComputerMove || isPawnPromoFinalized){
             // computer promoting or player chose their piece to promote
-            moveMade = new ChessMove(startX, startY, endX, endY,promoIndx,boardIndex,isWhitePiece,false,isEating,isEnPassant,false);
+            moveMade = new ChessMove(startX, startY, endX, endY,promoIndx,boardIndex,isWhitePiece,false,isEating,eatingIndex,isEnPassant,false);
             myControl.gameHandler.currentGame.makeNewMove(moveMade,false,isDragMove);
 
         }
@@ -856,7 +864,14 @@ public class ChessActionHandler {
                 moveGui.setAlignment(Pos.CENTER);
                 moveGui.setSpacing(5);
                 Label moveNumber = new Label( "#"+ (i+1));
-                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(bestMoves.get(i).move,myControl.gameHandler.currentGame.currentPosition,myControl.gameHandler.currentGame.gameStates));
+                ChessMove best = bestMoves.get(i).move;
+                // for pgn generation
+                ChessStates testState = myControl.gameHandler.currentGame.gameStates.cloneState();
+                ChessPosition testPos = new ChessPosition(myControl.gameHandler.currentGame.currentPosition.clonePosition(),testState,best);
+                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(bestMoves.get(i).move,testPos,testState));
+
+                // add arrow showing move
+                myControl.chessBoardGUIHandler.addArrow(new Arrow(best.getOldX(),best.getOldY(),best.getNewX(),best.getNewY(),"rgba(255, 1, 1, 0.72)"));
                 double adv = bestMoves.get(i).advantage;
                 String advStr = formatter.format(adv);
                 String prefix = adv == 0 ? "" : adv > 0 ? "+" : "-";

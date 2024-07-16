@@ -58,8 +58,8 @@ public class EvaluationBarTask extends Task<Void> {
 
                     for(int i = 1;i<maxD;i++){
                         EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition,currentGameState, i, currentIsWhite);
-                        Future<minimaxOutput> evalOut = executor.submit(evalCallable);
-                        minimaxOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout
+                        Future<MinimaxOutput> evalOut = executor.submit(evalCallable);
+                        MinimaxOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout
                         // Update UI elements on the JavaFX Application Thread
                         if(evaluationOutput != Computer.Stopped){
                             // output might have been stopped and output will be useless

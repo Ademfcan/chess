@@ -35,6 +35,10 @@ java {
 
 }
 
+run{
+    jvmArgs '-ea' // Enable assertions during application execution
+}
+
 application {
     mainClass = 'chessengine.Main'
 }

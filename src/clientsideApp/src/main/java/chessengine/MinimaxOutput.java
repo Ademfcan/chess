@@ -1,18 +1,18 @@
 package chessengine;
 
-public class minimaxOutput {
+public class MinimaxOutput {
 
 
     private final double advantage;
 
     private int outputDepth;
 
-    public minimaxOutput(double advantage){
+    public MinimaxOutput(double advantage){
         this.advantage =advantage;
         this.outputDepth = 1;
     }
 
-    public minimaxOutput incrementAndReturn(){
+    public MinimaxOutput incrementAndReturn(){
         this.outputDepth++;
         return this;
     }

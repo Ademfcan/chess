@@ -378,11 +378,13 @@ public class ChessGame{
             }
             int tempForGameStates = curMoveIndex;
             curMoveIndex += dir;
-            if(curMoveIndex >= 0){
-                centralControl.chessActionHandler.highlightMovesPlayedLine(curMoveIndex);
-            }
-            else{
-                centralControl.chessActionHandler.clearMovesPlayedHighlight();
+            if(isMainGame){
+                if(curMoveIndex >= 0){
+                    centralControl.chessActionHandler.highlightMovesPlayedLine(curMoveIndex);
+                }
+                else{
+                    centralControl.chessActionHandler.clearMovesPlayedHighlight();
+                }
             }
             ChessConstants.mainLogger.debug("New curIndex: " + curMoveIndex);
             ChessPosition newPos = getPos(curMoveIndex);
@@ -682,8 +684,8 @@ public class ChessGame{
 
     }
     // only for sandbox
-    public void makeCustomMoveSandbox(ChessPosition newPos,boolean isWhiteMove){
-        MakeMove(newPos,new ChessMove(0,0,0,0,0,0,isWhiteMove,false,false,false,true),false,true);
+    public void makeCustomMoveSandbox(ChessPosition newPos){
+        MakeMove(newPos,newPos.getMoveThatCreatedThis(),false,true);
     }
 
     private void MakeMove(ChessPosition newPosition,ChessMove move,boolean isWebMove,boolean isDragMove){
@@ -691,7 +693,7 @@ public class ChessGame{
         maxIndex++;
         curMoveIndex++;
         moves.add(newPosition);
-        boolean isDraw = gameStates.makeNewMoveAndCheckDraw(newPosition,true);
+        boolean isDraw = gameStates.makeNewMoveAndCheckDraw(newPosition,true,true);
         if(!isMainGame || !centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
             if(isDraw){
                 gameStates.setStaleMated();
@@ -776,6 +778,9 @@ public class ChessGame{
 
     // turning position to pgn
     private ChessMove pgnToMove(String pgn, ChessPosition currentPosition,boolean isWhiteMove){
+//        GeneralChessFunctions.printBoardDetailed(currentPosition.board);
+//        System.out.println(currentPosition.getMoveThatCreatedThis());
+
         if(pgn.equals("O-O") || pgn.equals("0-0")){
             // short castle
             int dir = 2;
@@ -785,7 +790,7 @@ public class ChessGame{
             int oldY = kingLocation.y;
             int newX = kingLocation.x+dir;
             int newY = kingLocation.y;
-            return new ChessMove(oldX,oldY,newX,newY,ChessConstants.EMPTYINDEX,ChessConstants.KINGINDEX,isWhiteMove,true,false,false,false);
+            return new ChessMove(oldX,oldY,newX,newY,ChessConstants.EMPTYINDEX,ChessConstants.KINGINDEX,isWhiteMove,true,false,ChessConstants.EMPTYINDEX,false,false);
 
         }
         if(pgn.equals("O-O-O") || pgn.equals("0-0-0")){
@@ -797,7 +802,7 @@ public class ChessGame{
             int oldY = kingLocation.y;
             int newX = kingLocation.x+dir;
             int newY = kingLocation.y;
-            return new ChessMove(oldX,oldY,newX,newY,ChessConstants.EMPTYINDEX,ChessConstants.KINGINDEX,isWhiteMove,true,false,false,false);
+            return new ChessMove(oldX,oldY,newX,newY,ChessConstants.EMPTYINDEX,ChessConstants.KINGINDEX,isWhiteMove,true,false,ChessConstants.EMPTYINDEX,false,false);
 
         }
 
@@ -834,40 +839,10 @@ public class ChessGame{
             // flip y as pgn board is inverted to my board
             y = 7-y;
 
-            int backdir = isWhiteMove ? 1 : -1;
 
-            // check if its an en passant move
-            boolean isEnPassant = false;
-            if(GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
-                // if so this means that the pawn can have possibly gotten here from an en passant move
-                if(!currentPosition.equals(ChessConstants.startBoardState)){
-                    // means we arent at the very beginning as there is not an actual move for the start position
-                    ChessMove moveThatCreated = currentPosition.getMoveThatCreatedThis();
-                    if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX){
-                        // pawn move so possibilty of enpassant
-                        System.out.println(moveThatCreated.toString());
-                        if(Math.abs(moveThatCreated.getOldY()-moveThatCreated.getNewY()) > 1){
-                            // jumped 2 so means that there is a possibilty of en passant
-                            int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY())/2;
-                            if(y == midY && x == moveThatCreated.getNewX()){
-                                isEnPassant = true;
-                            }
+            int OldY = AdvancedChessFunctions.getColumnGivenFile(x,y,isWhiteMove,isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
+            return new ChessMove(x,OldY,x,y,ChessConstants.EMPTYINDEX,pieceType,isWhiteMove,false,false,ChessConstants.EMPTYINDEX,false,false);
 
-
-
-                        }
-                    }
-                }
-            }
-            if(!isEnPassant){
-                int OldY = AdvancedChessFunctions.getColumnGivenFile(x,y,isWhiteMove,isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
-                return new ChessMove(x,OldY,x,y,ChessConstants.EMPTYINDEX,pieceType,isWhiteMove,false,false,false,false);
-            }
-            else{
-                int oldX = AdvancedChessFunctions.getEnPassantOriginX(x,y,isWhiteMove,isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
-                return new ChessMove(oldX,y+backdir,x,y,ChessConstants.EMPTYINDEX,pieceType,isWhiteMove,false,false,true,false);
-
-            }
 
         }
         else{
@@ -925,11 +900,45 @@ public class ChessGame{
             }
             // need to flip coordinates because i use a top down coordinate system,
             // so x is fine but y needs flip
+
+            if(isEating && pieceType == ChessConstants.PAWNINDEX){
+                // could be en passant
+                int backdir = isWhiteMove ? 1 : -1;
+                // check if its an en passant move
+                if(GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
+                    // if so this means that the pawn can have possibly gotten here from an en passant move
+                    if(!currentPosition.equals(ChessConstants.startBoardState)){
+                        // means we arent at the very beginning as there is not an actual move for the start position
+                        ChessMove moveThatCreated = currentPosition.getMoveThatCreatedThis();
+                        if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX){
+                            // pawn move so possibilty of enpassant
+                            if(Math.abs(moveThatCreated.getOldY()-moveThatCreated.getNewY()) > 1){
+                                // jumped 2 so means that there is a possibilty of en passant
+                                int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY())/2;
+                                if(y == midY && x == moveThatCreated.getNewX()){
+                                    // en passant
+                                    int oldX = AdvancedChessFunctions.getEnPassantOriginX(x,y,isWhiteMove,isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
+                                    return new ChessMove(oldX,y+backdir,x,y,ChessConstants.EMPTYINDEX,pieceType,isWhiteMove,false,false,ChessConstants.EMPTYINDEX,true,false);
+
+                                }
+
+
+
+                            }
+                        }
+                    }
+                }
+            }
+
+
             XYcoord oldCoords = AdvancedChessFunctions.findOldCoordinates(x,y,pieceType,ambgX,ambgY,isWhiteMove,isEating,currentPosition,gameStates);
             if(pieceType == ChessConstants.ROOKINDEX){
                 gameStates.checkRemoveRookMoveRight(oldCoords.x,oldCoords.y,isWhiteMove);
             }
-            return new ChessMove(oldCoords.x,oldCoords.y,x,y,promoIndex,pieceType,isWhiteMove,false,isEating,false,false);
+
+            int eatingIndex = GeneralChessFunctions.getBoardWithPiece(x,y,!isWhiteMove,currentPosition.board);
+
+            return new ChessMove(oldCoords.x,oldCoords.y,x,y,promoIndex,pieceType,isWhiteMove,false,isEating,eatingIndex,false,false);
 
         }
     }

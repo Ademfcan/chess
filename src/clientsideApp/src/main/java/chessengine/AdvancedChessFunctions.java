@@ -522,11 +522,11 @@ public class AdvancedChessFunctions {
 
         if(canCastle && !isChecked(x,y,isWhite,board)){
             // short castle
-            if(!GeneralChessFunctions.checkIfContains(x+1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x+2,y,isWhite,board) && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board)){
+            if(!GeneralChessFunctions.checkIfContains(x+1,y,board)[0] && !GeneralChessFunctions.checkIfContains(x+2,y,board)[0] && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board)){
                 moves.add(new XYcoord(x+2,y,true));
             }
             // long castle
-            if(!GeneralChessFunctions.checkIfContains(x-1,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-2,y,isWhite,board) && !GeneralChessFunctions.checkIfContains(x-3,y,isWhite,board) && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board) && longRook){
+            if(!GeneralChessFunctions.checkIfContains(x-1,y,board)[0] && !GeneralChessFunctions.checkIfContains(x-2,y,board)[0] && !GeneralChessFunctions.checkIfContains(x-3,y,board)[0] && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board) && longRook){
                 moves.add(new XYcoord(x-2,y,true));
 
             }

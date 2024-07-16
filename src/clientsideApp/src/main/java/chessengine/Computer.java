@@ -1,11 +1,11 @@
 package chessengine;
 
+import java.util.concurrent.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Computer{
@@ -14,7 +14,7 @@ public class Computer{
 
     private int evalDepth;
 
-    private Map<Integer,Double> transTable;
+    private Map<Long,Double> transTable;
 
     public volatile AtomicBoolean stop;
 
@@ -27,8 +27,11 @@ public class Computer{
     private Logger logger;
 
     private final int maxEntries = 1000000;
+
+        private final ZobristHasher hasher;
     public Computer(int evalDepth){
         this.transTable = Collections.synchronizedMap(new LimitedSizeMap<>(maxEntries));
+        this.hasher = new ZobristHasher();
         logger = LogManager.getLogger(this.toString());
         stop = new AtomicBoolean(false);
         this.evalDepth = evalDepth;
@@ -81,89 +84,99 @@ public class Computer{
         }
     }
 
-    private ComputerOutput getComputerMoveWithCondiditon(boolean isWhite, ChessPosition pos, ChessStates gameState, HashSet<ChessMove> alreadyPlayedMoves, boolean isHashCheck){
-        setCallTimeEval(pos,gameState,isWhite);
-        // increase depth as less pieces are on the board
-        int evalDepthCalc = evalDepth;// + (ChessConstants.BOTHSIDEPIECECOUNT-getPieceCount(pos.board))/8;
+
+    private ComputerOutput getComputerMoveWithCondiditon(boolean isWhite, ChessPosition pos, ChessStates gameState, HashSet<ChessMove> alreadyPlayedMoves, boolean isHashCheck) {
+        setCallTimeEval(pos, gameState, isWhite);
+
+        int evalDepthCalc = evalDepth;
         System.out.println("edc" + evalDepthCalc);
         logger.debug("Transtable size: " + transTable.size());
-        ChessPosition bestMove = null;
+
+        ChessMove bestMove = null;
         double bestEval = isWhite ? -10000000 : 10000000;
         double bestDepth = 1000;
         running = true;
+
         List<BackendChessPosition> filteredPositions;
-        // this is how i avoid duplicate best moves
-        if(isHashCheck){
-            filteredPositions = pos.getAllChildPositions(isWhite,gameState).stream().filter(p->!alreadyPlayedMoves.contains(p.getMoveThatCreatedThis())).toList();
+        if (isHashCheck) {
+            filteredPositions = pos.getAllChildPositions(isWhite, gameState).stream().filter(p -> !alreadyPlayedMoves.contains(p.getMoveThatCreatedThis())).toList();
+        } else {
+            filteredPositions = pos.getAllChildPositions(isWhite, gameState);
         }
-        else{
-            filteredPositions = pos.getAllChildPositions(isWhite,gameState);
-        }
-        for(BackendChessPosition childPos : filteredPositions){
-            if(stop.get()){
-                clearFlags();
-                System.out.println("Stopped nmoves1");
-                return ChessConstants.emptyOutput;
-            }
-            minimaxOutput miniMaxOut= miniMax(childPos, childPos.gameState,evalDepthCalc-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
-
-
-            if(miniMaxOut == Stopped){
-                System.out.println("Stopped nmoves2");
-                clearFlags();
-                return ChessConstants.emptyOutput;
-            }
-            double advtg = miniMaxOut.getAdvantage();
-            if(isWhite){
-                if(advtg > bestEval){
-                    //logger.debug("Changing to better move with eval of: " + miniMaxEval);
-                    bestEval = advtg;
-                    bestMove = childPos;
-                    bestDepth = miniMaxOut.getOutputDepth();
+        cnt= 0;
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-2);
+        List<Future<MinimaxResult>> futures = new ArrayList<>();
+        for (BackendChessPosition childPos : filteredPositions) {
+            futures.add(executor.submit(() -> {
+                ChessMove move = childPos.getMoveThatCreatedThis();
+                if (stop.get()) {
+                    return null;
                 }
-                else if(advtg == bestEval){
-                    if(miniMaxOut.getOutputDepth() < bestDepth){
-                        bestMove = childPos;
-                        bestDepth = miniMaxOut.getOutputDepth();
+                MinimaxOutput miniMaxOut = miniMax(childPos, childPos.gameState, evalDepthCalc - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, !isWhite);
+                if (miniMaxOut == Stopped) {
+                    return null;
+                }
+                return new MinimaxResult(move,miniMaxOut.getAdvantage(),miniMaxOut.getOutputDepth());
+            }));
+        }
+
+        executor.shutdown();
+//        executor.awaitTermination()
+        try {
+            for (Future<MinimaxResult> future : futures) {
+                MinimaxResult result = future.get();
+                if (result == null) {
+                    continue;
+                }
+
+                double advtg = result.getAdvantage();
+                ChessMove childMove = result.getMove();
+                double depth = result.getDepth();
+
+                if (isWhite) {
+                    if (advtg > bestEval) {
+                        bestEval = advtg;
+                        bestMove = childMove;
+                        bestDepth = depth;
+                    } else if (advtg == bestEval && depth < bestDepth) {
+                        bestMove = childMove;
+                        bestDepth = depth;
+                    }
+                } else {
+                    if (advtg < bestEval) {
+                        bestEval = advtg;
+                        bestMove = childMove;
+                        bestDepth = depth;
+                    } else if (advtg == bestEval && depth < bestDepth) {
+                        bestMove = childMove;
+                        bestDepth = depth;
                     }
                 }
             }
-            else{
-
-                if(advtg < bestEval){
-                    //logger.debug("Changing to better move with eval of: " + miniMaxEval);
-                    bestEval = advtg;
-                    bestMove = childPos;
-                    bestDepth = miniMaxOut.getOutputDepth();
-
-                }
-                else if(advtg == bestEval){
-                    if(miniMaxOut.getOutputDepth() < bestDepth){
-                        bestMove = childPos;
-                        bestDepth = miniMaxOut.getOutputDepth();
-                    }
-                }
-            }
-
-
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
         }
-        if(bestMove == null){
+
+        if (bestMove == null) {
             clearFlags();
             ChessConstants.mainLogger.error("null bestmovesoutput");
             return ChessConstants.emptyOutput;
         }
+
         clearFlags();
-        return new ComputerOutput(bestMove.getMoveThatCreatedThis(),bestEval);
+        return new ComputerOutput(bestMove, bestEval);
     }
 
 
 
 
-    public static final minimaxOutput Stopped = new minimaxOutput(Double.NaN);
+
+
+    public static final MinimaxOutput Stopped = new MinimaxOutput(Double.NaN);
 
     private final int depthThreshold = 4;
 
-    private final double advtgThreshold = 2.5d;
+    private final double advtgThreshold = 1.5d;
 
     private double callTimeEval;
 
@@ -172,51 +185,57 @@ public class Computer{
 
     }
 
+    private int cnt = 0;
+
+    private final double drawConst = 1;
+
     //alpha default -inf beta default +inf
-    private minimaxOutput miniMax(BackendChessPosition position,ChessStates gameState, int depth, double alpha, double beta, boolean isWhiteTurn){
+    private MinimaxOutput miniMax(BackendChessPosition position, ChessStates gameState, int depth, double alpha, double beta, boolean isWhiteTurn){
         // all recursive stop cases
+//        System.out.println(cnt++);
         if(stop.get()){
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
-        int key = Objects.hash(gameState.hashCode(),position.hashCode(),isWhiteTurn);
-        if(position.isDrawByRepetition()){
-            return new minimaxOutput(0);
+//        int key = Objects.hash(gameState.hashCode(),position.hashCode(),isWhiteTurn);
+        long key = hasher.computeHash(position,isWhiteTurn);
+        if(position.isDraw()){
+            return new MinimaxOutput(drawConst);
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,position,gameState)){
             // possiblity of a black winning from checkmate, else draw
             if(AdvancedChessFunctions.isChecked(true,position.board)){
-                return new minimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
+                return new MinimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
             }
-            return new minimaxOutput(0);
+            return new MinimaxOutput(drawConst);
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(false,position,gameState)){
             // possiblity of a white winning from checkmate, else draw
             if(AdvancedChessFunctions.isChecked(false,position.board)){
-                return new minimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
+                return new MinimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
             }
-            return new minimaxOutput(0);
+            return new MinimaxOutput(drawConst);
         }
 
         if(depth == 0){
-            return new minimaxOutput(getFullEval(position,gameState,isWhiteTurn,true));
+            return new MinimaxOutput(getFullEval(position,gameState,isWhiteTurn,true));
         }
         if(transTable.containsKey(key)){
 //            logger.info("Transtable value being used");
-            return new minimaxOutput(transTable.get(key));
+            return new MinimaxOutput(transTable.get(key));
         }
 
         if(depth <= evalDepth-depthThreshold){
             // do a check to see if there is any noticeable advantage diff.  If not then return
             double posEval = getFullEval(position,gameState,isWhiteTurn,true);
             double diff = posEval-callTimeEval;
-            double advtgThresholdCalc = advtgThreshold + (double) (evalDepth-depthThreshold - depth) /2;
+            double advtgThresholdCalc = advtgThreshold + (double) (evalDepth-depthThreshold - depth) /8;
             if(isWhiteTurn){
                 // only stay if diff greater than advtgThreshold
                 if(diff < advtgThresholdCalc){
                     // not worth it to go deeper
 //                    System.out.println("Failed thresh: " + depth);
-                    return new minimaxOutput(posEval);
+                    return new MinimaxOutput(posEval);
                 }
                 // else go deeper ;)
 
@@ -226,7 +245,7 @@ public class Computer{
                 if(diff > advtgThresholdCalc){
                     // not worth it to go deeper
 //                    System.out.println("failed thresh: "  + depth);
-                    return new minimaxOutput(posEval);
+                    return new MinimaxOutput(posEval);
                 }
                 // else go deeper ;)
             }
@@ -238,12 +257,20 @@ public class Computer{
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
-
         if(isWhiteTurn){
-            minimaxOutput maxEval = new minimaxOutput(Double.NEGATIVE_INFINITY);
-            List<BackendChessPosition> childPos = position.getAllChildPositions(true,gameState);
-            for(BackendChessPosition c : childPos){
-                minimaxOutput out = miniMax(c,c.gameState, depth - 1, alpha, beta, false);
+            MinimaxOutput maxEval = new MinimaxOutput(Double.NEGATIVE_INFINITY);
+            List<ChessMove> childMoves = position.getAllChildMoves(true,gameState);
+//            List<BackendChessPosition> childPositions = position.getAllChildPositions(true,gameState);
+//            assertTrue(childMoves.size(),childPositions.size(),false);
+            for(int i = 0;i<childMoves.size();i++){
+                ChessMove c = childMoves.get(i);
+//                String og = GeneralChessFunctions.getBoardDetailedString(position.board);
+//                String ogMove = position.getMoveThatCreatedThis().toString();
+                position.makeLocalPositionMove(c);
+//                assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove);
+//                assertTrue(position.gameState.toString(),childPositions.get(i).gameState);
+                MinimaxOutput out = miniMax(position,position.gameState, depth - 1, alpha, beta, false);
+                position.undoLocalPositionMove(c);
                 if(out == Stopped){
                     return Stopped;
                 }
@@ -257,10 +284,20 @@ public class Computer{
             return maxEval.incrementAndReturn();
         }
         else{
-            minimaxOutput minEval = new minimaxOutput(Double.POSITIVE_INFINITY);
-            List<BackendChessPosition> childPos = position.getAllChildPositions(false,gameState);
-            for(BackendChessPosition c : childPos){
-                minimaxOutput out = miniMax(c,c.gameState, depth - 1, alpha, beta, true);
+            MinimaxOutput minEval = new MinimaxOutput(Double.POSITIVE_INFINITY);
+            List<ChessMove> childMoves = position.getAllChildMoves(false,gameState);
+//            List<BackendChessPosition> childPositions = position.getAllChildPositions(false,gameState);
+//            assertTrue(childMoves.size(),childPositions.size(),false);
+            for(int i = 0;i<childMoves.size();i++){
+                ChessMove c = childMoves.get(i);
+//                String og = GeneralChessFunctions.getBoardDetailedString(position.board);
+//                String ogMove = position.getMoveThatCreatedThis().toString();
+                position.makeLocalPositionMove(c);
+//                assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove);
+//                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
+//                assertTrue(position.gameState.toString(),childPositions.get(i).gameState);
+                MinimaxOutput out = miniMax(position,position.gameState, depth - 1, alpha, beta, true);
+                position.undoLocalPositionMove(c);
                 if(out == Stopped){
                     return Stopped;
                 }
@@ -279,7 +316,30 @@ public class Computer{
 
     }
 
-    private minimaxOutput min(minimaxOutput m1,minimaxOutput m2){
+    private <T> void  assertTrue(T a, T b,boolean isSerious) {
+        if(isSerious && !a.equals(b)){
+            System.out.println("ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR!!!!");
+            System.out.println("a\n" + a);
+            System.out.println("b\n" +b);
+        }
+        
+    }
+
+    private void assertTrue(ChessPosition a, ChessPosition b,boolean isWhite,String og) {
+        String aboard = GeneralChessFunctions.getBoardDetailedString(a.board);
+        String bboard = GeneralChessFunctions.getBoardDetailedString(b.board);
+        if(!aboard.equals(bboard) && !a.getMoveThatCreatedThis().isCastleMove()){
+            System.out.println("OG:\n" + og);
+            System.out.println("IsWhite: " + isWhite);
+            System.out.println("amove\n" + a.getMoveThatCreatedThis().toString());
+            System.out.println("a\n" + aboard);
+            System.out.println("bmove\n" +b.getMoveThatCreatedThis().toString());
+            System.out.println("b\n" +bboard);
+        }
+
+    }
+
+    private MinimaxOutput min(MinimaxOutput m1, MinimaxOutput m2){
         if(m1.getAdvantage() == m2.getAdvantage()){
             // always return the one with less depth if equal
             if(m1.getOutputDepth() < m2.getOutputDepth()){
@@ -294,7 +354,7 @@ public class Computer{
 
     }
 
-    private minimaxOutput max(minimaxOutput m1,minimaxOutput m2){
+    private MinimaxOutput max(MinimaxOutput m1, MinimaxOutput m2){
         if(m1.getAdvantage() == m2.getAdvantage()){
             // always return the one with less depth if equal
             if(m1.getOutputDepth() < m2.getOutputDepth()){
@@ -315,33 +375,33 @@ public class Computer{
 
     int[] valueMap = {1,3,3,5,9,10000000};
 
-    public minimaxOutput getFullEvalMinimax(ChessPosition pos,ChessStates gameState, int depth, boolean isWhite){
+    public MinimaxOutput getFullEvalMinimax(ChessPosition pos, ChessStates gameState, int depth, boolean isWhite){
         setCallTimeEval(pos,gameState,isWhite);
         logger.debug(transTable.size());
-        minimaxOutput bestEval = isWhite ? new minimaxOutput(Double.MIN_VALUE) : new minimaxOutput(Double.MAX_VALUE);
+        MinimaxOutput bestEval = isWhite ? new MinimaxOutput(Double.MIN_VALUE) : new MinimaxOutput(Double.MAX_VALUE);
         running = true;
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,pos,gameState)){
             // possiblity of a checkmate, else draw
             clearFlags();
             if(AdvancedChessFunctions.isChecked(true,pos.board)){
-                return new minimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
+                return new MinimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
             }
-            return new minimaxOutput(0);
+            return new MinimaxOutput(0);
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(false,pos,gameState)){
             // possiblity of a checkmate, else draw
             clearFlags();
             if(AdvancedChessFunctions.isChecked(false,pos.board)){
-                return new minimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
+                return new MinimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
             }
-            return new minimaxOutput(0);
+            return new MinimaxOutput(0);
         }
         for(BackendChessPosition c : pos.getAllChildPositions(isWhite,gameState)){
             if(stop.get()){
                 clearFlags();
                 return Stopped;
             }
-            minimaxOutput eval = miniMax(c,c.gameState,depth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
+            MinimaxOutput eval = miniMax(c,c.gameState,depth-1,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,!isWhite);
 
             if(eval == Stopped){
                 clearFlags();

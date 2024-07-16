@@ -3,12 +3,41 @@ package chessengine;
 import java.util.*;
 
 public class ChessStates {
+    private final ZobristHasher hasher;
+
     public ChessStates(){
+        this.hasher = new ZobristHasher();
         this.posMap = new HashMap<>();
         this.movesWhenResetted = new Stack<>();
     }
 
-    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex,boolean isCheckMated,boolean isWhiteWin,boolean isStaleMated,HashMap<Integer,Integer> posMap,Stack<Integer> movesWhenResetted) {
+    @Override
+    public String toString() {
+        return "ChessStates{" +
+                "movesSinceNoCheckOrNoPawn=" + movesSinceNoCheckOrNoPawn +
+                ", isCheckMated=" + isCheckMated +
+                ", isWhiteWin=" + isWhiteWin +
+                ", checkMateIndex=" + checkMateIndex +
+                ", isStaleMated=" + isStaleMated +
+                ", staleMateIndex=" + staleMateIndex +
+                ", whiteCastleRight=" + whiteCastleRight +
+                ", blackCastleRight=" + blackCastleRight +
+                ", whiteShortRookRight=" + whiteShortRookRight +
+                ", whiteLongRookRight=" + whiteLongRookRight +
+                ", blackShortRookRight=" + blackShortRookRight +
+                ", blackLongRookRight=" + blackLongRookRight +
+                ", blackCastleIndx=" + blackCastleIndx +
+                ", whiteCastleIndx=" + whiteCastleIndx +
+                ", whiteShortRookIndx=" + whiteShortRookIndx +
+                ", whiteLongRookIndx=" + whiteLongRookIndx +
+                ", blackShortRookIndx=" + blackShortRookIndx +
+                ", blackLongRookIndx=" + blackLongRookIndx +
+                ", currentIndex=" + currentIndex +
+                '}';
+    }
+
+    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, boolean isWhiteWin, boolean isStaleMated, HashMap<Long,Integer> posMap, Stack<Integer> movesWhenResetted) {
+        this.hasher = new ZobristHasher();
         this.whiteCastleRight = whiteCastleRight;
         this.blackCastleRight = blackCastleRight;
         this.whiteShortRookRight = whiteShortRookRight;
@@ -25,21 +54,13 @@ public class ChessStates {
         this.isCheckMated = isCheckMated;
         this.isWhiteWin = isWhiteWin;
         this.isStaleMated = isStaleMated;
-        this.posMap = cloneMap(posMap);
-        this.movesWhenResetted = (Stack<Integer>) movesWhenResetted.clone();
+        this.posMap = posMap;
+        this.movesWhenResetted = movesWhenResetted;
+
     }
 
-    private HashMap<Integer,Integer> cloneMap(HashMap<Integer,Integer> oldMap){
-        HashMap<Integer,Integer> newMap = new HashMap<>(oldMap.size());
-        for(Map.Entry<Integer,Integer> me : oldMap.entrySet()){
-            // by value
-            int i = me.getValue();
-            int newHash = me.getKey();
-            newMap.put(newHash,i);
 
-        }
-        return newMap;
-    }
+
 
 
 
@@ -70,7 +91,7 @@ public class ChessStates {
     }
 
     // posMap used for checking draw by repetition
-    private HashMap<Integer,Integer> posMap;
+    private HashMap<Long,Integer> posMap;
 
     private Stack<Integer> movesWhenResetted;
 
@@ -104,15 +125,17 @@ public class ChessStates {
     private int blackShortRookIndx = 1000;
     private int blackLongRookIndx = 1000;
 
-    public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition, boolean incrementIndex){
+    public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition, boolean incrementIndex,boolean isMain){
         if(incrementIndex){
             currentIndex++;
         }
         // first check draw by repetition
-        int hash = newPosition.board.hashCode();
+//        int hash = newPosition.board.hashCode();
+        // white move not important in this case so just set constant
+        long hash = hasher.computeHash(newPosition,false);
         Integer posCount = posMap.getOrDefault(hash,0);
         posMap.put(hash,posCount+1);
-        if(posCount+1 > 2){
+        if(isMain && posCount+1 > 2){
             // draw by repetition
 //            ChessConstants.mainLogger.debug("Draw by repetition triggered");
             return true;
@@ -125,14 +148,15 @@ public class ChessStates {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-//                if(movesSinceNoCheckOrNoPawn > 99){
-//                    ChessConstants.mainLogger.debug("50 move rule triggered");
-//                }
+                if(isMain && movesSinceNoCheckOrNoPawn > 99){
+                    ChessConstants.mainLogger.debug("50 move rule triggered");
+                }
                 return movesSinceNoCheckOrNoPawn > 99;
 
             }
             else {
                 // just checked or made a pawn move
+
                 movesWhenResetted.push(movesSinceNoCheckOrNoPawn);
                 movesSinceNoCheckOrNoPawn = 0;
             }
@@ -156,6 +180,7 @@ public class ChessStates {
 
     public void reset(){
         posMap.clear();
+        movesWhenResetted.clear();
         movesSinceNoCheckOrNoPawn = 0;
 
         isCheckMated = false;
@@ -183,8 +208,29 @@ public class ChessStates {
         blackLongRookIndx = 1000;
     }
 
-    public ChessStates cloneState(){
-        return new ChessStates(whiteCastleRight,blackCastleRight,whiteShortRookRight,whiteLongRookRight,blackShortRookRight,blackLongRookRight,blackCastleIndx,whiteCastleIndx,whiteShortRookIndx,whiteLongRookIndx,blackShortRookIndx,blackLongRookIndx,currentIndex,isCheckMated,isWhiteWin,isStaleMated,posMap,movesWhenResetted);
+    public ChessStates cloneState() {
+        HashMap<Long, Integer> clonedPosMap = cloneMap(posMap);
+        Stack<Integer> clonedMovesWhenResetted = cloneStack(movesWhenResetted);
+
+        return new ChessStates(
+                whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight,
+                blackShortRookRight, blackLongRookRight, blackCastleIndx, whiteCastleIndx,
+                whiteShortRookIndx, whiteLongRookIndx, blackShortRookIndx, blackLongRookIndx,
+                currentIndex, isCheckMated, isWhiteWin, isStaleMated, clonedPosMap, clonedMovesWhenResetted);
+    }
+
+    private HashMap<Long, Integer> cloneMap(HashMap<Long, Integer> oldMap) {
+        HashMap<Long, Integer> newMap = new HashMap<>();
+        for (Map.Entry<Long, Integer> entry : oldMap.entrySet()) {
+            newMap.put(entry.getKey(), entry.getValue());
+        }
+        return newMap;
+    }
+
+    private Stack<Integer> cloneStack(Stack<Integer> oldStack) {
+        Stack<Integer> newStack = new Stack<>();
+        newStack.addAll(oldStack);
+        return newStack;
     }
 
     public boolean[] isCheckMated() {
@@ -243,11 +289,12 @@ public class ChessStates {
 
     public void moveBackward(ChessPosition oldPositionToRemove){
         // remove the position from posmap
-        int key = oldPositionToRemove.board.hashCode();
+//        int key = oldPositionToRemove.board.hashCode();
+        long key = hasher.computeHash(oldPositionToRemove,false);
 
-        int count = posMap.getOrDefault(key,-1);
-        if(count != -1){
-            if(count == 1){
+        int count = posMap.getOrDefault(key,ChessConstants.EMPTYINDEX);
+        if(count != ChessConstants.EMPTYINDEX){
+            if(count <= 1){
                 // remove the position from posmap altogether as the count will now be zero
                 posMap.remove(key);
             }
@@ -256,7 +303,6 @@ public class ChessStates {
             }
         }
         else{
-            // i have no clue how the logic would get here
             ChessConstants.mainLogger.error("Position not found in posmap, weird");
         }
 
@@ -269,6 +315,9 @@ public class ChessStates {
             }
             else{
                 // we need to recover the movesSinceNoCheckOrNoPawn value before reset
+                if(movesWhenResetted.isEmpty()) {
+                    ChessConstants.mainLogger.error("moveswhen ressetted does not have needed elements, are you moving backward before forward");
+                }
                 movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
             }
         }
@@ -290,7 +339,8 @@ public class ChessStates {
 
     public void moveForward(ChessPosition newPositionToAdd){
         // add the position to posmap
-        int hash = newPositionToAdd.board.hashCode();
+//        int hash = newPositionToAdd.board.hashCode();
+        long hash = hasher.computeHash(newPositionToAdd,false);
         Integer posCount = posMap.getOrDefault(hash,0);
         posMap.put(hash,posCount+1);
 

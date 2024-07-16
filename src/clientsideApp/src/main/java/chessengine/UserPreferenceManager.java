@@ -216,7 +216,7 @@ public class UserPreferenceManager {
         if(evalOptions != null){
             App.bindingController.bindSmallText(evalOptions,isMainScreen);
             evalOptions.getItems().addAll(
-                    1,2,3,4,5,6,7,8
+                    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
             );
             evalOptions.setOnAction(e ->{
                 if(!evalOptions.getSelectionModel().isEmpty()){
@@ -236,7 +236,7 @@ public class UserPreferenceManager {
             });
 
             computerOptions.getItems().addAll(
-                    1,2,3,4,5,6,7,8
+                    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
             );
         }
 
