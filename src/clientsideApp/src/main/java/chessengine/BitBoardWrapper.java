@@ -6,6 +6,15 @@ import java.util.Objects;
 public class BitBoardWrapper {
     private long[] whitePieces;
     private long[] blackPieces;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BitBoardWrapper that = (BitBoardWrapper) o;
+        return Arrays.equals(whitePieces, that.whitePieces) && Arrays.equals(blackPieces, that.blackPieces) && Objects.equals(whiteKingLocation, that.whiteKingLocation) && Objects.equals(blackKingLocation, that.blackKingLocation);
+    }
+
     private XYcoord whiteKingLocation;
 
     private XYcoord blackKingLocation;

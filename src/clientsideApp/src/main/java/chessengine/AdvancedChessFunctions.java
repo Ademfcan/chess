@@ -9,68 +9,9 @@ import java.util.*;
 
 public class AdvancedChessFunctions {
 
-    private int[] peicesOnBoard = {8,2,2,2,1,1,8,2,2,2,1,1};
-    private final long blackPawns = 0b0000000000000000000000000000000000000000000000001111111100000000L;
-    private final long blackKnights = 0b0000000000000000000000000000000000000000000000000000000001000010L;
-    private final long blackBishops = 0b00000000000000000000000000000000000000000000000000000000000100100L;
-    private final long blackRooks = 0b0000000000000000000000000000000000000000000000000000000010000001L;
-    private final long blackQueens = 0b0000000000000000000000000000000000000000000000000000000000001000L;
-    private final long blackKings = 0b0000000000000000000000000000000000000000000000000000000000010000L;
-
-    private final long whitePawns = 0b0000000011111111000000000000000000000000000000000000000000000000L;
-    private final long whiteKnights = 0b0100001000000000000000000000000000000000000000000000000000000000L;
-    private final long whiteBishops = 0b0010010000000000000000000000000000000000000000000000000000000000L;
-    private final long whiteRooks = 0b1000000100000000000000000000000000000000000000000000000000000000L;
-    private final long whiteQueens = 0b0000100000000000000000000000000000000000000000000000000000000000L;
-    private final long whiteKings = 0b0001000000000000000000000000000000000000000000000000000000000000L;
-
-    // Flipped positioning
-    public final long[] blackPiecesC = {blackPawns, blackKnights, blackBishops, blackRooks, blackQueens, blackKings};
-    public final long[] whitePiecesC = {whitePawns, whiteKnights, whiteBishops, whiteRooks, whiteQueens, whiteKings};
-    XYcoord whiteKingStart = new XYcoord(4,7);
-    XYcoord blackKingStart = new XYcoord(4,0);
-    public final BitBoardWrapper startBoardState = new BitBoardWrapper(whitePiecesC,blackPiecesC,whiteKingStart,blackKingStart);
-
-    public BitBoardWrapper realBoard = startBoardState.cloneBoard();
 
 
-    private ArrayList<BitBoardWrapper> boardSave = new ArrayList<>();
-
-    public int moveIndx = -1;
-    public int maxIndex = -1;
-
-
-
-    private boolean whiteCastleRight = true;
-    public boolean blackCastleRight = true;
-
-    private boolean whiteShortRookMove = true;
-    private boolean whiteLongRookMove = true;
-    public boolean blackShortRookMove = true;
-    private boolean blackLongRookMove = true;
-    private int blackCastleIndx = 1000;
-    private int whiteCastleIndx = 1000;
-    private int whiteShortRookIndx = 1000;
-    private int whiteLongRookIndx = 1000;
-    private int blackShortRookIndx = 1000;
-    private int blackLongRookIndx = 1000;
-
-
-
-
-
-
-    private Logger logger;
-    private ChessCentralControl ChessCentralControl;
-
-    public AdvancedChessFunctions() {
-        this.logger  = LogManager.getLogger(this.toString());
-        this.ChessCentralControl = App.ChessCentralControl;
-    }
-
-
-
-
+    private static Logger logger = LogManager.getLogger("Advanced_Chess_Functions");
 
 
 
@@ -84,15 +25,13 @@ public class AdvancedChessFunctions {
     public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos,ChessStates gameState, int boardIndex){
         //System.out.println("Getting moves for peice at " + x + " " + y);
         List<XYcoord> baseMoves = getMoveOfType(x,y,isWhite,boardIndex,pos,gameState);
-        if(isChecked(isWhite,pos.board)){;
-            if(boardIndex != 5){
+        if(boardIndex != ChessConstants.KINGINDEX && isChecked(isWhite,pos.board)){;
+            baseMoves.retainAll(getCheckedFile(isWhite,pos.board));
 
-                baseMoves.retainAll(getCheckedFile(isWhite,pos.board));
-
-            }
             return baseMoves;
         }
         else{
+
             return baseMoves;
         }
 
@@ -100,13 +39,13 @@ public class AdvancedChessFunctions {
 
     private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, ChessPosition pos,ChessStates gameState){
         if(!GeneralChessFunctions.isValidIndex(indx)){
-            ChessConstants.mainLogger.error("Invalid index passed into get move of type");
+            logger.error("Invalid index passed into get move of type");
         }
         return switch (indx) {
             case 0 -> calculatePawnMoves(x, y, isWhite,pos,false);
             case 1 -> calculateKnightMoves(x, y, isWhite, false,pos.board,false);
-            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,pos.board,false);
-            case 3 -> calculateRookMoves(x, y, isWhite, false,false,pos.board,false);
+            case 2 -> calculateBishopMoves(x, y, isWhite, false,ChessConstants.EMPTYINDEX,pos.board,false);
+            case 3 -> calculateRookMoves(x, y, isWhite, false,ChessConstants.EMPTYINDEX,pos.board,false);
             case 4 -> calculateQueenMoves(x, y, isWhite, false,pos.board,false);
             case 5 -> calculateKingMoves(x, y, isWhite,pos.board,gameState);
             default -> (null);
@@ -115,13 +54,13 @@ public class AdvancedChessFunctions {
 
     private static List<XYcoord> getMoveOfType(int x, int y, boolean isWhite, int indx, ChessPosition pos,ChessStates gameState,boolean isForCheck){
         if(!GeneralChessFunctions.isValidIndex(indx)){
-            ChessConstants.mainLogger.error("Invalid index passed into get move of type");
+            logger.error("Invalid index passed into get move of type");
         }
         return switch (indx) {
             case 0 -> calculatePawnMoves(x, y, isWhite,pos,isForCheck);
             case 1 -> calculateKnightMoves(x, y, isWhite, false,pos.board,isForCheck);
-            case 2 -> calculateBishopMoves(x, y, isWhite, false,false,pos.board,isForCheck);
-            case 3 -> calculateRookMoves(x, y, isWhite, false,false,pos.board,isForCheck);
+            case 2 -> calculateBishopMoves(x, y, isWhite, false,ChessConstants.EMPTYINDEX,pos.board,isForCheck);
+            case 3 -> calculateRookMoves(x, y, isWhite, false,ChessConstants.EMPTYINDEX,pos.board,isForCheck);
             case 4 -> calculateQueenMoves(x, y, isWhite, false,pos.board,isForCheck);
             case 5 -> calculateKingMoves(x, y, isWhite,pos.board,gameState);
             default -> (null);
@@ -134,50 +73,6 @@ public class AdvancedChessFunctions {
 
 
 
-    public void promoPawn(boolean isWhite, int oldX, int oldY, int X, int Y, int newPeiceIndx, BitBoardWrapper board){
-        long[] peices = isWhite ? board.getWhitePieces() : board.getBlackPieces();
-        long[] enmypeices = !isWhite ? board.getWhitePieces() : board.getBlackPieces();
-        peices[0] = GeneralChessFunctions.RemovePeice(oldX,oldY,peices[0]);
-        int enmyIndx = GeneralChessFunctions.getBoardWithPiece(X,Y,!isWhite, board);
-        System.out.println(enmyIndx);
-        if(enmyIndx != -10){
-            enmypeices[enmyIndx] = GeneralChessFunctions.RemovePeice(X,Y,enmypeices[enmyIndx]);
-
-            ChessCentralControl.chessBoardGUIHandler.updateEatenPieces(enmyIndx,!isWhite);
-
-        }
-        peices[newPeiceIndx] = GeneralChessFunctions.AddPeice(X,Y,peices[newPeiceIndx]);
-        createBoardEntry(board);
-
-    }
-
-    public static long createFullBoard(long[] whitePieces, long[] blackPieces){
-        long board = 0L;
-        for(long l : whitePieces){
-            board = board | l;
-        }
-        for(long l : blackPieces){
-            board = board | l;
-        }
-        return board;
-    }
-
-    private static long createFullBoard(boolean isWhite,long[] whitePieces, long[] blackPieces){
-        long board = 0L;
-        if(isWhite){
-            for(long l : whitePieces){
-                board = board | l;
-            }
-        }
-        else{
-            for(long l : blackPieces){
-                board = board | l;
-            }
-        }
-
-
-        return board;
-    }
 
     public static String getPieceType(int x, int y, Boolean isWhite, BitBoardWrapper board){
        int indx = GeneralChessFunctions.getBoardWithPiece(x,y,isWhite,board);
@@ -188,20 +83,10 @@ public class AdvancedChessFunctions {
             case 3 -> "Rook";
             case 4 -> "Queen";
             case 5 -> "King";
-            default -> "null";
+            default ->"null";
         };
     }
 
-
-
-    /// this
-
-
-
-
-    private static int positionToBitIndex(int x, int y){
-        return  x + y * 8;
-    }
 
 
     private static boolean willResultInDead(int x, int y, int newX, int newY, boolean isWhite, BitBoardWrapper board){
@@ -325,7 +210,7 @@ public class AdvancedChessFunctions {
             }
         }
 
-        if(GeneralChessFunctions.checkIfContains(eatX1,eatY,!isWhite, board) && GeneralChessFunctions.isValidMove(eatX1,eatY)){
+        if(GeneralChessFunctions.isValidMove(eatX1,eatY) && GeneralChessFunctions.checkIfContains(eatX1,eatY,!isWhite, board)){
             // pawn can capture to the right
             if(isforcheck){
                 moves.add(new XYcoord(eatX1,eatY));
@@ -335,7 +220,7 @@ public class AdvancedChessFunctions {
 
             }
         }
-        if(GeneralChessFunctions.checkIfContains(eatX2,eatY,!isWhite, board) && GeneralChessFunctions.isValidMove(eatX2,eatY)){
+        if(GeneralChessFunctions.isValidMove(eatX2,eatY) && GeneralChessFunctions.checkIfContains(eatX2,eatY,!isWhite, board)){
             // pawn can capture to the left
             if(isforcheck){
                 moves.add(new XYcoord(eatX2,eatY));
@@ -350,7 +235,7 @@ public class AdvancedChessFunctions {
         for(int i = 1; i< depth+1;i++){
             int newY = y + i*move;
             // pawns cannot eat forwards
-            if(!GeneralChessFunctions.checkIfContains(x,newY,isWhite, board) && !GeneralChessFunctions.checkIfContains(x,newY,!isWhite, board) && GeneralChessFunctions.isValidMove(x,newY)){
+            if(GeneralChessFunctions.isValidMove(x,newY) && !GeneralChessFunctions.checkIfContains(x,newY, board)[0]){
                 // pawn can capture to the right
                 if(isforcheck){
                     moves.add(new XYcoord(x,newY));
@@ -397,13 +282,20 @@ public class AdvancedChessFunctions {
         return moves;
     }
 
-    private static List<XYcoord> calculateBishopMoves(int x, int y, boolean isWhite, boolean edgesOnly, boolean directionCheck, BitBoardWrapper board, boolean isForCheck) {
+    private static List<XYcoord> calculateBishopMoves(int x, int y, boolean isWhite, boolean edgesOnly, int direction, BitBoardWrapper board, boolean isForCheck) {
         ArrayList<XYcoord> moves = new ArrayList<>();
-
+        int i = 0;
+        int max = 4;
+        if(direction != ChessConstants.EMPTYINDEX){
+            // isolate a single file
+            // should check if direction is in range 0-3
+            i = direction;
+            max = direction+1;
+        }
         int[] dx = {1, 1, -1, -1};
         int[] dy = {1, -1, 1, -1};
 
-        for (int i = 0; i < 4; i++) {
+        while (i < max){
             int newX = x;
             int newY = y;
             while (true) {
@@ -417,7 +309,7 @@ public class AdvancedChessFunctions {
                     boolean containsFriend = GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board);
                     boolean containsEnemy = GeneralChessFunctions.checkIfContains(newX, newY, !isWhite,board);
 
-                    XYcoord response = directionCheck ? new XYcoord(newX,newY,i) : new XYcoord(newX,newY);
+                    XYcoord response = new XYcoord(newX,newY,i);
                     if(containsEnemy){
                         moves.add(response);
                         break;
@@ -436,17 +328,24 @@ public class AdvancedChessFunctions {
                     break;
                 }
             }
+            i++;
         }
 
         return moves;
     }
 
-    private static List<XYcoord> calculateRookMoves(int x, int y, boolean isWhite, boolean edgesOnly, boolean directionCheck, BitBoardWrapper board, boolean isForCheck) {
+    private static List<XYcoord> calculateRookMoves(int x, int y, boolean isWhite, boolean edgesOnly, int direction, BitBoardWrapper board, boolean isForCheck) {
         ArrayList<XYcoord> moves = new ArrayList<>();
+        int i = 0;
+        int max = 4;
+        if(direction != ChessConstants.EMPTYINDEX){
+            i = direction;
+            max = direction+1;
+        }
 
         int[] dx = {1, -1, 0, 0};
         int[] dy = {0, 0, 1, -1};
-        for (int i = 0; i < 4; i++) {
+        while (i<max) {
             int newX = x;
             int newY = y;
             while (true) {
@@ -461,7 +360,7 @@ public class AdvancedChessFunctions {
                     boolean containsFriend = GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board);
                     boolean containsEnemy = GeneralChessFunctions.checkIfContains(newX, newY, !isWhite,board);
 
-                    XYcoord response = directionCheck ? new XYcoord(newX,newY,i) : new XYcoord(newX,newY);
+                    XYcoord response = new XYcoord(newX,newY,i);
                     if(containsEnemy){
                         moves.add(response);
                         break;
@@ -481,6 +380,7 @@ public class AdvancedChessFunctions {
                     break;
                 }
             }
+            i++;
         }
 
         return moves;
@@ -489,8 +389,8 @@ public class AdvancedChessFunctions {
     private static List<XYcoord> calculateQueenMoves(int x, int y, boolean isWhite, boolean edgesOnly, BitBoardWrapper board, boolean isforCheck) {
         ArrayList<XYcoord> moves = new ArrayList<>();
 
-        List<XYcoord> rookMoves = calculateRookMoves(x, y, isWhite,edgesOnly,false,board,isforCheck);
-        List<XYcoord> bishopMoves = calculateBishopMoves(x, y, isWhite,edgesOnly,false,board,isforCheck);
+        List<XYcoord> rookMoves = calculateRookMoves(x, y, isWhite,edgesOnly,ChessConstants.EMPTYINDEX,board,isforCheck);
+        List<XYcoord> bishopMoves = calculateBishopMoves(x, y, isWhite,edgesOnly,ChessConstants.EMPTYINDEX,board,isforCheck);
 
         moves.addAll(rookMoves);
         moves.addAll(bishopMoves);
@@ -531,6 +431,7 @@ public class AdvancedChessFunctions {
 
             }
         }
+        // todo fix this castling breaking computer
 
         int[] dx = {1, -1, 0, 0, 1, -1, 1, -1};
         int[] dy = {0, 0, 1, -1, 1, -1, -1, 1};
@@ -538,10 +439,9 @@ public class AdvancedChessFunctions {
         for (int i = 0; i < 8; i++) {
             int newX = x + dx[i];
             int newY = y + dy[i];
-
             boolean isValid = GeneralChessFunctions.isValidMove(newX, newY);
             if(isValid){
-                board.makeTempChange(x,y,newX,newY,5,isWhite);
+                board.makeTempChange(x,y,newX,newY,ChessConstants.KINGINDEX,isWhite);
                 boolean newSqareIsChecked = isChecked(newX,newY,isWhite,board);
                 board.popTempChange();
                 if (!GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board) && !newSqareIsChecked) {
@@ -563,6 +463,7 @@ public class AdvancedChessFunctions {
                 return false;
             }
         }
+//        logger.debug("No moves possible for :" + isWhite);
         return true;
     }
 
@@ -571,20 +472,17 @@ public class AdvancedChessFunctions {
 
 
     public static Boolean isAnyChecked(BitBoardWrapper board){
+        // king coordinates
         XYcoord wkingLocation = board.getWhiteKingLocation();
         XYcoord bkingLocation = board.getBlackKingLocation();
         return isChecked(wkingLocation.x,wkingLocation.y,true,board) || isChecked(bkingLocation.x,bkingLocation.y,false,board);
 
 
-        // king coordinates
     }
 
 
-
-
     public static Boolean isChecked(boolean isWhite, BitBoardWrapper board){
-      XYcoord kingLocation = isWhite ? board.getWhiteKingLocation() : board.getBlackKingLocation();
-//    XYcoord kingLocation = getPieceCoords(isWhite ? board.getWhitePieces()[5] : board.getBlackPieces()[5]).get(0);
+        XYcoord kingLocation = isWhite ? board.getWhiteKingLocation() : board.getBlackKingLocation();
         return isChecked(kingLocation.x,kingLocation.y,isWhite,board);
 
 
@@ -592,14 +490,16 @@ public class AdvancedChessFunctions {
 
     private static boolean isChecked(int x, int y, boolean isWhite, BitBoardWrapper board){
         // general checking if a square is checked
-        List<XYcoord> possibleRookFiles = calculateRookMoves(x,y,isWhite,true,false,board,true);
-        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x,y,isWhite,true,false,board,true);
+        List<XYcoord> possibleRookFiles = calculateRookMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
+        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
         List<XYcoord> possibleHorseJumps = calculateKnightMoves(x,y,isWhite,true,board,true);
         List<XYcoord> possibleKingMoves = basicKingMoveCalc(x,y,isWhite,board);
-
         // check pawns
         int jump = isWhite ? 1 : -1;
-        if(getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn") || getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
+        if(GeneralChessFunctions.isValidMove(x-jump,y-jump) && getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
+            return true;
+        }
+        if(GeneralChessFunctions.isValidMove(x+jump,y-jump) && getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
             return true;
         }
         for(XYcoord s : possibleKingMoves){
@@ -633,43 +533,39 @@ public class AdvancedChessFunctions {
 
     private static List<XYcoord> getCheckedFile(boolean isWhite, BitBoardWrapper board){
         // general checking if a square is checked
+        ArrayList<XYcoord> files = new ArrayList<>();
         XYcoord kingLocation = isWhite ? board.getWhiteKingLocation() : board.getBlackKingLocation();
 //      XYcoord kingLocation = getPieceCoords(isWhite ? board.getWhitePieces()[5] : board.getBlackPieces()[5]).get(0);
 
         int x = kingLocation.x;
         int y = kingLocation.y;
-        List<XYcoord> specialMoves = new LinkedList<>();
-        List<XYcoord> possibleRookFiles = calculateRookMoves(x,y,isWhite,true,true,board,true);
-        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x,y,isWhite,true,true,board,true);
+        List<XYcoord> possibleRookFiles = calculateRookMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
+        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
         List<XYcoord> possibleHorseJumps = calculateKnightMoves(x,y,isWhite,true,board,true);
         // check pawns
         int jump = isWhite ? 1 : -1;
 
         if(getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
-            specialMoves.add(new XYcoord(x-jump,y-jump));
-            return specialMoves;
+            retainIfNotEmpty(files,new XYcoord(x-jump,y-jump));
         }
 
         if(getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
-            specialMoves.add(new XYcoord(x+jump,y-jump));
-            return specialMoves;
+            retainIfNotEmpty(files,new XYcoord(x+jump,y-jump));
 
         }
 
         for(XYcoord s : possibleRookFiles){
             String peiceType = getPieceType(s.x,s.y,!isWhite,board);
             if(peiceType.equals("Rook") || peiceType.equals("Queen")){
-                List<XYcoord> filtered = calculateRookMoves(x,y,isWhite,false,true,board,true).stream().filter(g -> g.direction == s.direction).toList();
-                filtered.forEach(g -> g.direction = -10);
-                return filtered;
+                List<XYcoord> filtered = calculateRookMoves(x,y,isWhite,false,s.direction,board,true);
+                retainIfNotEmpty(files,filtered);
 
             }
         }
         for(XYcoord s : possibleHorseJumps){
             String peiceType = getPieceType(s.x,s.y,!isWhite,board);
             if(peiceType.equals("Knight")){
-                specialMoves.add(new XYcoord(s.x,s.y));
-                return specialMoves;
+                retainIfNotEmpty(files,new XYcoord(s.x,s.y));
 
 
 
@@ -679,20 +575,35 @@ public class AdvancedChessFunctions {
             String peiceType = getPieceType(s.x,s.y,!isWhite,board);
 
             if(peiceType.equals("Bishop") || peiceType.equals("Queen")){
-                List<XYcoord> filtered = calculateBishopMoves(x,y,isWhite,false,true,board,true).stream().filter(g -> g.direction == s.direction).toList();
-                filtered.forEach(g -> g.direction = -10);
-                return filtered;
-
+                List<XYcoord> filtered = calculateBishopMoves(x,y,isWhite,false,s.direction,board,true);
+                retainIfNotEmpty(files,filtered);
 
             }
         }
-        return Collections.emptyList();
+        return files;
+    }
+
+    private static void retainIfNotEmpty(ArrayList<XYcoord> files,List<XYcoord> newAdditions){
+        if(files.isEmpty()){
+            files.addAll(newAdditions);
+        }
+        else{
+            files.retainAll(newAdditions);
+        }
+    }
+
+    private static void retainIfNotEmpty(ArrayList<XYcoord> files,XYcoord newAddition){
+        if(files.isEmpty()){
+            files.add(newAddition);
+        }
+        else{
+            files.retainAll(List.of(newAddition));
+        }
     }
 
 
 
 
-    int[] valueMap = {1,3,3,5,9,100000};
 
 
 
@@ -704,58 +615,6 @@ public class AdvancedChessFunctions {
     public static boolean isCheckmated(ChessPosition pos, ChessStates gameState ){
         return (isChecked(false,pos.board) && isAnyNotMovePossible(false,pos,gameState))||( isChecked(true,pos.board) && isAnyNotMovePossible(true, pos,gameState));
     }
-
-
-
-
-    private void createBoardEntry(BitBoardWrapper board){
-        if (moveIndx != boardSave.size() - 1) {
-            clearIndx();
-        }
-        logger.info("Creating board entry");
-
-        boardSave.add(board.cloneBoard());
-        //System.out.println("Save size: " + boardSave.size());
-
-        moveIndx ++;
-        maxIndex = moveIndx;
-
-    }
-
-    public void clearIndx(){
-        int to = boardSave.size();
-        if (to > moveIndx + 1) {
-            logger.debug(String.format("Clearing board entries from %d",moveIndx+1));
-
-            boardSave.subList(moveIndx + 1, to).clear();
-        }
-
-
-    }
-
-    private BitBoardWrapper getPeicesFromSave(){
-        BitBoardWrapper boardFromSave = null;
-        if(moveIndx < 0){
-            boardFromSave = startBoardState;
-        }
-        else{
-            boardFromSave = boardSave.get(moveIndx);
-        }
-
-
-        return boardFromSave;
-
-
-    }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -856,68 +715,6 @@ public class AdvancedChessFunctions {
         return coord;
     }
 
-    private void addPiece(int boardIndx, int bitIndex, boolean isWhite, long[] whitePieces, long[] blackPieces) {
-        // Create a mask with the bit at bitIndex set to 1
-        long board = isWhite ? whitePieces[boardIndx] : blackPieces[boardIndx];
-
-        long mask = 1L << bitIndex;
-        long result = board | mask;
-        if(isWhite){
-            whitePieces[boardIndx] = result;
-        }
-        else{
-            blackPieces[boardIndx] =result;
-        }
-        int jump = isWhite ? 0 : 6;
-        peicesOnBoard[jump+boardIndx]++;
-        System.out.println("Adding peice");
-        // Use bitwise OR to add the piece to the board
-    }
-    private void removePeice(int boardIndx, int bitIndex, boolean isWhite, long[] whitePieces, long[] blackPieces) {
-        // Create a mask with the bit at bitIndex set to 1
-        long board = isWhite ? whitePieces[boardIndx] : blackPieces[boardIndx];
-
-
-        long mask = 1L << bitIndex;
-        long result = board & ~mask;
-        if(isWhite){
-            whitePieces[boardIndx] = result;
-        }
-        else{
-            blackPieces[boardIndx] =result;
-        }
-        int jump = isWhite ? 0 : 6;
-        peicesOnBoard[jump+boardIndx]--;
-        System.out.println("Removing peice");
-
-    }
-
-    private void MatrixToString(ImageView[][] matrix){
-        for(int i = 0; i< matrix.length;i++){
-            for(int j = 0; j< matrix[i].length;j++){
-                System.out.print((matrix[j][i] != null ? "X" : "_" )+ " ");
-            }
-            System.out.println();
-        }
-    }
-
-    public int[] parseStrCoord(String s){
-        return Arrays.stream(s.split(",")).mapToInt(Integer::parseInt).toArray();
-    }
-
-    public  void printBitboard(long bitboard) {
-        System.out.println("bitboard:");
-        for (int row = 7; row >= 0; row--) {
-            for (int col = 0; col < 8; col++) {
-                int index = row * 8 + col;
-                long mask = 1L << index;
-                char square = ((bitboard & mask) != 0) ? '1' : '0';
-                System.out.print(square + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
 
     public static List<XYcoord> fullPawnMoveCalcPGN(int x, int y, boolean isWhite,boolean isEating, BitBoardWrapper board){
         ArrayList<XYcoord> moves = new ArrayList<>();
@@ -994,7 +791,7 @@ public class AdvancedChessFunctions {
             }
 
         }
-        ChessConstants.mainLogger.error("Failed to find old coordinates");
+        logger.error("Failed to find old coordinates");
         return null;
     }
     // returns -1 if not ambigous, 1 for singular ambiguity, 2 for double ambiguity and 3 for triple ambiguity
@@ -1058,7 +855,7 @@ public class AdvancedChessFunctions {
                 break;
             }
         }
-        ChessConstants.mainLogger.error("No column found for given file");
+        logger.error("No column found for given file");
 
         return ChessConstants.EMPTYINDEX;
 
@@ -1078,7 +875,7 @@ public class AdvancedChessFunctions {
             return newX+1;
         }
 
-        ChessConstants.mainLogger.error("En passant origin not found");
+        logger.error("En passant origin not found");
 
         return ChessConstants.EMPTYINDEX;
 
@@ -1097,25 +894,6 @@ public class AdvancedChessFunctions {
         }
         return totalValue;
     }
-
-    // more pgn related stuff, all used by the chessgame class
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

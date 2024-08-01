@@ -37,6 +37,10 @@ public class GetComputerMoveTask extends Task<Void> {
         if(!isCurrentlyEvaluating){
             evaluationRequest = true;
         }
+        else{
+            stop();
+            evaluationRequest = true;
+        }
 
 
     }
@@ -48,13 +52,12 @@ public class GetComputerMoveTask extends Task<Void> {
     }
     private boolean isCurrentlyEvaluating = false;
 
-    public volatile boolean isInvalidated;
     @Override
     public Void call(){
         while (running){
             try {
                 if (evaluationRequest) {
-                    isInvalidated = false;
+                    evaluationRequest = false;
                     isCurrentlyEvaluating = true;
                     logger.info("Starting a best move evaluation");
 //                  BestMoveCallable evalCallable = new BestMoveCallable(c, currentIsWhite,currentWhiteBoard, currentBlackBoard);
@@ -66,7 +69,6 @@ public class GetComputerMoveTask extends Task<Void> {
                         });
                     }
 
-                    evaluationRequest = false;
                     isCurrentlyEvaluating = false;
 
                 }

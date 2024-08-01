@@ -2,6 +2,9 @@ package chessengine;
 
 import chessserver.ChessboardTheme;
 import javafx.animation.PathTransition;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -27,14 +30,19 @@ public class ChessBoardGUIHandler {
     private final HBox eatenBlacks;
 
     public final ImageView[][] piecesAtLocations;
-    private final StackPane[][] bgPanes;
+    private final VBox[][] bgPanes;
 
     private final VBox[][] moveBoxes;
+    private final StackPane[][] highlightPanes;
 
     private Logger logger;
 
     private final List<Arrow> arrows;
-    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, StackPane[][] bgPanes,VBox[][] moveBoxes,GridPane chessBgBoard,GridPane chessHighlightBoard,GridPane chessMoveBoard){
+
+
+
+
+    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes,VBox[][] moveBoxes, StackPane[][] highlightPanes,GridPane chessHighlightBoard,GridPane chessBgBoard,GridPane chessMoveBoard){
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhites = eatenWhites;
         this.eatenBlacks = eatenBlacks;
@@ -42,6 +50,7 @@ public class ChessBoardGUIHandler {
         this.logger = LogManager.getLogger(this.toString());
         this.arrowBoard = ArrowBoard;
         this.bgPanes = bgPanes;
+        this.highlightPanes = highlightPanes;
         this.chessHighlightBoard = chessHighlightBoard;
         this.chessMoveBoard = chessMoveBoard;
         this.chessBgBoard = chessBgBoard;
@@ -118,10 +127,10 @@ public class ChessBoardGUIHandler {
     }
 
 
-    public void resetEverything(){
+    public void resetEverything(boolean isWhiteOriented){
         eatenBlacks.getChildren().clear();
         eatenWhites.getChildren().clear();
-        reloadNewBoard(ChessConstants.startBoardState);
+        reloadNewBoard(ChessConstants.startBoardState,isWhiteOriented);
     }
     public final int pieceSize = 9;
     public ImageView createNewPiece(int brdIndex, boolean isWhite, boolean isEaten){
@@ -164,9 +173,13 @@ public class ChessBoardGUIHandler {
         return "/ChessAssets/ChessPieces/" + pathStart + restOfPath + "_1x_ns.png";
     }
 
-    public void removeFromChessBoard(int x, int y,boolean isWhite){
+    public void removeFromChessBoard(int x, int y,boolean isWhite,boolean isWhiteOriented){
+        if(!isWhiteOriented){
+            y = 7-y;
+        }
+        int fy = y;
         System.out.println("Trying to remove a piece at x:" + x + "y: " + y + " iswhite?:" + isWhite);
-        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + y + "," + isWhite));
+        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + fy + "," + isWhite));
         piecesAtLocations[x][y] = null;
         if(!isRemoved){
             logger.error(String.format("No pieces were removed at X:%d ,Y:%d",x,y));
@@ -174,22 +187,41 @@ public class ChessBoardGUIHandler {
 
     }
 
-    public void removeFromChessBoard(ImageView piece,int x, int y){
+    public void removeFromChessBoard(ImageView piece,int x, int y,boolean isWhiteOriented){
+        if(!isWhiteOriented){
+            y = 7-y;
+        }
+        System.out.println("X:" + x + " y" + y);
         piecesAtLocations[x][y] = null;
         chessPieceBoard.getChildren().remove(piece);
     }
 
-    public void addToChessBoard(int x, int y,int brdIndex,boolean isWhite){
+    public void addToChessBoard(int x, int y,int brdIndex,boolean isWhite,boolean isWhiteOriented){
+        if(!isWhiteOriented){
+            y = 7-y;
+        }
+        System.out.println("X:" + x + " y" + y);
         ImageView peice = createNewPiece(brdIndex,isWhite,false);
         peice.setUserData(x + "," + y + "," + isWhite);
-        peice.layoutXProperty().bind(chessPieceBoard.widthProperty().divide(8).multiply(x).add(chessPieceBoard.widthProperty().divide(16).subtract(peice.fitWidthProperty().divide(2))));
-        peice.layoutYProperty().bind(chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(peice.fitHeightProperty().divide(2))));
+        peice.layoutXProperty().bind(calcLayoutXBinding(x,peice.fitWidthProperty()));
+        peice.layoutYProperty().bind(calcLayoutYBinding(y,peice.fitHeightProperty()));
         chessPieceBoard.getChildren().add(peice);
         piecesAtLocations[x][y] = peice;
 
     }
 
-    public void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite){
+    public DoubleBinding calcLayoutXBinding(int x, ReadOnlyDoubleProperty widthProperty){
+        return chessPieceBoard.widthProperty().divide(8).multiply(x).add(chessPieceBoard.widthProperty().divide(16).subtract(widthProperty.divide(2)));
+    }
+    public DoubleBinding calcLayoutYBinding(int y,ReadOnlyDoubleProperty heightProperty){
+        return chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(heightProperty.divide(2)));
+    }
+
+    public void movePieceOnBoard(int oldX, int oldY,int newX, int newY,boolean isWhite,boolean isWhiteOriented){
+        if(!isWhiteOriented){
+            oldY = 7-oldY;
+            newY = 7-newY;
+        }
         ImageView piece = piecesAtLocations[oldX][oldY];
         piecesAtLocations[oldX][oldY] = null;
         removeLayoutBindings(piece);
@@ -200,8 +232,13 @@ public class ChessBoardGUIHandler {
 
     }
 
-    public void moveNewPieceOnBoard(int oldX, int oldY,int newX, int newY,int boardIndex,boolean isWhite){
+    public void moveNewPieceOnBoard(int oldX, int oldY,int newX, int newY,int boardIndex,boolean isWhite,boolean isWhiteOriented){
+        if(!isWhiteOriented){
+            oldY = 7-oldY;
+            newY = 7-newY;
+        }
         int[] xyOld = calcXY(oldX,oldY);
+
         ImageView piece = createNewPiece(boardIndex,isWhite,false);
         piece.setLayoutX(xyOld[0]);
         piece.setLayoutY(xyOld[1]);
@@ -259,10 +296,10 @@ public class ChessBoardGUIHandler {
 
 
 
-    public void updateEatenPieces( int pieceIndex,boolean isWhite){
-        ImageView smallPeice = createNewPiece(pieceIndex,isWhite,true);
+    public void updateEatenPieces(int pieceIndex,boolean isTopSide){
+        ImageView smallPeice = createNewPiece(pieceIndex,isTopSide,true);
         smallPeice.setUserData(Integer.toString(pieceIndex));
-        if(isWhite){
+        if(isTopSide){
             eatenWhites.getChildren().add(smallPeice);
         }
         else{
@@ -271,8 +308,8 @@ public class ChessBoardGUIHandler {
 
     }
 
-    public void removeFromEatenPeices(String BoardId,boolean isWhite){
-        HBox eatenPieces = isWhite ?  eatenWhites : eatenBlacks;
+    public void removeFromEatenPeices(String BoardId,boolean isTopSide){
+        HBox eatenPieces = isTopSide ?  eatenWhites : eatenBlacks;
         Iterator<Node> it = eatenPieces.getChildren().iterator();
         while(it.hasNext()){
             ImageView v = (ImageView) it.next();
@@ -287,7 +324,7 @@ public class ChessBoardGUIHandler {
         chessPieceBoard.getChildren().clear();
     }
 
-    public void reloadNewBoard(ChessPosition position){
+    public void reloadNewBoard(ChessPosition position,boolean isWhiteOriented){
         removeAllPieces();
         boolean isWhite = true;
         for(int j = 0;j<2;j++){
@@ -297,12 +334,12 @@ public class ChessBoardGUIHandler {
                 if(i == 5){
                     // king
                     XYcoord kingLocation = isWhite ? position.board.getWhiteKingLocation() : position.board.getBlackKingLocation();
-                    addToChessBoard(kingLocation.x, kingLocation.y, ChessConstants.KINGINDEX,isWhite);
+                    addToChessBoard(kingLocation.x, kingLocation.y, ChessConstants.KINGINDEX,isWhite,isWhiteOriented);
                 }
                 else{
                     List<XYcoord> coords = GeneralChessFunctions.getPieceCoords(pieces[i]);
                     for(XYcoord c : coords){
-                        addToChessBoard(c.x,c.y,i,isWhite);
+                        addToChessBoard(c.x,c.y,i,isWhite,isWhiteOriented);
                     }
                 }
 
@@ -387,10 +424,20 @@ public class ChessBoardGUIHandler {
 
         }
     }
-    public void highlightMove(ChessMove move){
-        highlightSquare(move.getOldX(),move.getOldY(),false);
-        highlightSquare(move.getNewX(),move.getNewY(),false);
+    public void highlightMove(ChessMove move,boolean isWhiteOriented){
+
+        highlightSquare(move.getOldX(),isWhiteOriented ? move.getOldY() : 7-move.getOldY(),false);
+        highlightSquare(move.getNewX(),isWhiteOriented ? move.getNewY() : 7-move.getNewY(),false);
+        if(isWhiteOriented){
+            lastMoveHighlighted = move.invertMove();
+        }
+        else{
+            lastMoveHighlighted = move;
+
+        }
     }
+
+    ChessMove lastMoveHighlighted;
 
     String highlightColor = "";
 
@@ -405,6 +452,29 @@ public class ChessBoardGUIHandler {
         }
 
     }
+
+    public void clearUserCreatedHighlights()
+    {
+        for(int i = 0;i<8;i++){
+            for(int j = 0;j<8;j++){
+                if(!isNonUserHighlight(i,j)){
+                    removeHiglight(i,j);
+                }
+                removeHiglightBorder(i,j);
+                removeMoveSquare(i,j);
+            }
+        }
+
+    }
+
+
+    private boolean isNonUserHighlight(int i,int j){
+        if(lastMoveHighlighted != null){
+            return i == lastMoveHighlighted.getNewX() && j == lastMoveHighlighted.getNewY() || i == lastMoveHighlighted.getOldX() || j == lastMoveHighlighted.getOldY();
+        }
+        return false;
+    }
+
     // pretty self explanatory
     public void changeChessBg(String colorType) {
 
@@ -427,10 +497,12 @@ public class ChessBoardGUIHandler {
             int x = count / 8;
             int y = count % 8;
 
-
+            VBox bg = (VBox) n;
+//            App.bindingController.bindRegionWithCustomStyles(bg,App.mainScreenController.fullScreen.widthProperty(),new String[]{"-fx-background-radius:"},new double[]{.0025},"-fx-background-color:" + curr);
+            bg.styleProperty().unbind();
+            BindingController.bindRegionToStyle(bg,App.mainScreenController.fullScreen.widthProperty(),"-fx-background-radius:",.0025,"-fx-background-color:" + curr);
 
             // currBgColors[count] = curr;
-            n.setStyle("-fx-background-color: " + curr);
             if (count % 8 == 0) {
                 // offset every row for checkerboard
                 isLight = !isLight;
@@ -454,11 +526,13 @@ public class ChessBoardGUIHandler {
     }
 
     public void removeHiglightBorder(int x, int y){
-        moveBoxes[x][y].setStyle(ChessConstants.defaultBorderStyle);
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y],App.mainScreenController.fullScreen.widthProperty(),"-fx-border-radius:","-fx-border-width:",ChessConstants.borderRadFactor,ChessConstants.borderWidthFactor,"-fx-border-color:black");
+
     }
 
     public void higlightBorder(int x, int y){
-        moveBoxes[x][y].setStyle(ChessConstants.highlightBorderStyle);
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y],App.mainScreenController.fullScreen.widthProperty(),"-fx-border-radius:","-fx-border-width:",ChessConstants.borderRadFactor,ChessConstants.borderWidthFactorExp,"-fx-border-color:white");
+
     }
 
     public void removeMoveSquare(int x,int y){
@@ -476,7 +550,7 @@ public class ChessBoardGUIHandler {
         } else {
             highlightColor = "rgba(44, 212, 255, 0.6)";
         }
-        bgPanes[x][y].setStyle("-fx-background-color: " + highlightColor);
+        highlightPanes[x][y].setStyle("-fx-background-color: " + highlightColor);
 
     }
 
@@ -486,16 +560,16 @@ public class ChessBoardGUIHandler {
         } else {
             highlightColor = "rgba(44, 212, 255, 0.6)";
         }
-        if (!bgPanes[x][y].getStyle().contains("rgba")) {
-            bgPanes[x][y].setStyle("-fx-background-color: " + highlightColor);
+        if (!highlightPanes[x][y].getStyle().contains("rgba")) {
+            highlightPanes[x][y].setStyle("-fx-background-color: " + highlightColor);
         } else {
-            bgPanes[x][y].setStyle("-fx-background-color: transparent");
+            highlightPanes[x][y].setStyle("-fx-background-color: transparent");
 
         }
     }
     // fixed method to clear any highlights
-    private void removeHiglight(int x, int y){
-        bgPanes[x][y].setStyle("-fx-background-color: transparent");
+    public void removeHiglight(int x, int y){
+        highlightPanes[x][y].setStyle("-fx-background-color: transparent");
 
     }
 

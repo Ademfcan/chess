@@ -4,12 +4,16 @@ import chessserver.ProfilePicture;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+
 public class ComputerTests {
     @Test void getFullEvalTests(){
         // not using eval depth
         Computer c = new Computer(5);
 
-        ChessGame equalGame = new ChessGame("1.e4 e5","","test",0, ProfilePicture.DEFAULT.urlString,false);
+        ChessGame equalGame = ChessGame.createTestGame("1.e4 e5",false);
         System.out.println(c.getFullEval(equalGame.currentPosition, equalGame.gameStates,false,false));
 
     }
@@ -39,7 +43,7 @@ public class ComputerTests {
 
         if (stockfish.startEngine()) {
             for (String pgn : pgns) {
-                ChessGame game = new ChessGame(pgn, "","test",0, ProfilePicture.DEFAULT.urlString, false); // Create game from PGN
+                ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
                 game.moveToEndOfGame();
                 String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameStates, game.isPlayer1Turn(), 0, game.curMoveIndex/2);
 
@@ -69,6 +73,166 @@ public class ComputerTests {
         } else {
             Assertions.fail("Failed to start Stockfish engine");
         }
+    }
+    private static HashMap<Long, TestContainer> zobristMap = new HashMap<>();
+    private static HashMap<Integer, TestContainer> objectsHashMap = new HashMap<>();
+
+    private static int zobristCollisionCount;
+    private static int objectHashCollisionCount;
+    private static int totalUniquePositionCount;
+
+
+    private static final ZobristHasher hasher = new ZobristHasher();
+    @Test void hashCollisionTest(){
+        BackendChessPosition startPos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+        // going to see how many collisions each hash method has
+        miniMaxForHashTest(startPos,startPos.gameState,6,true);
+        System.out.println("Zobrist Collision Count: " + zobristCollisionCount);
+        System.out.println("Objects Hash Collision Count: " + objectHashCollisionCount);
+        System.out.println("Total unique positions created: " + totalUniquePositionCount/2);
+    }
+    // creating lots of new positions and checking for hash collisons
+    private void miniMaxForHashTest(BackendChessPosition position, ChessStates gameState, int depth, boolean isWhiteTurn){
+        // all recursive stop cases
+//        System.out.println(cnt++);
+
+        int objKey = Objects.hash(position.hashCode(),isWhiteTurn);
+        long zobKey = hasher.computeHash(position,isWhiteTurn);
+        if(zobristMap.containsKey(zobKey)){
+//            logger.info("Transtable value being used");
+            TestContainer oldPos = zobristMap.get(zobKey);
+            if(!oldPos.board.equals(position.board) || oldPos.isWhiteTurn != isWhiteTurn) {
+                zobristMap.put(zobKey,new TestContainer(position.board,isWhiteTurn));
+                zobristCollisionCount++;
+            }
+        }
+        else{
+            totalUniquePositionCount++;
+            zobristMap.put(zobKey,new TestContainer(position.board,isWhiteTurn));
+        }
+
+        if(objectsHashMap.containsKey(objKey)){
+//            logger.info("Transtable value being used");
+            TestContainer oldPos = objectsHashMap.get(objKey);
+            if(!oldPos.board.equals(position.board) || oldPos.isWhiteTurn != isWhiteTurn) {
+                objectsHashMap.put(objKey,new TestContainer(position.board,isWhiteTurn));
+                objectHashCollisionCount++;
+            }
+        }
+        else{
+            totalUniquePositionCount++;
+            objectsHashMap.put(objKey,new TestContainer(position.board,isWhiteTurn));
+        }
+//        System.out.println(totalUniquePositionCount/2);
+
+
+        if(position.isDraw()){
+            // break case
+            return;
+        }
+        if(AdvancedChessFunctions.isAnyNotMovePossible(true,position,gameState)){
+            // break case
+            return;
+        }
+        if(AdvancedChessFunctions.isAnyNotMovePossible(false,position,gameState)){
+            // also break case
+            return;
+        }
+
+        if(depth == 0){
+            return;
+        }
+        if(isWhiteTurn){
+            MinimaxOutput maxEval = new MinimaxOutput(Double.NEGATIVE_INFINITY);
+            List<ChessMove> childMoves = position.getAllChildMoves(true,gameState);
+            for(int i = 0;i<childMoves.size();i++){
+                ChessMove c = childMoves.get(i);
+                position.makeLocalPositionMove(c);
+                miniMaxForHashTest(position,position.gameState, depth - 1, false);
+                position.undoLocalPositionMove(c);
+
+
+            }
+        }
+        else{
+            MinimaxOutput minEval = new MinimaxOutput(Double.POSITIVE_INFINITY);
+            List<ChessMove> childMoves = position.getAllChildMoves(false,gameState);
+
+            for(int i = 0;i<childMoves.size();i++){
+                ChessMove c = childMoves.get(i);
+//
+                position.makeLocalPositionMove(c);
+                miniMaxForHashTest(position,position.gameState, depth - 1, true);
+                position.undoLocalPositionMove(c);
+
+
+
+            }
+        }
+
+
+
+    }
+
+    @Test void castlingTest(){
+        ChessGame game = ChessGame.createTestGame("1.e4 e5 2.Nf3 Nf6 3.Bc4 Bc5 4.h4 h5",true);
+        game.moveToEndOfGame();
+        BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameStates,false);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+        ChessMove castleMove = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
+        castleTest.makeLocalPositionMove(castleMove);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+        ChessMove rookMove = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        castleTest.makeLocalPositionMove(rookMove);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+        castleTest.undoLocalPositionMove(rookMove);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+
+
+        castleTest.undoLocalPositionMove(castleMove);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        castleTest.makeLocalPositionMove(rookMove2);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+        castleTest.undoLocalPositionMove(rookMove2);
+        GeneralChessFunctions.printBoardDetailed(castleTest.board);
+
+
+    }
+
+
+
+    private class TestContainer {
+        BitBoardWrapper board;
+
+
+
+
+
+        boolean isWhiteTurn;
+        public TestContainer(BitBoardWrapper board, boolean isWhiteTurn){
+            this.isWhiteTurn = isWhiteTurn;
+            this.board = board;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TestContainer that = (TestContainer) o;
+            return isWhiteTurn == that.isWhiteTurn && Objects.equals(board, that.board);
+        }
+
+    }
+
+
+
+    @Test void isCheckmatedTest(){
+        ChessGame game = ChessGame.createTestGame("1.e4 e6 2.f4 Bc5 3.d4 Qh4+ 4.g3 Qe7 5.Qf3 Bxd4 6.Be3 Bxb2 7.Nc3 Bxc3+ 8.Bd2 Bxa1 9.Qd1 Bd4 10.Bc3 Bxc3+ 11.Ke2 Qd6 12.Qd3 Qxd3+ 13.xd3 d5 14.Ke3 e5 15.d4 Bxd4+ 16.Kd3 xe4+ 17.Kxe4 Nf6+ 18.Kd3 Bxg1 19.Kc4 xf4 20.Kb5 xg3 21.Kc4 xh2 22.Kd3 Bf5+ 23.Ke2 Be4 24.Ke1 Bxh1 25.Ke2 Bf3+ 26.Kxf3 h1=Q+ 27.Ke2 Bc5 28.Kd2 Qxf1 29.Kc3 Qe2 30.Kb3 Kd7 31.Ka4 Qc4",false);
+        game.moveToEndOfGame();
+        GeneralChessFunctions.printBoardDetailed(game.currentPosition.board);
+        System.out.println(AdvancedChessFunctions.isCheckmated(game.currentPosition,game.gameStates));
+//        duhwauidhuawhuda // ischecmated fix
     }
 
 }

@@ -66,7 +66,7 @@ public class ChessPositionTests {
         for(String pgn : pgns){
 
             // general test midgame state
-            ChessGame generaltest = new ChessGame(pgn,"","",0,"",false);
+            ChessGame generaltest = ChessGame.createTestGame(pgn,false);
             generaltest.moveToEndOfGame();
 //            GeneralChessFunctions.printBoardDetailed(generaltest.currentPosition.board);
             BackendChessPosition passantBackend = generaltest.currentPosition.toBackend(generaltest.gameStates,false);

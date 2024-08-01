@@ -50,6 +50,9 @@ public class StartScreenController implements Initializable {
     @FXML
     Button vsComputer;
 
+    @FXML
+    ToggleButton playAsWhite;
+
     // main area screens
     @FXML
     VBox campaignScreen;
@@ -343,12 +346,28 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpLocalOptions(){
+        playAsWhite.setSelected(true);
+        playAsWhite.setText("Play as White");
+        App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: white ;-fx-text-fill: black");
         vsPlayer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("game" ,false,MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("game" ,false,playAsWhite.isSelected(),MainScreenState.LOCAL);
 
         });
         vsComputer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("game" ,true,MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("game" ,true,playAsWhite.isSelected(),MainScreenState.LOCAL);
+        });
+        playAsWhite.setOnAction(e->{
+            System.out.println("clicked");
+            playAsWhite.setSelected(playAsWhite.isSelected());
+            if(playAsWhite.isSelected()){
+                playAsWhite.setText("Play as White");
+                App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: white ;-fx-text-fill: black");
+            }
+            else{
+                playAsWhite.setText("Play as Black");
+                App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: black ;-fx-text-fill: white");
+
+            }
         });
     }
 
@@ -478,7 +497,8 @@ public class StartScreenController implements Initializable {
         });
         multiplayerStart.setOnMouseClicked(e->{
             if(!gameTypes.getSelectionModel().isEmpty()){
-                App.changeToMainScreenWithGame(new ChessGame(gameTypes.getValue()),false,MainScreenState.ONLINE);
+                // todo this is not correct!
+                App.changeToMainScreenWithGame(ChessGame.getOnlinePreInit(gameTypes.getValue(),true),true,false,MainScreenState.ONLINE);
             }
 
         });
@@ -551,8 +571,8 @@ public class StartScreenController implements Initializable {
             }
             else{
                 try {
-                    ChessGame game = new ChessGame(pgnTextArea.getText(),"pgn game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected());
-                    App.changeToMainScreenWithGame(game,computerRadioButton.isSelected(),MainScreenState.LOCAL);
+                    ChessGame game = ChessGame.gameFromPgn(pgnTextArea.getText(),"pgn game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
+                    App.changeToMainScreenWithGame(game,computerRadioButton.isSelected(),true,MainScreenState.LOCAL);
                 }
                 catch (Exception ex){
                     pgnTextArea.clear();
@@ -567,7 +587,7 @@ public class StartScreenController implements Initializable {
 
     private void setupSandboxOptions(){
         enterSandboxButton.setOnMouseClicked(e->{
-            App.changeToMainScreenWithoutAny("Sandbox",false,MainScreenState.SANDBOX);
+            App.changeToMainScreenWithoutAny("Sandbox",false,true,MainScreenState.SANDBOX);
         });
     }
     private final int maxNewGameButtonSize = 100;
@@ -728,7 +748,7 @@ public class StartScreenController implements Initializable {
 
         Button openGame = new Button();
         openGame.setOnMouseClicked(e->{
-            App.changeToMainScreenWithGame(newGame,false,MainScreenState.VIEWER);
+            App.changeToMainScreenWithGame(newGame,false,newGame.isWhiteOriented(),MainScreenState.VIEWER);
 
         });
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer,openGame,30,.3);

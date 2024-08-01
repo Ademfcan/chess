@@ -190,6 +190,7 @@ public class BackendChessPosition extends ChessPosition{
             currentBoardMod[peiceType] = GeneralChessFunctions.RemovePeice(newX,newY,currentBoardMod[peiceType]);
         }
         setMoveThatCreatedThis(movesThatCreated.pop());
+        isDraw = false;
     }
 
 

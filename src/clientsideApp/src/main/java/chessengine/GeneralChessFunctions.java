@@ -13,7 +13,7 @@ import java.util.List;
 
 public class GeneralChessFunctions {
 
-
+    private static Logger logger = LogManager.getLogger("General_Chess_Functions");
 
     public static long AddPeice(int x, int y, long bitboard){
         return AddPeice(positionToBitIndex(x,y),bitboard);
@@ -62,6 +62,9 @@ public class GeneralChessFunctions {
     // [0] = isHitPiece [1] = isWhitePiece
     public static boolean[] checkIfContains(int x, int y, BitBoardWrapper board){
         long boardPosition  = GeneralChessFunctions.positionToBitboard(x,y);
+        if(boardPosition == ChessConstants.EMPTYINDEX){
+            logger.debug("Checkifcontains array is guilty");
+        }
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
         long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
@@ -78,28 +81,29 @@ public class GeneralChessFunctions {
 
     public static boolean checkIfContains(int x, int y, boolean isWhite, BitBoardWrapper board){
         long boardPos  = positionToBitboard(x,y);
+        if(boardPos == ChessConstants.EMPTYINDEX){
+            logger.debug("Check if contains nonarray is guity");
+        }
         if(isWhite){
-            for(long l : board.getWhitePieces()){
-                long sum = boardPos & l;
-                if(sum != 0L){
-                    return true;
-                }
-            }
+            long[] whitePieces = board.getWhitePieces();
+            long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
+            return (bigWhiteSum & boardPos) != 0L;
+
         }
         else{
-            for(long l : board.getBlackPieces()){
-                long sum = boardPos & l;
-                if(sum != 0L){
-                    return true;
-                }
-            }
+            long[] blackPieces = board.getBlackPieces();
+            long bigBlackSum = blackPieces[0] | blackPieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
+            return (bigBlackSum & boardPos) != 0L;
         }
-        return false;
     }
 
 
     public static long positionToBitboard(int x, int y) {
-        return positionToBitboard(positionToBitIndex(x,y));
+        if(isValidMove(x,y)){
+            return positionToBitboard(positionToBitIndex(x,y));
+        }
+        logger.error("Invalid coords provided1: " + x + "," + y);
+        return ChessConstants.EMPTYINDEX;
     }
 
     public static long positionToBitboard(int bitIndex) {
@@ -108,7 +112,11 @@ public class GeneralChessFunctions {
     }
 
     public static int positionToBitIndex(int x, int y){
-        return  x + y * 8;
+        if(isValidMove(x,y)){
+            return  x + y * 8;
+        }
+        logger.error("Invalid coords provided2: " + x + "," + y);
+        return ChessConstants.EMPTYINDEX;
     }
 
     public static List<XYcoord> getPieceCoordsForComputer(long[] Peices){
@@ -177,7 +185,7 @@ public class GeneralChessFunctions {
                 }
             }
         }
-//      mainLogger.error(callLocation);
+//        logger.debug("No piece found");
 //      mainLogger.error(String.format("call from %s: no x,y satisified the getboardwith piece, index will be -10\ninfo: looking for coord x:%d y:%d isWhite?: %b kingLocation on boardfor color = X:%d Y:%d",callLocation,x,y,isWhite,isWhite ? board.getWhiteKingLocation().x : board.getBlackKingLocation().x,isWhite ? board.getWhiteKingLocation().y : board.getBlackKingLocation().y));
         return ChessConstants.EMPTYINDEX;
     }
@@ -264,7 +272,7 @@ public class GeneralChessFunctions {
                 }
                 else{
                     // no piece
-                    System.out.print(" ");
+                    System.out.print("_");
                 }
                 if(file != 7){
                     System.out.print("|");

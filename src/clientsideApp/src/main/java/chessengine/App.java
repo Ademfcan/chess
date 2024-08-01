@@ -109,7 +109,6 @@ public class App extends Application {
         }
         messager.Init(startScreenController.startMessageBoard,mainScreenController.mainMessageBoard);
         mainScene = new Scene(startRoot);
-        userPreferenceManager.init();
         userManager.init(startScreenController);
         isStartScreen = true;
         primaryStage.setOnCloseRequest(e->{
@@ -127,6 +126,7 @@ public class App extends Application {
         });
 
         bindingController = new BindingController(mainScreenController.content,startScreenController.content);
+        userPreferenceManager.init();
         startScreenController.setup();
         mainScreenController.oneTimeSetup();
 
@@ -241,22 +241,22 @@ public class App extends Application {
 
     }
 
-    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer,MainScreenState state){
+    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer,boolean isWhiteOriented,MainScreenState state){
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupRegular(isVsComputer,gameName,null,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(), state);
+        mainScreenController.setupRegular(isVsComputer,isWhiteOriented,gameName,null,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(), state);
         soundPlayer.pauseSong(false);
 
     }
 
 
 
-    public static void changeToMainScreenWithGame(ChessGame loadedGame,boolean isVsComputer,MainScreenState state){
+    public static void changeToMainScreenWithGame(ChessGame loadedGame,boolean isVsComputer,boolean isWhiteOriented,MainScreenState state){
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupRegular(isVsComputer,loadedGame.getGameName(),loadedGame,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(),state);
+        mainScreenController.setupRegular(isVsComputer,isWhiteOriented,loadedGame.getGameName(),loadedGame,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(),state);
 
 
     }

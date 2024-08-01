@@ -36,7 +36,7 @@
     </rowConstraints>
    <children>
       <HBox fx:id="chessBoardAndEvalContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-         <StackPane fx:id="chessBoardContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="300.0" style="-fx-background-color: white;" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+         <StackPane fx:id="chessBoardContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="300.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
             <children>
                      <GridPane fx:id="chessMoveBoard" alignment="CENTER">
                         <columnConstraints>
@@ -106,31 +106,11 @@
                      </GridPane>
                      <Pane fx:id="chessPieceBoard" prefHeight="200.0" prefWidth="200.0" />
                      <Pane fx:id="arrowBoard" prefHeight="200.0" prefWidth="200.0" />
-                     <GridPane fx:id="promotionScreen" alignment="CENTER" style="-fx-opacity: 1;" visible="false">
-                        <columnConstraints>
-                           <ColumnConstraints minWidth="10.0" percentWidth="60.0" prefWidth="100.0" />
-                        </columnConstraints>
-                        <rowConstraints>
-                           <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" />
-                           <RowConstraints minHeight="10.0" percentHeight="50.0" prefHeight="30.0" />
-                        </rowConstraints>
+                     <Pane fx:id="promotionScreen" prefHeight="200.0" prefWidth="200.0">
                         <children>
-                           <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                              <children>
-                                 <Label text="Choose a peice" textAlignment="CENTER">
-                                    <font>
-                                       <Font name="Constantia" size="32.0" />
-                                    </font>
-                                 </Label>
-                                 <HBox fx:id="promoContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: white;">
-                                    <children>
-
-                                    </children>
-                                 </HBox>
-                              </children>
-                           </VBox>
+                           <VBox fx:id="promoContainer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: lightgray; -fx-border-width: 2; -fx-border-color: black;" />
                         </children>
-                     </GridPane>
+                     </Pane>
                      <VBox fx:id="gameoverMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" style="-fx-background-color: lightgray; -fx-opacity: .75;">
                         <children>
                            <Label fx:id="gameoverTitle" text="Game Over">
@@ -286,16 +266,26 @@
                                     </HBox>
                                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="20.0">
                                        <children>
-                                          <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="⬅">
+                                                <Button fx:id="LeftReset" alignment="CENTER" contentDisplay="CENTER" layoutX="48.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&lt;&lt;">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                          <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&lt;">
                                              <font>
                                                 <Font name="Gabriola" size="24.0" />
                                              </font>
                                           </Button>
-                                          <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="➡">
+                                          <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&gt;">
                                              <font>
                                                 <Font name="Gabriola" size="24.0" />
                                              </font>
                                           </Button>
+                                                <Button fx:id="RightReset" alignment="CENTER" contentDisplay="CENTER" layoutX="162.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&gt;&gt;">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
                                        </children>
                                     </HBox>
                                     <HBox alignment="CENTER" prefHeight="31.0" prefWidth="183.0">

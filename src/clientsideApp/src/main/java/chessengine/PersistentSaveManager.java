@@ -142,8 +142,8 @@ public class PersistentSaveManager {
                 // Check if the line contains the data to remove
                 String[] split = line.split(",");
                 Arrays.stream(split).forEach(s -> s = s.trim());
-                // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer
-                games.add(new ChessGame(split[8],split[1],split[2],split[3],Integer.parseInt(split[4]),Integer.parseInt(split[5]),split[6],split[7],Boolean.parseBoolean(split[9]),split[0]));
+                // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer 10  = isWhiteOriented
+                games.add(ChessGame.createGameFromSaveLoad(split[8],split[1],split[2],split[3],Integer.parseInt(split[4]),Integer.parseInt(split[5]),split[6],split[7],Boolean.parseBoolean(split[9]),Boolean.parseBoolean(split[10]),split[0]));
             }
             reader.close();
         }
@@ -204,7 +204,7 @@ public class PersistentSaveManager {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, isAppend));
             for(ChessGame game : content){
-                writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "\n");
+                writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer()  + "," + game.isWhiteOriented() + "\n");
             }
             // Write content to the file
 
@@ -221,7 +221,7 @@ public class PersistentSaveManager {
         try {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, true));
-            writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "\n");
+            writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer()  + "," + game.isWhiteOriented() + "\n");
             // Write content to the file
 
             // Close the writer

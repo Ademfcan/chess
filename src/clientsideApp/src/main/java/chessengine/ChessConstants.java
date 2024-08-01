@@ -63,11 +63,14 @@ public class ChessConstants {
     public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0,"anonymous",NOEMAIL,NOPASS,ProfilePicture.DEFAULT,new CampaignProgress(123)));
     public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10,-10,-10,-10,ChessConstants.EMPTYINDEX,ChessConstants.EMPTYINDEX,false,false,false,ChessConstants.EMPTYINDEX,false,false),0);
 
-    public static final String defaultBorderStyle = "-fx-border-color: gray; -fx-border-width: .5;";
-    public static final String highlightBorderStyle = "-fx-border-color: white; -fx-border-width: 3;";
+    public static final double borderRadFactor = .0025;
+    public static final double borderWidthFactor = .0005;
+    public static final double borderWidthFactorExp = .0015;
 
     public static final int[] valueMap = {1,3,3,5,9,10000000};
 
+    public static final String arrowColor = "rgba(255,181,10,.8)";
 
 
+    public static final String InnerMoveCircleColor = "rgba(60,60,60, 0.40)";
 }

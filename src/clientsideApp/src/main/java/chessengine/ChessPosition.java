@@ -149,23 +149,23 @@ public class ChessPosition {
                 if(endSquarePiece ==ChessConstants.KINGINDEX){
                     String type = GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(coord.x,coord.y,isWhite,board));
 
-                    ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :((((((((((((((((((("));
+                    ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :(((((((((((((((((((") + "\nPOS:" + GeneralChessFunctions.getBoardDetailedString(this.board));
                 }
                 else {
                     boolean isEating = endSquarePiece != ChessConstants.EMPTYINDEX;
                     if (isEating && !move.isPawnPromo()) {
-                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), false, coord.x, coord.y, move.x, move.y, -10);
+                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), move.isPawnPromo(), coord.x, coord.y, move.x, move.y, -10);
                         childPositionsPriority1.add(childPos);
                     } else if (move.isPawnPromo()) {
                         // pawn promo can be 4 options so have to add them all (knight, bishop,rook,queen)
                         for (int i = ChessConstants.KNIGHTINDEX; i < ChessConstants.KINGINDEX; i++) {
-                            BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(),gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), true, coord.x, coord.y, move.x, move.y, i);
+                            BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(),gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), move.isPawnPromo(), coord.x, coord.y, move.x, move.y, i);
                             childPositionsPriority2.add(childPos);
 
                         }
 
                     } else {
-                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), false, coord.x, coord.y, move.x, move.y, -10);
+                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, move.isCastleMove(),move.isEnPassant(), move.isPawnPromo(), coord.x, coord.y, move.x, move.y, -10);
                         childPositionsPriority3.add(childPos);
                     }
                 }
@@ -213,17 +213,17 @@ public class ChessPosition {
                 if(endSquarePiece ==ChessConstants.KINGINDEX){
                     String type = GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(coord.x,coord.y,isWhite,board));
 
-                    ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :((((((((((((((((((("));
+                    ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :(((((((((((((((((((")+ "\nPOS:" + GeneralChessFunctions.getBoardDetailedString(this.board));
                 }
                 else {
                     boolean isEating = endSquarePiece != ChessConstants.EMPTYINDEX;
                     if (isEating && !move.isPawnPromo()) {
-                        ChessMove childMove = new ChessMove(coord.x, coord.y, move.x, move.y,ChessConstants.EMPTYINDEX,peiceType,isWhite,false,true,endSquarePiece,false,false);
+                        ChessMove childMove = new ChessMove(coord.x, coord.y, move.x, move.y,ChessConstants.EMPTYINDEX,peiceType,isWhite,move.isCastleMove(),isEating,endSquarePiece,move.isEnPassant(),false);
                         childPositionsPriority1.add(childMove);
                     } else if (move.isPawnPromo()) {
                         // pawn promo can be 4 options so have to add them all (knight, bishop,rook,queen)
                         for (int i = ChessConstants.KNIGHTINDEX; i < ChessConstants.KINGINDEX; i++) {
-                            ChessMove childMove = new ChessMove(coord.x, coord.y, move.x, move.y,i,peiceType,isWhite,false,isEating,endSquarePiece,false , false);
+                            ChessMove childMove = new ChessMove(coord.x, coord.y, move.x, move.y,i,peiceType,isWhite,move.isCastleMove(),isEating,endSquarePiece,move.isEnPassant() , false);
                             childPositionsPriority2.add(childMove);
 
                         }

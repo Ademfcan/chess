@@ -33,10 +33,15 @@ public class EvaluationBarTask extends Task<Void> {
 
     public void evalRequest(){
         // stop old minimax
-        evaluationRequest = true;
         if(!isCurrentlyEvaluating){
             evaluationRequest = true;
         }
+        else{
+            stop();
+            evaluationRequest = true;
+
+        }
+
     }
 
     public void stop(){

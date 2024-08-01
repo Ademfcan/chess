@@ -9,41 +9,15 @@ import java.util.*;
 public class ChessGame{
 
 
-    private String gameType;
-    private  WebSocketClient client;
-
-    public boolean isWebGame() {
-        return isWebGame;
-    }
-
-    public boolean isWebGameInitialized() {
-        return isWebGameInitialized;
-    }
-
-    public void setWebGameInitialized(boolean webGameInitialized) {
-        isWebGameInitialized = webGameInitialized;
-    }
-
-    private final boolean isWebGame;
-
-    private boolean isWebGameInitialized;
-
-    public boolean isVsComputer() {
-        return isVsComputer;
-    }
 
 
-    private final boolean isVsComputer;
 
-    private final String player1name;
 
-    public String getPlayer1PfpUrl() {
-        return player1PfpUrl;
-    }
+    private boolean isVsComputer;
 
-    public String getPlayer2PfpUrl() {
-        return player2PfpUrl;
-    }
+    private String player1name;
+
+
 
     private String player1PfpUrl;
 
@@ -51,15 +25,53 @@ public class ChessGame{
 
     private String player2PfpUrl;
 
-    private final int player1Elo;
+    private int player1Elo;
 
     private int player2Elo;
 
-    public String getGameHash() {
-        return gameHash;
+
+    private String gameHash;
+
+
+
+    private boolean isPlayer1Turn;
+
+    private boolean isWhiteOriented;
+
+    public boolean isWhiteOriented() {
+        return isWhiteOriented;
     }
 
-    private final String gameHash;
+    private ChessCentralControl centralControl;
+
+    private List<ChessPosition> moves;
+
+    // castling etc
+    public ChessStates gameStates;
+
+    public ChessPosition currentPosition;
+
+    private boolean isMainGame = false;
+
+    public int curMoveIndex = -1;
+    public int maxIndex = -1;
+
+
+    private String gameName;
+
+
+    private final boolean firstTurnDefault = true; // true means player 1 goes first by default
+
+
+
+    public String getGameName() {
+        return gameName;
+    }
+
+    public boolean isVsComputer() {
+        return isVsComputer;
+    }
+
 
     public String getPlayer1name() {
         return player1name;
@@ -77,6 +89,19 @@ public class ChessGame{
         return player2Elo;
     }
 
+    public String getPlayer1PfpUrl() {
+        return player1PfpUrl;
+    }
+
+    public String getPlayer2PfpUrl() {
+        return player2PfpUrl;
+    }
+
+    public String getGameHash() {
+        return gameHash;
+    }
+
+
 
     public boolean isPlayer1Turn() {
         return isPlayer1Turn;
@@ -86,29 +111,34 @@ public class ChessGame{
         isPlayer1Turn = player1Turn;
     }
 
-    private boolean isPlayer1Turn;
 
-    private final List<ChessPosition> moves;
+    /**
+        These variables and methods all are only used in online games
 
-    // castling etc
-    public final ChessStates gameStates;
+    **/
 
-    public ChessPosition currentPosition;
+    private String gameType;
+    private  WebSocketClient client;
 
-    private ChessCentralControl centralControl;
-    private boolean isMainGame = false;
 
-    public int curMoveIndex = -1;
-    public int maxIndex = -1;
 
-    public String getGameName() {
-        return gameName;
+    private boolean isWebGame;
+
+    private boolean isWebGameInitialized;
+
+
+    public boolean isWebGame() {
+        return isWebGame;
     }
 
-    private String gameName;
+    public boolean isWebGameInitialized() {
+        return isWebGameInitialized;
+    }
 
+    public void setWebGameInitialized(boolean webGameInitialized) {
+        isWebGameInitialized = webGameInitialized;
+    }
 
-    private final boolean firstTurnDefault = true; // true means player 1 goes first by default
 
     public void leaveWebGame(){
         if(isWebGame){
@@ -119,22 +149,6 @@ public class ChessGame{
         }
     }
 
-    public ChessGame(String gameType){
-        moves = new ArrayList<>();
-        this.gameHash = String.valueOf(this.hashCode());
-        isVsComputer = false;
-        this.player1name = App.userManager.getUserName();
-        this.player1Elo = App.userManager.getUserElo();
-        this.player1PfpUrl = App.userManager.getUserPfpUrl();
-        this.client = App.getWebclient();
-        client.setLinkedGame(this);
-        this.player2name = "";
-        this.player2Elo = 0;
-        isWebGame = true;
-        this.gameStates = new ChessStates();
-        this.gameType = gameType;
-        currentPosition = getPos(curMoveIndex);
-    }
 
     public void initWebGame(String player2name,int player2Elo,String player2PfpUrl){
         this.player2name = player2name;
@@ -151,139 +165,22 @@ public class ChessGame{
 
     }
 
-    public ChessGame(String pgn,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl,String player2PfpUrl,boolean isVsComputer,String gameHash){
-        this.gameStates = new ChessStates();
-        if(pgn.trim().isEmpty()){
-            moves = new ArrayList<>();
-        }
-        else{
-            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-            String moveText = splitPgn[1];
-            moveText = moveText.replaceAll("\\n", " ");
-            moves = parseMoveText(moveText);
-        }
-        curMoveIndex = -1;
-        maxIndex = moves.size()-1;
-        currentPosition = getPos(curMoveIndex);
-        this.gameName = gameName;
-        this.player1name = player1name;
-        this.player2name = isVsComputer ? "Computer" : player2name;
-        this.player1Elo = player1Elo;
-        this.player2Elo = player2Elo;
-        this.player1PfpUrl = player1PfpUrl;
-        this.player2PfpUrl =player2PfpUrl;
-        this.isPlayer1Turn = firstTurnDefault;
-        this.isVsComputer = isVsComputer;
-        this.gameHash = gameHash;
-        this.isWebGame =false;
-
-    }
-
-
-    public ChessGame(String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer){
-        this.moves = new ArrayList<>();
-        this.gameStates = new ChessStates();
-        curMoveIndex = -1;
-        maxIndex = -1;
-        currentPosition = getPos(curMoveIndex);
-
-        this.gameName = gameName;
-        this.player1name = player1name;
-        this.player2name = player2name;
-        this.player1Elo = player1Elo;
-        this.player2Elo = player2Elo;
-        this.player1PfpUrl = player1PfpUrl;
-        this.player2PfpUrl = player2PfpUrl;
-        this.isPlayer1Turn = firstTurnDefault;
-        this.isVsComputer = isVsComputer;
-        this.gameHash = String.valueOf(this.hashCode());
-        this.isWebGame = false;
-
-    }
-
-    public ChessGame(String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer){
-        this.moves = new ArrayList<>();
-        this.gameStates = new ChessStates();
-        curMoveIndex = -1;
-        maxIndex = -1;
-        currentPosition = getPos(curMoveIndex);
-
-        this.gameName = player1name + " vs " + player2name;
-        this.player1name = player1name;
-        this.player2name = player2name;
-        this.player1Elo = player1Elo;
-        this.player2Elo = player2Elo;
-        this.player1PfpUrl = player1PfpUrl;
-        this.player2PfpUrl = player2PfpUrl;
-        this.isPlayer1Turn = firstTurnDefault;
-        this.isVsComputer = isVsComputer;
-        this.gameHash = String.valueOf(this.hashCode());
-        this.isWebGame = false;
-
+    private ChessGame(){
+        // empty constructor
+        // public constructors are all static
     }
 
 
 
 
 
-    public ChessGame(String pgn,String gameName,String player1name,int player1Elo,String player1PfpUrl,boolean isVsComputer){
-        this.gameStates = new ChessStates();
-        if(pgn.trim().isEmpty()){
-            moves = new ArrayList<>();
-        }
-        else{
-            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-            String moveText = splitPgn[1];
-            moveText = moveText.replaceAll("\\n", " ");
-            moves = parseMoveText(moveText);
-        }
-        curMoveIndex = -1;
-        maxIndex = moves.size()-1;
-        currentPosition = getPos(curMoveIndex);
-        this.gameName = gameName;
-        this.isPlayer1Turn = firstTurnDefault;
-        this.player1name = player1name;
-        this.player2name = isVsComputer ? "Computer" : "Player 2";
-        this.player1Elo = player1Elo;
-        this.player2Elo = 0;
-        this.player1PfpUrl = player1PfpUrl;
-        this.player2PfpUrl = isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
-        this.isVsComputer = isVsComputer;
-        this.gameHash = String.valueOf(this.hashCode());
-        this.isWebGame = false;
 
 
 
-    }
-
-
-
-    public ChessGame(List<ChessPosition> moves,ChessStates gameStates,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer){
-        this.moves = moves;
-        this.gameStates = gameStates;
-        curMoveIndex = -1;
-        maxIndex = -1;
-        currentPosition = getPos(curMoveIndex);
-
-        this.gameName = gameName;
-        this.isPlayer1Turn = firstTurnDefault;
-        this.player1name = player1name;
-        this.player2name = player2name;
-        this.player1Elo = player1Elo;
-        this.player2Elo = player2Elo;
-        this.player1PfpUrl = player1PfpUrl;
-        this.player2PfpUrl = player2PfpUrl;
-        this.isVsComputer = isVsComputer;
-        this.gameHash = String.valueOf(this.hashCode());
-        this.isWebGame = false;
-
-
-
-    }
 
     public ChessGame cloneGame(){
         List<ChessPosition> clonedMoves = moves.stream().map(ChessPosition::clonePosition).toList();
-        return new ChessGame(clonedMoves,gameStates.cloneState(),gameName,player1name,player2name,player1Elo,player2Elo,player1PfpUrl,player2PfpUrl,isVsComputer);
+        return ChessGame.getClonedGame(clonedMoves,gameStates.cloneState(),gameName,player1name,player2name,player1Elo,player2Elo,player1PfpUrl,player2PfpUrl,isVsComputer,isWebGame,isWhiteOriented);
     }
 
 
@@ -292,7 +189,7 @@ public class ChessGame{
         this.centralControl = centralControl;
         this.isMainGame = true;
         moveToMoveIndexAbsolute(-1,false);
-        centralControl.chessBoardGUIHandler.reloadNewBoard(getPos(curMoveIndex));
+        centralControl.chessBoardGUIHandler.reloadNewBoard(getPos(curMoveIndex),isWhiteOriented);
         centralControl.mainScreenController.setMoveLabels(curMoveIndex,maxIndex);
         if(isWebGame && centralControl.mainScreenController.currentState.equals(MainScreenState.ONLINE)){
             // since we dont have any info on the second player, we only do a basic setup of the UI
@@ -343,6 +240,9 @@ public class ChessGame{
         if(maxIndex != curMoveIndex){
             changeToDifferentMove(maxIndex-curMoveIndex,true);
         }
+        else{
+            ChessConstants.mainLogger.debug("Already at end of game");
+        }
     }
 
     public void moveToMoveIndexAbsolute(int absIndex,boolean animateIfPossible){
@@ -366,7 +266,7 @@ public class ChessGame{
             }
         }
         else{
-            ChessConstants.mainLogger.error("absolute index provided greater than max index!");
+            ChessConstants.mainLogger.error("absolute index provided out of bounds!");
         }
     }
     public void changeToDifferentMove(int dir,boolean noAnimate){
@@ -411,7 +311,7 @@ public class ChessGame{
                             move = currentPosition.getMoveThatCreatedThis().reverseMove();
                             if(curMoveIndex != -1 && !move.isCustomMove()){
                                 // always highlight the move that created the current pos
-                                centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis());
+                                centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(),isWhiteOriented);
                             }
                         }
                         else{
@@ -427,7 +327,7 @@ public class ChessGame{
 
                 }
             }
-            if(gameStates.isCheckMated()[0]){
+            if(isMainGame && gameStates.isCheckMated()[0]){
                 int eval = gameStates.isCheckMated()[1] ? 1000000 : -1000000;
                 centralControl.mainScreenController.setEvalBar(eval,-1,false,true);
             }
@@ -479,28 +379,30 @@ public class ChessGame{
 
 
     private void chessBoardGuiMakeMoveFromCurrent(ChessMove move,boolean isReverse,ChessPosition currentPosition,ChessPosition newPos){
+        System.out.println("Animating");
         GeneralChessFunctions.printBoardDetailed(newPos.board);
         if (isMainGame) {
-                if (move.isEating() && !isReverse) {
+
+            if (move.isEating() && !isReverse) {
                     // needs to be before move
                     int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), move.getNewY(), !move.isWhite(), currentPosition.board);
-                    centralControl.chessBoardGUIHandler.updateEatenPieces(eatenAddIndex, !move.isWhite());
-                    centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), move.getNewY(), !move.isWhite());
+                    centralControl.chessBoardGUIHandler.updateEatenPieces(eatenAddIndex, !move.isWhite() == isWhiteOriented);
+                    centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), move.getNewY(), !move.isWhite(),isWhiteOriented);
                 }
                 if(move.isEnPassant()){
                     if(!isReverse){
                         int backDir = move.isWhite() ? 1: -1;
                         int eatY = move.getNewY()+backDir;
                         int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), eatY, !move.isWhite(), currentPosition.board);
-                        centralControl.chessBoardGUIHandler.updateEatenPieces(eatenAddIndex, !move.isWhite());
-                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), eatY, !move.isWhite());
+                        centralControl.chessBoardGUIHandler.updateEatenPieces(eatenAddIndex, !move.isWhite() == isWhiteOriented);
+                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), eatY, !move.isWhite(),isWhiteOriented);
                     }
                     else{
                         int backDir = move.isWhite() ? 1: -1;
                         int eatY = move.getOldY()+backDir;
                         int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getOldX(), eatY, !move.isWhite(), newPos.board);
                         centralControl.chessBoardGUIHandler.removeFromEatenPeices(Integer.toString(eatenAddIndex), !move.isWhite());
-                        centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), eatY,eatenAddIndex, !move.isWhite());
+                        centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), eatY,eatenAddIndex, !move.isWhite(),isWhiteOriented);
                     }
 
                 }
@@ -510,29 +412,29 @@ public class ChessGame{
                         int dirFrom = move.getOldX() == 6 ? 1 : -2;
                         int dirTo = move.getOldX() == 6 ? -1 : 1;
                         // uncastle
-                        centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX() + dirTo, move.getOldY(), move.getOldX() + dirFrom, move.getNewY(), move.isWhite());
+                        centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX() + dirTo, move.getOldY(), move.getOldX() + dirFrom, move.getNewY(), move.isWhite(),isWhiteOriented);
                     } else {
                         int dirFrom = move.getNewX() == 6 ? 1 : -2;
                         int dirTo = move.getNewX() == 6 ? -1 : 1;
-                        centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getNewX() + dirFrom, move.getOldY(), move.getNewX() + dirTo, move.getNewY(), move.isWhite());
+                        centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getNewX() + dirFrom, move.getOldY(), move.getNewX() + dirTo, move.getNewY(), move.isWhite(),isWhiteOriented);
                     }
 
                 }
                 // this is where the piece actually moves
                 if (!move.isPawnPromo()) {
                     // in pawn promo we need to handle differently as the piece changes
-                    centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isWhite());
+                    centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isWhite(),isWhiteOriented);
 
                 }
                 // move
                 else {
                     if (isReverse) {
-                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite());
-                        centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), ChessConstants.PAWNINDEX, move.isWhite());
+                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(),isWhiteOriented);
+                        centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), ChessConstants.PAWNINDEX, move.isWhite(),isWhiteOriented);
 
                     } else {
-                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite());
-                        centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.getPromoIndx(), move.isWhite());
+                        centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(),isWhiteOriented);
+                        centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.getPromoIndx(), move.isWhite(),isWhiteOriented);
 
 
                     }
@@ -541,12 +443,12 @@ public class ChessGame{
                     // need to create a piece there to undo eating
                     // must be after moving
                     int pieceIndex = GeneralChessFunctions.getBoardWithPiece(move.getOldX(), move.getOldY(), !move.isWhite(), newPos.board);
-                    centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), move.getOldY(), pieceIndex, !move.isWhite());
-                    centralControl.chessBoardGUIHandler.removeFromEatenPeices(Integer.toString(pieceIndex), !move.isWhite());
+                    centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), move.getOldY(), pieceIndex, !move.isWhite(),isWhiteOriented);
+                    centralControl.chessBoardGUIHandler.removeFromEatenPeices(Integer.toString(pieceIndex), !move.isWhite() == isWhiteOriented);
 
                 }
                 if (!isReverse) {
-                    centralControl.chessBoardGUIHandler.highlightMove(move);
+                    centralControl.chessBoardGUIHandler.highlightMove(move,isWhiteOriented);
                 }
             } else {
                 ChessConstants.mainLogger.error("Trying to change gui make move when not main game");
@@ -576,8 +478,8 @@ public class ChessGame{
                 int OldY = Integer.parseInt(Delinfo[1]);
                 boolean isWhite = Delinfo[2].equals("w");
                 int brdRmvIndex = Integer.parseInt(Delinfo[3]);
-                centralControl.chessBoardGUIHandler.removeFromChessBoard(OldX,OldY,isWhite);
-                centralControl.chessBoardGUIHandler.updateEatenPieces(brdRmvIndex,isWhite);
+                centralControl.chessBoardGUIHandler.removeFromChessBoard(OldX,OldY,isWhite,isWhiteOriented);
+                centralControl.chessBoardGUIHandler.updateEatenPieces(brdRmvIndex,isWhite == !isWhiteOriented);
 
 
                 z++;
@@ -590,8 +492,8 @@ public class ChessGame{
                 int NewY = Integer.parseInt(Moveinfo[1]);
                 int brdAddIndex = Integer.parseInt(Moveinfo[3]);
                 boolean isWhite = Moveinfo[2].equals("w");
-                centralControl.chessBoardGUIHandler.addToChessBoard(NewX,NewY,brdAddIndex,isWhite);
-                centralControl.chessBoardGUIHandler.removeFromEatenPeices(Moveinfo[3],isWhite);
+                centralControl.chessBoardGUIHandler.addToChessBoard(NewX,NewY,brdAddIndex,isWhite,isWhiteOriented);
+                centralControl.chessBoardGUIHandler.removeFromEatenPeices(Moveinfo[3],isWhite == !isWhiteOriented);
 
 
 
@@ -599,7 +501,6 @@ public class ChessGame{
 
 
             }
-            currentPos = newPos;
         }
         else{
             ChessConstants.mainLogger.error("change move called on a chessgame that is not main");
@@ -665,14 +566,14 @@ public class ChessGame{
     // one called for all local moves
     public void makeNewMove(ChessMove move,boolean isComputerMove,boolean isDragMove){
         if(!isComputerMove){
+            // clear any entries, you are branching off
             if(curMoveIndex != maxIndex){
                 clearIndx(true);
                 if(isMainGame){
-                    // for campaign where you have limited redos
+                    // for campaign where you have limited redos based on difficulty
                     centralControl.chessActionHandler.incrementNumRedos();
                 }
             }
-            // clear any entries, you are branching off
         }
         else{
             // jump to front
@@ -732,7 +633,7 @@ public class ChessGame{
                 centralControl.chessActionHandler.updateViewerSuggestions();
             }
             if(isWebMove){
-                System.out.println("Web move: now supposed to update position");
+//                System.out.println("Web move: now supposed to update position");
                 Platform.runLater(() ->{
                     chessBoardGuiMakeMoveFromCurrent(move,false,currentPosition,newPosition);
                 });
@@ -905,7 +806,7 @@ public class ChessGame{
                 // could be en passant
                 int backdir = isWhiteMove ? 1 : -1;
                 // check if its an en passant move
-                if(GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
+                if(GeneralChessFunctions.isValidMove(x,y+backdir) && GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
                     // if so this means that the pawn can have possibly gotten here from an en passant move
                     if(!currentPosition.equals(ChessConstants.startBoardState)){
                         // means we arent at the very beginning as there is not an actual move for the start position
@@ -1015,36 +916,207 @@ public class ChessGame{
     }
 
 
-    // todo static constructors
-//    public static ChessGame gameFromPgn(String pgn,String gameName,boolean isVsComputer){
-//
-//    }
-//
-//
-//    public static ChessGame createGameFromSaveLoad(String pgn,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,boolean isVsComputer,String gameHash){
-//        this.gameStates = new ChessStates();
-//        if(pgn.trim().isEmpty()){
-//            moves = new ArrayList<>();
-//        }
-//        else{
-//            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-//            String moveText = splitPgn[1];
-//            moveText = moveText.replaceAll("\\n", " ");
-//            moves = parseMoveText(moveText);
-//        }
-//        curMoveIndex = -1;
-//        maxIndex = moves.size()-1;
-//        currentPosition = getPos(curMoveIndex);
-//        this.gameName = gameName;
-//        this.player1name = player1name;
-//        this.player2name = isVsComputer ? "Computer" : player2name;
-//        this.player1Elo = player1Elo;
-//        this.player2Elo = player2Elo;
-//        this.isPlayer1Turn = firstTurnDefault;
-//        this.isVsComputer = isVsComputer;
-//        this.gameHash = gameHash;
-//        this.isWebGame =false;
-//    }
 
+    /** Constructor for generating a game from a saved pgn (This version is exclusively used loading games from save**/
+    public static ChessGame createGameFromSaveLoad(String pgn,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl,String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented,String gameHash){
+        ChessGame game = new ChessGame();
+        game.gameStates = new ChessStates();
+        if(pgn.trim().isEmpty()){
+            game.moves = new ArrayList<>();
+        }
+        else{
+            String[] splitPgn = PgnFunctions.splitPgn(pgn);
+            String moveText = splitPgn[1];
+            moveText = moveText.replaceAll("\\n", " ");
+            game.moves = game.parseMoveText(moveText);
+        }
+        game.curMoveIndex = -1;
+        game.maxIndex = game.moves.size()-1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+        game.gameName = gameName;
+        game.player1name = player1name;
+        game.player2name = isVsComputer ? "Computer" : player2name;
+        game.player1Elo = player1Elo;
+        game.player2Elo = player2Elo;
+        game.player1PfpUrl = player1PfpUrl;
+        game.player2PfpUrl =player2PfpUrl;
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = gameHash;
+        game.isWebGame =false;
+        game.isWhiteOriented = isWhiteOriented;
+        return game;
+    }
+
+    /** This Constructor is only part of creating a online game. The latter half is created after a second client is connected**/
+    public static ChessGame getOnlinePreInit(String gameType,boolean isWhiteOriented){
+        ChessGame game = new ChessGame();
+        game.moves = new ArrayList<>();
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isVsComputer = false;
+        game.player1name = App.userManager.getUserName();
+        game.player1Elo = App.userManager.getUserElo();
+        game.player1PfpUrl = App.userManager.getUserPfpUrl();
+        game.client = App.getWebclient();
+        game.client.setLinkedGame(game);
+        game.player2name = "";
+        game.player2Elo = 0;
+        game.isWebGame = true;
+        game.gameStates = new ChessStates();
+        game.gameType = gameType;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+        game.isWhiteOriented = isWhiteOriented;
+        return game;
+    }
+
+
+
+
+    /** This constructor creates a simple game with a name provided as a string **/
+
+    public static ChessGame createSimpleGameWithName(String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
+        ChessGame game = new ChessGame();
+        game.moves = new ArrayList<>();
+        game.gameStates = new ChessStates();
+        game.curMoveIndex = -1;
+        game.maxIndex = -1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+
+        game.gameName = gameName;
+        game.player1name = player1name;
+        game.player2name = player2name;
+        game.player1Elo = player1Elo;
+        game.player2Elo = player2Elo;
+        game.player1PfpUrl = player1PfpUrl;
+        game.player2PfpUrl = player2PfpUrl;
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isWebGame = false;
+        game.isWhiteOriented = isWhiteOriented;
+
+        return game;
+
+    }
+
+    /** This constructor creates a simple game with no name provided. Instead, the name is {Player1Name} + ","  + {Player2Name}**/
+
+    public static ChessGame createSimpleGame(String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
+        ChessGame game = new ChessGame();
+        game.moves = new ArrayList<>();
+        game.gameStates = new ChessStates();
+        game.curMoveIndex = -1;
+        game.maxIndex = -1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+
+        game.gameName = player1name + " vs " + player2name;
+        game.player1name = player1name;
+        game.player2name = player2name;
+        game.player1Elo = player1Elo;
+        game.player2Elo = player2Elo;
+        game.player1PfpUrl = player1PfpUrl;
+        game.player2PfpUrl = player2PfpUrl;
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isWebGame = false;
+        game.isWhiteOriented = isWhiteOriented;
+
+        return game;
+
+    }
+
+
+
+
+    /** This constructor creates a game from pgn and simple things known about the player (Needs to be changed as true pgn is is only represented as a string. Right now it is only parsing pgn as movetext**/
+    public static ChessGame gameFromPgn(String pgn,String gameName,String player1name,int player1Elo,String player1PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
+        ChessGame game = new ChessGame();
+        game.gameStates = new ChessStates();
+        if(pgn.trim().isEmpty()){
+            game.moves = new ArrayList<>();
+        }
+        else{
+            String[] splitPgn = PgnFunctions.splitPgn(pgn);
+            String moveText = splitPgn[1];
+            moveText = moveText.replaceAll("\\n", " ");
+            game.moves = game.parseMoveText(moveText);
+        }
+        game.curMoveIndex = -1;
+        game.maxIndex = game.moves.size()-1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+        game.gameName = gameName;
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.player1name = player1name;
+        game.player2name = isVsComputer ? "Computer" : "Player 2";
+        game.player1Elo = player1Elo;
+        game.player2Elo = 0;
+        game.player1PfpUrl = player1PfpUrl;
+        game.player2PfpUrl = isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isWebGame = false;
+        game.isWhiteOriented = isWhiteOriented;
+
+        return game;
+
+    }
+
+    /** This method is pretty much exclusively called from tests. All vars with user information/Graphical Features are not expected to be used **/
+    public static ChessGame createTestGame(String pgn,boolean isVsComputer){
+        ChessGame game = new ChessGame();
+        game.gameStates = new ChessStates();
+        if(pgn.trim().isEmpty()){
+            game.moves = new ArrayList<>();
+        }
+        else{
+            String[] splitPgn = PgnFunctions.splitPgn(pgn);
+            String moveText = splitPgn[1];
+            moveText = moveText.replaceAll("\\n", " ");
+            game.moves = game.parseMoveText(moveText);
+        }
+        game.curMoveIndex = -1;
+        game.maxIndex = game.moves.size()-1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+        game.gameName = "Test Game";
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.player1name = "Test Player";
+        game.player2name = "Test Player";
+        game.player1Elo = 0;
+        game.player2Elo = 0;
+        game.player1PfpUrl = ProfilePicture.DEFAULT.urlString;
+        game.player2PfpUrl = ProfilePicture.DEFAULT.urlString;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isWebGame = false;
+
+        return game;
+    }
+
+
+    /** Method used exclusively for cloning chessgame instances Note: The game created is set to the start of the game**/
+    private static ChessGame getClonedGame(List<ChessPosition> moves,ChessStates gameStates,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWebGame,boolean isWhiteOriented){
+        ChessGame game = new ChessGame();
+        game.moves = moves;
+        game.gameStates = gameStates;
+        game.curMoveIndex = -1;
+        game.maxIndex = -1;
+        game.currentPosition = game.getPos(game.curMoveIndex);
+
+        game.gameName = gameName;
+        game.isPlayer1Turn = game.firstTurnDefault;
+        game.player1name = player1name;
+        game.player2name = player2name;
+        game.player1Elo = player1Elo;
+        game.player2Elo = player2Elo;
+        game.player1PfpUrl = player1PfpUrl;
+        game.player2PfpUrl = player2PfpUrl;
+        game.isVsComputer = isVsComputer;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.isWebGame = isWebGame;
+        game.isWhiteOriented = isWhiteOriented;
+        return game;
+
+    }
 
 }
