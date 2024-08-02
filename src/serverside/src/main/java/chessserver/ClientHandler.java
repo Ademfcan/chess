@@ -81,7 +81,7 @@ public class ClientHandler {
             }
         }
         catch(Exception e){
-            System.out.println(e.getMessage());
+            sendMessage(session, ServerResponseType.INVALIDOPERATION,e.getMessage());
 
         }
     }
@@ -111,9 +111,12 @@ public class ClientHandler {
 
     public static void handleClosure(Session session) {
         BackendClient c = clientHashMap.getOrDefault(session, null);
-        if(Objects.nonNull(c) && c.isInGame()){
-            c.getCurrentGame().closeGame(c,false,false,true);
+        if(Objects.nonNull(c)){
+            if(c.isInGame()) {
+                c.getCurrentGame().closeGame(c, false, false, true);
+            }
         }
+        clientHashMap.remove(session);
 
 
     }

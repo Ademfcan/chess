@@ -18,7 +18,6 @@ public class ChessEndpoint {
 
     @OnMessage
     public void onMessage(String message, Session session){
-        System.out.println("Received message: " + message + " from " + session.getId());
         // Echo the message back to the client
         try {
             ClientHandler.handleMessage(message,session);

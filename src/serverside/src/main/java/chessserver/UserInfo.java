@@ -11,19 +11,21 @@ public class UserInfo {
     String userName;
     String userEmail;
     String passwordHash;
-
+    private String profilePictureUrl;
     ProfilePicture profilePicture;
 
     public CampaignProgress getUserCampaignProgress() {
         return userCampaignProgress;
     }
 
-    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture,CampaignProgress userCampaignProgress) {
+
+    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture, CampaignProgress userCampaignProgress) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
         this.passwordHash = password;
         this.profilePicture = profilePicture;
+        this.profilePictureUrl = profilePicture.urlString;
         this.userCampaignProgress = userCampaignProgress;
     }
 
@@ -41,7 +43,7 @@ public class UserInfo {
     }
 
     public void adjustElo(int change) {
-        this.userelo+=change;
+        this.userelo=change;
     }
 
     public String getUserName() {
@@ -71,10 +73,18 @@ public class UserInfo {
     public ProfilePicture getProfilePicture() {
         return profilePicture;
     }
-
     public void setProfilePicture(ProfilePicture profilePicture) {
         this.profilePicture = profilePicture;
     }
+
+    public String getProfilePictureUrl() {
+        return profilePicture.urlString;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
 
 
 

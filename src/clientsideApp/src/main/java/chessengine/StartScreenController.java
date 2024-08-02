@@ -350,11 +350,11 @@ public class StartScreenController implements Initializable {
         playAsWhite.setText("Play as White");
         App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: white ;-fx-text-fill: black");
         vsPlayer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("game" ,false,playAsWhite.isSelected(),MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("Local Game" ,false,playAsWhite.isSelected(),MainScreenState.LOCAL);
 
         });
         vsComputer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("game" ,true,playAsWhite.isSelected(),MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("Local Game" ,true,playAsWhite.isSelected(),MainScreenState.LOCAL);
         });
         playAsWhite.setOnAction(e->{
             System.out.println("clicked");
@@ -441,7 +441,7 @@ public class StartScreenController implements Initializable {
                 passwordInput.setPromptText("please enter a password");
             }
             else{
-                App.webclient.validateClientRequest(nameInput.getText(),passwordInput.getText());
+                App.validateClientRequest(nameInput.getText(),passwordInput.getText());
 
 
             }
@@ -493,17 +493,17 @@ public class StartScreenController implements Initializable {
 
         gameTypes.getItems().addAll(Arrays.stream(Gametype.values()).map(Gametype::getStrVersion).toList());
         gameTypes.setOnAction(e->{
-            App.webclient.sendRequest(INTENT.GETNUMBEROFPOOLERS,gameTypes.getValue());
+            App.sendRequest(INTENT.GETNUMBEROFPOOLERS,gameTypes.getValue());
         });
         multiplayerStart.setOnMouseClicked(e->{
             if(!gameTypes.getSelectionModel().isEmpty()){
                 // todo this is not correct!
-                App.changeToMainScreenWithGame(ChessGame.getOnlinePreInit(gameTypes.getValue(),true),true,false,MainScreenState.ONLINE);
+                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(),true)); // isWhiteOrientedWillChange
             }
 
         });
         // handle no internet connection
-        if(App.webclient == null){
+        if(App.isWebClientNull()){
             disableMultioptions();
         }
         else{
@@ -571,8 +571,8 @@ public class StartScreenController implements Initializable {
             }
             else{
                 try {
-                    ChessGame game = ChessGame.gameFromPgn(pgnTextArea.getText(),"pgn game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
-                    App.changeToMainScreenWithGame(game,computerRadioButton.isSelected(),true,MainScreenState.LOCAL);
+                    ChessGame game = ChessGame.gameFromPgn(pgnTextArea.getText(),"Pgn Game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
+                    App.changeToMainScreenWithGame(game,MainScreenState.LOCAL,true);
                 }
                 catch (Exception ex){
                     pgnTextArea.clear();
@@ -587,7 +587,7 @@ public class StartScreenController implements Initializable {
 
     private void setupSandboxOptions(){
         enterSandboxButton.setOnMouseClicked(e->{
-            App.changeToMainScreenWithoutAny("Sandbox",false,true,MainScreenState.SANDBOX);
+            App.changeToMainScreenWithoutAny("Sandbox Game",false,true,MainScreenState.SANDBOX);
         });
     }
     private final int maxNewGameButtonSize = 100;
@@ -721,7 +721,7 @@ public class StartScreenController implements Initializable {
 
         innerGameInfo.setAlignment(Pos.CENTER);
 
-        Label gameName = new Label("Name: " + newGame.getGameName());
+        Label gameName = new Label(newGame.getGameName());
         App.bindingController.bindSmallText(gameName, false,"Black");
 
         Label playersName = new Label(newGame.getPlayer1name() + " vs " + newGame.getPlayer2name());
@@ -748,7 +748,7 @@ public class StartScreenController implements Initializable {
 
         Button openGame = new Button();
         openGame.setOnMouseClicked(e->{
-            App.changeToMainScreenWithGame(newGame,false,newGame.isWhiteOriented(),MainScreenState.VIEWER);
+            App.changeToMainScreenWithGame(newGame,MainScreenState.VIEWER,false);
 
         });
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer,openGame,30,.3);

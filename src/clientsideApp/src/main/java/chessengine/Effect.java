@@ -76,6 +76,18 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
+    ILLEGALMOVE("/AudioAssets/illegal.mp3"){
+        @Override
+        public AudioClip getClip(){
+            return this.clip;
+        }
+
+        @Override
+        public void playClip(double volume) {
+            // cap illegal move sound as to not be annoying
+            this.clip.play(Math.max(volume,.5));
+        }
+    },
     CASTLING("/AudioAssets/castle.mp3"){
         @Override
         public AudioClip getClip(){

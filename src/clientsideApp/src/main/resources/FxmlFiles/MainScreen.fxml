@@ -186,6 +186,11 @@
                                  </image>
                               </ImageView>
                               <Label fx:id="player2Label" prefHeight="31.0" prefWidth="83.0" text="label" />
+                                    <VBox fx:id="player2TurnIndicator" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="100.0">
+                                       <children>
+                                          <Label fx:id="player2MoveClock" />
+                                       </children>
+                                    </VBox>
                            </children>
                         </HBox>
                         <HBox fx:id="bottomRightPlayer1" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0" GridPane.rowIndex="2">
@@ -196,6 +201,11 @@
                                  </image>
                               </ImageView>
                               <Label fx:id="player1Label" text="Label" />
+                                    <VBox fx:id="player1TurnIndicator" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="100.0">
+                                       <children>
+                                          <Label fx:id="player1MoveClock" />
+                                       </children>
+                                    </VBox>
                            </children>
                         </HBox>
                         <VBox fx:id="gameControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1">

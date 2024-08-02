@@ -4,6 +4,8 @@ import chessserver.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -17,13 +19,13 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class mainScreenController implements Initializable {
@@ -214,6 +216,18 @@ public class mainScreenController implements Initializable {
     ImageView player2Select;
 
     @FXML
+    VBox player1TurnIndicator;
+
+    @FXML
+    VBox player2TurnIndicator;
+
+    @FXML
+    Label player1MoveClock;
+
+    @FXML
+    Label player2MoveClock;
+
+    @FXML
     GridPane mainSidePanel;
 
     @FXML
@@ -373,7 +387,7 @@ public class mainScreenController implements Initializable {
         setUpPiecesAndListeners();
         ChessCentralControl = App.ChessCentralControl;
 
-        ChessCentralControl.init(this,chessPieceBoard,eatenWhites,eatenBlacks,peicesAtLocations,inGameInfo,arrowBoard,bestMovesBox,localInfo,sandboxPieces,chatInput,sendMessageButton,Bgpanes,moveBoxes, highlightPanes,chessBgBoard,chessHighlightBoard,chessMoveBoard,movesPlayedBox);
+        ChessCentralControl.init(this,chessPieceBoard,eatenWhites,eatenBlacks,peicesAtLocations,inGameInfo,arrowBoard,bestMovesBox,localInfo,sandboxPieces,chatInput,sendMessageButton,Bgpanes,moveBoxes, highlightPanes,chessBgBoard,chessHighlightBoard,chessMoveBoard,movesPlayedBox,player1TurnIndicator,player2TurnIndicator,player1MoveClock,player2MoveClock);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change ->{
             // makes sure its always at the end
@@ -390,7 +404,7 @@ public class mainScreenController implements Initializable {
         if(initPreferences != null){
             ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
             ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
-            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString());
+            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString(),true);
         }
 
 
@@ -526,8 +540,9 @@ public class mainScreenController implements Initializable {
             ChessCentralControl.asyncController.stopAll();
 
             // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
-            if(ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && ChessCentralControl.gameHandler.currentGame.maxIndex != -1){
+            if(ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && ChessCentralControl.gameHandler.currentGame.maxIndex > -1){
                 PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+                App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame);
             }
             // need to leave online game if applicable
             if(ChessCentralControl.gameHandler.currentGame.isWebGame()){
@@ -584,7 +599,7 @@ public class mainScreenController implements Initializable {
         App.soundPlayer.playEffect(Effect.MESSAGE);
         ChessCentralControl.chessActionHandler.appendNewMessageToChat("("+ ChessCentralControl.gameHandler.currentGame.getPlayer1name() + ") " + chatInput.getText());
         if(ChessCentralControl.gameHandler.currentGame.isWebGame() && ChessCentralControl.gameHandler.currentGame.isWebGameInitialized()){
-            App.webclient.sendRequest(INTENT.SENDCHAT,chatInput.getText());
+            App.sendRequest(INTENT.SENDCHAT,chatInput.getText());
         }
         chatInput.clear();
     }
@@ -632,6 +647,7 @@ public class mainScreenController implements Initializable {
         App.bindingController.bindSmallText(localInfo,true,"black");
 
         localInfo.prefHeightProperty().bind(gameControls.heightProperty().subtract(movesPlayed.heightProperty()).subtract(bottomControls.heightProperty()));
+        App.bindingController.bindSmallText(inGameInfo,true,"black");
         inGameInfo.prefWidthProperty().bind(localInfo.widthProperty());
         inGameInfo.prefHeightProperty().bind(localInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
         sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(inGameInfo.widthProperty().divide(8)));
@@ -667,6 +683,25 @@ public class mainScreenController implements Initializable {
         player1Select.fitWidthProperty().bind(player1Select.fitHeightProperty().multiply(.8));
         player2Select.fitHeightProperty().bind(eatenBlacks.heightProperty().multiply(.8));
         player2Select.fitWidthProperty().bind(player2Select.fitHeightProperty().multiply(.8));
+
+        player1TurnIndicator.prefHeightProperty().bind(player1Select.fitHeightProperty().multiply(.8));
+        player2TurnIndicator.prefHeightProperty().bind(player1Select.fitHeightProperty().multiply(.8));
+        player1TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
+        player2TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
+        player1MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                updateTextVisibility(player1MoveClock);
+            }
+        });
+
+        player2MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                updateTextVisibility(player2MoveClock);
+            }
+        });
+
 //        sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()));
 //        initLabelBindings(bgLabel);
 //        initLabelBindings(pieceLabel);
@@ -679,13 +714,31 @@ public class mainScreenController implements Initializable {
         settingsScreen.prefWidthProperty().bind(sidePanel.widthProperty());
 //
     }
+    // label hide ellipsis hack
+    private void updateTextVisibility(Label label) {
+        Text textNode = new Text(label.getText());
+        textNode.setFont(label.getFont());
+
+        // Measure the width of the text
+        double textWidth = textNode.getLayoutBounds().getWidth();
+
+        // Check if the text width exceeds the label's width
+        if (textWidth > label.getWidth()) {
+            label.setText(""); // Set text to empty string
+        } else {
+            label.setText(textNode.getText()); // Set the original text
+        }
+    }
+
+
+
     // methods called every new game
     public MainScreenState currentState;
 
     // for campaign only
 
     /** Setup Steps that are called every game, regardless of campaign or not**/
-    private void setUp(boolean isWhiteOriented){
+    private void setUp(){
         // side panel controls are slightly different for every mode
         setMainControls(currentState);
         // some modes do not want an eval bar
@@ -718,35 +771,41 @@ public class mainScreenController implements Initializable {
         String pfpUrl2 = ProfilePicture.values()[levelTier.pfpIndexes[levelOfTier]].urlString;
 
         this.currentState = MainScreenState.CAMPAIGN;
-        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(player1Name,campaignOpponentName,player1Elo,campaignOpponentElo,player1PfpUrl,pfpUrl2,true,true));
+        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal()+1) + "L: " + levelOfTier,player1Name,campaignOpponentName,player1Elo,campaignOpponentElo,player1PfpUrl,pfpUrl2,true,true));
         ChessCentralControl.gameHandler.setGameDifficulty(campaignDifficuly);
         ChessCentralControl.gameHandler.setCampaignTier(levelTier);
         ChessCentralControl.gameHandler.setLevelOfCampaignTier(levelOfTier);
 
         // in campaign the user always plays white
-        setUp(false);
+        setUp();
     }
 
-    public void setupRegular(boolean isVsComputer,boolean isWhiteOriented,String gameName,ChessGame gameToSetup,String player1Name,int player1Elo,String player1PfpUrl,MainScreenState currentState){
+    public void setupWithoutGame(boolean isVsComputer, boolean isWhiteOriented, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState){
         this.currentState = currentState;
-        boolean isVsComputerReal = gameToSetup != null ? gameToSetup.isVsComputer() : isVsComputer;
-        if(Objects.nonNull(gameToSetup)){
-            if(currentState.equals(MainScreenState.VIEWER)){
-                // in viewer mode, you will have a old game that you dont want to modify, however you still want to play around with a temporary copy
-                ChessCentralControl.gameHandler.switchToGame(gameToSetup.cloneGame());
-            }
-            ChessCentralControl.gameHandler.switchToGame(gameToSetup);
-
+        if(gameName.isEmpty()){
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(player1Name,isVsComputer ? "Computer" : "Player 1",player1Elo,isVsComputer ? 3000 : player1Elo,player1PfpUrl,isVsComputer ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputer,isWhiteOriented));
         }
         else{
-            if(gameName.isEmpty()){
-                ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(player1Name,isVsComputerReal ? "Computer" : "Player 1",player1Elo,isVsComputerReal ? 3000 : player1Elo,player1PfpUrl,isVsComputerReal ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputerReal,isWhiteOriented));
-            }
-            else{
-                ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName,player1Name,isVsComputerReal ? "Computer" : "Player 1",player1Elo,isVsComputerReal ? 3000 : player1Elo,player1PfpUrl,isVsComputerReal ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputerReal,isWhiteOriented));
-            }
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName,player1Name,isVsComputer ? "Computer" : "Player 1",player1Elo,isVsComputer ? 3000 : player1Elo,player1PfpUrl,isVsComputer ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputer,isWhiteOriented));
         }
-        setUp(true);
+        setUp();
+    }
+
+    public void setupWithGame(ChessGame gameToSetup,MainScreenState currentState,boolean isFirstLoad){
+        this.currentState = currentState;
+        if(currentState.equals(MainScreenState.VIEWER)){
+            // in viewer mode, you will have a old game that you dont want to modify, however you still want to play around with a temporary copy
+            ChessCentralControl.gameHandler.switchToGame(gameToSetup.cloneGame(),isFirstLoad);
+        }
+        ChessCentralControl.gameHandler.switchToGame(gameToSetup,isFirstLoad);
+        setUp();
+    }
+
+    public void preinitOnlineGame(ChessGame onlinePreinit){
+        this.currentState = MainScreenState.ONLINE;
+        // put loading icon
+        ChessCentralControl.gameHandler.switchToGame(onlinePreinit,true);
+        setUp();
     }
 
     private void checkHideEvalBar(MainScreenState currentState) {
@@ -923,13 +982,7 @@ public class mainScreenController implements Initializable {
         ChessCentralControl.gameHandler.currentGame.moveToMoveIndexAbsolute(absIndex,true);
 
         setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex,ChessCentralControl.gameHandler.currentGame.maxIndex);
-        if(!ChessCentralControl.gameHandler.currentGame.gameStates.isCheckMated()[0]){
-            victoryLabel.setText("");
-            hideGameOver();
-        }
-        else{
-            showGameOver();
-        }
+
         updateSimpleAdvantageLabels();
         ChessCentralControl.chessActionHandler.updateSidePanel(currentState,false,false);
     }
@@ -946,18 +999,12 @@ public class mainScreenController implements Initializable {
 
         }
         else{
-            ChessCentralControl.gameHandler.currentGame.changeToDifferentMove(direction,false);
+            ChessCentralControl.gameHandler.currentGame.changeToDifferentMove(direction,false,true);
 
 
         }
         setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex,ChessCentralControl.gameHandler.currentGame.maxIndex);
-        if(!ChessCentralControl.gameHandler.currentGame.gameStates.isCheckMated()[0]){
-            victoryLabel.setText("");
-            hideGameOver();
-        }
-        else{
-            showGameOver();
-        }
+
         updateSimpleAdvantageLabels();
         ChessCentralControl.chessActionHandler.updateSidePanel(currentState,false,false);
 
@@ -1065,7 +1112,7 @@ public class mainScreenController implements Initializable {
     // what actually happens when you click a square on the board
     public void makeComputerMove(ChessMove move){
         if((currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer()){
-            logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isPlayer1Turn() ? "WhitePeices" : "BlackPeices"));
+            logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move.toString());
             // computers move
             // since when eating a piece you have to change visuals, need to hanndle it differently
@@ -1085,7 +1132,7 @@ public class mainScreenController implements Initializable {
             int x = Integer.parseInt(xy[0]);
             int y = Integer.parseInt(xy[1]);
             logger.debug(String.format("Square clicked at coordinates X:%d, Y:%d",x,y));
-            logger.debug(String.format("Is white turn?: %s", ChessCentralControl.gameHandler.currentGame.isPlayer1Turn()));
+            logger.debug(String.format("Is white turn?: %s", ChessCentralControl.gameHandler.currentGame.isWhiteTurn()));
             logger.debug(String.format("Is checkmated?: %b", ChessCentralControl.gameHandler.currentGame.gameStates.isCheckMated()[0]));
             if (event.getButton() == MouseButton.PRIMARY){
                 // if the click was a primary click then we want to check if the player can make a move

@@ -2,6 +2,11 @@ package chessengine;
 
 import chessserver.*;
 import chessserver.GlobalTheme;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Paint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -73,4 +78,8 @@ public class ChessConstants {
 
 
     public static final String InnerMoveCircleColor = "rgba(60,60,60, 0.40)";
+
+    public static final Background labelUnactive = new Background(new BackgroundFill(Paint.valueOf("transparent"), null,null));
+    public static final Background blackTurnActive = new Background(new BackgroundFill(Paint.valueOf("rgb(0,0,0)"), new CornerRadii(5),null));
+    public static final Background whiteTurnActive = new Background(new BackgroundFill(Paint.valueOf("rgb(255,255,255)"), new CornerRadii(5),null));
 }

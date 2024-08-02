@@ -64,8 +64,8 @@ public class ChessGameHandler {
 
     }
 
-    public void switchToGame(ChessGame newGame){
-        setUpGameGui(newGame,false);
+    public void switchToGame(ChessGame newGame,boolean isFirstLoad){
+        setUpGameGui(newGame,isFirstLoad);
 
     }
 
@@ -79,11 +79,6 @@ public class ChessGameHandler {
             currentGame.clearMainGame();
             newSetup.setMainGame(control);
 
-        }
-        if(isFirstSave){
-            if(!App.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
-                App.startScreenController.AddNewGameToSaveGui(newSetup);
-            }
         }
         currentGame = newSetup;
 

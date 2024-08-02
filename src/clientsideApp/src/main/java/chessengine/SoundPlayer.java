@@ -21,13 +21,7 @@ public class SoundPlayer {
 
 
 
-    public SoundPlayer(double volumeEffects,double volumeBackground){
-        this.currentVolumeBackground = volumeBackground;
-        this.currentVolumeEffects = volumeEffects;
-        this.currentSong = getNextSong();
-        this.isPaused = true;
 
-    }
     public SoundPlayer(){
         this.currentVolumeBackground = defaultBGVolume;
         this.currentVolumeEffects = defaultVolume;
@@ -45,6 +39,28 @@ public class SoundPlayer {
         return this.isEffectsMuted;
     }
 
+
+    public void playMoveEffect(ChessMove move,boolean isChecked,boolean isGameOver){
+        if(isGameOver){
+            playEffect(Effect.GAMEOVER);
+        }
+        else if(isChecked){
+            playEffect(Effect.CHECK);
+        }
+        else if(move.isEating()){
+            playEffect(Effect.CAPTURE);
+
+        }
+        else if(move.isPawnPromo()){
+            playEffect(Effect.PROMOTE);
+        }
+        else if(move.isCastleMove()) {
+            playEffect(Effect.CASTLING);
+        }
+        else{
+            playEffect(Effect.MOVE);
+        }
+    }
 
     public void playEffect(Effect effect){
         if(!isEffectsMuted){

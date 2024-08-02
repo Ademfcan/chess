@@ -178,7 +178,7 @@ public class ChessBoardGUIHandler {
             y = 7-y;
         }
         int fy = y;
-        System.out.println("Trying to remove a piece at x:" + x + "y: " + y + " iswhite?:" + isWhite);
+//        System.out.println("Trying to remove a piece at x:" + x + "y: " + y + " iswhite?:" + isWhite);
         boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + fy + "," + isWhite));
         piecesAtLocations[x][y] = null;
         if(!isRemoved){
@@ -191,7 +191,6 @@ public class ChessBoardGUIHandler {
         if(!isWhiteOriented){
             y = 7-y;
         }
-        System.out.println("X:" + x + " y" + y);
         piecesAtLocations[x][y] = null;
         chessPieceBoard.getChildren().remove(piece);
     }
@@ -200,7 +199,6 @@ public class ChessBoardGUIHandler {
         if(!isWhiteOriented){
             y = 7-y;
         }
-        System.out.println("X:" + x + " y" + y);
         ImageView peice = createNewPiece(brdIndex,isWhite,false);
         peice.setUserData(x + "," + y + "," + isWhite);
         peice.layoutXProperty().bind(calcLayoutXBinding(x,peice.fitWidthProperty()));
@@ -325,6 +323,9 @@ public class ChessBoardGUIHandler {
     }
 
     public void reloadNewBoard(ChessPosition position,boolean isWhiteOriented){
+        // adjust chess bg squares depending on orientation
+        changeChessBg(currentColorType,isWhiteOriented);
+
         removeAllPieces();
         boolean isWhite = true;
         for(int j = 0;j<2;j++){
@@ -425,16 +426,21 @@ public class ChessBoardGUIHandler {
         }
     }
     public void highlightMove(ChessMove move,boolean isWhiteOriented){
-
-        highlightSquare(move.getOldX(),isWhiteOriented ? move.getOldY() : 7-move.getOldY(),false);
-        highlightSquare(move.getNewX(),isWhiteOriented ? move.getNewY() : 7-move.getNewY(),false);
-        if(isWhiteOriented){
+        // clear old highlight
+        if(lastMoveHighlighted != null){
+            removeHiglight(lastMoveHighlighted.getOldX(),lastMoveHighlighted.getOldY());
+            removeHiglight(lastMoveHighlighted.getNewX(),lastMoveHighlighted.getNewY());
+        }
+        if(!isWhiteOriented){
             lastMoveHighlighted = move.invertMove();
         }
         else{
             lastMoveHighlighted = move;
 
         }
+        highlightSquare(lastMoveHighlighted.getOldX(),lastMoveHighlighted.getOldY(),false);
+        highlightSquare(lastMoveHighlighted.getNewX(),lastMoveHighlighted.getNewY(),false);
+
     }
 
     ChessMove lastMoveHighlighted;
@@ -476,9 +482,10 @@ public class ChessBoardGUIHandler {
     }
 
     // pretty self explanatory
-    public void changeChessBg(String colorType) {
-
-        boolean isLight = true;
+    String currentColorType = ChessboardTheme.TRADITIONAL.toString(); // default type
+    public void changeChessBg(String colorType,boolean isWhiteOriented) {
+        currentColorType = colorType;
+        boolean isLight = isWhiteOriented;
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
         int count = 0;
 

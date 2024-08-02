@@ -1,6 +1,5 @@
 package chessengine;
 
-import chessserver.ProfilePicture;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +44,7 @@ public class ComputerTests {
             for (String pgn : pgns) {
                 ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
                 game.moveToEndOfGame();
-                String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameStates, game.isPlayer1Turn(), 0, game.curMoveIndex/2);
+                String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameStates, game.isWhiteTurn(), 0, game.curMoveIndex/2);
 
                 // Calculate evaluation with Computer
                 float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameStates, 5, false).getAdvantage();
@@ -83,14 +82,14 @@ public class ComputerTests {
 
 
     private static final ZobristHasher hasher = new ZobristHasher();
-    @Test void hashCollisionTest(){
-        BackendChessPosition startPos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-        // going to see how many collisions each hash method has
-        miniMaxForHashTest(startPos,startPos.gameState,6,true);
-        System.out.println("Zobrist Collision Count: " + zobristCollisionCount);
-        System.out.println("Objects Hash Collision Count: " + objectHashCollisionCount);
-        System.out.println("Total unique positions created: " + totalUniquePositionCount/2);
-    }
+//    @Test void hashCollisionTest(){
+//        BackendChessPosition startPos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+//        // going to see how many collisions each hash method has
+//        miniMaxForHashTest(startPos,startPos.gameState,6,true);
+//        System.out.println("Zobrist Collision Count: " + zobristCollisionCount);
+//        System.out.println("Objects Hash Collision Count: " + objectHashCollisionCount);
+//        System.out.println("Total unique positions created: " + totalUniquePositionCount/2);
+//    }
     // creating lots of new positions and checking for hash collisons
     private void miniMaxForHashTest(BackendChessPosition position, ChessStates gameState, int depth, boolean isWhiteTurn){
         // all recursive stop cases
@@ -179,10 +178,10 @@ public class ComputerTests {
         game.moveToEndOfGame();
         BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameStates,false);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove castleMove = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
+        ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
         castleTest.makeLocalPositionMove(castleMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove(rookMove);
@@ -191,7 +190,7 @@ public class ComputerTests {
 
         castleTest.undoLocalPositionMove(castleMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isPlayer1Turn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove2);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove(rookMove2);

@@ -69,8 +69,9 @@ public class WebSocketClient {
                     String opponentName = info[0];
                     int opponentElo = Integer.parseInt(info[1]);
                     String pfpUrl = info[2];
+                    boolean isWhiteOriented = Boolean.parseBoolean(info[3]);
                     linkedGame.setWebGameInitialized(true);
-                    linkedGame.initWebGame(opponentName, opponentElo,pfpUrl);
+                    linkedGame.initWebGame(opponentName, opponentElo,pfpUrl,isWhiteOriented);
                     linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                 }
                 case LEFTGAMESUCESS -> {
@@ -88,22 +89,20 @@ public class WebSocketClient {
                 case TOTALPLAYERCOUNT -> {
                     System.out.println("Total in pool is: " + out.getExtraInformation());
                 }
-                case TURNINDICATOR -> {
-                    System.out.println("Your turn is now!");
-                    linkedGame.setPlayer1Turn(true);
-                }
                 case CHATFROMOPPONENT -> {
                     System.out.println("(" + linkedGame.getPlayer2name() + ")" + out.getExtraInformation());
                     linkedGame.sendMessageToInfo("(" + linkedGame.getPlayer2name() + ")" + out.getExtraInformation());
                     App.soundPlayer.playEffect(Effect.MESSAGE);
                 }
                 case GAMEMOVEFROMOPPONENT -> {
-                    linkedGame.makeNewMove(out.getExtraInformation());
+                    linkedGame.makeWebMove(out.getExtraInformation());
                     System.out.println("Your opponent played: " + out.getExtraInformation());
                 }
                 case ELOUPDATE -> {
                     int change = Integer.parseInt(out.getExtraInformation());
-                    App.userManager.updateUserElo(change);
+                    Platform.runLater(()->{
+                        App.userManager.updateUserElo(change);
+                    });
                 }
             }
         } catch (Exception e) {
@@ -116,7 +115,13 @@ public class WebSocketClient {
         System.out.println("Error occurred: " + t.toString());
     }
 
+    @OnClose
+    public void onClose(Session session) {
+        App.attemptReconnection();
+    }
+
     public void sendRequest(INTENT intent, String extraInfo) {
+        System.out.println("Sending request with Intent: " +intent.toString() + " exInfo: " + extraInfo);
         try {
             String message = objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
             session.getBasicRemote().sendText(message);

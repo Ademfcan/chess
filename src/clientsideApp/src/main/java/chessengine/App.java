@@ -10,10 +10,14 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import jakarta.websocket.DeploymentException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 
 public class App extends Application {
 
+    public static Logger appLogger = LogManager.getLogger("App_Logger");
     public static mainScreenController mainScreenController;
     public static StartScreenController startScreenController;
 
@@ -47,7 +51,7 @@ public class App extends Application {
     }
 
 
-    public static WebSocketClient webclient;
+    private static WebSocketClient webclient;
 
     public static void updateTheme(GlobalTheme newTheme){
         globalTheme = newTheme;
@@ -61,6 +65,11 @@ public class App extends Application {
 
 
     public static ChessCentralControl ChessCentralControl;
+
+    public static boolean isWebClientNull() {
+        return webclient == null;
+    }
+
 
 
 
@@ -113,7 +122,6 @@ public class App extends Application {
         isStartScreen = true;
         primaryStage.setOnCloseRequest(e->{
             mainScreenController.endAsync();
-
         });
 
         primaryStage.maximizedProperty().addListener((obs, wasMaximized, isNowMaximized) -> {
@@ -196,7 +204,8 @@ public class App extends Application {
             centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
             centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
             centralControl.asyncController.setComputerDepth(preferences.getComputerMoveDepth());
-            centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
+            boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
+            centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString(),isWhiteOriented);
             // todo pieces theme
 
         }
@@ -215,7 +224,10 @@ public class App extends Application {
     public void stop(){
         mainScreenController.endAsync();
         if(ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
-            PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+            if(ChessCentralControl.gameHandler.currentGame.maxIndex > -1){
+                // if the game is not empty add it
+                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+            }
         }
     }
 
@@ -245,19 +257,27 @@ public class App extends Application {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupRegular(isVsComputer,isWhiteOriented,gameName,null,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(), state);
+        mainScreenController.setupWithoutGame(isVsComputer,isWhiteOriented,gameName,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(), state);
         soundPlayer.pauseSong(false);
 
     }
 
 
 
-    public static void changeToMainScreenWithGame(ChessGame loadedGame,boolean isVsComputer,boolean isWhiteOriented,MainScreenState state){
+    public static void changeToMainScreenWithGame(ChessGame loadedGame,MainScreenState state,boolean isFirstLoad){
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupRegular(isVsComputer,isWhiteOriented,loadedGame.getGameName(),loadedGame,userManager.getUserName(), userManager.getUserElo(),userManager.getUserPfpUrl(),state);
+        mainScreenController.setupWithGame(loadedGame,state,isFirstLoad);
 
+
+    }
+
+    public static void changeToMainScreenOnline(ChessGame onlinePreinit){
+        isStartScreen = false;
+        mainScene.setRoot(mainRoot);
+        updateTheme(globalTheme);
+        mainScreenController.preinitOnlineGame(onlinePreinit);
 
     }
 
@@ -270,14 +290,45 @@ public class App extends Application {
 
     }
 
-//    public static void changeToMainScreenMultiplayer(String player1Name, int player1Elo, ChessGame webGame){
-//        soundPlayer.pauseSong(false);
-//
-//    }
 
 
 
-    // user save related
+
+    // web client stuff
+    public static void sendRequest(INTENT intent, String extraInfo) {
+        if(webclient == null){
+            appLogger.debug("Client null trying to create new one");
+            if(attemptReconnection()){
+                webclient.sendRequest(intent,extraInfo);
+            }
+            else{
+                appLogger.error("Server Not Acessable!!");
+
+            }
+        }
+        else{
+            webclient.sendRequest(intent,extraInfo);
+
+        }
+
+    }
+
+    public static void validateClientRequest(String text, String text1) {
+        if(webclient == null){
+            appLogger.debug("Client null trying to create new one");
+            if(attemptReconnection()){
+                webclient.validateClientRequest(text,text1);
+            }
+            else{
+                appLogger.error("Server Not Acessable!!");
+
+            }
+        }
+        else{
+            webclient.validateClientRequest(text,text1);
+
+        }
+    }
 
 
 

@@ -6,9 +6,8 @@ public class ChessGame {
         this.client2 = client2;
         this.isClient1Turn = isClient1Turn;
         this.gameLength = gameLength;
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo());
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo());
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TURNINDICATOR,"");
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() +  "," + client1.getInfo().getProfilePictureUrl()  + "," + Boolean.toString(isClient1Turn));
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() +  "," + client2.getInfo().getProfilePictureUrl()  + "," + Boolean.toString(!isClient1Turn));
         client1.setCurrentGame(this);
         client2.setCurrentGame(this);
 
@@ -27,7 +26,6 @@ public class ChessGame {
             isClient1Turn = !isClient1Turn;
             gameLength-=timeElapsed;
             ClientHandler.sendMessage(send.getClientSession(),ServerResponseType.GAMEMOVEFROMOPPONENT,pgn);
-            ClientHandler.sendMessage(send.getClientSession(),ServerResponseType.TURNINDICATOR,"");
         }
         else{
             ClientHandler.sendMessage(player.getClientSession(), ServerResponseType.INVALIDOPERATION,"not your turn!");
