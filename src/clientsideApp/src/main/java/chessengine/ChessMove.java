@@ -58,7 +58,7 @@ public class ChessMove {
 
     private final int boardSize = 7;
     public ChessMove invertMove(){
-        return new ChessMove(oldX,boardSize-oldY,newX,boardSize-newX,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove);
+        return new ChessMove(oldX,boardSize-oldY,newX,boardSize-newY,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove);
     }
     public ChessMove reverseMove(){
         return new ChessMove(newX,newY,oldX,oldY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove);

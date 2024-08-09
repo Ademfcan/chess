@@ -202,26 +202,21 @@ public class Computer{
 //        int key = Objects.hash(gameState.hashCode(),position.hashCode(),isWhiteTurn);
         long key = hasher.computeHash(position,isWhiteTurn);
         if(position.isDraw()){
-            return new MinimaxOutput(drawConst);
+            return new MinimaxOutput(isWhiteTurn ? drawConst : -drawConst);
         }
-        if(AdvancedChessFunctions.isAnyNotMovePossible(true,position,gameState)){
+        if(AdvancedChessFunctions.isAnyNotMovePossible(isWhiteTurn,position,gameState)){
             // possiblity of a black winning from checkmate, else draw
-            if(AdvancedChessFunctions.isChecked(true,position.board)){
-                return new MinimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
+            if(AdvancedChessFunctions.isChecked(isWhiteTurn,position.board)){
+                return new MinimaxOutput(isWhiteTurn ? ChessConstants.BLACKCHECKMATEVALUE : ChessConstants.WHITECHECKMATEVALUE);
             }
-            return new MinimaxOutput(drawConst);
+            return new MinimaxOutput(isWhiteTurn ? drawConst : -drawConst);
         }
-        if(AdvancedChessFunctions.isAnyNotMovePossible(false,position,gameState)){
-            // possiblity of a white winning from checkmate, else draw
-            if(AdvancedChessFunctions.isChecked(false,position.board)){
-                return new MinimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
-            }
-            return new MinimaxOutput(drawConst);
-        }
+//
 
         if(depth == 0){
             return new MinimaxOutput(getFullEval(position,gameState,isWhiteTurn,true));
         }
+        // todo fix transtable erratic behaviour
 //        if(transTable.containsKey(key)){
 ////            logger.info("Transtable value being used");
 //            return new MinimaxOutput(transTable.get(key));
@@ -244,7 +239,7 @@ public class Computer{
             }
             else{
                 // only stay if diff less than advtgThreshold
-                if(diff > advtgThresholdCalc){
+                if(diff > -advtgThresholdCalc){
                     // not worth it to go deeper
 //                    System.out.println("failed thresh: "  + depth);
                     return new MinimaxOutput(posEval);
@@ -254,11 +249,12 @@ public class Computer{
 
         }
 
-
+        // once again  check stop flag
         if(stop.get()){
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
+        // recursive part
         if(isWhiteTurn){
             MinimaxOutput maxEval = new MinimaxOutput(Double.NEGATIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(true,gameState);
@@ -271,12 +267,19 @@ public class Computer{
                 position.makeLocalPositionMove(c);
                 if(!assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove)){
                     System.out.println("whywhywhywhywhywhywhy");
+                    return Stopped;
+
+
                 }
                 assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
 //              assertTrue(position.gameState.toString(),childPositions.get(i).gameState);
                 MinimaxOutput out = miniMax(position,position.gameState, depth - 1, alpha, beta, false);
-                position.undoLocalPositionMove(c);
+                position.undoLocalPositionMove();
                 if(out == Stopped){
+                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                    System.out.println(c.toString());
+                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
+                    System.out.println(outStr);
                     return Stopped;
                 }
                 maxEval = max(out, maxEval);
@@ -299,15 +302,21 @@ public class Computer{
                 String ogMove = position.getMoveThatCreatedThis().toString();
                 position.makeLocalPositionMove(c);
                 if(!assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove)){
+                    System.out.println(c.toString());
                     System.out.println("whywhywhywhywhywhywhy");
+                    return Stopped;
                 }
 
                 assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
 //                assertTrue(position.gameState.toString(),childPositions.get(i).gameState);
                 MinimaxOutput out = miniMax(position,position.gameState, depth - 1, alpha, beta, true);
-                position.undoLocalPositionMove(c);
+                position.undoLocalPositionMove();
                 if(out == Stopped){
+                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:  " + depth);
+                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
+                    System.out.println(outStr);
                     return Stopped;
+
                 }
 
                 minEval = min(out,minEval);
@@ -574,8 +583,8 @@ public class Computer{
         for(int i = 0; i<4;i++){
             int dx = dxs[i] +x;
             int dy = dys[i] +y;
-            while(GeneralChessFunctions.isValidMove(dx,dy)){
-                if(GeneralChessFunctions.checkIfContains(dx,dy,board)[0]){
+            while(GeneralChessFunctions.isValidCoord(dx,dy)){
+                if(GeneralChessFunctions.checkIfContains(dx,dy,board,"fileVals")[0]){
                     // hit peice
                     break;
                 }

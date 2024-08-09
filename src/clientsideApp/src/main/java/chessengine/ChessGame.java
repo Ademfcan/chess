@@ -47,7 +47,7 @@ public class ChessGame{
     private List<ChessPosition> moves;
 
     // castling etc
-    public ChessStates gameStates;
+    public ChessStates gameState;
 
     public ChessPosition currentPosition;
 
@@ -112,6 +112,8 @@ public class ChessGame{
     }
 
 
+
+
     /**
         These variables and methods all are only used in online games
 
@@ -126,7 +128,9 @@ public class ChessGame{
 
     private boolean isWebGameInitialized;
 
-
+    public String getGameType() {
+        return gameType;
+    }
     public boolean isWebGame() {
         return isWebGame;
     }
@@ -183,7 +187,7 @@ public class ChessGame{
 
     public ChessGame cloneGame(){
         List<ChessPosition> clonedMoves = moves.stream().map(ChessPosition::clonePosition).toList();
-        return ChessGame.getClonedGame(clonedMoves,gameStates.cloneState(),gameName,player1name,player2name,player1Elo,player2Elo,player1PfpUrl,player2PfpUrl,isVsComputer,isWebGame,isWhiteOriented);
+        return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(),gameName,player1name,player2name,player1Elo,player2Elo,player1PfpUrl,player2PfpUrl,isVsComputer,isWebGame,isWhiteOriented,maxIndex);
     }
 
 
@@ -208,11 +212,12 @@ public class ChessGame{
             // now set player icons
             centralControl.mainScreenController.setUpIcons(player1PfpUrl,player2PfpUrl);
             centralControl.mainScreenController.setPlayerLabels(player1name,player1Elo,player2name,player2Elo);
-
-            // if moves have been played, add them to the pgn moves
-            String[] pgn = gameToPgnArr();
-            for(String s : pgn){
-                centralControl.chessActionHandler.addToMovesPlayed(s);
+            if(maxIndex > -1){
+                // this game has some moves we need to add to moves played
+                String[] pgns = gameToPgnArr();
+                for(String movePgn : pgns){
+                    centralControl.chessActionHandler.addToMovesPlayed(movePgn);
+                }
             }
 
         }
@@ -241,7 +246,7 @@ public class ChessGame{
 
     public void moveToEndOfGame(){
         if(maxIndex != curMoveIndex){
-            changeToDifferentMove(maxIndex-curMoveIndex,true,false);
+            changeToDifferentMove(maxIndex-curMoveIndex,true);
         }
         else{
             ChessConstants.mainLogger.debug("Already at end of game");
@@ -250,29 +255,31 @@ public class ChessGame{
 
     public void moveToMoveIndexAbsolute(int absIndex,boolean animateIfPossible){
         if(absIndex <= maxIndex && absIndex != curMoveIndex){
-            centralControl.chessBoardGUIHandler.clearAllHighlights();
+            if(isMainGame){
+                centralControl.chessBoardGUIHandler.clearAllHighlights();
+            }
             if(animateIfPossible){
                 // we will move one back then we will move forward to give the impresison that you are animating the move that created that positon
                 int dirWithOneMore = absIndex-curMoveIndex-1;
                 if(curMoveIndex + dirWithOneMore >= -1){
                     // means we wont go too far back so we can do it
-                    changeToDifferentMove(dirWithOneMore,true,false);
+                    changeToDifferentMove(dirWithOneMore,true);
                     // this call will animate it
-                    changeToDifferentMove(1,false,true);
+                    changeToDifferentMove(1,false);
                 }
                 else{
-                    changeToDifferentMove(absIndex-curMoveIndex,false,true);
+                    changeToDifferentMove(absIndex-curMoveIndex,false);
                 }
             }
             else{
-                changeToDifferentMove(absIndex-curMoveIndex,true,false);
+                changeToDifferentMove(absIndex-curMoveIndex,true);
             }
         }
         else{
             ChessConstants.mainLogger.error("absolute index provided out of bounds!");
         }
     }
-    public void changeToDifferentMove(int dir,boolean noAnimate,boolean playEffect){
+    public void changeToDifferentMove(int dir,boolean noAnimate){
         if(dir != 0 && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition)){
             int moveChange = Math.abs(dir%2);
             // if not an even number the turn flips
@@ -305,9 +312,9 @@ public class ChessGame{
             ChessConstants.mainLogger.debug("New curIndex: " + curMoveIndex);
             ChessPosition newPos = getPos(curMoveIndex);
 
-            if(isMainGame){
-                if(Math.abs(dir) > 1 || centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX) || noAnimate){
-                    // cannot try to animate move (actually can but not neccesary)
+            if(Math.abs(dir) > 1 ||(isMainGame && centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)) || noAnimate){
+                // cannot try to animate move (actually can but not neccesary)
+                if(isMainGame){
                     if(isWebGame){
                         Platform.runLater(()->{
                             updateChessBoardGui(newPos, currentPosition);
@@ -317,68 +324,70 @@ public class ChessGame{
                     else{
                         updateChessBoardGui(newPos, currentPosition);
                     }
-                    updateGameStatesAndInfoIterative(dir,tempForGameStates);
+                }
+                // gamestates update
+                updateGameStates(dir,tempForGameStates);
+            }
+            else{
+                boolean isReverse = dir < 0;
+                // update gamestates
+                if(isReverse){
+                    gameState.moveBackward(currentPosition);
                 }
                 else{
+                    gameState.moveForward(newPos);
+                }
 
-                        boolean isReverse = dir < 0;
-                        // update gamestates
-                        if(isReverse){
-                            gameStates.moveBackward(currentPosition);
-                        }
-                        else{
-                            gameStates.moveForward(newPos);
-                        }
-
-
-                        ChessMove move;
-                        if(isReverse){
-                            move = currentPosition.getMoveThatCreatedThis().reverseMove();
-                            if(curMoveIndex != -1 && !move.isCustomMove()){
-                                // always highlight the move that created the current pos
-                                if(isWebGame){
-                                    Platform.runLater(()->{
-                                        centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(),isWhiteOriented);
-
-                                    });
-                                }
-                                else{
+                if(isMainGame){
+                    ChessMove move;
+                    if(isReverse){
+                        move = currentPosition.getMoveThatCreatedThis().reverseMove();
+                        if(curMoveIndex != -1 && !move.isCustomMove()){
+                            // always highlight the move that created the current pos
+                            if(isWebGame){
+                                Platform.runLater(()->{
                                     centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(),isWhiteOriented);
 
-                                }
+                                });
+                            }
+                            else{
+                                centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(),isWhiteOriented);
+
                             }
                         }
-                        else{
-                            move = newPos.getMoveThatCreatedThis();
+                    }
+                    else{
+                        move = newPos.getMoveThatCreatedThis();
 
-                        }
-                        if(isWebGame){
-                            Platform.runLater(()->{
-                                if(!move.isCustomMove()){
-                                    chessBoardGuiMakeMoveFromCurrent(move,isReverse,currentPosition,newPos);
-                                }
-                                else{
-                                    updateChessBoardGui(newPos, currentPosition);
-                                }
-                            });
-                        }else{
-
+                    }
+                    if(isWebGame){
+                        Platform.runLater(()->{
                             if(!move.isCustomMove()){
                                 chessBoardGuiMakeMoveFromCurrent(move,isReverse,currentPosition,newPos);
                             }
                             else{
                                 updateChessBoardGui(newPos, currentPosition);
                             }
-                        }
+                        });
+                    }else{
 
+                        if(!move.isCustomMove()){
+                            chessBoardGuiMakeMoveFromCurrent(move,isReverse,currentPosition,newPos);
+                        }
+                        else{
+                            updateChessBoardGui(newPos, currentPosition);
+                        }
+                    }
                 }
+
+
             }
             // setting eval bar if checkmated
             if(isMainGame){
                 if(isWebGame){
                     Platform.runLater(()->{
-                        if(gameStates.isCheckMated()[0]) {
-                            int eval = gameStates.isCheckMated()[1] ? 1000000 : -1000000;
+                        if(gameState.isCheckMated()[0]) {
+                            int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                             centralControl.mainScreenController.setEvalBar(eval, -1, false, true);
                         }
                         else{
@@ -387,8 +396,8 @@ public class ChessGame{
                     });
                 }
                 else{
-                    if(gameStates.isCheckMated()[0]) {
-                        int eval = gameStates.isCheckMated()[1] ? 1000000 : -1000000;
+                    if(gameState.isCheckMated()[0]) {
+                        int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                         centralControl.mainScreenController.setEvalBar(eval, -1, false, true);
                     }
                     else{
@@ -402,7 +411,7 @@ public class ChessGame{
                 if(newPos != ChessConstants.startBoardState){
                     // this essentialy is checking to make sure you are not at the very start of the game as the start position does not have an actual move that created it
                     ChessMove move = newPos.getMoveThatCreatedThis();
-                    App.soundPlayer.playMoveEffect(move,AdvancedChessFunctions.isChecked(!move.isWhite(),newPos.board),gameStates.isCheckMated()[0] || gameStates.isStaleMated());
+                    App.soundPlayer.playMoveEffect(move,AdvancedChessFunctions.isChecked(!move.isWhite(),newPos.board), gameState.isCheckMated()[0] || gameState.isStaleMated());
 
                 }
                 else{
@@ -415,23 +424,25 @@ public class ChessGame{
         }
         else{
             // wait for transition
+            ChessConstants.mainLogger.error("Dir zero or no transition, so did not move to new index");
 //            App.messager.sendMessageQuick("Wait",false);
         }
     }
 
 
-    private void updateGameStatesAndInfoIterative(int dir, int moveIndexBeforeChange){
+    private void updateGameStates(int dir, int moveIndexBeforeChange){
+        System.out.println("In Iter, dir: " + dir + " mibfc: " + moveIndexBeforeChange);
         boolean isRev = dir < 0;
         int absDir = Math.abs(dir);
         for(int i = 0;i<absDir;i++){
             if(isRev){
-                gameStates.moveBackward(getPos(moveIndexBeforeChange));
+                gameState.moveBackward(getPos(moveIndexBeforeChange));
                 moveIndexBeforeChange--;
             }
             else{
                 moveIndexBeforeChange++;
                 ChessPosition newPos = getPos(moveIndexBeforeChange);
-                gameStates.moveForward(newPos);
+                gameState.moveForward(newPos);
             }
             // highlight new move index
 
@@ -440,20 +451,25 @@ public class ChessGame{
         }
     }
 
+    private void setGameStateToAbsIndex(int absIndex){
+        int dir = absIndex- gameState.getCurrentIndex();
+        updateGameStates(dir, gameState.getCurrentIndex());
+    }
+
     public void reset(){
         this.isWhiteTurn = firstTurnDefault;
         curMoveIndex = -1;
         maxIndex = -1;
         ChessPosition newPos = getPos(curMoveIndex);
         updateChessBoardGui(newPos, currentPosition);
-        gameStates.reset();
+        gameState.reset();
         currentPosition = newPos;
         clearIndx(false);
         centralControl.chessActionHandler.clearMovesPlayed();
 
     }
 
-    public List<ChessPosition> getMoves() {
+    public List<ChessPosition> getPositions() {
         return moves;
     }
 
@@ -620,7 +636,7 @@ public class ChessGame{
             moves.subList(curMoveIndex+1, to).clear();
         }
         if(updateStates){
-            gameStates.clearIndexes(curMoveIndex);
+            gameState.clearIndexes(curMoveIndex);
         }
         if(isMainGame){
             centralControl.chessActionHandler.clearMovesPlayedUpToIndex(curMoveIndex);
@@ -636,7 +652,7 @@ public class ChessGame{
 
         ChessMove move = pgnToMove(pgn, getPos(curMoveIndex), isWhiteTurn);
         System.out.println("Movepgn: " + pgn + " movestr: " + move.toString());
-        ChessPosition newPos = new ChessPosition(getPos(curMoveIndex), gameStates, move);
+        ChessPosition newPos = new ChessPosition(getPos(curMoveIndex), gameState, move);
         MakeMove(newPos, move, true, false);
     }
 
@@ -656,7 +672,7 @@ public class ChessGame{
             // jump to front
             moveToEndOfGame();
         }
-        ChessPosition newPos = new ChessPosition(currentPosition,gameStates,move);
+        ChessPosition newPos = new ChessPosition(currentPosition, gameState,move);
         MakeMove(newPos,move,false,isDragMove);
 
 
@@ -671,10 +687,10 @@ public class ChessGame{
         maxIndex++;
         curMoveIndex++;
         moves.add(newPosition);
-        boolean isDraw = gameStates.makeNewMoveAndCheckDraw(newPosition,true,true);
+        boolean isDraw = gameState.makeNewMoveAndCheckDraw(newPosition);
         if(!isMainGame || !centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
             if(isDraw){
-                gameStates.setStaleMated();
+                gameState.setStaleMated();
                 if(isMainGame){
                     ChessConstants.mainLogger.debug("stalemate");
                     if(isWebMove){
@@ -690,9 +706,9 @@ public class ChessGame{
                     App.soundPlayer.playEffect(Effect.GAMEOVER);
                 }
             }
-            else if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),newPosition,gameStates)){
-                if(AdvancedChessFunctions.isCheckmated(!move.isWhite(),newPosition,gameStates)){
-                    gameStates.setCheckMated(move.isWhite());
+            else if(AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(),newPosition, gameState)){
+                if(AdvancedChessFunctions.isCheckmated(!move.isWhite(),newPosition, gameState)){
+                    gameState.setCheckMated(move.isWhite());
                     if(isMainGame){
                         ChessConstants.mainLogger.debug("checkmate");
                         if(isWebMove){
@@ -708,7 +724,7 @@ public class ChessGame{
                     }
                 }
                 else{
-                    gameStates.setStaleMated();
+                    gameState.setStaleMated();
                     if(isMainGame){
                         ChessConstants.mainLogger.debug("stalemate");
                         if(isWebMove){
@@ -752,7 +768,7 @@ public class ChessGame{
                 }
 
             }
-            sendMessageToInfo("Move: " + PgnFunctions.moveToPgn(move,newPosition,gameStates));
+            sendMessageToInfo("Move: " + PgnFunctions.moveToPgn(move,newPosition, gameState));
         }
         currentPosition = newPosition;
         // side panel stuff
@@ -773,13 +789,14 @@ public class ChessGame{
             centralControl.mainScreenController.setMoveLabels(curMoveIndex,maxIndex);
         }
         if(isMainGame){
-            App.soundPlayer.playMoveEffect(move,AdvancedChessFunctions.isChecked(!move.isWhite(),newPosition.board),gameStates.isCheckMated()[0] || gameStates.isStaleMated());
+            App.soundPlayer.playMoveEffect(move,AdvancedChessFunctions.isChecked(!move.isWhite(),newPosition.board), gameState.isCheckMated()[0] || gameState.isStaleMated());
         }
         if(isWebGame && !isWebMove){
             // todo with other things: add time
-            client.sendRequest(INTENT.MAKEMOVE,PgnFunctions.moveToPgn(move,newPosition,gameStates) + ",10");
+            client.sendRequest(INTENT.MAKEMOVE,PgnFunctions.moveToPgn(move,newPosition, gameState) + ",10");
 
         }
+        System.out.println(gameState.toString());
     }
 
 
@@ -836,7 +853,7 @@ public class ChessGame{
         if(simplefiedPgn.length() == 2){
             // simple pawn move
             if(pgn.contains("#")){
-                gameStates.setCheckMated(isWhiteMove);
+                gameState.setCheckMated(isWhiteMove);
             }
 
 
@@ -867,7 +884,7 @@ public class ChessGame{
                 }
                 else if (c == '#') {
                     // Indicates a checkmate
-                    gameStates.setCheckMated(isWhiteMove);
+                    gameState.setCheckMated(isWhiteMove);
                 }
                 else if (Character.isDigit(c)) {
                     // If the character is a digit, it denotes the destination square
@@ -912,7 +929,7 @@ public class ChessGame{
                 // could be en passant
                 int backdir = isWhiteMove ? 1 : -1;
                 // check if its an en passant move
-                if(GeneralChessFunctions.isValidMove(x,y+backdir) && GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
+                if(GeneralChessFunctions.isValidCoord(x,y+backdir) && GeneralChessFunctions.checkIfContains(x,y+backdir,!isWhiteMove,currentPosition.board)){
                     // if so this means that the pawn can have possibly gotten here from an en passant move
                     if(!currentPosition.equals(ChessConstants.startBoardState)){
                         // means we arent at the very beginning as there is not an actual move for the start position
@@ -938,9 +955,9 @@ public class ChessGame{
             }
 
 
-            XYcoord oldCoords = AdvancedChessFunctions.findOldCoordinates(x,y,pieceType,ambgX,ambgY,isWhiteMove,isEating,currentPosition,gameStates);
+            XYcoord oldCoords = AdvancedChessFunctions.findOldCoordinates(x,y,pieceType,ambgX,ambgY,isWhiteMove,isEating,currentPosition, gameState);
             if(pieceType == ChessConstants.ROOKINDEX){
-                gameStates.checkRemoveRookMoveRight(oldCoords.x,oldCoords.y,isWhiteMove);
+                gameState.checkRemoveRookMoveRight(oldCoords.x,oldCoords.y,isWhiteMove);
             }
 
             int eatingIndex = GeneralChessFunctions.getBoardWithPiece(x,y,!isWhiteMove,currentPosition.board);
@@ -952,7 +969,7 @@ public class ChessGame{
 
     private ChessPosition makeNewMovePGN(String move, ChessPosition currentPos, boolean isWhiteMove){
         ChessMove movePgn = pgnToMove(move,currentPos,isWhiteMove);
-        return new ChessPosition(currentPos,gameStates,movePgn);
+        return new ChessPosition(currentPos, gameState,movePgn);
 
     }
 
@@ -964,19 +981,27 @@ public class ChessGame{
         StringBuilder sb = new StringBuilder(maxIndex);
         for(int i = 0;i<maxIndex+1;i++){
             // need to update gamestates as we move along through the game
-            gameStates.updateAllStatesToNewIndex(i);
+            setGameStateToAbsIndex(i);
             if(i%2 == 0){
                 int moveNum =(i/2)+1;
                 sb.append(moveNum).append(".");
             }
             ChessPosition p = getPos(i);
 
-            sb.append(PgnFunctions.moveToPgn(p,gameStates)).append(" ");
+            sb.append(PgnFunctions.moveToPgn(p, gameState)).append(" ");
 
         }
         // reset gamestates
-        gameStates.updateAllStatesToNewIndex(curMoveIndex);
+        setGameStateToAbsIndex(curMoveIndex);
         return sb.toString();
+    }
+
+    public List<ChessMove> getMoves(){
+        List<ChessMove> moves = new ArrayList<>();
+        for(int i = 0;i<=maxIndex;i++){
+            moves.add(getPos(i).getMoveThatCreatedThis());
+        }
+        return moves;
     }
 
     public String[] gameToPgnArr(){
@@ -987,14 +1012,14 @@ public class ChessGame{
         String[] pgn = new String[maxIndex+1];
         for(int i = 0;i<maxIndex+1;i++){
             // need to update gamestates as we move along through the game
-            gameStates.updateAllStatesToNewIndex(i);
+            setGameStateToAbsIndex(i);
             ChessPosition p = getPos(i);
 
-            pgn[i] = PgnFunctions.moveToPgn(p,gameStates);
+            pgn[i] = PgnFunctions.moveToPgn(p, gameState);
 
         }
         // reset gamestated
-        gameStates.updateAllStatesToNewIndex(curMoveIndex);
+        setGameStateToAbsIndex(curMoveIndex);
         return pgn;
     }
 
@@ -1003,15 +1028,13 @@ public class ChessGame{
         ChessPosition currentState = ChessConstants.startBoardState;
 
         boolean WhiteMove = true;
-        int moveIndex = -1;
         for(String s : pgnMoveText.split(" ")){
             int dotIndex= s.indexOf(".");
             if(dotIndex != -1){
                 s = s.substring(dotIndex+1);
             }
-            moveIndex++;
-            gameStates.updateMoveIndex(moveIndex);
             currentState = makeNewMovePGN(s,currentState,WhiteMove);
+            gameState.makeNewMoveAndCheckDraw(currentState);
             moves.add(currentState);
             WhiteMove = !WhiteMove;
         }
@@ -1026,7 +1049,7 @@ public class ChessGame{
     /** Constructor for generating a game from a saved pgn (This version is exclusively used loading games from save**/
     public static ChessGame createGameFromSaveLoad(String pgn,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl,String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented,String gameHash){
         ChessGame game = new ChessGame();
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         if(pgn.trim().isEmpty()){
             game.moves = new ArrayList<>();
         }
@@ -1051,6 +1074,7 @@ public class ChessGame{
         game.gameHash = gameHash;
         game.isWebGame =false;
         game.isWhiteOriented = isWhiteOriented;
+        game.setGameStateToAbsIndex(game.curMoveIndex);
         return game;
     }
 
@@ -1069,7 +1093,7 @@ public class ChessGame{
         game.player2name = "";
         game.player2Elo = 0;
         game.isWebGame = true;
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         game.gameType = gameType;
         game.currentPosition = game.getPos(game.curMoveIndex);
         game.isWhiteOriented = isWhiteOriented;
@@ -1085,7 +1109,7 @@ public class ChessGame{
     public static ChessGame createSimpleGameWithName(String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         game.curMoveIndex = -1;
         game.maxIndex = -1;
         game.currentPosition = game.getPos(game.curMoveIndex);
@@ -1112,7 +1136,7 @@ public class ChessGame{
     public static ChessGame createSimpleGame(String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         game.curMoveIndex = -1;
         game.maxIndex = -1;
         game.currentPosition = game.getPos(game.curMoveIndex);
@@ -1140,7 +1164,7 @@ public class ChessGame{
     /** This constructor creates a game from pgn and simple things known about the player (Needs to be changed as true pgn is is only represented as a string. Right now it is only parsing pgn as movetext**/
     public static ChessGame gameFromPgn(String pgn,String gameName,String player1name,int player1Elo,String player1PfpUrl,boolean isVsComputer,boolean isWhiteOriented){
         ChessGame game = new ChessGame();
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         if(pgn.trim().isEmpty()){
             game.moves = new ArrayList<>();
         }
@@ -1165,6 +1189,7 @@ public class ChessGame{
         game.gameHash = String.valueOf(game.hashCode());
         game.isWebGame = false;
         game.isWhiteOriented = isWhiteOriented;
+        game.setGameStateToAbsIndex(game.curMoveIndex);
 
         return game;
 
@@ -1173,7 +1198,7 @@ public class ChessGame{
     /** This method is pretty much exclusively called from tests. All vars with user information/Graphical Features are not expected to be used **/
     public static ChessGame createTestGame(String pgn,boolean isVsComputer){
         ChessGame game = new ChessGame();
-        game.gameStates = new ChessStates();
+        game.gameState = new ChessStates();
         if(pgn.trim().isEmpty()){
             game.moves = new ArrayList<>();
         }
@@ -1197,18 +1222,19 @@ public class ChessGame{
         game.isVsComputer = isVsComputer;
         game.gameHash = String.valueOf(game.hashCode());
         game.isWebGame = false;
+        game.setGameStateToAbsIndex(game.curMoveIndex);
 
         return game;
     }
 
 
     /** Method used exclusively for cloning chessgame instances Note: The game created is set to the start of the game**/
-    private static ChessGame getClonedGame(List<ChessPosition> moves,ChessStates gameStates,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWebGame,boolean isWhiteOriented){
+    private static ChessGame getClonedGame(List<ChessPosition> moves,ChessStates gameStates,String gameName,String player1name,String player2name,int player1Elo,int player2Elo,String player1PfpUrl, String player2PfpUrl,boolean isVsComputer,boolean isWebGame,boolean isWhiteOriented,int maxIndex){
         ChessGame game = new ChessGame();
         game.moves = moves;
-        game.gameStates = gameStates;
+        game.gameState = gameStates;
         game.curMoveIndex = -1;
-        game.maxIndex = -1;
+        game.maxIndex = maxIndex;
         game.currentPosition = game.getPos(game.curMoveIndex);
 
         game.gameName = gameName;
@@ -1223,6 +1249,7 @@ public class ChessGame{
         game.gameHash = String.valueOf(game.hashCode());
         game.isWebGame = isWebGame;
         game.isWhiteOriented = isWhiteOriented;
+        game.setGameStateToAbsIndex(game.curMoveIndex);
         return game;
 
     }

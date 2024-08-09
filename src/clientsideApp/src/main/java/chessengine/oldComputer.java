@@ -17,21 +17,21 @@ public class oldComputer extends Computer{
 //        int key = Objects.hash(gameState.hashCode(),position.hashCode(),isWhiteTurn);
         long key = hasher.computeHash(position,isWhiteTurn);
         if(position.isDraw()){
-            return new MinimaxOutput(drawConst);
+            return new MinimaxOutput(isWhiteTurn ? drawConst : -drawConst);
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(true,position,gameState)){
             // possiblity of a black winning from checkmate, else draw
             if(AdvancedChessFunctions.isChecked(true,position.board)){
                 return new MinimaxOutput(ChessConstants.BLACKCHECKMATEVALUE);
             }
-            return new MinimaxOutput(drawConst);
+            return new MinimaxOutput(isWhiteTurn ? drawConst : -drawConst);
         }
         if(AdvancedChessFunctions.isAnyNotMovePossible(false,position,gameState)){
             // possiblity of a white winning from checkmate, else draw
             if(AdvancedChessFunctions.isChecked(false,position.board)){
                 return new MinimaxOutput(ChessConstants.WHITECHECKMATEVALUE);
             }
-            return new MinimaxOutput(drawConst);
+            return new MinimaxOutput(isWhiteTurn ? drawConst : -drawConst);
         }
 
         if(depth == 0){

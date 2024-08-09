@@ -1,6 +1,5 @@
 package chessengine;
 
-import javafx.scene.image.ImageView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -92,7 +91,7 @@ public class AdvancedChessFunctions {
     private static boolean willResultInDead(int x, int y, int newX, int newY, boolean isWhite, BitBoardWrapper board){
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
-        long[] mystuff = isWhite ?  whitePieces : blackPieces;
+        long[] friendlyPieces = isWhite ?  whitePieces : blackPieces;
         long[] enemy = isWhite ?  blackPieces : whitePieces;
         // checking if a move will result in being checked
         // i 0-1 will be queen or bishop, and i 2-3 will be rook or queen
@@ -106,11 +105,11 @@ public class AdvancedChessFunctions {
             int x1 = x + dx[i];
             int y1 = y + dy[i];
 
-            while(GeneralChessFunctions.isValidMove(x1,y1)){
+            while(GeneralChessFunctions.isValidCoord(x1,y1)){
                 if(x1 == newX && y1 == newY){
                     break;
                 }
-                if(GeneralChessFunctions.checkIfContains(x1,y1,mystuff[5])){
+                if(GeneralChessFunctions.checkIfContains(x1,y1,friendlyPieces[ChessConstants.KINGINDEX])){
                     hitking = true;
                     break;
                 }
@@ -118,12 +117,13 @@ public class AdvancedChessFunctions {
                     int peiceType = GeneralChessFunctions.getBoardWithPiece(x1,y1,!isWhite,board);
                     if(i < 2){
                         // bishop/queen possibility
-                        if(peiceType == 4 || peiceType == 2){
+                        if(peiceType == ChessConstants.QUEENINDEX || peiceType == ChessConstants.BISHOPINDEX){
                             hitEnemy = true;
                         }
                     }
                     else{
-                        if(peiceType == 4 || peiceType == 3){
+                        // rook/ queen possibility
+                        if(peiceType == ChessConstants.QUEENINDEX || peiceType == ChessConstants.ROOKINDEX){
                             hitEnemy = true;
                         }
                     }
@@ -138,11 +138,11 @@ public class AdvancedChessFunctions {
             int x2 = x - dx[i];
             int y2 = y - dy[i];
 
-            while(GeneralChessFunctions.isValidMove(x2,y2)){
+            while(GeneralChessFunctions.isValidCoord(x2,y2)){
                 if(x2 == newX && y2 == newY){
                     break;
                 }
-                if(GeneralChessFunctions.checkIfContains(x2,y2,mystuff[5])){
+                if(GeneralChessFunctions.checkIfContains(x2,y2,friendlyPieces[5])){
                     hitking = true;
                     break;
                 }
@@ -210,7 +210,7 @@ public class AdvancedChessFunctions {
             }
         }
 
-        if(GeneralChessFunctions.isValidMove(eatX1,eatY) && GeneralChessFunctions.checkIfContains(eatX1,eatY,!isWhite, board)){
+        if(GeneralChessFunctions.isValidCoord(eatX1,eatY) && GeneralChessFunctions.checkIfContains(eatX1,eatY,!isWhite, board)){
             // pawn can capture to the right
             if(isforcheck){
                 moves.add(new XYcoord(eatX1,eatY));
@@ -220,7 +220,7 @@ public class AdvancedChessFunctions {
 
             }
         }
-        if(GeneralChessFunctions.isValidMove(eatX2,eatY) && GeneralChessFunctions.checkIfContains(eatX2,eatY,!isWhite, board)){
+        if(GeneralChessFunctions.isValidCoord(eatX2,eatY) && GeneralChessFunctions.checkIfContains(eatX2,eatY,!isWhite, board)){
             // pawn can capture to the left
             if(isforcheck){
                 moves.add(new XYcoord(eatX2,eatY));
@@ -235,7 +235,7 @@ public class AdvancedChessFunctions {
         for(int i = 1; i< depth+1;i++){
             int newY = y + i*move;
             // pawns cannot eat forwards
-            if(GeneralChessFunctions.isValidMove(x,newY) && !GeneralChessFunctions.checkIfContains(x,newY, board)[0]){
+            if(GeneralChessFunctions.isValidCoord(x,newY) && !GeneralChessFunctions.checkIfContains(x,newY, board,"calcpawn")[0]){
                 // pawn can capture to the right
                 if(isforcheck){
                     moves.add(new XYcoord(x,newY));
@@ -266,7 +266,7 @@ public class AdvancedChessFunctions {
         for (int i = 0; i < 8; i++) {
             int newX = x + dx[i];
             int newY = y + dy[i];
-            if (GeneralChessFunctions.isValidMove(newX, newY) && !GeneralChessFunctions.checkIfContains(newX, newY, isWhite, board)) {
+            if (GeneralChessFunctions.isValidCoord(newX, newY) && !GeneralChessFunctions.checkIfContains(newX, newY, isWhite, board)) {
                 if(edgesOnly){
                     if(GeneralChessFunctions.checkIfContains(newX,newY,!isWhite, board)){
                         moves.add(new XYcoord(newX, newY));
@@ -305,7 +305,7 @@ public class AdvancedChessFunctions {
                 if(!isForCheck){
                     willDie = willResultInDead(x,y,newX,newY, isWhite,board);
                 }
-                if(GeneralChessFunctions.isValidMove(newX, newY) && !willDie) {
+                if(GeneralChessFunctions.isValidCoord(newX, newY) && !willDie) {
                     boolean containsFriend = GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board);
                     boolean containsEnemy = GeneralChessFunctions.checkIfContains(newX, newY, !isWhite,board);
 
@@ -356,7 +356,7 @@ public class AdvancedChessFunctions {
                 if(!isForCheck){
                     willDie = willResultInDead(x,y,newX,newY, isWhite,board);
                 }
-                if (GeneralChessFunctions.isValidMove(newX, newY) && !willDie) {
+                if (GeneralChessFunctions.isValidCoord(newX, newY) && !willDie) {
                     boolean containsFriend = GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board);
                     boolean containsEnemy = GeneralChessFunctions.checkIfContains(newX, newY, !isWhite,board);
 
@@ -406,7 +406,7 @@ public class AdvancedChessFunctions {
         for (int i = 0; i < 8; i++) {
             int newX = x + dx[i];
             int newY = y + dy[i];
-            if (GeneralChessFunctions.isValidMove(newX, newY) && !GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board)) {
+            if (GeneralChessFunctions.isValidCoord(newX, newY) && !GeneralChessFunctions.checkIfContains(newX, newY, isWhite,board)) {
                 moves.add(new XYcoord(newX,newY));
             }
         }
@@ -421,12 +421,12 @@ public class AdvancedChessFunctions {
         boolean longRook = isWhite ? gameState.isWhiteLongRookRight() : gameState.isBlackLongRookRight();
 
         if(canCastle && !isChecked(x,y,isWhite,board)){
-            // short castle
-            if(!GeneralChessFunctions.checkIfContains(x+1,y,board)[0] && !GeneralChessFunctions.checkIfContains(x+2,y,board)[0] && shortRook && !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board)){
+            // short castle // todo gamestates giving castle right even though xy is not at home location!!!
+            if(shortRook && !GeneralChessFunctions.checkIfContains(x+1,y,board,"kingCaslte")[0] && !GeneralChessFunctions.checkIfContains(x+2,y,board,"kingCaslte")[0] &&  !isChecked(x+1,y,isWhite,board) && !isChecked(x+2,y,isWhite,board)){
                 moves.add(new XYcoord(x+2,y,true));
             }
             // long castle
-            if(!GeneralChessFunctions.checkIfContains(x-1,y,board)[0] && !GeneralChessFunctions.checkIfContains(x-2,y,board)[0] && !GeneralChessFunctions.checkIfContains(x-3,y,board)[0] && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board) && longRook){
+            if(longRook && !GeneralChessFunctions.checkIfContains(x-1,y,board,"kingCaslte")[0] && !GeneralChessFunctions.checkIfContains(x-2,y,board,"kingCaslte")[0] && !GeneralChessFunctions.checkIfContains(x-3,y,board,"kingCaslte")[0] && !isChecked(x-1,y,isWhite,board) && !isChecked(x-2,y,isWhite,board) && !isChecked(x-3,y,isWhite,board)){
                 moves.add(new XYcoord(x-2,y,true));
 
             }
@@ -439,7 +439,7 @@ public class AdvancedChessFunctions {
         for (int i = 0; i < 8; i++) {
             int newX = x + dx[i];
             int newY = y + dy[i];
-            boolean isValid = GeneralChessFunctions.isValidMove(newX, newY);
+            boolean isValid = GeneralChessFunctions.isValidCoord(newX, newY);
             if(isValid){
                 board.makeTempChange(x,y,newX,newY,ChessConstants.KINGINDEX,isWhite);
                 boolean newSqareIsChecked = isChecked(newX,newY,isWhite,board);
@@ -496,10 +496,10 @@ public class AdvancedChessFunctions {
         List<XYcoord> possibleKingMoves = basicKingMoveCalc(x,y,isWhite,board);
         // check pawns
         int jump = isWhite ? 1 : -1;
-        if(GeneralChessFunctions.isValidMove(x-jump,y-jump) && getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
+        if(GeneralChessFunctions.isValidCoord(x-jump,y-jump) && getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
             return true;
         }
-        if(GeneralChessFunctions.isValidMove(x+jump,y-jump) && getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
+        if(GeneralChessFunctions.isValidCoord(x+jump,y-jump) && getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
             return true;
         }
         for(XYcoord s : possibleKingMoves){
@@ -545,11 +545,11 @@ public class AdvancedChessFunctions {
         // check pawns
         int jump = isWhite ? 1 : -1;
 
-        if(getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
+        if(GeneralChessFunctions.isValidCoord(x-jump,y-jump) && getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
             retainIfNotEmpty(files,new XYcoord(x-jump,y-jump));
         }
 
-        if(getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
+        if(GeneralChessFunctions.isValidCoord(x+jump,y-jump) && getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
             retainIfNotEmpty(files,new XYcoord(x+jump,y-jump));
 
         }
@@ -867,11 +867,11 @@ public class AdvancedChessFunctions {
         // because its en passant it will have to be one of there
 
         // left
-        if(GeneralChessFunctions.checkIfContains(newX-1,newY+backDir,board)){
+        if(GeneralChessFunctions.isValidCoord(newX-1,newY+backDir) && GeneralChessFunctions.checkIfContains(newX-1,newY+backDir,board)){
             return newX-1;
         }
         // right
-        if(GeneralChessFunctions.checkIfContains(newX+1,newY+backDir,board)){
+        if(GeneralChessFunctions.isValidCoord(newX+1,newY+backDir) && GeneralChessFunctions.checkIfContains(newX+1,newY+backDir,board)){
             return newX+1;
         }
 

@@ -36,7 +36,7 @@ public class ChessStates {
                 '}';
     }
 
-    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, boolean isWhiteWin, boolean isStaleMated, HashMap<Long,Integer> posMap, Stack<Integer> movesWhenResetted) {
+    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, boolean isWhiteWin, boolean isStaleMated, HashMap<Long,Integer> posMap, Stack<Integer> movesWhenResetted,int movesSinceNoCheckOrNoPawn) {
         this.hasher = new ZobristHasher();
         this.whiteCastleRight = whiteCastleRight;
         this.blackCastleRight = blackCastleRight;
@@ -56,6 +56,7 @@ public class ChessStates {
         this.isStaleMated = isStaleMated;
         this.posMap = posMap;
         this.movesWhenResetted = movesWhenResetted;
+        this.movesSinceNoCheckOrNoPawn = movesSinceNoCheckOrNoPawn;
 
     }
 
@@ -63,17 +64,16 @@ public class ChessStates {
 
 
 
-
     public void clearIndexes(int newMoveIndex){
         // if you undo a move, clear the indexes for flags;
-        checkMateIndex = checkMateIndex > newMoveIndex ? 1000 : checkMateIndex;
-        staleMateIndex = staleMateIndex > newMoveIndex ? 1000 : staleMateIndex;
-        whiteCastleIndx = whiteCastleIndx > newMoveIndex ? 1000 : whiteCastleIndx;
-        blackCastleIndx = blackCastleIndx > newMoveIndex ? 1000 : blackCastleIndx;
-        whiteLongRookIndx = whiteLongRookIndx > newMoveIndex ? 1000 : whiteLongRookIndx;
-        whiteShortRookIndx = whiteShortRookIndx > newMoveIndex ? 1000 : whiteShortRookIndx;
-        blackLongRookIndx = blackLongRookIndx > newMoveIndex ? 1000 : blackLongRookIndx;
-        blackShortRookIndx = blackShortRookIndx > newMoveIndex ? 1000 : blackShortRookIndx;
+        checkMateIndex = checkMateIndex >= newMoveIndex ? 1000 : checkMateIndex;
+        staleMateIndex = staleMateIndex >= newMoveIndex ? 1000 : staleMateIndex;
+        whiteCastleIndx = whiteCastleIndx >= newMoveIndex ? 1000 : whiteCastleIndx;
+        blackCastleIndx = blackCastleIndx >= newMoveIndex ? 1000 : blackCastleIndx;
+        whiteLongRookIndx = whiteLongRookIndx >= newMoveIndex ? 1000 : whiteLongRookIndx;
+        whiteShortRookIndx = whiteShortRookIndx >= newMoveIndex ? 1000 : whiteShortRookIndx;
+        blackLongRookIndx = blackLongRookIndx >= newMoveIndex ? 1000 : blackLongRookIndx;
+        blackShortRookIndx = blackShortRookIndx >= newMoveIndex ? 1000 : blackShortRookIndx;
         updateAllStatesToNewIndex(newMoveIndex);
     }
 
@@ -125,17 +125,16 @@ public class ChessStates {
     private int blackShortRookIndx = 1000;
     private int blackLongRookIndx = 1000;
 
-    public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition, boolean incrementIndex,boolean isMain){
-        if(incrementIndex){
-            currentIndex++;
-        }
+    public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition){
+        currentIndex++;
+        clearIndexes(currentIndex);
         // first check draw by repetition
 //        int hash = newPosition.board.hashCode();
         // white move not important in this case so just set constant
         long hash = hasher.computeHash(newPosition,false);
         Integer posCount = posMap.getOrDefault(hash,0);
         posMap.put(hash,posCount+1);
-        if(isMain && posCount+1 > 2){
+        if(posCount+1 > 2){
             // draw by repetition
 //            ChessConstants.mainLogger.debug("Draw by repetition triggered");
             return true;
@@ -148,9 +147,9 @@ public class ChessStates {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-                if(isMain && movesSinceNoCheckOrNoPawn > 99){
-                    ChessConstants.mainLogger.debug("50 move rule triggered");
-                }
+//                if(isMain && movesSinceNoCheckOrNoPawn > 99){
+//                    ChessConstants.mainLogger.debug("50 move rule triggered");
+//                }
                 return movesSinceNoCheckOrNoPawn > 99;
 
             }
@@ -209,22 +208,14 @@ public class ChessStates {
     }
 
     public ChessStates cloneState() {
-        HashMap<Long, Integer> clonedPosMap = cloneMap(posMap);
+        HashMap<Long, Integer> clonedPosMap = new HashMap<>(posMap);
         Stack<Integer> clonedMovesWhenResetted = cloneStack(movesWhenResetted);
 
         return new ChessStates(
                 whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight,
                 blackShortRookRight, blackLongRookRight, blackCastleIndx, whiteCastleIndx,
                 whiteShortRookIndx, whiteLongRookIndx, blackShortRookIndx, blackLongRookIndx,
-                currentIndex, isCheckMated, isWhiteWin, isStaleMated, clonedPosMap, clonedMovesWhenResetted);
-    }
-
-    private HashMap<Long, Integer> cloneMap(HashMap<Long, Integer> oldMap) {
-        HashMap<Long, Integer> newMap = new HashMap<>();
-        for (Map.Entry<Long, Integer> entry : oldMap.entrySet()) {
-            newMap.put(entry.getKey(), entry.getValue());
-        }
-        return newMap;
+                currentIndex, isCheckMated, isWhiteWin, isStaleMated, clonedPosMap, clonedMovesWhenResetted,movesSinceNoCheckOrNoPawn);
     }
 
     private Stack<Integer> cloneStack(Stack<Integer> oldStack) {
@@ -275,7 +266,9 @@ public class ChessStates {
         return blackLongRookRight;
     }
 
-    public void updateAllStatesToNewIndex(int newMoveIndex){
+
+
+    private void updateAllStatesToNewIndex(int newMoveIndex){
         currentIndex = newMoveIndex;
         whiteCastleRight = newMoveIndex <= whiteCastleIndx;
         blackCastleRight = newMoveIndex <= blackCastleIndx;
@@ -325,15 +318,8 @@ public class ChessStates {
 
         // finaly update all flags
 
-        currentIndex--;
-        whiteCastleRight = currentIndex <= whiteCastleIndx;
-        blackCastleRight = currentIndex <= blackCastleIndx;
-        whiteLongRookRight = currentIndex <= whiteLongRookIndx;
-        whiteShortRookRight = currentIndex <= whiteShortRookIndx;
-        blackLongRookRight = currentIndex <= blackLongRookIndx;
-        blackShortRookRight = currentIndex <= blackShortRookIndx;
-        isCheckMated = currentIndex >= checkMateIndex;
-        isStaleMated = currentIndex >= staleMateIndex;
+        updateAllStatesToNewIndex(currentIndex-1);
+
     }
 
 
@@ -362,16 +348,8 @@ public class ChessStates {
 
 
         // finaly update all flags
-        currentIndex++;
+        updateAllStatesToNewIndex(currentIndex+1);
 
-        whiteCastleRight = currentIndex <= whiteCastleIndx;
-        blackCastleRight = currentIndex <= blackCastleIndx;
-        whiteLongRookRight = currentIndex <= whiteLongRookIndx;
-        whiteShortRookRight = currentIndex <= whiteShortRookIndx;
-        blackLongRookRight = currentIndex <= blackLongRookIndx;
-        blackShortRookRight = currentIndex <= blackShortRookIndx;
-        isCheckMated = currentIndex >= checkMateIndex;
-        isStaleMated = currentIndex >= staleMateIndex;
     }
 
     public void updateMoveIndex(int newMoveIndex){

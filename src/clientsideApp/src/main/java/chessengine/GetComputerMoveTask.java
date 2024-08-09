@@ -32,7 +32,7 @@ public class GetComputerMoveTask extends Task<Void> {
     }
 
 
-    public void evalRequest(){
+    public void evalRequest(ComputerDifficulty computerDifficulty){
         logger.info("Called Evaluation Request");
         if(!isCurrentlyEvaluating){
             evaluationRequest = true;

@@ -174,7 +174,7 @@ public class PgnFunctions {
         for(int row  = 0;row<8;row++){
             int emptySquareCount = 0;
             for(int file = 0;file<8;file++){
-                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,pos.board);
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,pos.board,"tofen");
                 if(boardInfo[0]){
                     // means there is a piece there
                     // first put the number of empty squares before this

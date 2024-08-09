@@ -3,11 +3,28 @@ package chessengine;
 import java.util.Stack;
 
 public class BackendChessPosition extends ChessPosition{
+
+
     public ChessStates gameState;
 
     private boolean isDraw;
 
     private Stack<ChessMove> movesThatCreated;
+
+    public BackendChessPosition(BackendChessPosition pos,ChessMove newMove){
+        super(pos.addMovesThatCreatedHack(pos,pos.movesThatCreated),pos.gameState,newMove);
+        this.gameState = pos.gameState;
+        this.isDraw = gameState.makeNewMoveAndCheckDraw(this);
+        this.movesThatCreated = pos.movesThatCreated;
+
+    }
+
+
+    private ChessPosition addMovesThatCreatedHack(ChessPosition pos,Stack<ChessMove> movesThatCreated){
+        movesThatCreated.push(pos.getMoveThatCreatedThis());
+        return pos;
+    }
+
 
     public BackendChessPosition(ChessPosition pos,ChessStates gameState,boolean isDraw){
         super(pos.board,pos.getMoveThatCreatedThis());
@@ -20,9 +37,10 @@ public class BackendChessPosition extends ChessPosition{
     public BackendChessPosition(ChessPosition pos,ChessStates gameState, int peiceType, boolean isWhite, boolean isCastle,boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex){
         super( pos, gameState,  peiceType,  isWhite,  isCastle,isEnPassant,  isPawnPromo,  oldX,  oldY,  newX,  newY,  promoIndex,false);
         this.gameState = gameState;
-        isDraw = this.gameState.makeNewMoveAndCheckDraw(this,true,false);
+        isDraw = this.gameState.makeNewMoveAndCheckDraw(this);
         this.movesThatCreated = new Stack<>();
     }
+
 
 
     public void makeLocalPositionMove(ChessMove move){
@@ -108,16 +126,18 @@ public class BackendChessPosition extends ChessPosition{
 
         movesThatCreated.push(this.getMoveThatCreatedThis());
         super.setMoveThatCreatedThis(move);
-        isDraw = gameState.makeNewMoveAndCheckDraw(this,true,false);
+        isDraw = gameState.makeNewMoveAndCheckDraw(this);
+        
 
 
 
     }
 
 
-    public void undoLocalPositionMove(ChessMove move){
-        gameState.moveBackward(this);
+    public void undoLocalPositionMove(){
+        ChessMove move = super.getMoveThatCreatedThis();
         gameState.clearIndexes(gameState.getCurrentIndex());
+        gameState.moveBackward(this);
         // reverse everything
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();
@@ -161,9 +181,12 @@ public class BackendChessPosition extends ChessPosition{
         }
 
 
-//         normal move
+//         castle move
         if(move.isCastleMove()){
             // check if short or long castle and undo move appropiately
+//            System.out.println("Undoing castling");
+//            System.out.println("CurMove: " + move.toString());
+//            System.out.println("OldMove: " + movesThatCreated.peek().toString());
             boolean isShortCastle = newX == 6;
             if(isShortCastle){
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(7,newY,currentBoardMod[ChessConstants.ROOKINDEX]);

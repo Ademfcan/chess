@@ -111,7 +111,7 @@
                            <VBox fx:id="promoContainer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: lightgray; -fx-border-width: 2; -fx-border-color: black;" />
                         </children>
                      </Pane>
-                     <VBox fx:id="gameoverMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0" style="-fx-background-color: lightgray; -fx-opacity: .75;">
+                     <VBox fx:id="gameoverMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
                         <children>
                            <Label fx:id="gameoverTitle" text="Game Over">
                               <font>

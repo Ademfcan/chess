@@ -298,9 +298,11 @@ public class ChessBoardGUIHandler {
         ImageView smallPeice = createNewPiece(pieceIndex,isTopSide,true);
         smallPeice.setUserData(Integer.toString(pieceIndex));
         if(isTopSide){
+            System.out.println("Adding top");
             eatenWhites.getChildren().add(smallPeice);
         }
         else{
+            System.out.println("Adding bottom");
             eatenBlacks.getChildren().add(smallPeice);
         }
 
