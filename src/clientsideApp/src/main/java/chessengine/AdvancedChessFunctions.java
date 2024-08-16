@@ -618,7 +618,47 @@ public class AdvancedChessFunctions {
 
 
 
-
+    public static int getNumAttackers(int x, int y, boolean isWhite, BitBoardWrapper board){
+        // general checking if a square is checked
+        int attackerCount = 0;
+        List<XYcoord> possibleRookFiles = calculateRookMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
+        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x,y,isWhite,true,ChessConstants.EMPTYINDEX,board,true);
+        List<XYcoord> possibleHorseJumps = calculateKnightMoves(x,y,isWhite,true,board,true);
+        List<XYcoord> possibleKingMoves = basicKingMoveCalc(x,y,isWhite,board);
+        // check pawns
+        int jump = isWhite ? 1 : -1;
+        if(GeneralChessFunctions.isValidCoord(x-jump,y-jump) && getPieceType(x-jump,y-jump,!isWhite,board).equals("Pawn")){
+            attackerCount++;
+        }
+        if(GeneralChessFunctions.isValidCoord(x+jump,y-jump) && getPieceType(x+jump,y-jump,!isWhite,board).equals("Pawn")){
+            attackerCount++;
+        }
+        for(XYcoord s : possibleKingMoves){
+            String peiceType = getPieceType(s.x,s.y,!isWhite,board);
+            if(peiceType.equals("King")){
+                attackerCount++;
+            }
+        }
+        for(XYcoord s : possibleRookFiles){
+            String peiceType = getPieceType(s.x,s.y,!isWhite,board);
+            if(peiceType.equals("Rook") || peiceType.equals("Queen")){
+                attackerCount++;
+            }
+        }
+        for(XYcoord s : possibleHorseJumps){
+            String peiceType = getPieceType(s.x,s.y,!isWhite,board);
+            if(peiceType.equals("Knight")){
+                attackerCount++;
+            }
+        }
+        for(XYcoord s : possibleBishopFiles){
+            String peiceType = getPieceType(s.x,s.y,!isWhite,board);
+            if(peiceType.equals("Bishop") || peiceType.equals("Queen")){
+                attackerCount++;
+            }
+        }
+        return attackerCount;
+    }
 
 
 

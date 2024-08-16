@@ -343,7 +343,7 @@ public class ChessActionHandler {
                     if(myControl.gameHandler.currentGame.isVsComputer() && !myControl.gameHandler.currentGame.isWhiteTurn() == myControl.gameHandler.currentGame.isWhiteOriented()){
                         GeneralChessFunctions.printBoardDetailed(myControl.gameHandler.currentGame.currentPosition.board);
                         updateCompThread();
-                        myControl.asyncController.computerTask.evalRequest(ComputerDifficulty.MAXDIFFICULTY); //todo
+                        myControl.asyncController.computerTask.evalRequest(); //todo
                     }
                 }
 
@@ -358,7 +358,7 @@ public class ChessActionHandler {
                     if(!myControl.gameHandler.currentGame.isWhiteTurn()){
 
                         updateCompThread();
-                        myControl.asyncController.computerTask.evalRequest(ComputerDifficulty.MAXDIFFICULTY);
+                        myControl.asyncController.computerTask.evalRequest();
                     }
 
                     // when playing campaign send messages to the player

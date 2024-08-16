@@ -176,34 +176,52 @@ public class ChessPositionTests {
     }
 
     @Test void inlinePositionTest(){
-        ChessGame testGame = ChessGame.createTestGame("1.e4 d5 2.Nf3 Nf6 3.Bb5+ Bd7 4.Nc3 e6 5.a3 Bc5 6.O-O O-O 7.Re1 Re8 8.Re3 Re7",false);
-        // follower possition will make all the moves and compare gamestates + positions
-        BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-        BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-        List<ChessMove> moves = testGame.getMoves();
+        String[] pgns = {
+                // Good test cases
+                "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Nxe4", // Ruy Lopez, Berlin Defense
+                "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bg5 Be7", // Queen's Gambit Declined
+                "1.e4 e5 2.Nf3 Nc6 3.Bb5 f5", // Schliemann Defense
+                // Common openings
+                "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Bxc6 dxc6", // Ruy Lopez, Exchange Variation
+                "1.d4 d5 2.c4 e6 3.Nc3 Nf6 4.Bf4", // Queen's Gambit Declined, Exchange Variation
+                "1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 g6", // Sicilian Defense, Accelerated Dragon
+                // Edge cases
+                "1.e4 e5 2.Nf3 Nc6 3.Bb5 Qe7", // Uncommon move order in Ruy Lopez
+                "1.d4 Nf6 2.c4 c5 3.d5 b5", // Benko Gambit
+                "1.e4 d6 2.d4 Nf6 3.Nc3 g6 4.Bg5 Bg7 5.Qd2 h6 6.Bf4 g5 7.Be3 Ng4", // Pirc Defense, Byrne Variation
+                "1.e4 d5 2.Nf3 Nf6 3.Bb5+ Bd7 4.Nc3 e6 5.a3 Bc5 6.O-O O-O 7.Re1 Re8 8.Re3 Re7"
+        };
+        for(String pgn : pgns){
+            ChessGame testGame = ChessGame.createTestGame(pgn,false);
+            // follower possition will make all the moves and compare gamestates + positions
+            BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+            BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+            List<ChessMove> moves = testGame.getMoves();
 
-        Stack<BackendChessPosition> truthPositions = new Stack<>();
-        Stack<ChessStates> truthGameStates = new Stack<>();
-        // forward step
-        System.out.println("Forward-------------------");
-        int j = 0;
-        for(ChessMove move : moves){
-            follower.makeLocalPositionMove(move);
-            truthPositions.push(followerTruth);
-            truthGameStates.push(followerTruth.gameState.cloneState());
-            followerTruth = new BackendChessPosition(followerTruth,move);
-            equals(followerTruth.gameState.toString(),(follower.gameState.toString()),j);
-            equals(GeneralChessFunctions.getBoardDetailedString(followerTruth.board),GeneralChessFunctions.getBoardDetailedString(follower.board),j);
-            j++;
-        }
-        System.out.println("Backward-------------------");
-        // going backward
-        for(int i = moves.size()-1;i>=0;i--){
-            follower.undoLocalPositionMove();
-            BackendChessPosition truth = truthPositions.pop();
-            ChessStates truthState = truthGameStates.pop();
-            equals(truthState.toString(),(follower.gameState.toString()),i);
-            equals(GeneralChessFunctions.getBoardDetailedString(truth.board),GeneralChessFunctions.getBoardDetailedString(follower.board),i);
+            Stack<BackendChessPosition> truthPositions = new Stack<>();
+            Stack<ChessStates> truthGameStates = new Stack<>();
+            // forward step
+            System.out.println("Forward-------------------");
+            int j = 0;
+            for(ChessMove move : moves){
+                follower.makeLocalPositionMove(move);
+                truthPositions.push(followerTruth);
+                truthGameStates.push(followerTruth.gameState.cloneState());
+                followerTruth = new BackendChessPosition(followerTruth,move);
+                equals(followerTruth.gameState.toString(),(follower.gameState.toString()),j);
+                equals(GeneralChessFunctions.getBoardDetailedString(followerTruth.board),GeneralChessFunctions.getBoardDetailedString(follower.board),j);
+                j++;
+            }
+            System.out.println("Backward-------------------");
+            // going backward
+            for(int i = moves.size()-1;i>=0;i--){
+                follower.undoLocalPositionMove();
+                BackendChessPosition truth = truthPositions.pop();
+                ChessStates truthState = truthGameStates.pop();
+                equals(truthState.toString(),(follower.gameState.toString()),i);
+                equals(GeneralChessFunctions.getBoardDetailedString(truth.board),GeneralChessFunctions.getBoardDetailedString(follower.board),i);
+            }
+
         }
 
     }
@@ -249,6 +267,7 @@ public class ChessPositionTests {
             System.out.println("actual----------------------");
             System.out.println(actual);
         }
+        Assertions.assertEquals(expected,actual);
     }
 
 
@@ -271,5 +290,31 @@ public class ChessPositionTests {
         System.out.println(p1);
         System.out.println(p2);
         System.out.println(p3);
+    }
+
+    @Test void rookEdgeCaseTest(){
+        ChessGame game = ChessGame.createTestGame("1.c4 c5 2.Nf3 Nf6 3.Qc2 Qc7 4.e4 e5 5.Bd3 Bd6 6.Nxe5 Bxe5 7.Qc3 Bxc3 8.dxc3 Qxh2",false);
+        game.moveToEndOfGame();
+        BackendChessPosition referencePosition = game.currentPosition.clonePosition().toBackend(game.gameState.cloneState(),game.gameState.isStaleMated());
+
+        List<BackendChessPosition> possiblePositions = referencePosition.getAllChildPositions(game.isWhiteTurn(),referencePosition.gameState);
+        List<ChessMove> possibleMoves = referencePosition.getAllChildMoves(game.isWhiteTurn(), referencePosition.gameState);
+
+        List<BackendChessPosition> rookFilteredPos = possiblePositions.stream().filter(p->p.getMoveThatCreatedThis().getBoardIndex()==ChessConstants.ROOKINDEX).toList();
+        List<ChessMove> rookFilteredMoves = possibleMoves.stream().filter(m->m.getBoardIndex()==ChessConstants.ROOKINDEX).toList();
+        Assertions.assertEquals(rookFilteredMoves.size(),rookFilteredPos.size());
+        // should be in order
+        for(int i = 0;i<rookFilteredPos.size();i++){
+            ChessMove rookMove = rookFilteredMoves.get(i);
+            System.out.println(rookMove);
+            BackendChessPosition rookPos = rookFilteredPos.get(i);
+            ChessPosition validation = referencePosition.clonePosition();
+            referencePosition.makeLocalPositionMove(rookMove);
+            GeneralChessFunctions.printBoardDetailed(referencePosition.board);
+            Assertions.assertEquals(GeneralChessFunctions.getBoardDetailedString(referencePosition.board),GeneralChessFunctions.getBoardDetailedString(rookPos.board));
+            referencePosition.undoLocalPositionMove();
+            Assertions.assertEquals(GeneralChessFunctions.getBoardDetailedString(referencePosition.board),GeneralChessFunctions.getBoardDetailedString(validation.board));
+
+        }
     }
 }

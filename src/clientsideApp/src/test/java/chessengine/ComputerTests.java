@@ -9,11 +9,9 @@ import java.util.Objects;
 
 public class ComputerTests {
     @Test void getFullEvalTests(){
-        // not using eval depth
-        Computer c = new Computer(5);
 
         ChessGame equalGame = ChessGame.createTestGame("1.e4 e5",false);
-        System.out.println(c.getFullEval(equalGame.currentPosition, equalGame.gameState,false,false));
+        System.out.println(ComputerHelperFunctions.getFullEval(equalGame.currentPosition, equalGame.gameState,false,false));
 
     }
 

@@ -431,7 +431,7 @@ public class ChessGame{
 
 
     private void updateGameStates(int dir, int moveIndexBeforeChange){
-        System.out.println("In Iter, dir: " + dir + " mibfc: " + moveIndexBeforeChange);
+//        System.out.println("In Iter, dir: " + dir + " mibfc: " + moveIndexBeforeChange);
         boolean isRev = dir < 0;
         int absDir = Math.abs(dir);
         for(int i = 0;i<absDir;i++){

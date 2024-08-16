@@ -90,6 +90,14 @@ public class ChessStates {
         return Objects.hash(isWhiteWin,isCheckMated, isStaleMated, whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight, blackShortRookRight, blackLongRookRight);
     }
 
+    public HashMap<Long, Integer> getPosMap() {
+        return posMap;
+    }
+
+    public Stack<Integer> getMovesWhenResetted() {
+        return movesWhenResetted;
+    }
+
     // posMap used for checking draw by repetition
     private HashMap<Long,Integer> posMap;
 
@@ -124,10 +132,8 @@ public class ChessStates {
     private int whiteLongRookIndx = 1000;
     private int blackShortRookIndx = 1000;
     private int blackLongRookIndx = 1000;
-
     public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition){
-        currentIndex++;
-        clearIndexes(currentIndex);
+        clearIndexes(currentIndex+1);
         // first check draw by repetition
 //        int hash = newPosition.board.hashCode();
         // white move not important in this case so just set constant
@@ -414,4 +420,6 @@ public class ChessStates {
             }
 
     }
+
+
 }

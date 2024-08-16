@@ -15,8 +15,19 @@ public class BackendChessPosition extends ChessPosition{
         super(pos.addMovesThatCreatedHack(pos,pos.movesThatCreated),pos.gameState,newMove);
         this.gameState = pos.gameState;
         this.isDraw = gameState.makeNewMoveAndCheckDraw(this);
-        this.movesThatCreated = pos.movesThatCreated;
+        this.movesThatCreated = cloneStack(pos.movesThatCreated);
+        // remove the saved entry now
+        pos.movesThatCreated.pop();
 
+    }
+
+    private Stack<ChessMove> cloneStack(Stack<ChessMove> moves){
+        Stack<ChessMove> newStack = new Stack<>();
+
+        for(ChessMove m : moves){
+            newStack.push(m);
+        }
+        return newStack;
     }
 
 
@@ -136,8 +147,8 @@ public class BackendChessPosition extends ChessPosition{
 
     public void undoLocalPositionMove(){
         ChessMove move = super.getMoveThatCreatedThis();
-        gameState.clearIndexes(gameState.getCurrentIndex());
         gameState.moveBackward(this);
+        gameState.clearIndexes(gameState.getCurrentIndex());
         // reverse everything
         long[] whitePieces = board.getWhitePieces();
         long[] blackPieces = board.getBlackPieces();

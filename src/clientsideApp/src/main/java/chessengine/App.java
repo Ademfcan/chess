@@ -203,7 +203,7 @@ public class App extends Application {
             // nmoves and eval use same depth for now
             centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
             centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
-            centralControl.asyncController.setComputerDepth(preferences.getComputerMoveDepth());
+//            centralControl.asyncController.setComputerDepth(preferences.getComputerMoveDepth()); // todo
             boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
             centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString(),isWhiteOriented);
             // todo pieces theme

@@ -5,12 +5,16 @@ import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GetComputerMoveTask extends Task<Void> {
     private boolean running = true;
     private volatile boolean evaluationRequest = false;
+
+    private Random random;
 
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
@@ -28,11 +32,13 @@ public class GetComputerMoveTask extends Task<Void> {
         this.c = c;
         this.executor = Executors.newFixedThreadPool(6);
         this.controller = controller;
+        this.random = new Random();
 
     }
 
 
-    public void evalRequest(ComputerDifficulty computerDifficulty){
+
+    public void evalRequest(){
         logger.info("Called Evaluation Request");
         if(!isCurrentlyEvaluating){
             evaluationRequest = true;
@@ -59,16 +65,7 @@ public class GetComputerMoveTask extends Task<Void> {
                 if (evaluationRequest) {
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
-                    logger.info("Starting a best move evaluation");
-//                  BestMoveCallable evalCallable = new BestMoveCallable(c, currentIsWhite,currentWhiteBoard, currentBlackBoard);
-//                  Future<chessMove> eval = executor.submit(evalCallable);
-                    ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition,currentGameState);
-                    if(bestMove != ChessConstants.emptyOutput.move){
-                        Platform.runLater(()->{
-                            controller.makeComputerMove(bestMove); // blocking call, consider timeout
-                        });
-                    }
-
+                    getComputerMove();
                     isCurrentlyEvaluating = false;
 
                 }
@@ -81,6 +78,29 @@ public class GetComputerMoveTask extends Task<Void> {
         }
         return null;
 
+    }
+
+    private void getComputerMove(){
+        logger.info("Starting a best move evaluation");
+
+        // here is where we do all the fun stuff
+        List<ChessMove> possibleMovesFromThisPosition = currentPosition.getAllChildMoves(currentIsWhite,currentGameState);
+        double randProb = random.nextDouble();
+
+        // first check if randomMove
+        if(randProb < c.currentDifficulty.randomnessFactor){
+            // random move
+            controller.makeComputerMove(possibleMovesFromThisPosition.get(random.nextInt(possibleMovesFromThisPosition.size())));
+        }
+
+        // if not random move then now we need to customize how we get the move
+
+        ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition,currentGameState);
+        if(bestMove != ChessConstants.emptyOutput.move){
+            Platform.runLater(()->{
+                controller.makeComputerMove(bestMove); // blocking call, consider timeout
+            });
+        }
     }
 
 

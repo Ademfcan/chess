@@ -34,6 +34,6 @@ public class ZobristHasher {
             }
         }
 
-        return hash + (isWhiteMove ? -193 : 193);
+        return hash * (isWhiteMove ? -193 : 193);
     }
 }

@@ -1,7 +1,7 @@
 package chessengine;
 
 public class ThreadController {
-    private Computer chessAiForBestMove;
+    public Computer chessAiForBestMove;
     private Computer chessAiForEvalBar;
     private Computer chessAiForNMoves;
 
@@ -33,21 +33,24 @@ public class ThreadController {
     }
 
     public void killAll(){
+        stopAll();
         evalTask.endThread();
         computerTask.endThread();
         nMovesTask.endThread();
     }
 
-    public void setComputerDepth(int depth){
+    public void setComputerDifficulty(ComputerDifficulty newDiff){
         if(chessAiForBestMove.isRunning()) {
             computerTask.setOnSucceeded(e -> {
-                chessAiForBestMove.setEvalDepth(depth);
+                chessAiForBestMove.setCurrentDifficulty(newDiff);
             });
         }
         else{
-            chessAiForBestMove.setEvalDepth(depth);
+            chessAiForBestMove.setCurrentDifficulty(newDiff);
         }
     }
+
+
     public void setEvalDepth(int depth){
         if(chessAiForEvalBar.isRunning()){
             evalTask.setOnScheduled(e->{
@@ -70,5 +73,8 @@ public class ThreadController {
             chessAiForNMoves.setEvalDepth(depth);
 
         }
+    }
+
+    public void setComputerDepth(int computerMoveDepth) {
     }
 }

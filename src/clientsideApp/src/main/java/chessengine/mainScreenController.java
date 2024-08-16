@@ -405,8 +405,7 @@ public class mainScreenController implements Initializable {
         setUpDragAction();
 
         if(initPreferences != null){
-            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
-            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth());
+//            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth()); // todo
             ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString(),true);
         }
 
@@ -1158,7 +1157,7 @@ public class mainScreenController implements Initializable {
 
     // what actually happens when you click a square on the board
     public void makeComputerMove(ChessMove move){
-        if((currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer()){
+        if((move != null && !App.isStartScreen && currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer()){
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move.toString());
             // computers move
@@ -1181,8 +1180,7 @@ public class mainScreenController implements Initializable {
             logger.debug(String.format("Square clicked at coordinates X:%d, Y:%d",x,y));
             logger.debug(String.format("Is white turn?: %s", ChessCentralControl.gameHandler.currentGame.isWhiteTurn()));
             logger.debug(String.format("Is checkmated?: %b", ChessCentralControl.gameHandler.currentGame.gameState.isCheckMated()[0]));
-            logger.debug(ChessCentralControl.gameHandler.currentGame.gameState.toString());
-            logger.debug("Gamestate: " + ChessCentralControl.gameHandler.currentGame.gameState.toString());
+            logger.debug(ChessCentralControl.asyncController.chessAiForBestMove.currentDifficulty.toString());
             if (event.getButton() == MouseButton.PRIMARY){
                 // if the click was a primary click then we want to check if the player can make a move
                 // boardinfo:  boardInfo[0] = is there a piece on that square?  boardInfo[1] = is that piece white?
