@@ -306,10 +306,10 @@ public class Computer{
             return new MinimaxOutput(ComputerHelperFunctions.getFullEval(position,position.gameState,isWhiteTurn,true));
         }
         // todo fix transtable erratic behaviour
-        if(transTable.containsKey(key)){
-//            logger.info("Transtable value being used");
-            return new MinimaxOutput(transTable.get(key));
-        }
+//        if(transTable.containsKey(key)){
+////            logger.info("Transtable value being used");
+//            return new MinimaxOutput(transTable.get(key));
+//        }
 
         if(depth <= evalDepth- currentDifficulty.depthThreshold){
             // do a check to see if there is any noticeable advantage diff.  If not then return
@@ -368,10 +368,10 @@ public class Computer{
                 MinimaxOutput out = miniMax(position, depth - 1, alpha, beta, false);
                 position.undoLocalPositionMove();
                 if(out == Stopped){
-                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:    " + depth);
-                    System.out.println(c.toString());
-                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
-                    System.out.println(outStr);
+//                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:    " + depth);
+//                    System.out.println(c.toString());
+//                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
+//                    System.out.println(outStr);
                     return Stopped;
                 }
                 maxEval = max(out, maxEval);

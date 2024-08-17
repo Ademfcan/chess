@@ -111,10 +111,16 @@ public class BackendChessPosition extends ChessPosition{
             gameState.removeCastlingRight(isWhite);
             boolean isShortCastle = newX == 6;
             if(isShortCastle){
+                if(!GeneralChessFunctions.checkIfContains(7,newY,currentBoardMod[ChessConstants.ROOKINDEX])){
+                    ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                }
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(7,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX-1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
             }
             else{
+                if(!GeneralChessFunctions.checkIfContains(0,newY,currentBoardMod[ChessConstants.ROOKINDEX])){
+                    ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                }
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(0,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX+1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
             }
@@ -140,18 +146,18 @@ public class BackendChessPosition extends ChessPosition{
 
 
 
-                isDraw = gameState.makeNewMoveAndCheckDraw(this);
+        isDraw = gameState.makeNewMoveAndCheckDraw(this);
     }
 
 
     public void undoLocalPositionMove(){
-        dhhdshjdjshfhf // gamestates is giving false positive on castle moves, which is causing there to be a castle move that is then undo'd and then that leaves an extra rook. Fix fix fix fix
+//        dhhdshjdjshfhf // gamestates is giving false positive on castle moves, which is causing there to be a castle move that is then undo'd and then that leaves an extra rook. Fix fix fix fix
         // issue is that gamestates is clearing the flag when it shoudnt
 
         // somewhere below
         ChessMove move = super.getMoveThatCreatedThis();
         gameState.moveBackward(this);
-        gameState.clearIndexes(gameState.getCurrentIndex());
+//        gameState.clearIndexes(gameState.getCurrentIndex());
         // in here
 
 

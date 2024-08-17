@@ -1,7 +1,7 @@
 package chessengine;
 
 public enum ComputerDifficulty {
-    MAXDIFFICULTY(3200,6,0,4,1.5,0,1, 1, 1,ChessConstants.EMPTYINDEX, 0, true, false),
+    MAXDIFFICULTY(3200,4,0,4,1.5,0,1, 1, 1,ChessConstants.EMPTYINDEX, 0, true, false),
     D1(2800,10,0,4,1.5,0,.5, 0, 0,ChessConstants.EMPTYINDEX, 0, true, false),
     D2(2600,10,0,4,1.5,0,.5, 0, 0,ChessConstants.EMPTYINDEX, 0, true, false),
     D3(2400,10,0,4,1.5,0,.5, 0, 0,ChessConstants.EMPTYINDEX, 0, true, false),
