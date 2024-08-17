@@ -84,9 +84,9 @@ public class Computer{
         if(filteredPositions.isEmpty()){
             filteredPositions = positions;
         }
-
-        ExecutorService executor = Executors.newFixedThreadPool(Math.min(Runtime.getRuntime().availableProcessors()-2,filteredPositions.size()));
-//        ExecutorService executor = Executors.newFixedThreadPool(1);
+        int threadCount = Math.min(Runtime.getRuntime().availableProcessors()-2,filteredPositions.size());
+        logger.debug("Thread count: " + threadCount);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         List<Future<MinimaxResult>> futures = new ArrayList<>();
         for (BackendChessPosition childPos : filteredPositions) {
             futures.add(executor.submit(() -> {
@@ -357,12 +357,12 @@ public class Computer{
                 position.makeLocalPositionMove(c);
                 if(!assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove)){
                     System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
+                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
                     System.out.println("whywhywhywhywhywhywhy");
                     return Stopped;
 
 
                 }
-                assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
 //                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
 //                assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString(),true,"Before");
                 MinimaxOutput out = miniMax(position, depth - 1, alpha, beta, false);
@@ -393,10 +393,10 @@ public class Computer{
                 position.makeLocalPositionMove(c);
                 if(!assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove)){
                     System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
+                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
                     System.out.println("whywhywhywhywhywhywhy");
                     return Stopped;
                 }
-                assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
 
 //                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
                 MinimaxOutput out = miniMax(position, depth - 1, alpha, beta, true);
