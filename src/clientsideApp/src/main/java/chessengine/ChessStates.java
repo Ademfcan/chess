@@ -372,6 +372,7 @@ public class ChessStates {
 
     public void removeCastlingRight(boolean isWhite){
         if(isWhite){
+            // if already false then we dont overwrite as we need to keep the earliest index
             if(whiteCastleRight){
                 whiteCastleRight = false;
                 whiteCastleIndx = currentIndex;
@@ -398,22 +399,30 @@ public class ChessStates {
         if(isValidX && isValidY){
             if(isShort){
                 if(isWhite){
-                    whiteShortRookIndx = currentIndex;
-                    whiteShortRookRight = false;
+                    if(whiteShortRookRight){
+                        whiteShortRookIndx = currentIndex;
+                        whiteShortRookRight = false;
+                    }
                 }
                 else{
-                    blackShortRookIndx = currentIndex;
-                    blackShortRookRight = false;
+                    if(blackShortRookRight){
+                        blackShortRookIndx = currentIndex;
+                        blackShortRookRight = false;
+                    }
                 }
             }
             else{
                 if(isWhite){
-                    whiteLongRookIndx = currentIndex;
-                    whiteLongRookRight = false;
+                    if(whiteLongRookRight){
+                        whiteLongRookIndx = currentIndex;
+                        whiteLongRookRight = false;
+                    }
                 }
                 else{
-                    blackShortRookIndx = currentIndex;
-                    blackLongRookRight = false;
+                    if(blackLongRookRight){
+                        blackShortRookIndx = currentIndex;
+                        blackLongRookRight = false;
+                    }
                 }
             }
 
