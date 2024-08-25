@@ -212,7 +212,6 @@ public class ChessPosition {
 
                 if(endSquarePiece ==ChessConstants.KINGINDEX){
                     String type = GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(coord.x,coord.y,isWhite,board));
-
                     ChessConstants.mainLogger.error("A move where the king is eaten has been found |||\n" + move.toString() + " piece: " + type + "\nmove that created this position |||\n" + (moveThatCreatedThis.toString() != null ? moveThatCreatedThis.toString() : "null move :(((((((((((((((((((")+ "\nPOS:" + GeneralChessFunctions.getBoardDetailedString(this.board));
                 }
                 else {

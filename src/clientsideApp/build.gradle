@@ -36,7 +36,7 @@ java {
 }
 
 run{
-    jvmArgs '-ea' // Enable assertions during application execution
+    jvmArgs '-ea', '-Dprism.allowhidpi=false','-Dsun.java2d.dpiaware=false'
 }
 
 application {
@@ -51,7 +51,9 @@ tasks.named('test') {
 jar {
     manifest {
         attributes(
-                'Main-Class': 'chessengine.Main'
+                'Main-Class': 'chessengine.Main',
+                'Class-Path': configurations.runtimeClasspath.files.collect { it.name }.join(' '),
+                'Application-Args': '-Dprism.allowhidpi=false','-Dsun.java2d.dpiaware=false' // Adding the DPI scaling argument
         )
     }
     from {

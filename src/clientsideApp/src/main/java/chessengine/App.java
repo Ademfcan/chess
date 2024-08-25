@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import jakarta.websocket.DeploymentException;
@@ -41,7 +42,7 @@ public class App extends Application {
 
     public static GlobalTheme globalTheme;
 
-    public static UserManager userManager;
+    public static ClientManager userManager;
     public static BindingController bindingController;
     public static UserPreferenceManager userPreferenceManager;
     public static CampaignMessager campaignMessager;
@@ -66,6 +67,11 @@ public class App extends Application {
 
     public static ChessCentralControl ChessCentralControl;
 
+    public static double dpi;
+    public final static double referenceDpi = 100;
+    public static double dpiScaleFactor;
+
+
     public static boolean isWebClientNull() {
         return webclient == null;
     }
@@ -83,7 +89,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        userManager = new UserManager();
+        dpi = Screen.getPrimary().getDpi();
+        dpiScaleFactor = dpi/referenceDpi;
+        userManager = new ClientManager();
 
         try {
             webclient = userManager.getClientFromUser();
@@ -223,7 +231,7 @@ public class App extends Application {
     @Override
     public void stop(){
         mainScreenController.endAsync();
-        if(ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX)){
+        if(ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)){
             if(ChessCentralControl.gameHandler.currentGame.maxIndex > -1){
                 // if the game is not empty add it
                 PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);

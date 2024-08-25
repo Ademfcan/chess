@@ -5,6 +5,8 @@ public enum MainScreenState {
     ONLINE,
     SANDBOX,
     LOCAL,
+    SIMULATION,
     CAMPAIGN;
+
 
 }

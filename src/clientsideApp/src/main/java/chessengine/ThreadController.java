@@ -1,25 +1,33 @@
 package chessengine;
 
+import chessserver.ComputerDifficulty;
+
 public class ThreadController {
     public Computer chessAiForBestMove;
     private Computer chessAiForEvalBar;
     private Computer chessAiForNMoves;
 
-    private Computer chessAiForViewerAnalysis;
+//    private Computer chessAiForViewerAnalysis;
 
     public EvaluationBarTask evalTask;
     public GetComputerMoveTask computerTask;
     public BestNMovesTask nMovesTask;
-    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth,mainScreenController mainScreenController){
+    public SimulationTask simTask;
+    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth,ChessCentralControl control){
         chessAiForBestMove = new Computer(defaultComputerDepth);
         chessAiForEvalBar = new Computer(defaultEvaluationDepth);
         chessAiForNMoves = new Computer(defaultEvaluationDepth);
-        evalTask = new EvaluationBarTask(chessAiForEvalBar, mainScreenController,defaultEvaluationDepth);
+        evalTask = new EvaluationBarTask(chessAiForEvalBar, control.mainScreenController,defaultEvaluationDepth);
         new Thread(evalTask).start();
-        computerTask = new GetComputerMoveTask(chessAiForBestMove, mainScreenController);
+
+        computerTask = new GetComputerMoveTask(chessAiForBestMove, control.mainScreenController);
         new Thread(computerTask).start();
-        nMovesTask = new BestNMovesTask(chessAiForNMoves,mainScreenController,4);
+
+        nMovesTask = new BestNMovesTask(chessAiForNMoves,control.mainScreenController,4);
         new Thread((nMovesTask)).start();
+
+        simTask = new SimulationTask(new Computer(5),control);
+        new Thread((simTask)).start();
     }
 
 
@@ -29,6 +37,7 @@ public class ThreadController {
         evalTask.stop();
         computerTask.stop();
         nMovesTask.stop();
+        simTask.stop();;
 
     }
 
@@ -37,6 +46,7 @@ public class ThreadController {
         evalTask.endThread();
         computerTask.endThread();
         nMovesTask.endThread();
+        simTask.endThread();
     }
 
     public void setComputerDifficulty(ComputerDifficulty newDiff){
@@ -75,6 +85,12 @@ public class ThreadController {
         }
     }
 
-    public void setComputerDepth(int computerMoveDepth) {
+
+
+    public void toggleSimPlay() {
+        simTask.toggleSimulation();
+    }
+    public void startSimPlay() {
+        simTask.startSimulation();
     }
 }

@@ -2,8 +2,8 @@ package chessengine;
 
 import chessserver.ChessboardTheme;
 import javafx.animation.PathTransition;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -26,8 +26,8 @@ public class ChessBoardGUIHandler {
     private final GridPane chessMoveBoard;
     private final GridPane chessBgBoard;
     public final Pane chessPieceBoard;
-    private final HBox eatenWhites;
-    private final HBox eatenBlacks;
+    private final HBox eatenWhitesContainer;
+    private final HBox eatenBlacksContainer;
 
     public final ImageView[][] piecesAtLocations;
     private final VBox[][] bgPanes;
@@ -39,13 +39,18 @@ public class ChessBoardGUIHandler {
 
     private final List<Arrow> arrows;
 
+    private Pane[] eatenBlacksArr = new Pane[ChessConstants.KINGINDEX+1];
+    private int[] eatenBlacksCountArr = new int[ChessConstants.KINGINDEX+1];
+    private Pane[] eatenWhitesArr = new Pane[ChessConstants.KINGINDEX+1];
+    private int[] eatenWhitesCountArr = new int[ChessConstants.KINGINDEX+1];
+
 
 
 
     public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes,VBox[][] moveBoxes, StackPane[][] highlightPanes,GridPane chessHighlightBoard,GridPane chessBgBoard,GridPane chessMoveBoard){
         this.chessPieceBoard = chessPieceBoard;
-        this.eatenWhites = eatenWhites;
-        this.eatenBlacks = eatenBlacks;
+        this.eatenWhitesContainer = eatenWhites;
+        this.eatenBlacksContainer = eatenBlacks;
         this.piecesAtLocations = piecesAtLocations;
         this.logger = LogManager.getLogger(this.toString());
         this.arrowBoard = ArrowBoard;
@@ -65,6 +70,26 @@ public class ChessBoardGUIHandler {
             redrawArrows();
 
         });
+        setUpEatenArrays(true);
+        setUpEatenArrays(false);
+
+    }
+
+    private double overlapFactor = .2d;
+
+    private void setUpEatenArrays(boolean isWhite){
+        Pane[] ref = isWhite ? eatenWhitesArr : eatenBlacksArr;
+        HBox parent = isWhite ? eatenWhitesContainer : eatenBlacksContainer;
+        // every piece type can be eaten, except for kings, however in sandbox you can so we add all
+        for(int i = 0;i<=ChessConstants.KINGINDEX;i++){
+            Pane childContainer = new Pane();
+            parent.getChildren().add(childContainer);
+            childContainer.prefHeightProperty().bind(parent.heightProperty());
+            childContainer.prefWidthProperty().bind(Bindings.createDoubleBinding(()->
+                childContainer.getChildren().stream().mapToDouble(n-> n.getBoundsInParent().getWidth()*(overlapFactor)).sum()+(childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth()),childContainer.getChildren()
+            ));
+            ref[i] = childContainer;
+        }
 
     }
 
@@ -128,8 +153,11 @@ public class ChessBoardGUIHandler {
 
 
     public void resetEverything(boolean isWhiteOriented){
-        eatenBlacks.getChildren().clear();
-        eatenWhites.getChildren().clear();
+        for(int i = 0;i<=ChessConstants.KINGINDEX;i++){
+            eatenWhitesArr[i].getChildren().clear();
+            eatenBlacksArr[i].getChildren().clear();
+
+        }
         reloadNewBoard(ChessConstants.startBoardState,isWhiteOriented);
     }
     public final int pieceSize = 9;
@@ -176,10 +204,12 @@ public class ChessBoardGUIHandler {
     public void removeFromChessBoard(int x, int y,boolean isWhite,boolean isWhiteOriented){
         if(!isWhiteOriented){
             y = 7-y;
+            x = 7-x;
         }
         int fy = y;
+        int fx = x;
 //        System.out.println("Trying to remove a piece at x:" + x + "y: " + y + " iswhite?:" + isWhite);
-        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(x + "," + fy + "," + isWhite));
+        boolean isRemoved = chessPieceBoard.getChildren().removeIf(n -> n.getUserData().toString().equals(fx + "," + fy + "," + isWhite));
         piecesAtLocations[x][y] = null;
         if(!isRemoved){
             logger.error(String.format("No pieces were removed at X:%d ,Y:%d",x,y));
@@ -190,6 +220,7 @@ public class ChessBoardGUIHandler {
     public void removeFromChessBoard(ImageView piece,int x, int y,boolean isWhiteOriented){
         if(!isWhiteOriented){
             y = 7-y;
+            x = 7-x;
         }
         piecesAtLocations[x][y] = null;
         chessPieceBoard.getChildren().remove(piece);
@@ -198,6 +229,7 @@ public class ChessBoardGUIHandler {
     public void addToChessBoard(int x, int y,int brdIndex,boolean isWhite,boolean isWhiteOriented){
         if(!isWhiteOriented){
             y = 7-y;
+            x = 7-x;
         }
         ImageView peice = createNewPiece(brdIndex,isWhite,false);
         peice.setUserData(x + "," + y + "," + isWhite);
@@ -219,7 +251,10 @@ public class ChessBoardGUIHandler {
         if(!isWhiteOriented){
             oldY = 7-oldY;
             newY = 7-newY;
+            oldX = 7-oldX;
+            newX = 7-newX;
         }
+
         ImageView piece = piecesAtLocations[oldX][oldY];
         piecesAtLocations[oldX][oldY] = null;
         removeLayoutBindings(piece);
@@ -234,6 +269,9 @@ public class ChessBoardGUIHandler {
         if(!isWhiteOriented){
             oldY = 7-oldY;
             newY = 7-newY;
+            oldX = 7-oldX;
+            newX = 7-newX;
+            // todo find one missing x flip
         }
         int[] xyOld = calcXY(oldX,oldY);
 
@@ -294,28 +332,48 @@ public class ChessBoardGUIHandler {
 
 
 
-    public void updateEatenPieces(int pieceIndex,boolean isTopSide){
-        ImageView smallPeice = createNewPiece(pieceIndex,isTopSide,true);
-        smallPeice.setUserData(Integer.toString(pieceIndex));
+    public void addToEatenPieces(int pieceIndex,boolean isWhite, boolean isWhiteOritented){
+        boolean isTopSide = isWhite == isWhiteOritented;
+        ImageView smallPeice = createNewPiece(pieceIndex,isWhite,true);
+        smallPeice.layoutYProperty().bind(eatenBlacksContainer.heightProperty().divide(2).subtract(smallPeice.fitWidthProperty().divide(2))); // all will have same height
         if(isTopSide){
             System.out.println("Adding top");
-            eatenWhites.getChildren().add(smallPeice);
+            int currentPieceCount = eatenWhitesCountArr[pieceIndex]++;
+            smallPeice.layoutXProperty().bind(smallPeice.fitWidthProperty().multiply(overlapFactor).multiply(currentPieceCount));
+            eatenWhitesArr[pieceIndex].getChildren().add(smallPeice);
         }
         else{
             System.out.println("Adding bottom");
-            eatenBlacks.getChildren().add(smallPeice);
+            int currentPieceCount = eatenBlacksCountArr[pieceIndex]++;
+            smallPeice.layoutXProperty().bind(smallPeice.fitWidthProperty().multiply(overlapFactor).multiply(currentPieceCount));
+            eatenBlacksArr[pieceIndex].getChildren().add(smallPeice);
         }
 
     }
 
-    public void removeFromEatenPeices(String BoardId,boolean isTopSide){
-        HBox eatenPieces = isTopSide ?  eatenWhites : eatenBlacks;
-        Iterator<Node> it = eatenPieces.getChildren().iterator();
-        while(it.hasNext()){
-            ImageView v = (ImageView) it.next();
-            if(v.getUserData().equals(BoardId)){
-                it.remove();
-                break;
+    public void removeFromEatenPeices(int pieceIndex,boolean isTopSide){
+        HBox eatenPieces = isTopSide ? eatenWhitesContainer : eatenBlacksContainer;
+        if(isTopSide){
+            System.out.println("Removing top");
+            int size = eatenWhitesArr[pieceIndex].getChildren().size();
+            if(size > 0){
+                eatenWhitesArr[pieceIndex].getChildren().remove(size-1);
+                eatenWhitesCountArr[pieceIndex]--;
+            }
+            else{
+                logger.error("Trying to remove a piece that is not in eaten pieces");
+            }
+        }
+        else{
+            System.out.println("Removing bottom");
+            int size = eatenBlacksArr[pieceIndex].getChildren().size();
+            if(size > 0){
+                eatenBlacksArr[pieceIndex].getChildren().remove(size-1);
+                eatenBlacksCountArr[pieceIndex]--;
+
+            }
+            else{
+                logger.error("Trying to remove a piece that is not in eaten pieces");
             }
         }
     }
@@ -487,7 +545,7 @@ public class ChessBoardGUIHandler {
     String currentColorType = ChessboardTheme.TRADITIONAL.toString(); // default type
     public void changeChessBg(String colorType,boolean isWhiteOriented) {
         currentColorType = colorType;
-        boolean isLight = isWhiteOriented;
+        boolean isLight = true;
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
         int count = 0;
 

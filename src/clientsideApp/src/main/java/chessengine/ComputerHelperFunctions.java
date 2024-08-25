@@ -1,5 +1,7 @@
 package chessengine;
 
+import chessserver.ComputerDifficulty;
+
 import java.util.ArrayList;
 import java.util.List;
 

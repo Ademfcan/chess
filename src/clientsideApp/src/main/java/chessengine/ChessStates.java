@@ -184,6 +184,7 @@ public class ChessStates {
     private int currentIndex = -1;
 
     public void reset(){
+        currentIndex = -1;
         posMap.clear();
         movesWhenResetted.clear();
         movesSinceNoCheckOrNoPawn = 0;
@@ -229,10 +230,14 @@ public class ChessStates {
         newStack.addAll(oldStack);
         return newStack;
     }
+    public boolean isGameOver(){
+        return isCheckMated || isStaleMated;
+    }
 
     public boolean[] isCheckMated() {
         return new boolean[]{this.isCheckMated,this.isWhiteWin};
     }
+
     public void setCheckMated(boolean isWhiteWin) {
         this.checkMateIndex = currentIndex;
         this.isWhiteWin = isWhiteWin;
@@ -420,7 +425,7 @@ public class ChessStates {
                 }
                 else{
                     if(blackLongRookRight){
-                        blackShortRookIndx = currentIndex;
+                        blackLongRookIndx = currentIndex;
                         blackLongRookRight = false;
                     }
                 }

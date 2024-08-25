@@ -1,10 +1,6 @@
 package chessengine;
 
 import chessserver.*;
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -17,7 +13,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -75,7 +70,18 @@ public class StartScreenController implements Initializable {
     HBox sandboxScreen;
 
     @FXML
+    HBox simulationScreen;
+
+    @FXML
+    HBox explorerScreen;
+
+    @FXML
     Button enterSandboxButton;
+    @FXML
+    Button enterSimulationButton;
+
+    @FXML
+    Button enterExplorerButton;
 
 
     // campaign screen
@@ -150,6 +156,12 @@ public class StartScreenController implements Initializable {
 
     @FXML
     Button settingsButton;
+
+    @FXML
+    Button simButton;
+
+    @FXML
+    Button explorerButton;
 
     @FXML
     Button backgroundAudioButton;
@@ -304,6 +316,8 @@ public class StartScreenController implements Initializable {
         setUpGeneralSettings();
         setUpSideNavButtons();
         setupSandboxOptions();
+        setupExplorerOptions();
+        setupSimulationOptions();
 
         setUpMiscelaneus();
         setUpBindings();
@@ -402,6 +416,16 @@ public class StartScreenController implements Initializable {
             setSelection(StartScreenState.GENERALSETTINGS);
         });
         App.bindingController.bindSmallText(settingsButton,false);
+
+        simButton.setOnMouseClicked(e->{
+            setSelection(StartScreenState.SIMULATION);
+        });
+        App.bindingController.bindSmallText(simButton,false);
+
+        explorerButton.setOnMouseClicked(e->{
+            setSelection(StartScreenState.EXPLORER);
+        });
+        App.bindingController.bindSmallText(explorerButton,false);
 
         backgroundAudioButton.setOnMouseClicked(e->{
             boolean isCurPaused = App.soundPlayer.getPaused();
@@ -571,7 +595,7 @@ public class StartScreenController implements Initializable {
             }
             else{
                 try {
-                    ChessGame game = ChessGame.gameFromPgn(pgnTextArea.getText(),"Pgn Game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
+                    ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(),"Pgn Game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
                     App.changeToMainScreenWithGame(game,MainScreenState.LOCAL,true);
                 }
                 catch (Exception ex){
@@ -588,6 +612,18 @@ public class StartScreenController implements Initializable {
     private void setupSandboxOptions(){
         enterSandboxButton.setOnMouseClicked(e->{
             App.changeToMainScreenWithoutAny("Sandbox Game",false,true,MainScreenState.SANDBOX);
+        });
+    }
+
+    private void setupExplorerOptions(){
+        enterExplorerButton.setOnMouseClicked(e->{
+            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(),MainScreenState.VIEWER,false);
+        });
+    }
+
+    private void setupSimulationOptions(){
+        enterSimulationButton.setOnMouseClicked(e->{
+            App.changeToMainScreenWithoutAny("Simulation Game",true,true,MainScreenState.SIMULATION);
         });
     }
     private final int maxNewGameButtonSize = 100;
@@ -654,6 +690,14 @@ public class StartScreenController implements Initializable {
 //        settingsButton.setBackground(buttonUnSelectedBg);
         generalSettingsScreen.setVisible(false);
         generalSettingsScreen.setMouseTransparent(true);
+
+        simulationScreen.setVisible(false);
+        simulationScreen.setMouseTransparent(true);
+
+        explorerScreen.setVisible(false);
+        explorerScreen.setMouseTransparent(true);
+
+
 //        profileButton.setStyle("");
 
 
@@ -696,6 +740,14 @@ public class StartScreenController implements Initializable {
                 campaignScreen.setVisible(true);
                 campaignScreen.setMouseTransparent(false);
 //                campaignButton.setBackground(buttonSelectedBg);
+            }
+            case SIMULATION -> {
+                simulationScreen.setVisible(true);
+                simulationScreen.setMouseTransparent(false);
+            }
+            case EXPLORER -> {
+                explorerScreen.setVisible(true);
+                explorerScreen.setMouseTransparent(false);
             }
         }
         this.currentState = state;
@@ -778,7 +830,7 @@ public class StartScreenController implements Initializable {
 
     private List<ChessGame> loadGamesFromSave(){
 
-        return PersistentSaveManager.readFromAppData();
+        return PersistentSaveManager.readGamesFromAppData();
     }
 
     private void setupOldGamesBox(List<ChessGame> gamesToLoad){

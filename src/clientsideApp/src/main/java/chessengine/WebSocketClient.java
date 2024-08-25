@@ -95,7 +95,7 @@ public class WebSocketClient {
                     App.soundPlayer.playEffect(Effect.MESSAGE);
                 }
                 case GAMEMOVEFROMOPPONENT -> {
-                    linkedGame.makeWebMove(out.getExtraInformation());
+                    linkedGame.makePgnMove(out.getExtraInformation(),true);
                     System.out.println("Your opponent played: " + out.getExtraInformation());
                 }
                 case ELOUPDATE -> {

@@ -6,10 +6,10 @@ import jakarta.websocket.DeploymentException;
 import java.io.IOException;
 import java.util.Objects;
 
-public class UserManager {
+public class ClientManager {
     private FrontendClient appUser;
-    public UserManager(){
-        appUser = PersistentSaveManager.readUserFromAppData();
+    public ClientManager(){
+        appUser = PersistentSaveManager.readUserInfoFromAppData();
 
         if(Objects.isNull(appUser)){
             appUser = ChessConstants.defaultUser;

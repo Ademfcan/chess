@@ -3,6 +3,8 @@ package chessengine;
 import chessserver.CampaignProgress;
 import chessserver.CampaignTier;
 
+import java.util.Random;
+
 public class CampaignMessager {
 
 
@@ -25,12 +27,54 @@ public class CampaignMessager {
         }
 
     }
+    private final Random random = new Random(1784673287);
+    private String getRandom(String[] options){
+        return options[random.nextInt(options.length)];
+    }
+
+    private String[] messageStarts = new String[]{
+            "Hello, my name is",
+            "Howdy, I'm",
+            "Greetings, chess master! I'm",
+            "Welcome to the board! I'm",
+            "Hello, strategist! I'm",
+            "Pleased to meet you! I'm",
+            "Greetings, challenger! I'm",
+            "Hi there! I'm",
+            "Hello! I'm"
+    };
+
+    private String[] messageEnds = new String[]{
+            ". Nice to meet you!",
+            ".",
+            ". Ready for our match?",
+            ". Let's see if your moves can outsmart mine.",
+            ". Ready to make your next move?",
+            ". Shall we begin the game?",
+            ". Let's start this chess battle.",
+            ". Ready to engage in a game of wits?",
+            ". The board is set, shall we play?",
+            ". Let's see how you handle my opening.",
+            ". Ready to turn your pawns into queens?",
+            ". Let's get this game of kings underway."
+    };
+
+    private String randomlyFormatIntro(String name){
+        String start = getRandom(messageStarts);
+        String end = getRandom(messageEnds);
+        return String.format("%s %s%s",start,name,end);
+    }
 
     private String formatNameMessage(String name,String message){
         return "(" + name + "): " + message;
     }
 
     // todo make these actually good
+
+
+    public String getIntroductionMessage(){
+        return randomlyFormatIntro(getName());
+    }
     public String getCheckMessage(boolean isWhiteCheck){
         String name = getName();
         if(isWhiteCheck){

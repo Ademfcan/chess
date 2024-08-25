@@ -14,6 +14,8 @@ public class BindingController {
     private Region mainScreenFullScreen;
     private Region startScreenFullScreen;
 
+
+
     public BindingController(Region mainScreenFullScreen,Region startScreenFullScreen){
         this.mainScreenFullScreen = mainScreenFullScreen;
         this.startScreenFullScreen = startScreenFullScreen;
@@ -112,49 +114,49 @@ public class BindingController {
 
     public static void bindChildTextToParentWidth(Region parent,Region child, double parentToChildScaleFactor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor));
+        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
     }
 
     public static void bindChildTextToParentHeight(Region parent,Region child, double parentToChildScaleFactor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor));
+        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
     }
 
     public static void bindChildTextToParentWidth(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor));
+        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(),"; -fx-text-fill: ",textColor));
     }
 
     public static void bindChildTextToParentHeight(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor));
+        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(),"; -fx-text-fill: ",textColor));
     }
 
     public static void bindChildTextToParentMin(Region parent,Region child, double parentToChildScaleFactor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.min(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
+        fontSize.bind(Bindings.min(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
     }
 
     public static void bindChildTextToParentMax(Region parent,Region child, double parentToChildScaleFactor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.max(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
+        fontSize.bind(Bindings.max(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
     }
 
     public static void bindChildTextToParentValuesMin(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.min(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
+        fontSize.bind(Bindings.min(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(),"; -fx-text-fill: ",textColor));
     }
 
     public static void bindChildTextToParentValuesMax(Region parent,Region child, double parentToChildScaleFactor,String textColor){
         DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.max(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor));
+        fontSize.bind(Bindings.max(parent.heightProperty(),parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
         child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(),"; -fx-text-fill: ",textColor));
     }
 
@@ -182,77 +184,92 @@ public class BindingController {
 
     public void bindSmallText(Region text,boolean isMainScreen,String textColor){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,smallMaxSize,smallParentToTextSize,textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent,text,smallMaxSize,smallParentToTextSize,textColor);
     }
     public void bindMediumText(Region text,boolean isMainScreen,String textColor){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,medMaxSize,medParentToTextSize,textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent,text,medMaxSize,medParentToTextSize,textColor);
 
 
     }
     public void bindLargeText(Region text,boolean isMainScreen,String textColor){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,lgMaxSize,lgParentToTextSize,textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent,text,lgMaxSize,lgParentToTextSize,textColor);
 
 
     }
     public void bindXLargeText(Region text,boolean isMainScreen,String textColor){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,xlMaxSize,xlParentToTextSize,textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent,text,xlMaxSize,xlParentToTextSize,textColor);
 
     }
 
     // since when one scene is shown, the size of the hidden scene is not guaranteed, we bind to parent elements respective of that scene
     public void bindSmallText(Region text,boolean isMainScreen){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,smallMaxSize,smallParentToTextSize);
+        bindTextToParentMinwMaxSize(parent,text,smallMaxSize,smallParentToTextSize);
     }
     public void bindMediumText(Region text,boolean isMainScreen){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,medMaxSize,medParentToTextSize);
+        bindTextToParentMinwMaxSize(parent,text,medMaxSize,medParentToTextSize);
 
 
     }
     public void bindLargeText(Region text,boolean isMainScreen){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,lgMaxSize,lgParentToTextSize);
+        bindTextToParentMinwMaxSize(parent,text,lgMaxSize,lgParentToTextSize);
 
 
     }
     public void bindXLargeText(Region text,boolean isMainScreen){
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSize(parent,text,xlMaxSize,xlParentToTextSize);
+        bindTextToParentMinwMaxSize(parent,text,xlMaxSize,xlParentToTextSize);
 
 
     }
 
     public void bindTextToParentWidthWithMaxSize(Region parent,Region text,double maxSize,double percentExpectedSize){
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
 
     }
     public void bindTextToParentHeightWithMaxSize(Region parent,Region text,double maxSize,double percentExpectedSize){
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent,maxSize,percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
 
     }
 
+    public void bindTextToParentMinwMaxSizeCustomCss(Region parent,Region text,double maxSize,double percentExpectedSize,String color){
+        NumberBinding sizeBinding = getMaxSizeMin(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
+        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(),"; -fx-text-fill: ",color));
+
+    }
+
+    public void bindTextToParentMinwMaxSize(Region parent,Region text,double maxSize,double percentExpectedSize){
+        NumberBinding sizeBinding = getMaxSizeMin(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
+        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
+
+    }
 
     public void bindTextToParentWidthWithMaxSizeCustomCss(Region parent,Region text,double maxSize,double percentExpectedSize,String extraCss){
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(),"; ",extraCss));
 
     }
 
     public void bindTextToParentWidthWithMaxSize(Region parent,Region text,double maxSize,double percentExpectedSize,String color){
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(),"; -fx-text-fill: ",color));
 
     }
     public void bindTextToParentHeightWithMaxSize(Region parent,Region text,double maxSize,double percentExpectedSize,String color){
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent,maxSize,percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent,maxSize,percentExpectedSize).multiply(App.dpiScaleFactor);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(),"; -fx-text-fill: ",color));
 
+    }
+
+    private NumberBinding getMaxSizeMin(Region parent,double maxSize,double percentExpectedSize){
+        return Bindings.min(getMaxSizeBindingWidth(parent,maxSize,percentExpectedSize),getMaxSizeBindingHeight(parent,maxSize,percentExpectedSize));
     }
 
     private NumberBinding getMaxSizeBindingWidth(Region parent,double maxSize,double percentExpectedSize){
@@ -264,24 +281,5 @@ public class BindingController {
 
     }
 
-    /** This method creates a text object then bases the width off of that. For now only small binding is needed**/
-    // this is a very specific method created for only one purpose
-    public void smallTextMinWidthBindingSpecial(String text, Label label){
 
-        DoubleBinding textWidthBinding = new DoubleBinding() {
-            {
-                super.bind(label.textProperty(), label.fontProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                Text helperText = new Text(label.getText());
-                NumberBinding sizeBinding = getMaxSizeBindingWidth(mainScreenFullScreen,smallMaxSize,smallParentToTextSize);
-                helperText.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
-                helperText.setFont(label.getFont()); // Match the label's font
-                return helperText.getLayoutBounds().getWidth();
-            }
-        };
-        label.minWidthProperty().bind(textWidthBinding);
-    }
 }

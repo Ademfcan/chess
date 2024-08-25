@@ -212,75 +212,12 @@ public class GeneralChessFunctions {
     }
 
     public static void printBoardSimple(BitBoardWrapper board){
-        System.out.println("Board simple print: ");
-        for(int row  = 0;row<8;row++){
-            for(int file = 0;file<8;file++){
-                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(file,row,board,"pbs");
-                if(boardInfo[0]){
-                    System.out.print("X");
-                }
-                else{
-                    // no piece
-                    System.out.print(" ");
-                }
-                if(file != 7){
-                    System.out.print("|");
-                }
-                else{
-                    System.out.println();
-                }
-            }
-
-
-        }
+        System.out.println(getBoardSimpleString(board));
 
     }
 
     public static void printBoardDetailed(BitBoardWrapper board){
-        System.out.println("Board detailed print: ");
-        for(int row  = 0;row<8;row++){
-            for(int file = 0;file<8;file++){
-                boolean boardInfoW = GeneralChessFunctions.checkIfContains(file,row,true,board);
-                boolean boardInfoB = GeneralChessFunctions.checkIfContains(file,row,false,board);
-                if(boardInfoW && boardInfoB){
-                    System.out.print("M");
-                }
-                if(boardInfoW || boardInfoB){
-                    int pieceIndex;
-                    if(boardInfoW){
-                       pieceIndex = GeneralChessFunctions.getBoardWithPiece(file,row,true,board);
-
-                    }
-                    else{
-                        pieceIndex = GeneralChessFunctions.getBoardWithPiece(file,row,false,board);
-
-                    }
-                    String pieceString;
-                    if(boardInfoW){
-                        // means a white piece
-                        pieceString = PgnFunctions.turnPieceIndexToStr(pieceIndex,false);
-
-                    }
-                    else{
-                        pieceString = PgnFunctions.turnPieceIndexToStr(pieceIndex,false).toLowerCase();
-
-                    }
-                    System.out.print(pieceString);
-                }
-                else{
-                    // no piece
-                    System.out.print("_");
-                }
-                if(file != 7){
-                    System.out.print("|");
-                }
-                else{
-                    System.out.println();
-                }
-            }
-
-
-        }
+        System.out.println(getBoardDetailedString(board));
 
     }
 

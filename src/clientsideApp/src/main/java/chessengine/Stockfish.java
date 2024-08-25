@@ -77,7 +77,10 @@ public class Stockfish {
         sendCommand("uci");
         sendCommand("position fen " + fen);
         sendCommand("go movetime " + timeLimitMillis);
-        return getOutput(timeLimitMillis + 100); // Wait a bit longer than the time limit to ensure response
+        String out = getOutput(timeLimitMillis);
+        String[] s = out.split("\n");
+        String last = s[s.length-1];
+        return last.split("bestmove ")[1].split(" ")[0];
     }
 
     public void stopEngine() {

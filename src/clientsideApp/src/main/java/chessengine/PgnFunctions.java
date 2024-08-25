@@ -1,9 +1,6 @@
 package chessengine;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PgnFunctions {
 
@@ -167,9 +164,11 @@ public class PgnFunctions {
 
     }
 //
-    public static String positionToFEN(ChessPosition pos, ChessStates gameStateForPos,boolean isWhiteTurn,int numHalfMovesSinceCheckOrPawnMove,int numFullMoves){
+    public static String positionToFEN(ChessPosition pos, ChessStates gameStateForPos,boolean isWhiteTurn){
         // example FEN: 8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50
         // go through each file in each row
+        int numHalfMovesSinceCheckOrPawnMove = gameStateForPos.getMovesSinceNoCheckOrNoPawn();
+        int numFullMoves = gameStateForPos.getCurrentIndex()/2;
         StringBuilder fenBuilder = new StringBuilder();
         for(int row  = 0;row<8;row++){
             int emptySquareCount = 0;
@@ -199,11 +198,7 @@ public class PgnFunctions {
                 }
                 else{
                     // no piece so we increment empty square count;
-                    if(file == 1 || file == 6){
-                        if(row == 1){
-                            System.out.println("empty night!?");
-                        }
-                    }
+
                     emptySquareCount++;
                 }
             }
@@ -273,5 +268,23 @@ public class PgnFunctions {
 
 
         return fenBuilder.toString();
+    }
+
+    public static ChessMove uciToChessMove(String uci,boolean isWhite, BitBoardWrapper board){
+        char[] c = uci.toCharArray();
+        int startX = turnFileStrToInt(c[0]);
+        int endX = turnFileStrToInt(c[2]);
+        int startY = 7-(Integer.parseInt(Character.toString(c[1]))-1);
+        int endY = 7-(Integer.parseInt(Character.toString(c[3]))-1);
+        int boardIndex = GeneralChessFunctions.getBoardWithPiece(startX,startY,board);
+        // eating (technically should check to see if its a correct piece color or throw error but nahh its fine)
+        boolean isEating = GeneralChessFunctions.checkIfContains(endX,endY,board,"ya")[0];
+        int eatingIndex = GeneralChessFunctions.getBoardWithPiece(endX,endY,board);
+        boolean isCastleMove = uci.equals("e1g1") /* white short castle */||  uci.equals("e8g8") /*black short castle*/|| uci.equals("e1c1") /* white long*/||uci.equals("e8c8")/*black short*/;
+        int promoIndex = c.length > 4 ? turnPgnPieceToPieceIndex(Character.toUpperCase(c[4])) : ChessConstants.EMPTYINDEX;
+        int backDir = isWhite ? 1 : -1;
+        boolean isEnPassant = startX != endX && boardIndex == ChessConstants.PAWNINDEX && GeneralChessFunctions.getBoardWithPiece(endX,endY+backDir,!isWhite,board) == ChessConstants.PAWNINDEX && !isEating;
+        return new ChessMove(startX,startY,endX,endY,promoIndex,boardIndex,isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,false);
+
     }
 }

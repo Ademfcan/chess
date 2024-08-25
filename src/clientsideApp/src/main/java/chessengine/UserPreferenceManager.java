@@ -1,9 +1,6 @@
 package chessengine;
 
-import chessserver.ChessPieceTheme;
-import chessserver.ChessboardTheme;
-import chessserver.GlobalTheme;
-import chessserver.UserPreferences;
+import chessserver.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
@@ -29,7 +26,7 @@ public class UserPreferenceManager {
 
     public void setDefaultSelections(){
         App.startScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.startScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDepth()-1);
+        App.startScreenController.computerOptions.getSelectionModel().select(Integer.valueOf(userPref.getComputerMoveDiff().eloRange));
         App.startScreenController.evalOptions.getSelectionModel().select(userPref.getEvalDepth()-1);
         App.startScreenController.audioSliderBG.setValue(userPref.getBackgroundVolume());
         App.startScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
@@ -40,7 +37,7 @@ public class UserPreferenceManager {
 
 
         App.mainScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.mainScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDepth()-1);
+        App.mainScreenController.computerOptions.getSelectionModel().select(Integer.valueOf(userPref.getComputerMoveDiff().eloRange));
         App.mainScreenController.evalOptions.getSelectionModel().select(userPref.getEvalDepth()-1);
         App.mainScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
         App.mainScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
@@ -85,12 +82,15 @@ public class UserPreferenceManager {
     }
 
 
-    public void setComputerMoveDepth(int computerMoveDepth) {
-        userPref.setComputerMoveDepth(computerMoveDepth);
+    public void setComputerMoveDiff(ComputerDifficulty difficulty) {
+        userPref.setComputerMoveDiff(difficulty);
         pushChangesToDatabase();
         loadChanges();
     }
 
+    public ComputerDifficulty getPrefDifficulty(){
+        return userPref.getComputerMoveDiff();
+    }
 
     public void setGlobalTheme(GlobalTheme globalTheme) {
         userPref.setGlobalTheme(globalTheme);
@@ -230,13 +230,13 @@ public class UserPreferenceManager {
             App.bindingController.bindSmallText(computerOptions,isMainScreen);
             computerOptions.setOnAction(e ->{
                 if(!computerOptions.getSelectionModel().isEmpty()){
-                    App.userPreferenceManager.setComputerMoveDepth(computerOptions.getValue());
+                    App.userPreferenceManager.setComputerMoveDiff(ComputerDifficulty.getDifficultyOffOfElo(computerOptions.getValue(),false));
                     App.messager.sendMessageQuick("New computer Depth: " + computerOptions.getValue(),App.isStartScreen);
                 }
             });
 
             computerOptions.getItems().addAll(
-                    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+                    2600,2400,2200,2000,1800,1500,1000,800,600,500,400,300,200
             );
         }
 

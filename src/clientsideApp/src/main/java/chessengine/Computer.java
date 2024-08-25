@@ -1,6 +1,8 @@
 package chessengine;
 
 import java.util.concurrent.*;
+
+import chessserver.ComputerDifficulty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -64,6 +66,7 @@ public class Computer{
     }
 
     public void setCurrentDifficulty(ComputerDifficulty currentDifficulty){
+        logger.debug("Updating difficulty to: " + currentDifficulty.toString());
         this.currentDifficulty = currentDifficulty;
     }
 
@@ -84,7 +87,23 @@ public class Computer{
         if(filteredPositions.isEmpty()){
             filteredPositions = positions;
         }
-        int threadCount = Math.min(Runtime.getRuntime().availableProcessors()-2,filteredPositions.size());
+        double randProb = randomComp.nextDouble();
+        boolean t = false;
+        // now  we will introduce entropy
+        if(randProb < currentDifficulty.randomnessFactor && filteredPositions.size() > currentDifficulty.minRandomChoices){
+            int randomCutoff = randomComp.nextInt(currentDifficulty.minRandomChoices,filteredPositions.size()+1);
+            int randomOffset = randomComp.nextInt(0,filteredPositions.size()-randomCutoff+1);
+            filteredPositions = filteredPositions.subList(randomOffset,randomCutoff+randomOffset);
+            t = !t;
+        }
+        // last check
+        if(filteredPositions.size() < 2){
+            // one position left means we dont even need to consider any other moves, there is only one option
+            return filteredPositions.get(0).getMoveThatCreatedThis();
+        }
+        System.out.println(String.format("Total: %d Looking at %d was clipped? %b",positions.size(), filteredPositions.size(),t));
+
+        int threadCount = Math.min(Math.max(Runtime.getRuntime().availableProcessors()-1,1),filteredPositions.size());
         logger.debug("Thread count: " + threadCount);
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         List<Future<MinimaxResult>> futures = new ArrayList<>();
@@ -343,34 +362,37 @@ public class Computer{
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
-        String og = GeneralChessFunctions.getBoardDetailedString(position.board);
-        String ogMove = position.getMoveThatCreatedThis().toString();
+//        String og = GeneralChessFunctions.getBoardDetailedString(position.board);
+//        String ogMove = position.getMoveThatCreatedThis().toString();
 
         // recursive part
         if(isWhiteTurn){
             MinimaxOutput maxEval = new MinimaxOutput(Double.NEGATIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(true,position.gameState);
-            List<BackendChessPosition> childPositions = position.getAllChildPositions(true,position.gameState);
+//           if(childMoves == null){
+//               return Stopped;
+//           }
+//            List<BackendChessPosition> childPositions = position.getAllChildPositions(true,position.gameState);
 //            assertTrue(childMoves.size(),childPositions.size(),true);
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
                 position.makeLocalPositionMove(c);
-                if(!assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove)){
-                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
-                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
-                    System.out.println("whywhywhywhywhywhywhy");
-                    return Stopped;
+//                if(!assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove)){
+//                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
+//                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
+//                    System.out.println("whywhywhywhywhywhywhy");
+//                    return Stopped;
 
 
-                }
+//                }
 //                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
 //                assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString(),true,"Before");
                 MinimaxOutput out = miniMax(position, depth - 1, alpha, beta, false);
                 position.undoLocalPositionMove();
                 if(out == Stopped){
-//                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:    " + depth);
-//                    System.out.println(c.toString());
-//                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
+                    System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:    " + depth);
+                    System.out.println(c.toString());
+                    String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
 //                    System.out.println(outStr);
                     return Stopped;
                 }
@@ -386,25 +408,28 @@ public class Computer{
         else{
             MinimaxOutput minEval = new MinimaxOutput(Double.POSITIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(false,position.gameState);
-            List<BackendChessPosition> childPositions = position.getAllChildPositions(false,position.gameState);
+//          if(childMoves == null){
+//               return Stopped;
+//           }
+//           List<BackendChessPosition> childPositions = position.getAllChildPositions(false,position.gameState);
 //            assertTrue(childMoves.size(),childPositions.size(),true);
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
                 position.makeLocalPositionMove(c);
-                if(!assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove)){
-                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
-                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
-                    System.out.println("whywhywhywhywhywhywhy");
-                    return Stopped;
-                }
+//                if(!assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove)){
+//                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
+//                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
+//                    System.out.println("whywhywhywhywhywhywhy");
+//                    return Stopped;
+//                }
 
 //                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
                 MinimaxOutput out = miniMax(position, depth - 1, alpha, beta, true);
                 position.undoLocalPositionMove();
                 if(out == Stopped){
                     System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:  " + depth);
+                    System.out.println(c.toString());
                     String outStr = GeneralChessFunctions.getBoardDetailedString(position.board);
-                    System.out.println(outStr);
                     return Stopped;
 
                 }

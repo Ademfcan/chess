@@ -12,7 +12,7 @@ public class UserPreferences {
 
     private int evalDepth;
 
-    private int computerMoveDepth;
+    private ComputerDifficulty computerMoveDiff;
 
     private GlobalTheme globalTheme;
 
@@ -20,15 +20,17 @@ public class UserPreferences {
     private ChessPieceTheme pieceTheme;
 
 
+
+
     public UserPreferences(boolean isBackgroundmusic, double backgroundVolume, boolean isEffectSounds, double effectVolume,
-                                int evalDepth, int computerMoveDepth, GlobalTheme globalTheme,
-                                ChessboardTheme chessboardTheme, ChessPieceTheme pieceTheme) {
+                           int evalDepth, ComputerDifficulty computerDiff, GlobalTheme globalTheme,
+                           ChessboardTheme chessboardTheme, ChessPieceTheme pieceTheme) {
         this.isBackgroundmusic = isBackgroundmusic;
         this.backgroundVolume = backgroundVolume;
         this.isEffectSounds = isEffectSounds;
         this.effectVolume = effectVolume;
         this.evalDepth = evalDepth;
-        this.computerMoveDepth = computerMoveDepth;
+        this.computerMoveDiff = computerDiff;
         this.globalTheme = globalTheme;
         this.chessboardTheme = chessboardTheme;
         this.pieceTheme = pieceTheme;
@@ -70,21 +72,6 @@ public class UserPreferences {
         this.effectVolume = effectVolume;
     }
 
-    public int getEvalDepth() {
-        return evalDepth;
-    }
-
-    public void setEvalDepth(int evalDepth) {
-        this.evalDepth = evalDepth;
-    }
-
-    public int getComputerMoveDepth() {
-        return computerMoveDepth;
-    }
-
-    public void setComputerMoveDepth(int computerMoveDepth) {
-        this.computerMoveDepth = computerMoveDepth;
-    }
 
     public GlobalTheme getGlobalTheme() {
         return globalTheme;
@@ -108,5 +95,21 @@ public class UserPreferences {
 
     public void setPieceTheme(ChessPieceTheme pieceTheme) {
         this.pieceTheme = pieceTheme;
+    }
+
+    public int getEvalDepth() {
+        return evalDepth;
+    }
+
+    public void setEvalDepth(int evalDepth) {
+        this.evalDepth = evalDepth;
+    }
+
+    public ComputerDifficulty getComputerMoveDiff() {
+        return computerMoveDiff;
+    }
+
+    public void setComputerMoveDiff(ComputerDifficulty computerMoveDiff) {
+        this.computerMoveDiff = computerMoveDiff;
     }
 }

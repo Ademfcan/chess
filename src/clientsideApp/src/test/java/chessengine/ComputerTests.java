@@ -41,8 +41,8 @@ public class ComputerTests {
         if (stockfish.startEngine()) {
             for (String pgn : pgns) {
                 ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
-                game.moveToEndOfGame();
-                String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameState, game.isWhiteTurn(), 0, game.curMoveIndex/2);
+                game.moveToEndOfGame(false);
+                String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameState, game.isWhiteTurn());
 
                 // Calculate evaluation with Computer
                 float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameState, 5, false).getAdvantage();
@@ -173,7 +173,7 @@ public class ComputerTests {
 
     @Test void castlingTest(){
         ChessGame game = ChessGame.createTestGame("1.e4 e5 2.Nf3 Nf6 3.Bc4 Bc5 4.h4 h5",true);
-        game.moveToEndOfGame();
+        game.moveToEndOfGame(false);
         BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameState,false);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
@@ -226,7 +226,7 @@ public class ComputerTests {
 
     @Test void isCheckmatedTest(){
         ChessGame game = ChessGame.createTestGame("1.e4 e6 2.f4 Bc5 3.d4 Qh4+ 4.g3 Qe7 5.Qf3 Bxd4 6.Be3 Bxb2 7.Nc3 Bxc3+ 8.Bd2 Bxa1 9.Qd1 Bd4 10.Bc3 Bxc3+ 11.Ke2 Qd6 12.Qd3 Qxd3+ 13.xd3 d5 14.Ke3 e5 15.d4 Bxd4+ 16.Kd3 xe4+ 17.Kxe4 Nf6+ 18.Kd3 Bxg1 19.Kc4 xf4 20.Kb5 xg3 21.Kc4 xh2 22.Kd3 Bf5+ 23.Ke2 Be4 24.Ke1 Bxh1 25.Ke2 Bf3+ 26.Kxf3 h1=Q+ 27.Ke2 Bc5 28.Kd2 Qxf1 29.Kc3 Qe2 30.Kb3 Kd7 31.Ka4 Qc4",false);
-        game.moveToEndOfGame();
+        game.moveToEndOfGame(false);
         GeneralChessFunctions.printBoardDetailed(game.currentPosition.board);
         System.out.println(AdvancedChessFunctions.isCheckmated(game.currentPosition,game.gameState));
 //        duhwauidhuawhuda // ischecmated fix

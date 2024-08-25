@@ -8,7 +8,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -35,10 +34,12 @@ public class ChessActionHandler {
     private Label p1moveClk;
     private Label p2moveClk;
 
+    private Button playPauseButton;
 
 
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,HBox movesPlayedBox,VBox p1Indicator,VBox p2Indicator,Label p1moveClk,Label p2moveClk) {
+
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,HBox movesPlayedBox,Button playPauseButton,VBox p1Indicator,VBox p2Indicator,Label p1moveClk,Label p2moveClk) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -47,6 +48,7 @@ public class ChessActionHandler {
         this.chatInput = chatInput;
         this.sendMessageButton = sendMessageButton;
         this.movesPlayedBox = movesPlayedBox;
+        this.playPauseButton = playPauseButton;
         this.p1Indicator = p1Indicator;
         this.p2Indicator = p2Indicator;
         this.p1moveClk = p1moveClk;
@@ -54,9 +56,8 @@ public class ChessActionHandler {
         onlineInit();
         localInit();
         sandboxInit();
+        simulationInit();
     }
-
-
 
 
     private void onlineInit(){
@@ -74,7 +75,13 @@ public class ChessActionHandler {
     }
 
     private void localInit(){
+        // nothing for now
+    }
 
+    private void simulationInit() {
+        playPauseButton.setOnMouseClicked(e->{
+            myControl.asyncController.toggleSimPlay();
+        });
     }
 
 
@@ -234,7 +241,7 @@ public class ChessActionHandler {
             lastHighlight.setBackground(ChessConstants.highlightBg);
         }
         else{
-            ChessConstants.mainLogger.error("Highlight index total past the size!");
+            ChessConstants.mainLogger.debug("Highlight index total past the size!");
         }
     }
 
@@ -298,7 +305,7 @@ public class ChessActionHandler {
     }
 
 
-    public void updateSidePanel(MainScreenState currentState,boolean isNewMoveMade,boolean isInit){
+    public void makeBackendUpdate(MainScreenState currentState, boolean isNewMoveMade, boolean isInit){
         // method called every time the board changes. Could be a move, or maybe changing to a previous move
         // extrainfo contains possible stuff to add
         myControl.chessBoardGUIHandler.clearArrows();
@@ -313,6 +320,16 @@ public class ChessActionHandler {
 
         }
         switch (currentState){
+            case SIMULATION -> {
+                if(isInit){
+//                    System.out.println("Start sim");
+                    myControl.asyncController.startSimPlay(); // start sim task
+                }
+                else{
+                    updateEvalThread();
+                    myControl.asyncController.evalTask.evalRequest();
+                }
+            }
             case SANDBOX -> {
                 // if both kings are on the board we do a regular eval check
                 // if any king is off the board this breaks everything so instead we just say one side checkmated
@@ -340,8 +357,8 @@ public class ChessActionHandler {
             case LOCAL -> {
                 // could be a new move pgn, or not
                 if(isNewMoveMade || isInit){
-                    if(myControl.gameHandler.currentGame.isVsComputer() && !myControl.gameHandler.currentGame.isWhiteTurn() == myControl.gameHandler.currentGame.isWhiteOriented()){
-                        GeneralChessFunctions.printBoardDetailed(myControl.gameHandler.currentGame.currentPosition.board);
+                    if(!myControl.gameHandler.currentGame.gameState.isGameOver() && myControl.gameHandler.currentGame.isVsComputer() && !myControl.gameHandler.currentGame.isWhiteTurn() == myControl.gameHandler.currentGame.isWhiteOriented()){
+//                        GeneralChessFunctions.printBoardDetailed(myControl.gameHandler.currentGame.currentPosition.board);
                         updateCompThread();
                         myControl.asyncController.computerTask.evalRequest(); //todo
                     }
@@ -355,7 +372,7 @@ public class ChessActionHandler {
             case CAMPAIGN -> {
 
                 if(isNewMoveMade){
-                    if(!myControl.gameHandler.currentGame.isWhiteTurn()){
+                    if(!myControl.gameHandler.currentGame.gameState.isGameOver() && !myControl.gameHandler.currentGame.isWhiteTurn()){
 
                         updateCompThread();
                         myControl.asyncController.computerTask.evalRequest();
@@ -402,11 +419,15 @@ public class ChessActionHandler {
                                 }
                             }
                         }
+
                     }
 
 
 
-
+                }
+                else if(isInit){
+                    String message = App.campaignMessager.getIntroductionMessage();
+                    addCampaignMessage(message);
                 }
             }
         }
@@ -439,11 +460,15 @@ public class ChessActionHandler {
         GeneralChessFunctions.printBoardDetailed(myControl.gameHandler.currentGame.currentPosition.board);
         boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
         int backendY = isWhiteOriented ? y : 7-y;
+        int backendX = isWhiteOriented ? x : 7-x;
         System.out.println(backendY);
-        prevPieceMoves = AdvancedChessFunctions.getPossibleMoves(x,backendY,pieceIsWhite,myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameState);
+        prevPieceMoves = AdvancedChessFunctions.getPossibleMoves(backendX,backendY,pieceIsWhite,myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameState);
         if(!isWhiteOriented){
             // invert y.s
-            prevPieceMoves.forEach(c -> c.y = 7-c.y);
+            prevPieceMoves.forEach(c -> {
+                c.y = 7-c.y;
+                c.x = 7-c.x;
+            });
         }
         for(XYcoord c : prevPieceMoves){
             myControl.chessBoardGUIHandler.showMoveSquare(c.x,c.y);
@@ -493,11 +518,12 @@ public class ChessActionHandler {
             if(e.getButton() == MouseButton.PRIMARY){
                 dragging =false;
                 int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? xy[1] : 7-xy[1];
-                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(xy[0], backendY, myControl.gameHandler.currentGame.currentPosition.board,"boardpress");
+                int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? xy[0] : 7-xy[0];
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.currentGame.currentPosition.board,"boardpress");
                 // check if we did not click on an empty square
                 if(boardInfo[0]){
                     boolean isWhitePiece = boardInfo[1];
-                    int boardIndex = GeneralChessFunctions.getBoardWithPiece(xy[0], backendY, isWhitePiece, myControl.gameHandler.currentGame.currentPosition.board);
+                    int boardIndex = GeneralChessFunctions.getBoardWithPiece(backendX, backendY, isWhitePiece, myControl.gameHandler.currentGame.currentPosition.board);
 
                     ImageView piece = myControl.chessBoardGUIHandler.piecesAtLocations[xy[0]][xy[1]];
                     if(currentState.equals(MainScreenState.SANDBOX)){
@@ -622,17 +648,19 @@ public class ChessActionHandler {
                 int newX = newXY[0];
                 int newY = newXY[1];
                 int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? newY : 7-newY;
+                int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? newX : 7-newX;
                 int oldbackendY = myControl.gameHandler.currentGame.isWhiteOriented() ? oldY : 7-oldY;
+                int oldbackendX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7-oldX;
                 if (currentState.equals(MainScreenState.SANDBOX)) {
                     // for sandbox we dont care about rules, we just move wherever we want
-                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldX, oldbackendY, newX, backendY, 0, oldDragPieceIndex, oldIsWhite, false,false,ChessConstants.EMPTYINDEX,false, false), false,true);
+                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldbackendX, oldbackendY, backendX, backendY, 0, oldDragPieceIndex, oldIsWhite, false,false,ChessConstants.EMPTYINDEX,false, false), false,true);
                     placePiece(selected, newX, newY);
                 } else {
                     // all we have to do is check to see if where the piece has been released is a valid square
                     // this consists of two things
                     // #1 the square must either be empty or be an enemy square
                     // #2 the square must be a move that the piece can make
-                    boolean[] boardInfo = GeneralChessFunctions.checkIfContains(newX, backendY, myControl.gameHandler.currentGame.currentPosition.board,"boardRelease");
+                    boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.currentGame.currentPosition.board,"boardRelease");
                     boolean isHit = boardInfo[0];
                     boolean isWhitePieceDroppedOn = boardInfo[1];
                     int[] moveInfo = checkIfMovePossible(prevPieceMoves, newX, newY);
@@ -642,7 +670,7 @@ public class ChessActionHandler {
                     if ((oldIsWhite != isWhitePieceDroppedOn || !isHit) && isMovePossible) {
                         // enemy piece or empty square, and in possible moves
 
-                        boolean isEating = GeneralChessFunctions.checkIfContains(newX, backendY, !oldIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
+                        boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !oldIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
                         placePiece(selected, newX, newY);
                         int promoSquare = oldIsWhite ? 0 : 7;
                         if (oldDragPieceIndex == ChessConstants.PAWNINDEX && newY == promoSquare) {
@@ -653,7 +681,7 @@ public class ChessActionHandler {
                             myControl.chessBoardGUIHandler.removeFromChessBoard(selected,oldX,oldY,true);
 
                         }
-                        handleMakingMove(oldX, oldbackendY, newX, backendY, isEating, oldIsWhite, isCastle,isEnPassant, false, false, ChessConstants.EMPTYINDEX, currentState,true);
+                        handleMakingMove(oldbackendX, oldbackendY, backendX, backendY, isEating, oldIsWhite, isCastle,isEnPassant, false, false, ChessConstants.EMPTYINDEX, currentState,true);
 
 
                     } else {
@@ -691,12 +719,13 @@ public class ChessActionHandler {
 
     public void handleSquareClick(int clickX,int clickY,boolean isHitPiece,boolean isWhiteHitPiece,MainScreenState currentState){
         int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? clickY : 7-clickY;
+        int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? clickX : 7-clickX;
         if(prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY){
             // clicked the same piece you selected, this means you are unselecting
             clearPrevPiece(true);
         }
         else {
-            int boardIndex = GeneralChessFunctions.getBoardWithPiece(clickX, backendY, isWhiteHitPiece, myControl.gameHandler.currentGame.currentPosition.board);
+            int boardIndex = GeneralChessFunctions.getBoardWithPiece(backendX, backendY, isWhiteHitPiece, myControl.gameHandler.currentGame.currentPosition.board);
             if (currentState.equals(MainScreenState.SANDBOX)) {
                 handleSandboxSquareClick(clickX, clickY, isHitPiece, isWhiteHitPiece);
             } else if (checkIfCanMakeAction(currentState)) {
@@ -727,10 +756,11 @@ public class ChessActionHandler {
                             int oldX = selectedPeiceInfo[0];
                             int oldY = selectedPeiceInfo[1];
                             int backendOldY = myControl.gameHandler.currentGame.isWhiteOriented() ? oldY : 7-oldY;
+                            int backendOldX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7-oldX;
                             boolean isCastleMove = moveInfo[1] > 0;
                             boolean isEnPassant = moveInfo[1] < 0;
-                            boolean isEating = GeneralChessFunctions.checkIfContains(clickX, backendY, !pieceSelectedIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
-                            handleMakingMove(oldX, backendOldY, clickX, backendY, isEating, pieceSelectedIsWhite, isCastleMove,isEnPassant, false, false, ChessConstants.EMPTYINDEX, currentState,false);
+                            boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !pieceSelectedIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
+                            handleMakingMove(backendOldX, backendOldY, backendX, backendY, isEating, pieceSelectedIsWhite, isCastleMove,isEnPassant, false, false, ChessConstants.EMPTYINDEX, currentState,false);
                         } else {
                             // cannot make move
                             clearPrevPiece(true);
@@ -784,7 +814,7 @@ public class ChessActionHandler {
                     myControl.gameHandler.currentGame.makeCustomMoveSandbox(new ChessPosition(myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameState, new ChessMove(0, 0, clickX, clickY, 0, pieceSelectedIndex, prevPeiceIsWhite,false, false, ChessConstants.EMPTYINDEX,false, true)));
 
                 }
-                updateSidePanel(myControl.mainScreenController.currentState, true,false);
+                makeBackendUpdate(myControl.mainScreenController.currentState, true,false);
 
 
 
@@ -954,7 +984,7 @@ public class ChessActionHandler {
 
                 // add arrow showing move
                 boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
-                myControl.chessBoardGUIHandler.addArrow(new Arrow(best.getOldX(),isWhiteOriented ? best.getOldY(): 7-best.getOldY(),best.getNewX(),isWhiteOriented ? best.getNewY() : 7-best.getNewY(),ChessConstants.arrowColor));
+                myControl.chessBoardGUIHandler.addArrow(new Arrow(isWhiteOriented ? best.getOldX() : 7-best.getOldX(),isWhiteOriented ? best.getOldY(): 7-best.getOldY(),isWhiteOriented ? best.getNewX() : 7-best.getNewX(),isWhiteOriented ? best.getNewY() : 7-best.getNewY(),ChessConstants.arrowColor));
                 String advStr = formatter.format(adv);
                 String prefix = adv == 0 ? "" : adv > 0 ? "+" : "-";
                 Label expectedAdvantage = new Label(prefix + advStr);
@@ -966,7 +996,6 @@ public class ChessActionHandler {
                 int finalI = i;
                 moveGui.setOnMouseClicked(e->{
                     myControl.gameHandler.currentGame.makeNewMove(bestMoves.get(finalI).move,false,false);
-                    updateSidePanel(myControl.mainScreenController.currentState, true,false);
                 });
                 moveGui.setStyle("-fx-background-color: darkgray");
                 bestmovesBox.getChildren().add(moveGui);

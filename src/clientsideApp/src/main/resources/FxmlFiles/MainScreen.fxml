@@ -104,9 +104,9 @@
                            <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
                         </rowConstraints>
                      </GridPane>
-                     <Pane fx:id="chessPieceBoard" prefHeight="200.0" prefWidth="200.0" />
-                     <Pane fx:id="arrowBoard" prefHeight="200.0" prefWidth="200.0" />
-                     <Pane fx:id="promotionScreen" prefHeight="200.0" prefWidth="200.0">
+                     <Pane fx:id="chessPieceBoard" />
+                     <Pane fx:id="arrowBoard" />
+                     <Pane fx:id="promotionScreen">
                         <children>
                            <VBox fx:id="promoContainer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: lightgray; -fx-border-width: 2; -fx-border-color: black;" />
                         </children>
@@ -260,11 +260,21 @@
                                                 <TextArea fx:id="localInfo" editable="false" prefHeight="153.0" prefWidth="183.0" />
                                              </children>
                                           </VBox>
+                                          <VBox fx:id="simulationControls" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                             <children>
+                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Button fx:id="playPauseButton" mnemonicParsing="false" text="Button" />
+                                                   </children>
+                                                </HBox>
+                                                <Label fx:id="simulationScore" />
+                                             </children>
+                                          </VBox>
                                  </children>
                               </StackPane>
-                              <VBox fx:id="bottomControls" alignment="CENTER" prefHeight="160.0" prefWidth="160.0">
+                              <VBox fx:id="bottomControls" alignment="CENTER" prefHeight="160.0" prefWidth="160.0" spacing="5.0">
                                  <children>
-                                    <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="20.0">
+                                    <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="13.0">
                                        <children>
                                           <Button fx:id="reset" mnemonicParsing="false" prefHeight="33.0" prefWidth="102.0" text="Reset">
                                              <font>
@@ -274,7 +284,7 @@
                                           <Label fx:id="saveIndicator" text="0/0" />
                                        </children>
                                     </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="20.0">
+                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="10.0">
                                        <children>
                                                 <Button fx:id="LeftReset" alignment="CENTER" contentDisplay="CENTER" layoutX="48.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&lt;&lt;">
                                                    <font>

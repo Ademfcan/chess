@@ -7,5 +7,7 @@ public enum StartScreenState {
     USERSETTINGS,
     GENERALSETTINGS,
     SANDBOX,
+    SIMULATION,
+    EXPLORER,
     CAMPAIGN;
 }

@@ -72,7 +72,7 @@ public class PersistentSaveManager {
         }
     }
 
-    public static FrontendClient readUserFromAppData(){
+    public static FrontendClient readUserInfoFromAppData(){
         try {
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathUserPass));
             StringBuilder sb = new StringBuilder();
@@ -133,7 +133,7 @@ public class PersistentSaveManager {
 
     // game save related
 
-    public static List<ChessGame> readFromAppData(){
+    public static List<ChessGame> readGamesFromAppData(){
         List<ChessGame> games = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathGameSaves));

@@ -68,7 +68,7 @@ public class ChessPositionTests {
 
             // general test midgame state
             ChessGame generaltest = ChessGame.createTestGame(pgn,false);
-            generaltest.moveToEndOfGame();
+            generaltest.moveToEndOfGame(false);
 //            GeneralChessFunctions.printBoardDetailed(generaltest.currentPosition.board);
             BackendChessPosition passantBackend = generaltest.currentPosition.toBackend(generaltest.gameState,false);
             Assertions.assertEquals(passantBackend.gameState.toString(),generaltest.gameState.toString());
@@ -294,7 +294,7 @@ public class ChessPositionTests {
 
     @Test void rookEdgeCaseTest(){
         ChessGame game = ChessGame.createTestGame("1.c4 c5 2.Nf3 Nf6 3.Qc2 Qc7 4.e4 e5 5.Bd3 Bd6 6.Nxe5 Bxe5 7.Qc3 Bxc3 8.dxc3 Qxh2",false);
-        game.moveToEndOfGame();
+        game.moveToEndOfGame(false);
         BackendChessPosition referencePosition = game.currentPosition.clonePosition().toBackend(game.gameState.cloneState(),game.gameState.isStaleMated());
 
         List<BackendChessPosition> possiblePositions = referencePosition.getAllChildPositions(game.isWhiteTurn(),referencePosition.gameState);

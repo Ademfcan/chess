@@ -28,7 +28,7 @@ public class EvaluationBarTask extends Task<Void> {
         this.c = c;
         this.controller = controller;
         this.maxD = maxDepth;
-        executor = Executors.newFixedThreadPool(10);
+        executor = Executors.newFixedThreadPool(1);
     }
 
     public void evalRequest(){
@@ -61,7 +61,7 @@ public class EvaluationBarTask extends Task<Void> {
                     isCurrentlyEvaluating = true;
                     System.out.println("Evaluating");
 
-                    for(int i = 1;i<maxD;i++){
+                    for(int i = maxD/2;i<maxD;i++){
                         EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition,currentGameState, i, currentIsWhite);
                         Future<MinimaxOutput> evalOut = executor.submit(evalCallable);
                         MinimaxOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout

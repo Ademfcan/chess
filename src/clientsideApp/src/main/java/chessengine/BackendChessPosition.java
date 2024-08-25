@@ -108,11 +108,13 @@ public class BackendChessPosition extends ChessPosition{
 //         normal move
         if(move.isCastleMove()){
             // check if short or long castle and move appropiately
-            gameState.removeCastlingRight(isWhite);
             boolean isShortCastle = newX == 6;
             if(isShortCastle){
                 if(!GeneralChessFunctions.checkIfContains(7,newY,currentBoardMod[ChessConstants.ROOKINDEX])){
                     ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                    GeneralChessFunctions.printBoardDetailed(board);
+                    System.out.println(move);
+                    System.out.println(gameState);
                 }
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(7,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX-1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
@@ -120,10 +122,14 @@ public class BackendChessPosition extends ChessPosition{
             else{
                 if(!GeneralChessFunctions.checkIfContains(0,newY,currentBoardMod[ChessConstants.ROOKINDEX])){
                     ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                    GeneralChessFunctions.printBoardDetailed(board);
+                    System.out.println(move);
+                    System.out.println(gameState);
                 }
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.RemovePeice(0,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
                 currentBoardMod[ChessConstants.ROOKINDEX] = GeneralChessFunctions.AddPeice(newX+1,newY,currentBoardMod[ChessConstants.ROOKINDEX]);
             }
+            gameState.removeCastlingRight(isWhite);
         }
 
 
