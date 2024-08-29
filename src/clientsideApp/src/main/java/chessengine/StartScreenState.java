@@ -6,8 +6,6 @@ public enum StartScreenState {
     MULTIPLAYER,
     USERSETTINGS,
     GENERALSETTINGS,
-    SANDBOX,
-    SIMULATION,
-    EXPLORER,
-    CAMPAIGN;
+    CAMPAIGN,
+    EXTRA;
 }

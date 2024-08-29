@@ -23,7 +23,8 @@ public enum ProfilePicture {
     STEWARDESS("PlayerIcons/stewardess.png"),
     TEACHER("PlayerIcons/teacher.png");
     public String urlString;
-    private ProfilePicture(String urlString){
+
+    ProfilePicture(String urlString) {
         this.urlString = urlString;
     }
 }

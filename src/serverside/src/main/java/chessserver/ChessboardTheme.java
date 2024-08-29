@@ -57,23 +57,27 @@ public enum ChessboardTheme {
             return this.darkColor;
         }
     };
-    abstract String getLightColor();
-    abstract String getDarkColor();
+
     public String lightColor;
     public String darkColor;
-    private ChessboardTheme(String lightColor,String darkColor){
+
+    ChessboardTheme(String lightColor, String darkColor) {
         this.lightColor = lightColor;
         this.darkColor = darkColor;
     }
 
-    public static ChessboardTheme getCorrespondingTheme(String themeString){
-        for(ChessboardTheme t : ChessboardTheme.values()){
-            if(t.toString().equals(themeString)){
+    public static ChessboardTheme getCorrespondingTheme(String themeString) {
+        for (ChessboardTheme t : ChessboardTheme.values()) {
+            if (t.toString().equals(themeString)) {
                 return t;
             }
         }
 //        ChessConstants.mainLogger.error("ChessboardTheme incorrect themestring provided");
         return null;
     }
+
+    abstract String getLightColor();
+
+    abstract String getDarkColor();
 
 }

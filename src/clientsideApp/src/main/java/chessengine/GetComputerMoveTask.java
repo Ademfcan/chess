@@ -5,29 +5,25 @@ import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GetComputerMoveTask extends Task<Void> {
-    private boolean running = true;
-    private volatile boolean evaluationRequest = false;
-
-    private Random random;
-
+    private final Random random;
+    private final mainScreenController controller;
+    private final Computer c;
+    private final ExecutorService executor;
+    private final Logger logger;
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
     public volatile boolean currentIsWhite;
+    private boolean running = true;
+    private volatile boolean evaluationRequest = false;
+    private boolean isCurrentlyEvaluating = false;
 
-    private mainScreenController controller;
 
-    private Computer c;
-
-    private ExecutorService executor;
-
-    private Logger logger;
-    public GetComputerMoveTask(Computer c, mainScreenController controller){
+    public GetComputerMoveTask(Computer c, mainScreenController controller) {
         this.logger = LogManager.getLogger(this.toString());
         this.c = c;
         this.executor = Executors.newFixedThreadPool(6);
@@ -36,14 +32,11 @@ public class GetComputerMoveTask extends Task<Void> {
 
     }
 
-
-
-    public void evalRequest(){
+    public void evalRequest() {
         logger.info("Called Evaluation Request");
-        if(!isCurrentlyEvaluating){
+        if (!isCurrentlyEvaluating) {
             evaluationRequest = true;
-        }
-        else{
+        } else {
             stop();
             evaluationRequest = true;
         }
@@ -51,16 +44,15 @@ public class GetComputerMoveTask extends Task<Void> {
 
     }
 
-    public void stop(){
-        if(c.isRunning()){
+    public void stop() {
+        if (c.isRunning()) {
             c.stop.set(true);
         }
     }
-    private boolean isCurrentlyEvaluating = false;
 
     @Override
-    public Void call(){
-        while (running){
+    public Void call() {
+        while (running) {
             try {
                 if (evaluationRequest) {
                     evaluationRequest = false;
@@ -71,8 +63,7 @@ public class GetComputerMoveTask extends Task<Void> {
                 }
 
                 Thread.sleep(100);
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -80,28 +71,25 @@ public class GetComputerMoveTask extends Task<Void> {
 
     }
 
-    private void getComputerMove(){
+    private void getComputerMove() {
         logger.info("Starting a best move evaluation");
 
         // if not random move then now we need to customize how we get the move
-        ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition,currentGameState);
-        if(bestMove != ChessConstants.emptyOutput.move){
-            Platform.runLater(()->{
+        ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition, currentGameState);
+        if (bestMove != ChessConstants.emptyOutput.move) {
+            Platform.runLater(() -> {
                 controller.makeComputerMove(bestMove);
             });
         }
 
 
-
     }
 
 
-    public void endThread(){
+    public void endThread() {
         running = false;
         executor.shutdown();
     }
-
-
 
 
 }

@@ -7,7 +7,7 @@ public class PieceGui {
 
     boolean isWhite;
 
-    public PieceGui(int x, int y, int pieceType,boolean isWhite) {
+    public PieceGui(int x, int y, int pieceType, boolean isWhite) {
         this.x = x;
         this.y = y;
         this.pieceType = pieceType;

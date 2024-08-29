@@ -1,15 +1,12 @@
 package chessengine;
 
-import chessserver.*;
+import chessserver.Gametype;
+import chessserver.INTENT;
+import chessserver.ProfilePicture;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -21,74 +18,59 @@ import java.util.ResourceBundle;
 
 public class StartScreenController implements Initializable {
 
+    private final int maxNewGameButtonSize = 100;
+    private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
+    private final Image computerIcon = new Image("/StartScreenIcons/robot.png");
+    private final Image playerIcon = new Image("/StartScreenIcons/player.png");
+    public CampaignManager campaignManager;
     @FXML
     StackPane fullscreen;
-
     @FXML
     GridPane content;
-
     @FXML
     Pane startMessageBoard;
-
     @FXML
     HBox profileBox;
-
     @FXML
     VBox rightSidePanel;
-
     @FXML
     HBox bottomSpacer;
-
     @FXML
     Button vsPlayer;
-
     @FXML
     Button vsComputer;
-
     @FXML
     ToggleButton playAsWhite;
-
     // main area screens
     @FXML
     VBox campaignScreen;
     @FXML
     HBox pgnSelectionScreen;
-
     @FXML
     HBox mainSelectionScreen;
-
     @FXML
     HBox multiplayerSelectionScreen;
-
     @FXML
     HBox userSettingScreen;
-
     @FXML
     HBox generalSettingsScreen;
-
     @FXML
-    HBox sandboxScreen;
-
-    @FXML
-    HBox simulationScreen;
-
-    @FXML
-    HBox explorerScreen;
+    HBox extraModesScreen;
 
     @FXML
     Button enterSandboxButton;
     @FXML
     Button enterSimulationButton;
-
     @FXML
     Button enterExplorerButton;
-
-
     // campaign screen
     @FXML
     StackPane levelContainer;
     @FXML
     Pane levelContainerPath;
+
+
+    // pgn screen
     @FXML
     Pane levelContainerElements;
     @FXML
@@ -99,178 +81,112 @@ public class StartScreenController implements Initializable {
     ImageView campaignBackground;
     @FXML
     ImageView campaignBackground2;
-
-
-
-    // pgn screen
-
     @FXML
     TextArea pgnTextArea;
-
     @FXML
     Button pgnLoadGame;
-
     @FXML
     RadioButton pvpRadioButton;
-
     @FXML
     RadioButton computerRadioButton;
-
     @FXML
     Button addNewGame;
-
     @FXML
     Label oldGamesLabel;
-
-
     @FXML
     ScrollPane oldGamesPanel;
-
     @FXML
     VBox oldGamesPanelContent;
-
     @FXML
     VBox mainAreaTopSpacer;
-
     @FXML
     VBox mainAreaReference;
-
     @FXML
     StackPane mainArea;
-
     // side panel stuff
     @FXML
     VBox sideButtons;
-
     @FXML
     Button campaignButton;
-
     @FXML
     Button localButton;
-
     @FXML
     Button pgnButton;
-
     @FXML
     Button multiplayerButton;
-
     @FXML
     Button settingsButton;
-
     @FXML
-    Button simButton;
+    Button extraModesButton;
 
-    @FXML
-    Button explorerButton;
+
 
     @FXML
     Button backgroundAudioButton;
-
-    @FXML
-    Button sandboxButton;
-
-
-
-
     // multiplayer options
     @FXML
     ComboBox<String> gameTypes;
-
     @FXML
     Button multiplayerStart;
-
     @FXML
     Label poolCount;
-
     @FXML
     Button reconnectButton;
-
     // general settings
     @FXML
     ScrollPane generalSettingsScrollpane;
-
     @FXML
     VBox generalSettingsVbox;
-
-
-
-
-
     @FXML
     Label themeLabel;
-
     @FXML
     ChoiceBox<String> themeSelection;
-
     @FXML
     Label bgLabel;
-
     @FXML
     ComboBox<String> bgColorSelector;
-
     @FXML
     Label pieceLabel;
-
     @FXML
     ComboBox<String> pieceSelector;
-
     @FXML
     Label audioMuteBG;
-
     @FXML
     Button audioMuteBGButton;
-
     @FXML
     Label audioLabelBG;
-
     @FXML
     Slider audioSliderBG;
-
     @FXML
     Label audioMuteEff;
-
     @FXML
     Button audioMuteEffButton;
-
     @FXML
     Label audioLabelEff;
 
-    @FXML
-    Slider audioSliderEff;
-
-    @FXML
-    Label evalLabel;
-
-    @FXML
-    ComboBox<Integer> evalOptions;
-
-    @FXML
-    Label computerLabel;
-
-    @FXML
-    ComboBox<Integer> computerOptions;
-
-
 
     // user settings
-
-
+    @FXML
+    Slider audioSliderEff;
+    @FXML
+    Label evalLabel;
+    @FXML
+    ComboBox<Integer> evalOptions;
+    @FXML
+    Label computerLabel;
+    @FXML
+    ComboBox<Integer> computerOptions;
     // login page
     @FXML
     Label loginTitle;
-
     @FXML
     Label nameLabel;
-
     @FXML
     TextField nameInput;
-
     @FXML
     Label eloLabel;
-
     @FXML
     TextField passwordInput;
-
     // profile
     @FXML
     ImageView profileButton;
@@ -278,23 +194,12 @@ public class StartScreenController implements Initializable {
     Label nameProfileLabel;
     @FXML
     Label eloProfileLabel;
-
-
-
-
-
-
-
     @FXML
     Button saveUserOptions;
-
-
     List<ChessGame> oldGames;
+    boolean isRed = false;
     private StartScreenState currentState;
-
     private StartScreenState lastStateBeforeUserSettings;
-
-    public CampaignManager campaignManager;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -302,12 +207,9 @@ public class StartScreenController implements Initializable {
         oldGamesPanelContent.setStyle("-fx-background-color: lightgray");
 
 
-
-
-
     }
 
-    public void setup(){
+    public void setup() {
         setSelection(StartScreenState.REGULAR);
         setUpLocalOptions();
         setUpPgnOptions();
@@ -323,22 +225,20 @@ public class StartScreenController implements Initializable {
         setUpBindings();
 
         setUpCampaignScreen();
-        campaignManager = new CampaignManager(levelContainer,levelContainerElements,levelContainerPath,campaignScroller,mainArea,campaignBackground,campaignBackground2);
+        campaignManager = new CampaignManager(levelContainer, levelContainerElements, levelContainerPath, campaignScroller, mainArea, campaignBackground, campaignBackground2);
         campaignManager.setLevelUnlocksBasedOnProgress(App.userManager.getCampaignProgress());
         oldGames = loadGamesFromSave();
         setupOldGamesBox(oldGames);
     }
 
-    public void setProfileInfo(ProfilePicture picture, String name, int elo){
+    public void setProfileInfo(ProfilePicture picture, String name, int elo) {
         profileButton.setImage(new Image(picture.urlString));
         System.out.println("Changing image: " + picture.urlString);
         nameProfileLabel.setText(name);
         eloProfileLabel.setText(Integer.toString(elo));
     }
 
-
-
-    private void setUpCampaignScreen(){
+    private void setUpCampaignScreen() {
         campaignScreen.prefWidthProperty().bind(mainArea.widthProperty());
         campaignScreen.prefHeightProperty().bind(mainArea.heightProperty());
         campaignScroller.prefWidthProperty().bind(campaignScreen.prefWidthProperty());
@@ -359,81 +259,73 @@ public class StartScreenController implements Initializable {
         levelContainerElements.toFront();
     }
 
-    private void setUpLocalOptions(){
+    private void setUpLocalOptions() {
         playAsWhite.setSelected(true);
         playAsWhite.setText("Play as White");
-        App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: white ;-fx-text-fill: black");
+        App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
         vsPlayer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Local Game" ,false,playAsWhite.isSelected(),MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("Local Game", false, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
 
         });
         vsComputer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Local Game" ,true,playAsWhite.isSelected(),MainScreenState.LOCAL);
+            App.changeToMainScreenWithoutAny("Local Game", true, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
         });
-        playAsWhite.setOnAction(e->{
+        playAsWhite.setOnAction(e -> {
             System.out.println("clicked");
             playAsWhite.setSelected(playAsWhite.isSelected());
-            if(playAsWhite.isSelected()){
+            if (playAsWhite.isSelected()) {
                 playAsWhite.setText("Play as White");
-                App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: white ;-fx-text-fill: black");
-            }
-            else{
+                App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
+            } else {
                 playAsWhite.setText("Play as Black");
-                App.bindingController.bindSmallTextCustom(playAsWhite,false,"-fx-background-color: black ;-fx-text-fill: white");
+                App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: black ;-fx-text-fill: white");
 
             }
         });
     }
 
-    private void setUpSideNavButtons(){
-        campaignButton.setOnMouseClicked(e->{
+    private void setUpSideNavButtons() {
+        campaignButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.CAMPAIGN);
             campaignManager.scrollToPlayerTier(App.userManager.getCampaignProgress());
         });
-        App.bindingController.bindSmallText(campaignButton,false);
+        App.bindingController.bindSmallText(campaignButton, false);
 
-        localButton.setOnMouseClicked(e->{
+        localButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.REGULAR);
         });
-        App.bindingController.bindSmallText(localButton,false);
+        App.bindingController.bindSmallText(localButton, false);
 
-        pgnButton.setOnMouseClicked(e->{
+        pgnButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.PGN);
         });
-        App.bindingController.bindSmallText(pgnButton,false);
+        App.bindingController.bindSmallText(pgnButton, false);
 
-        multiplayerButton.setOnMouseClicked(e->{
+        multiplayerButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.MULTIPLAYER);
         });
-        App.bindingController.bindSmallText(multiplayerButton,false);
+        App.bindingController.bindSmallText(multiplayerButton, false);
 
-        sandboxButton.setOnMouseClicked(e->{
-            setSelection(StartScreenState.SANDBOX);
+        extraModesButton.setOnMouseClicked(e -> {
+            setSelection(StartScreenState.EXTRA);
         });
-        App.bindingController.bindSmallText(sandboxButton,false);
+        App.bindingController.bindSmallText(extraModesButton, false);
 
-        settingsButton.setOnMouseClicked(e->{
+        settingsButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.GENERALSETTINGS);
         });
-        App.bindingController.bindSmallText(settingsButton,false);
+        App.bindingController.bindSmallText(settingsButton, false);
 
-        simButton.setOnMouseClicked(e->{
-            setSelection(StartScreenState.SIMULATION);
-        });
-        App.bindingController.bindSmallText(simButton,false);
 
-        explorerButton.setOnMouseClicked(e->{
-            setSelection(StartScreenState.EXPLORER);
-        });
-        App.bindingController.bindSmallText(explorerButton,false);
 
-        backgroundAudioButton.setOnMouseClicked(e->{
+
+
+        backgroundAudioButton.setOnMouseClicked(e -> {
             boolean isCurPaused = App.soundPlayer.getPaused();
-            if(isCurPaused){
+            if (isCurPaused) {
                 // unpause so change to playing icon
                 backgroundAudioButton.setText("🔉");
-            }
-            else{
+            } else {
                 // pause so make not playing icon
                 backgroundAudioButton.setText("✖");
 
@@ -441,31 +333,27 @@ public class StartScreenController implements Initializable {
             // muted = opposite of is bg music
             App.userPreferenceManager.setBackgroundmusic(isCurPaused);
         });
-        App.bindingController.bindSmallText(backgroundAudioButton,false);
+        App.bindingController.bindSmallText(backgroundAudioButton, false);
 
     }
-    boolean isRed = false;
 
-
-    private void setUpUserSettings(){
-        profileButton.setOnMouseClicked(e->{
-           if(currentState.equals(StartScreenState.USERSETTINGS)){
-               setSelection(lastStateBeforeUserSettings);
-           }
-           else{
-               setSelection(StartScreenState.USERSETTINGS);
-           }
+    private void setUpUserSettings() {
+        profileButton.setOnMouseClicked(e -> {
+            if (currentState.equals(StartScreenState.USERSETTINGS)) {
+                setSelection(lastStateBeforeUserSettings);
+            } else {
+                setSelection(StartScreenState.USERSETTINGS);
+            }
         });
-        saveUserOptions.setOnMouseClicked(e->{
+        saveUserOptions.setOnMouseClicked(e -> {
 
-            if(nameInput.getText().isEmpty()){
+            if (nameInput.getText().isEmpty()) {
                 nameInput.setPromptText("please enter a name");
             }
-            if(passwordInput.getText().isEmpty()){
+            if (passwordInput.getText().isEmpty()) {
                 passwordInput.setPromptText("please enter a password");
-            }
-            else{
-                App.validateClientRequest(nameInput.getText(),passwordInput.getText());
+            } else {
+                App.validateClientRequest(nameInput.getText(), passwordInput.getText());
 
 
             }
@@ -474,23 +362,17 @@ public class StartScreenController implements Initializable {
 
     }
 
-    private void setUpGeneralSettings(){
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection,bgColorSelector,pieceSelector,audioMuteBGButton,audioSliderBG,audioMuteEffButton,audioSliderEff,evalOptions,computerOptions,false);
-        App.bindingController.bindSmallText(themeLabel,false);
-        App.bindingController.bindSmallText(bgLabel,false);
-        App.bindingController.bindSmallText(pieceLabel,false);
-        App.bindingController.bindSmallText(audioLabelBG,false);
-        App.bindingController.bindSmallText(audioMuteBG,false);
-        App.bindingController.bindSmallText(audioLabelEff,false);
-        App.bindingController.bindSmallText(audioMuteEff,false);
-        App.bindingController.bindSmallText(evalLabel,false);
-        App.bindingController.bindSmallText(computerOptions,false);
-
-
-
-
-
-
+    private void setUpGeneralSettings() {
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, audioMuteBGButton, audioSliderBG, audioMuteEffButton, audioSliderEff, evalOptions, computerOptions, false);
+        App.bindingController.bindSmallText(themeLabel, false);
+        App.bindingController.bindSmallText(bgLabel, false);
+        App.bindingController.bindSmallText(pieceLabel, false);
+        App.bindingController.bindSmallText(audioLabelBG, false);
+        App.bindingController.bindSmallText(audioMuteBG, false);
+        App.bindingController.bindSmallText(audioLabelEff, false);
+        App.bindingController.bindSmallText(audioMuteEff, false);
+        App.bindingController.bindSmallText(evalLabel, false);
+        App.bindingController.bindSmallText(computerOptions, false);
 
 
         // container bindings
@@ -498,7 +380,6 @@ public class StartScreenController implements Initializable {
         generalSettingsScrollpane.prefHeightProperty().bind(mainArea.heightProperty());
 
         generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
-
 
 
         // binding selectors and buttons
@@ -513,44 +394,41 @@ public class StartScreenController implements Initializable {
 
     }
 
-    private void setUpMultiOptions(){
+    private void setUpMultiOptions() {
 
         gameTypes.getItems().addAll(Arrays.stream(Gametype.values()).map(Gametype::getStrVersion).toList());
-        gameTypes.setOnAction(e->{
-            App.sendRequest(INTENT.GETNUMBEROFPOOLERS,gameTypes.getValue());
+        gameTypes.setOnAction(e -> {
+            App.sendRequest(INTENT.GETNUMBEROFPOOLERS, gameTypes.getValue());
         });
-        multiplayerStart.setOnMouseClicked(e->{
-            if(!gameTypes.getSelectionModel().isEmpty()){
+        multiplayerStart.setOnMouseClicked(e -> {
+            if (!gameTypes.getSelectionModel().isEmpty()) {
                 // todo this is not correct!
-                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(),true)); // isWhiteOrientedWillChange
+                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(), true)); // isWhiteOriented will change when match is found
             }
 
         });
         // handle no internet connection
-        if(App.isWebClientNull()){
+        if (App.isWebClientNull()) {
             disableMultioptions();
-        }
-        else{
+        } else {
             enableMultioptions(false);
         }
-        reconnectButton.setOnMouseClicked(e->{
+        reconnectButton.setOnMouseClicked(e -> {
             boolean isSucess = App.attemptReconnection();
-            if(isSucess){
-                App.messager.sendMessageQuick("Connected to server",true);
+            if (isSucess) {
+                App.messager.sendMessageQuick("Connected to server", true);
                 enableMultioptions(true);
-            }
-            else{
-                App.messager.sendMessageQuick("Connection Failed",true);
+            } else {
+                App.messager.sendMessageQuick("Connection Failed", true);
                 disableMultioptions();
             }
 
         });
 
 
-
     }
 
-    public void disableMultioptions(){
+    public void disableMultioptions() {
         gameTypes.setDisable(true);
         multiplayerStart.setDisable(true);
         poolCount.setText("No Server Connection!");
@@ -558,20 +436,19 @@ public class StartScreenController implements Initializable {
         reconnectButton.setMouseTransparent(false);
     }
 
-    public void enableMultioptions(boolean showMessage){
+    public void enableMultioptions(boolean showMessage) {
         gameTypes.setDisable(false);
         multiplayerStart.setDisable(false);
-        if(showMessage){
+        if (showMessage) {
             poolCount.setText("Connected To Internet");
-        }
-        else{
+        } else {
             poolCount.setText("");
         }
         reconnectButton.setVisible(false);
         reconnectButton.setMouseTransparent(true);
     }
 
-    private void setUpPgnOptions(){
+    private void setUpPgnOptions() {
         // default options
         computerRadioButton.setSelected(false);
         pvpRadioButton.setSelected(true);
@@ -579,26 +456,24 @@ public class StartScreenController implements Initializable {
         pgnTextArea.setStyle("-fx-text-fill: Black");
 
 
-        pvpRadioButton.setOnMouseClicked(e ->{
+        pvpRadioButton.setOnMouseClicked(e -> {
             computerRadioButton.setSelected(!pvpRadioButton.isSelected());
         });
-        computerRadioButton.setOnMouseClicked(e ->{
+        computerRadioButton.setOnMouseClicked(e -> {
             pvpRadioButton.setSelected(!computerRadioButton.isSelected());
         });
-        pgnLoadGame.setOnMouseClicked(e-> {
-            if(pgnTextArea.getText().isEmpty()){
+        pgnLoadGame.setOnMouseClicked(e -> {
+            if (pgnTextArea.getText().isEmpty()) {
                 // todo make blinking red effect
                 // todo validate text
                 //pgnTextArea.setEffect...
                 pgnTextArea.setPromptText("Please enter a pgn!");
 
-            }
-            else{
+            } else {
                 try {
-                    ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(),"Pgn Game",App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl(),computerRadioButton.isSelected(),true);
-                    App.changeToMainScreenWithGame(game,MainScreenState.LOCAL,true);
-                }
-                catch (Exception ex){
+                    ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), true);
+                    App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, true);
+                } catch (Exception ex) {
                     pgnTextArea.clear();
                     pgnTextArea.setPromptText("Invalid pgn entered");
                 }
@@ -608,29 +483,28 @@ public class StartScreenController implements Initializable {
 
     }
 
-
-    private void setupSandboxOptions(){
-        enterSandboxButton.setOnMouseClicked(e->{
-            App.changeToMainScreenWithoutAny("Sandbox Game",false,true,MainScreenState.SANDBOX);
+    private void setupSandboxOptions() {
+        enterSandboxButton.setOnMouseClicked(e -> {
+            App.changeToMainScreenWithoutAny("Sandbox Game", false, true, MainScreenState.SANDBOX,true);
         });
     }
 
-    private void setupExplorerOptions(){
-        enterExplorerButton.setOnMouseClicked(e->{
-            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(),MainScreenState.VIEWER,false);
+    private void setupExplorerOptions() {
+        enterExplorerButton.setOnMouseClicked(e -> {
+            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(), MainScreenState.VIEWER, false);
         });
     }
 
-    private void setupSimulationOptions(){
-        enterSimulationButton.setOnMouseClicked(e->{
-            App.changeToMainScreenWithoutAny("Simulation Game",true,true,MainScreenState.SIMULATION);
+    private void setupSimulationOptions() {
+        enterSimulationButton.setOnMouseClicked(e -> {
+            App.changeToMainScreenWithoutAny("Simulation Game", true, true, MainScreenState.SIMULATION,true);
         });
     }
-    private final int maxNewGameButtonSize = 100;
-    private void setUpBindings(){
+
+    private void setUpBindings() {
         // top left profile info
-        App.bindingController.bindSmallText(nameProfileLabel,false);
-        App.bindingController.bindSmallText(eloProfileLabel,false);
+        App.bindingController.bindSmallText(nameProfileLabel, false);
+        App.bindingController.bindSmallText(eloProfileLabel, false);
         mainAreaTopSpacer.prefHeightProperty().bind(content.heightProperty().multiply(0.01));
         content.prefWidthProperty().bind(fullscreen.widthProperty());
         content.prefHeightProperty().bind(fullscreen.heightProperty());
@@ -641,40 +515,38 @@ public class StartScreenController implements Initializable {
         mainArea.prefHeightProperty().bind(mainAreaReference.heightProperty());
 
         // profile options
-        App.bindingController.bindLargeText(loginTitle,false,"black");
-        App.bindingController.bindMediumText(nameLabel,false,"black");
-        App.bindingController.bindMediumText(eloLabel,false,"black");
+        App.bindingController.bindLargeText(loginTitle, false, "black");
+        App.bindingController.bindMediumText(nameLabel, false, "black");
+        App.bindingController.bindMediumText(eloLabel, false, "black");
 
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput,350,.45);
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,nameInput,350,.45);
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput, 350, .45);
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, nameInput, 350, .45);
 
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,addNewGame,maxNewGameButtonSize,.1);
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, addNewGame, maxNewGameButtonSize, .1);
         addNewGame.prefHeightProperty().bind(addNewGame.widthProperty());
         oldGamesPanel.prefHeightProperty().bind(mainArea.heightProperty());
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea,oldGamesPanel,350,.5);
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(mainArea,themeSelection,50,.1);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea,themeSelection,100,.1);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea, oldGamesPanel, 350, .5);
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(mainArea, themeSelection, 50, .1);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea, themeSelection, 100, .1);
         oldGamesPanelContent.prefWidthProperty().bind(oldGamesPanel.widthProperty());
-        App.bindingController.bindSmallText(oldGamesLabel,false,"black");
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea,reconnectButton,120,.30);
+        App.bindingController.bindSmallText(oldGamesLabel, false, "black");
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, reconnectButton, 120, .30);
         reconnectButton.prefHeightProperty().bind(reconnectButton.prefWidthProperty().multiply(0.75));
     }
 
-    private void setUpMiscelaneus(){
+    private void setUpMiscelaneus() {
         oldGamesPanelContent.setAlignment(Pos.TOP_CENTER);
         oldGamesPanelContent.setSpacing(3);
 
 
     }
 
-//    private final Background buttonSelectedBg = new Background(new BackgroundFill(Color.LIGHTGRAY,new CornerRadii(3),null));
+    //    private final Background buttonSelectedBg = new Background(new BackgroundFill(Color.LIGHTGRAY,new CornerRadii(3),null));
 //    private final Background buttonUnSelectedBg = new Background(new BackgroundFill(Color.DARKGRAY,new CornerRadii(3),null));
-    private void hideAllScreensnButtons(){
+    private void hideAllScreensnButtons() {
         campaignScreen.setVisible(false);
         campaignScreen.setMouseTransparent(true);
 //        campaignButton.setBackground(buttonUnSelectedBg);
-        sandboxScreen.setVisible(false);
-        sandboxScreen.setMouseTransparent(true);
 //        sandboxButton.setBackground(buttonUnSelectedBg);
         pgnSelectionScreen.setVisible(false);
         pgnSelectionScreen.setMouseTransparent(true);
@@ -691,20 +563,19 @@ public class StartScreenController implements Initializable {
         generalSettingsScreen.setVisible(false);
         generalSettingsScreen.setMouseTransparent(true);
 
-        simulationScreen.setVisible(false);
-        simulationScreen.setMouseTransparent(true);
+        extraModesScreen.setVisible(false);
+        extraModesScreen.setMouseTransparent(true);
 
-        explorerScreen.setVisible(false);
-        explorerScreen.setMouseTransparent(true);
 
 
 //        profileButton.setStyle("");
 
 
     }
-    private void setSelection(StartScreenState state){
+
+    private void setSelection(StartScreenState state) {
         hideAllScreensnButtons();
-        switch (state){
+        switch (state) {
             case PGN -> {
                 pgnSelectionScreen.setVisible(true);
                 pgnSelectionScreen.setMouseTransparent(false);
@@ -731,9 +602,9 @@ public class StartScreenController implements Initializable {
                 generalSettingsScreen.setMouseTransparent(false);
 //                settingsButton.setBackground(buttonSelectedBg);
             }
-            case SANDBOX -> {
-                sandboxScreen.setVisible(true);
-                sandboxScreen.setMouseTransparent(false);
+            case EXTRA -> {
+                extraModesScreen.setVisible(true);
+                extraModesScreen.setMouseTransparent(false);
 //                sandboxButton.setBackground(buttonSelectedBg);
             }
             case CAMPAIGN -> {
@@ -741,25 +612,13 @@ public class StartScreenController implements Initializable {
                 campaignScreen.setMouseTransparent(false);
 //                campaignButton.setBackground(buttonSelectedBg);
             }
-            case SIMULATION -> {
-                simulationScreen.setVisible(true);
-                simulationScreen.setMouseTransparent(false);
-            }
-            case EXPLORER -> {
-                explorerScreen.setVisible(true);
-                explorerScreen.setMouseTransparent(false);
-            }
         }
         this.currentState = state;
 
 
     }
 
-    private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
-    private final Image computerIcon = new Image("/StartScreenIcons/robot.png");
-    private final Image playerIcon = new Image("/StartScreenIcons/player.png");
-
-    public void AddNewGameToSaveGui(ChessGame newGame){
+    public void AddNewGameToSaveGui(ChessGame newGame) {
         HBox gameContainer = new HBox();
 
         gameContainer.setAlignment(Pos.CENTER);
@@ -774,21 +633,20 @@ public class StartScreenController implements Initializable {
         innerGameInfo.setAlignment(Pos.CENTER);
 
         Label gameName = new Label(newGame.getGameName());
-        App.bindingController.bindSmallText(gameName, false,"Black");
+        App.bindingController.bindSmallText(gameName, false, "Black");
 
-        Label playersName = new Label(newGame.getPlayer1name() + " vs " + newGame.getPlayer2name());
-        App.bindingController.bindSmallText(playersName, false,"Black");
-
+        Label playersName = new Label(newGame.getWhitePlayerName() + " vs " + newGame.getBlackPlayerName());
+        App.bindingController.bindSmallText(playersName, false, "Black");
 
 
         innerGameInfo.getChildren().addAll(playersName);
-        gameInfo.getChildren().addAll(gameName,innerGameInfo);
+        gameInfo.getChildren().addAll(gameName, innerGameInfo);
 
         Button deleteButton = new Button();
-        deleteButton.setOnMouseClicked(e->{
+        deleteButton.setOnMouseClicked(e -> {
             removeFromOldGames(String.valueOf(newGame.getGameHash()));
         });
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer,deleteButton,30,.3);
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer, deleteButton, 30, .3);
         deleteButton.prefHeightProperty().bind(deleteButton.widthProperty());
 //        deleteButton.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
         ImageView trashIconView = new ImageView(trashIcon);
@@ -797,13 +655,12 @@ public class StartScreenController implements Initializable {
 //        deleteButton.setGraphic(trashIconView);
 
 
-
         Button openGame = new Button();
-        openGame.setOnMouseClicked(e->{
-            App.changeToMainScreenWithGame(newGame,MainScreenState.VIEWER,false);
+        openGame.setOnMouseClicked(e -> {
+            App.changeToMainScreenWithGame(newGame, MainScreenState.VIEWER, false);
 
         });
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer,openGame,30,.3);
+        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer, openGame, 30, .3);
         openGame.prefHeightProperty().bind(openGame.widthProperty());
 //        openGame.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
         ImageView playerIconView = new ImageView(playerIcon);
@@ -815,27 +672,27 @@ public class StartScreenController implements Initializable {
         gameContainer.getChildren().add(openGame);
         gameContainer.getChildren().add(deleteButton);
 
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(oldGamesPanel,gameContainer,75,.15);
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(oldGamesPanel, gameContainer, 75, .15);
         gameContainer.prefWidthProperty().bind(oldGamesPanel.widthProperty());
         gameContainer.setStyle("-fx-background-color: darkgrey");
         gameContainer.setUserData(String.valueOf(newGame.getGameHash()));
 
-        oldGamesPanelContent.getChildren().add(0,gameContainer);
+        oldGamesPanelContent.getChildren().add(0, gameContainer);
     }
 
-    private void removeFromOldGames(String hashCode){
+    private void removeFromOldGames(String hashCode) {
         PersistentSaveManager.removeGameFromData(hashCode);
-        oldGamesPanelContent.getChildren().removeIf(e-> e.getUserData().equals(hashCode));
+        oldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
     }
 
-    private List<ChessGame> loadGamesFromSave(){
+    private List<ChessGame> loadGamesFromSave() {
 
         return PersistentSaveManager.readGamesFromAppData();
     }
 
-    private void setupOldGamesBox(List<ChessGame> gamesToLoad){
+    private void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
-        for(ChessGame g : gamesToLoad){
+        for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g);
         }
     }

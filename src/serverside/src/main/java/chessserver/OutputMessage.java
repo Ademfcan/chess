@@ -4,6 +4,15 @@ public class OutputMessage {
     ServerResponseType serverResponseType;
     String extraInformation;
 
+    public OutputMessage() {
+        // for json serialize
+    }
+
+    public OutputMessage(ServerResponseType serverResponseType, String extraInformation) {
+        this.serverResponseType = serverResponseType;
+        this.extraInformation = extraInformation;
+    }
+
     public ServerResponseType getServerResponseType() {
         return serverResponseType;
     }
@@ -17,15 +26,6 @@ public class OutputMessage {
     }
 
     public void setExtraInformation(String extraInformation) {
-        this.extraInformation = extraInformation;
-    }
-
-    public OutputMessage(){
-        // for json serialize
-    }
-
-    public OutputMessage(ServerResponseType serverResponseType,String extraInformation){
-        this.serverResponseType = serverResponseType;
         this.extraInformation = extraInformation;
     }
 }

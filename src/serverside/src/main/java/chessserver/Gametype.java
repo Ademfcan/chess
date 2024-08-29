@@ -1,39 +1,46 @@
 package chessserver;
 
 public enum Gametype {
-    REGULAR10(10,Gamemode.REGULAR,"reg10") {
+    REGULAR10(10, Gamemode.REGULAR, "reg10") {
         @Override
         String stringValue() {
             return this.getStrVersion();
         }
     },
-    REGULAR30(30,Gamemode.REGULAR,"reg30") {
+    REGULAR30(30, Gamemode.REGULAR, "reg30") {
         @Override
         String stringValue() {
             return this.getStrVersion();
         }
     },
-    REGULARUNLIMITED(10000,Gamemode.REGULAR,"regUn") {
+    REGULARUNLIMITED(10000, Gamemode.REGULAR, "regUn") {
         @Override
         String stringValue() {
             return this.getStrVersion();
         }
     };
 
-    abstract String stringValue();
-    private int length; // in minutes
-    private Gamemode mode;
+    private final int length; // in minutes
+    private final Gamemode mode;
+    private final String strVersion;
 
-    private String strVersion;
-
-    private Gametype(int length, Gamemode mode,String strVersion) {
+    Gametype(int length, Gamemode mode, String strVersion) {
         this.length = length;
         this.mode = mode;
         this.strVersion = strVersion;
     }
 
+    public static Gametype getType(String string) {
+        for (Gametype g : Gametype.values()) {
+            if (g.getStrVersion().equals(string)) {
+                return g;
+            }
+        }
+        return null;
 
+    }
 
+    abstract String stringValue();
 
     public int getLength() {
         return length;
@@ -43,17 +50,7 @@ public enum Gametype {
         return mode;
     }
 
-    public String getStrVersion(){
+    public String getStrVersion() {
         return strVersion;
-    }
-
-    public static Gametype getType(String string){
-        for(Gametype g : Gametype.values()){
-            if(g.getStrVersion().equals(string)){
-                return g;
-            }
-        }
-        return null;
-
     }
 }

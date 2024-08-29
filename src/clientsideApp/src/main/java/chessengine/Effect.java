@@ -3,9 +3,9 @@ package chessengine;
 import javafx.scene.media.AudioClip;
 
 public enum Effect {
-    GAMESTART("/AudioAssets/game-start.mp3"){
+    GAMESTART("/AudioAssets/game-start.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -19,6 +19,7 @@ public enum Effect {
         public AudioClip getClip() {
             return this.clip;
         }
+
         @Override
         public void playClip(double volume) {
             this.clip.play(volume);
@@ -29,16 +30,18 @@ public enum Effect {
         public AudioClip getClip() {
             return this.clip;
         }
+
         @Override
         public void playClip(double volume) {
             this.clip.play(volume);
         }
     },
-    PROMOTE("/AudioAssets/promote.mp3"){
+    PROMOTE("/AudioAssets/promote.mp3") {
         @Override
         public AudioClip getClip() {
             return this.clip;
         }
+
         @Override
         public void playClip(double volume) {
             this.clip.play(volume);
@@ -49,6 +52,7 @@ public enum Effect {
         public AudioClip getClip() {
             return this.clip;
         }
+
         @Override
         public void playClip(double volume) {
             this.clip.play(volume);
@@ -65,9 +69,9 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    TIMEWARNING("/AudioAssets/timewarning.mp3"){
+    TIMEWARNING("/AudioAssets/timewarning.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -76,21 +80,21 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    ILLEGALMOVE("/AudioAssets/illegal.mp3"){
+    ILLEGALMOVE("/AudioAssets/illegal.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
         @Override
         public void playClip(double volume) {
             // cap illegal move sound as to not be annoying
-            this.clip.play(Math.max(volume,.5));
+            this.clip.play(Math.max(volume, .5));
         }
     },
-    CASTLING("/AudioAssets/castle.mp3"){
+    CASTLING("/AudioAssets/castle.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -99,9 +103,9 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    CAPTURE("/AudioAssets/capture.mp3"){
+    CAPTURE("/AudioAssets/capture.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -110,9 +114,9 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    BACKGROUND1("/BackgroundMusic/thejazzpiano.mp3"){
+    BACKGROUND1("/BackgroundMusic/thejazzpiano.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -121,9 +125,9 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    BACKGROUND2("/BackgroundMusic/ethereal88-rising-dawn.mp3"){
+    BACKGROUND2("/BackgroundMusic/ethereal88-rising-dawn.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -132,9 +136,9 @@ public enum Effect {
             this.clip.play(volume);
         }
     },
-    BACKGROUND3("/BackgroundMusic/fscm-productions-flowers.mp3"){
+    BACKGROUND3("/BackgroundMusic/fscm-productions-flowers.mp3") {
         @Override
-        public AudioClip getClip(){
+        public AudioClip getClip() {
             return this.clip;
         }
 
@@ -143,12 +147,14 @@ public enum Effect {
             this.clip.play(volume);
         }
     };
+
+    public AudioClip clip;
+
+    Effect(String path) {
+        this.clip = new AudioClip(getClass().getResource(path).toExternalForm());
+    }
+
     public abstract AudioClip getClip();
 
     public abstract void playClip(double volume);
-
-    public AudioClip clip;
-    private Effect(String path){
-        this.clip = new AudioClip(getClass().getResource(path).toExternalForm());
-    }
 }

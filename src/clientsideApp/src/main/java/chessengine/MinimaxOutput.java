@@ -7,12 +7,12 @@ public class MinimaxOutput {
 
     private int outputDepth;
 
-    public MinimaxOutput(double advantage){
-        this.advantage =advantage;
+    public MinimaxOutput(double advantage) {
+        this.advantage = advantage;
         this.outputDepth = 1;
     }
 
-    public MinimaxOutput incrementAndReturn(){
+    public MinimaxOutput incrementAndReturn() {
         this.outputDepth++;
         return this;
     }

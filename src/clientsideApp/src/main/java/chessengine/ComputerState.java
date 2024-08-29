@@ -7,7 +7,7 @@ public enum ComputerState {
     ALWAYSEAT,
     AGGRESIVE,
     ULTRADEFENSIVE,
-    PAWNWARRIOR;
+    PAWNWARRIOR
 
 
 }

@@ -8,16 +8,17 @@ public class EvaluationBarCallable implements Callable<MinimaxOutput> {
     final boolean isWhite;
     ChessPosition position;
     ChessStates gameState;
-    public EvaluationBarCallable(Computer c, ChessPosition board,ChessStates gameState, int depth, boolean isWhite){
+
+    public EvaluationBarCallable(Computer c, ChessPosition board, ChessStates gameState, int depth, boolean isWhite) {
         this.c = c;
         this.position = board;
-        this.d =depth;
+        this.d = depth;
         this.isWhite = isWhite;
-        this.gameState =gameState;
+        this.gameState = gameState;
     }
 
     @Override
     public MinimaxOutput call() throws Exception {
-        return c.getFullEvalMinimax(position,gameState,d,isWhite);
+        return c.getFullEvalMinimax(position, gameState, d, isWhite);
     }
 }

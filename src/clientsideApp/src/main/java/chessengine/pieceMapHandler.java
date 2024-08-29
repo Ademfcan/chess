@@ -48,7 +48,7 @@ public class pieceMapHandler {
     };
 
     private static final double[][] kingMap1 = {
-            {0.3, 0.0, 0.0, 0.0,0.0, 0.0, 0.0, 0.3},
+            {0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3},
             {0.0, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.0},
             {0.0, -0.5, -0.3, -0.3, -0.3, -0.3, -0.5, 0.0},
             {-0.3, -0.5, -0.3, -0.3, -0.3, -0.3, -0.5, -0.3},
@@ -190,7 +190,7 @@ public class pieceMapHandler {
             {-0.2, 0.3, 0.2, 0.2, 0.2, 0.2, 0.3, -0.2},
             {-0.3, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.3}
     };
-    private static final double[][] rookMap3= {
+    private static final double[][] rookMap3 = {
             {-0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1},
             {0.2, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.2},
             {-0.6, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, -0.6},
@@ -489,11 +489,15 @@ public class pieceMapHandler {
             {0.0, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.0},
             {0.3, 0.0, 0.0, -0.3, -0.3, 0.0, 0.0, 0.3}
     };
+    public static double[][][] maps1 = {pawnMap1, knightMap1, bishopMap1, rookMap1, queenMap1, kingMap1};
+    public static double[][][] maps2 = {pawnMap2, knightMap2, bishopMap2, rookMap2, queenMap2, kingMap2};
+    public static double[][][] maps3 = {pawnMap3, knightMap3, bishopMap3, rookMap3, queenMap3, kingMap3};
+    public static double[][][] maps4 = {pawnMap4, knightMap4, bishopMap4, rookMap4, queenMap4, kingMap4};
+    public static double[][][] maps5 = {pawnMap5, knightMap5, bishopMap5, rookMap5, queenMap5, kingMap5};
+    public static double[][][] maps6 = {pawnMap6, knightMap6, bishopMap6, rookMap6, queenMap6, kingMap6};
+    public static double[][][] maps7 = {pawnMap7, knightMap7, bishopMap7, rookMap7, queenMap7, kingMap7};
 
-
-
-
-    public static double[][][] getMap(int piecesOnTheBoardCount){
+    public static double[][][] getMap(int piecesOnTheBoardCount) {
         return maps1;
 //        if(piecesOnTheBoardCount > 30){
 //            // still at start of game
@@ -522,15 +526,5 @@ public class pieceMapHandler {
 //        }
 
 
-
     }
-
-
-    public static double[][][] maps1 = {pawnMap1, knightMap1, bishopMap1, rookMap1, queenMap1, kingMap1};
-    public static double[][][] maps2 = {pawnMap2, knightMap2, bishopMap2, rookMap2, queenMap2, kingMap2};
-    public static double[][][] maps3 = {pawnMap3, knightMap3, bishopMap3, rookMap3, queenMap3, kingMap3};
-    public static double[][][] maps4 = {pawnMap4, knightMap4, bishopMap4, rookMap4, queenMap4, kingMap4};
-    public static double[][][] maps5 = {pawnMap5, knightMap5, bishopMap5, rookMap5, queenMap5, kingMap5};
-    public static double[][][] maps6 = {pawnMap6, knightMap6, bishopMap6, rookMap6, queenMap6, kingMap6};
-    public static double[][][] maps7 = {pawnMap7, knightMap7, bishopMap7, rookMap7, queenMap7, kingMap7};
 }

@@ -2,18 +2,21 @@ package chessengine;
 
 import chessserver.CampaignTier;
 
-import java.util.HashMap;
 import java.util.Objects;
 
 public class ChessGameHandler {
+    private final ChessCentralControl control;
     public ChessGame currentGame;
-
     // for campaign mode only
     private int gameDifficulty;
-
     private int levelOfCampaignTier;
-
     private CampaignTier campaignTier;
+    private boolean isCurrentGameFirstSetup;
+
+    public ChessGameHandler(ChessCentralControl control) {
+        this.control = control;
+
+    }
 
     public int getLevelOfCampaignTier() {
         return levelOfCampaignTier;
@@ -30,27 +33,20 @@ public class ChessGameHandler {
     public void setCampaignTier(CampaignTier campaignTier) {
         this.campaignTier = campaignTier;
     }
-    public int getGameDifficulty(){
+
+    public int getGameDifficulty() {
         return this.gameDifficulty;
     }
 
-    public void setGameDifficulty(int gameDifficulty){
+    public void setGameDifficulty(int gameDifficulty) {
         this.gameDifficulty = gameDifficulty;
     }
-
-    private ChessCentralControl control;
 
     public boolean isCurrentGameFirstSetup() {
         return isCurrentGameFirstSetup;
     }
 
-    private boolean isCurrentGameFirstSetup;
-    public ChessGameHandler(ChessCentralControl control){
-        this.control = control;
-
-    }
-
-    public void clearGame(){
+    public void clearGame() {
         currentGame = null;
         campaignTier = null;
         levelOfCampaignTier = -1;
@@ -58,32 +54,27 @@ public class ChessGameHandler {
     }
 
 
-
-    public void switchToNewGame(ChessGame newGame){
-        setUpGameGui(newGame,true);
-
-    }
-
-    public void switchToGame(ChessGame newGame,boolean isFirstLoad){
-        setUpGameGui(newGame,isFirstLoad);
+    public void switchToNewGame(ChessGame newGame) {
+        setUpGameGui(newGame, true);
 
     }
 
-    private void setUpGameGui(ChessGame newSetup,boolean isFirstSave){
+    public void switchToGame(ChessGame newGame, boolean isFirstLoad) {
+        setUpGameGui(newGame, isFirstLoad);
+
+    }
+
+    private void setUpGameGui(ChessGame newSetup, boolean isFirstSave) {
         isCurrentGameFirstSetup = isFirstSave;
-        if(Objects.isNull(currentGame)){
+        if (Objects.isNull(currentGame)) {
             newSetup.setMainGame(control);
 
-        }
-        else{
+        } else {
             currentGame.clearMainGame();
             newSetup.setMainGame(control);
 
         }
         currentGame = newSetup;
-
-
-
 
 
     }

@@ -1,23 +1,17 @@
 package chessserver;
 
-import javax.websocket.Session;
-import java.util.Objects;
-
-public class Client implements Comparable<Client>{
-
-
+public class Client implements Comparable<Client> {
 
 
     UserInfo info;
 
 
-
-    public Client(UserInfo info){
+    public Client(UserInfo info) {
         this.info = info;
 
     }
 
-    public Client(){
+    public Client() {
         // for json serialization
     }
 
@@ -28,7 +22,6 @@ public class Client implements Comparable<Client>{
     public void setInfo(UserInfo info) {
         this.info = info;
     }
-
 
 
     @Override

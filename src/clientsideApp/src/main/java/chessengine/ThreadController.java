@@ -3,45 +3,43 @@ package chessengine;
 import chessserver.ComputerDifficulty;
 
 public class ThreadController {
+    private final Computer chessAiForEvalBar;
+    private final Computer chessAiForNMoves;
     public Computer chessAiForBestMove;
-    private Computer chessAiForEvalBar;
-    private Computer chessAiForNMoves;
 
 //    private Computer chessAiForViewerAnalysis;
-
     public EvaluationBarTask evalTask;
     public GetComputerMoveTask computerTask;
     public BestNMovesTask nMovesTask;
     public SimulationTask simTask;
-    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth,ChessCentralControl control){
+
+    public ThreadController(int defaultComputerDepth, int defaultEvaluationDepth, ChessCentralControl control) {
         chessAiForBestMove = new Computer(defaultComputerDepth);
         chessAiForEvalBar = new Computer(defaultEvaluationDepth);
         chessAiForNMoves = new Computer(defaultEvaluationDepth);
-        evalTask = new EvaluationBarTask(chessAiForEvalBar, control.mainScreenController,defaultEvaluationDepth);
+        evalTask = new EvaluationBarTask(chessAiForEvalBar, control.mainScreenController, defaultEvaluationDepth);
         new Thread(evalTask).start();
 
         computerTask = new GetComputerMoveTask(chessAiForBestMove, control.mainScreenController);
         new Thread(computerTask).start();
 
-        nMovesTask = new BestNMovesTask(chessAiForNMoves,control.mainScreenController,4);
+        nMovesTask = new BestNMovesTask(chessAiForNMoves, control.mainScreenController, 4);
         new Thread((nMovesTask)).start();
 
-        simTask = new SimulationTask(new Computer(5),control);
+        simTask = new SimulationTask(new Computer(5), control);
         new Thread((simTask)).start();
     }
 
 
-
-
-    public void stopAll(){
+    public void stopAll() {
         evalTask.stop();
         computerTask.stop();
         nMovesTask.stop();
-        simTask.stop();;
+        simTask.stopAndReset();
 
     }
 
-    public void killAll(){
+    public void killAll() {
         stopAll();
         evalTask.endThread();
         computerTask.endThread();
@@ -49,47 +47,45 @@ public class ThreadController {
         simTask.endThread();
     }
 
-    public void setComputerDifficulty(ComputerDifficulty newDiff){
-        if(chessAiForBestMove.isRunning()) {
+    public void setComputerDifficulty(ComputerDifficulty newDiff) {
+        if (chessAiForBestMove.isRunning()) {
             computerTask.setOnSucceeded(e -> {
                 chessAiForBestMove.setCurrentDifficulty(newDiff);
             });
-        }
-        else{
+        } else {
             chessAiForBestMove.setCurrentDifficulty(newDiff);
         }
     }
 
 
-    public void setEvalDepth(int depth){
-        if(chessAiForEvalBar.isRunning()){
-            evalTask.setOnScheduled(e->{
+    public void setEvalDepth(int depth) {
+        if (chessAiForEvalBar.isRunning()) {
+            evalTask.setOnScheduled(e -> {
                 chessAiForEvalBar.setEvalDepth(depth);
             });
 
-        }
-        else{
+        } else {
             chessAiForEvalBar.setEvalDepth(depth);
         }
     }
-    public void setNmovesDepth(int depth){
-        if(nMovesTask.isRunning()){
-            nMovesTask.setOnSucceeded(e->{
+
+    public void setNmovesDepth(int depth) {
+        if (nMovesTask.isRunning()) {
+            nMovesTask.setOnSucceeded(e -> {
                 chessAiForNMoves.setEvalDepth(depth);
             });
 
-        }
-        else{
+        } else {
             chessAiForNMoves.setEvalDepth(depth);
 
         }
     }
 
 
-
     public void toggleSimPlay() {
         simTask.toggleSimulation();
     }
+
     public void startSimPlay() {
         simTask.startSimulation();
     }

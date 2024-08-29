@@ -17,123 +17,109 @@ public class PersistentSaveManager {
     private final static String appdataFolder = System.getenv("APPDATA") + "/Chess";
 
     private final static ObjectMapper objectmapper = new ObjectMapper();
-    public static UserPreferences readUserprefFromSave(){
+
+    public static UserPreferences readUserprefFromSave() {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathUserpreferences));
             StringBuilder sb = new StringBuilder();
             String line = reader.readLine();
-            while (line != null){
+            while (line != null) {
                 sb.append(line);
                 line = reader.readLine();
             }
-            if(sb.toString().isEmpty()){
+            if (sb.toString().isEmpty()) {
                 return null;
-            }
-            else{
+            } else {
                 return objectmapper.readValue(sb.toString(), UserPreferences.class);
             }
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             ChessConstants.mainLogger.debug("No save data, creating a folder as: " + System.getenv("APPDATA") + "/Chess)");
             File directory = new File(appdataFolder);
             directory.mkdirs();
 
 
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             ChessConstants.mainLogger.error("No permission to create a file! Path: " + appdataPathUserpreferences);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error reading user pref from AppData: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
-    public static void writeUserprefToSave(UserPreferences pref){
+    public static void writeUserprefToSave(UserPreferences pref) {
         try {
-            FileWriter writer = new FileWriter(appdataPathUserpreferences,false);
+            FileWriter writer = new FileWriter(appdataPathUserpreferences, false);
             writer.write(objectmapper.writeValueAsString(pref));
             writer.close();
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             ChessConstants.mainLogger.debug("No save data, creating a folder as: " + System.getenv("APPDATA") + "/Chess)");
             File directory = new File(appdataFolder);
             directory.mkdirs();
 
 
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             ChessConstants.mainLogger.error("No permission to create a file! Path: " + appdataPathUserpreferences);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error writing user info to AppData: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public static FrontendClient readUserInfoFromAppData(){
+    public static FrontendClient readUserInfoFromAppData() {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathUserPass));
             StringBuilder sb = new StringBuilder();
             String line = reader.readLine();
-            while (line != null){
+            while (line != null) {
                 sb.append(line);
                 line = reader.readLine();
             }
-            if(sb.toString().isEmpty()){
+            if (sb.toString().isEmpty()) {
                 return null;
-            }
-            else{
+            } else {
                 UserInfo info = objectmapper.readValue(sb.toString(), UserInfo.class);
                 return new FrontendClient(info);
             }
 
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             ChessConstants.mainLogger.debug("No save data, creating a folder as: " + System.getenv("APPDATA") + "/Chess)");
             File directory = new File(appdataFolder);
             directory.mkdirs();
 
 
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             ChessConstants.mainLogger.error("No permission to create a file! Path: " + appdataPathUserPass);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error reading user info from AppData: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
-    public static void writeUserToAppData(UserInfo info){
+    public static void writeUserToAppData(UserInfo info) {
         try {
-            FileWriter writer = new FileWriter(appdataPathUserPass,false);
+            FileWriter writer = new FileWriter(appdataPathUserPass, false);
             writer.write(objectmapper.writeValueAsString(info));
             writer.close();
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             ChessConstants.mainLogger.debug("No save data, creating a folder as: " + System.getenv("APPDATA") + "/Chess)");
             File directory = new File(appdataFolder);
             directory.mkdirs();
 
 
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             ChessConstants.mainLogger.error("No permission to create a file! Path: " + appdataPathUserPass);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error writing user pref to AppData: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
 
-
     // game save related
 
-    public static List<ChessGame> readGamesFromAppData(){
+    public static List<ChessGame> readGamesFromAppData() {
         List<ChessGame> games = new ArrayList<>();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathGameSaves));
@@ -143,21 +129,18 @@ public class PersistentSaveManager {
                 String[] split = line.split(",");
                 Arrays.stream(split).forEach(s -> s = s.trim());
                 // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer 10  = isWhiteOriented
-                games.add(ChessGame.createGameFromSaveLoad(split[8],split[1],split[2],split[3],Integer.parseInt(split[4]),Integer.parseInt(split[5]),split[6],split[7],Boolean.parseBoolean(split[9]),Boolean.parseBoolean(split[10]),split[0]));
+                games.add(ChessGame.createGameFromSaveLoad(split[8], split[1], split[2], split[3], Integer.parseInt(split[4]), Integer.parseInt(split[5]), split[6], split[7], Boolean.parseBoolean(split[9]), Boolean.parseBoolean(split[10]), split[0]));
             }
             reader.close();
-        }
-        catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             ChessConstants.mainLogger.debug("No save data, creating a folder as: " + System.getenv("APPDATA") + "/Chess)");
             File directory = new File(appdataFolder);
             directory.mkdirs();
 
 
-        }
-        catch (SecurityException e){
+        } catch (SecurityException e) {
             ChessConstants.mainLogger.error("No permission to create a file! Path: " + appdataPathGameSaves);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error reading game from AppData: " + e.getMessage());
             e.printStackTrace();
         }
@@ -165,7 +148,7 @@ public class PersistentSaveManager {
 
     }
 
-    public static void removeGameFromData(String gameHash){
+    public static void removeGameFromData(String gameHash) {
         try {
             // read in all games that are not the one we want to remove
             BufferedReader reader = new BufferedReader(new FileReader(appdataPathGameSaves));
@@ -179,8 +162,7 @@ public class PersistentSaveManager {
                 if (!hash.trim().equals(gameHash)) {
                     // Append the line to the StringBuilder if it doesn't contain the data to remove
                     stringBuilder.append(line).append("\n");
-                }
-                else{
+                } else {
                     ChessConstants.mainLogger.debug("Removing line" + line);
 
                 }
@@ -192,19 +174,18 @@ public class PersistentSaveManager {
             writer.write(stringBuilder.toString());
             writer.close();
 
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             ChessConstants.mainLogger.error("Error removing game from AppData: " + e.getMessage());
         }
     }
 
-    public static void writeToAppData( List<ChessGame> content,boolean isAppend){
+    public static void writeToAppData(List<ChessGame> content, boolean isAppend) {
 
         try {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, isAppend));
-            for(ChessGame game : content){
-                writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer()  + "," + game.isWhiteOriented() + "\n");
+            for (ChessGame game : content) {
+                writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getWhitePlayerName() + "," + game.getBlackPlayerName() + "," + game.getWhiteElo() + "," + game.getBlackElo() + "," + game.getWhitePlayerPfpUrl() + "," + game.getBlackPlayerPfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "," + game.isWhiteOriented() + "\n");
             }
             // Write content to the file
 
@@ -217,11 +198,11 @@ public class PersistentSaveManager {
         }
     }
 
-    public static void appendGameToAppData(ChessGame game){
+    public static void appendGameToAppData(ChessGame game) {
         try {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, true));
-            writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getPlayer1name() + "," + game.getPlayer2name() + "," + game.getPlayer1Elo() + "," + game.getPlayer2Elo() + "," + game.getPlayer1PfpUrl() + "," + game.getPlayer2PfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer()  + "," + game.isWhiteOriented() + "\n");
+            writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getWhitePlayerName() + "," + game.getBlackPlayerName() + "," + game.getWhiteElo() + "," + game.getBlackElo() + "," + game.getWhitePlayerPfpUrl() + "," + game.getBlackPlayerPfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "," + game.isWhiteOriented() + "\n");
             // Write content to the file
 
             // Close the writer

@@ -20,8 +20,6 @@ public class UserPreferences {
     private ChessPieceTheme pieceTheme;
 
 
-
-
     public UserPreferences(boolean isBackgroundmusic, double backgroundVolume, boolean isEffectSounds, double effectVolume,
                            int evalDepth, ComputerDifficulty computerDiff, GlobalTheme globalTheme,
                            ChessboardTheme chessboardTheme, ChessPieceTheme pieceTheme) {
@@ -36,7 +34,7 @@ public class UserPreferences {
         this.pieceTheme = pieceTheme;
     }
 
-    public UserPreferences(){
+    public UserPreferences() {
         // empty constructor for object serialization
     }
 

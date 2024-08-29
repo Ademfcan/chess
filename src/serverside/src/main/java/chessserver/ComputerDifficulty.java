@@ -1,7 +1,7 @@
 package chessserver;
 
 public enum ComputerDifficulty {
-    MAXDIFFICULTY(3200,5,0,7,1.5,0, 1, 1, 1, 1,ServerConstants.EMPTYINDEX, 0, true, false),
+    MAXDIFFICULTY(3200, 5, 0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false),
     D1(2800, 4, 0.5, 4, 1.5, 0.005, 25, 1, 0.8, 0.9, ServerConstants.EMPTYINDEX, 0, true, false),
     D2(2600, 4, 0.4, 4, 1.5, 0.05, 20, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false),
     D3(2400, 4, 0.3, 4, 1.5, 0.1, 1, 0.9, 0.7, 0.8, ServerConstants.EMPTYINDEX, 0, true, false),
@@ -34,15 +34,17 @@ public enum ComputerDifficulty {
     T2(550, 2, 0.0, 2, 1.5, 0.9, 1, 0.05, 0.05, 0.05, ServerConstants.EMPTYINDEX, 0, true, false),
     T3(500, 2, 0.0, 2, 1.5, 0.85, 1, 0.05, 0.05, 0.05, ServerConstants.EMPTYINDEX, 0, true, false),
     T4(450, 2, 0.0, 2, 1.5, 0.8, 1, 0.05, 0.05, 0.05, ServerConstants.EMPTYINDEX, 0, true, false),
-    T5(400,3,1,4,1.5,.6, 1, .2, .6, .5,ServerConstants.EMPTYINDEX, 0, true, false),
-    T6(350,2,1,4,1.5,.6, 1, .5, 0, 0,ServerConstants.QUEENINDEX, .7, true, false),
-    T7(300,2,1,4,1.5,.6, 3, .5, 0, 0,ServerConstants.EMPTYINDEX, 0, true, false),
-    T8(250,2,3,4,1.5,.6, 3, .5, 0, 0,ServerConstants.EMPTYINDEX, 0, false, false),
-    T9(200,2,3,4,1.5,.7, 2, .5, 0, 0,ServerConstants.EMPTYINDEX, 0, false, false),
-    T10(100,2,3,2,5,.8, 2, .5, .5, 1,ServerConstants.EMPTYINDEX, 0, false, false),
-    /** Custom Bots, these bots have custom personalities and can be thought of as special events**/
-    MRSACRIFICE(600,6,-10,6,0,.7, 3, 1, 0, 1,ServerConstants.QUEENINDEX, 0, true, true),
-    QUEENSIMP(1500,6,0,4,1.5,0, 1, 1, 1, 1,ServerConstants.QUEENINDEX, 1, true, true);
+    T5(400, 3, 1, 4, 1.5, .6, 1, .2, .6, .5, ServerConstants.EMPTYINDEX, 0, true, false),
+    T6(350, 2, 1, 4, 1.5, .6, 1, .5, 0, 0, ServerConstants.QUEENINDEX, .7, true, false),
+    T7(300, 2, 1, 4, 1.5, .6, 3, .5, 0, 0, ServerConstants.EMPTYINDEX, 0, true, false),
+    T8(250, 2, 3, 4, 1.5, .6, 3, .5, 0, 0, ServerConstants.EMPTYINDEX, 0, false, false),
+    T9(200, 2, 3, 4, 1.5, .7, 2, .5, 0, 0, ServerConstants.EMPTYINDEX, 0, false, false),
+    T10(100, 2, 3, 2, 5, .8, 2, .5, .5, 1, ServerConstants.EMPTYINDEX, 0, false, false),
+    /**
+     * Custom Bots, these bots have custom personalities and can be thought of as special events
+     **/
+    MRSACRIFICE(600, 6, -10, 6, 0, .7, 3, 1, 0, 1, ServerConstants.QUEENINDEX, 0, true, true),
+    QUEENSIMP(1500, 6, 0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.QUEENINDEX, 1, true, true);
     public final int eloRange;
     public final int depth;
     public final double drawConst;
@@ -79,13 +81,13 @@ public enum ComputerDifficulty {
         this.isCustom = isCustomBot;
     }
 
-    public static ComputerDifficulty getDifficultyOffOfElo(int elo,boolean isCustom){
+    public static ComputerDifficulty getDifficultyOffOfElo(int elo, boolean isCustom) {
         int closestDiff = 10000000;
         ComputerDifficulty closestDifficulty = null;
-        for(ComputerDifficulty difficulty : ComputerDifficulty.values()){
-            if(difficulty.isCustom == isCustom){
-                int eloDiff = Math.abs(difficulty.eloRange-elo);
-                if(eloDiff < closestDiff){
+        for (ComputerDifficulty difficulty : ComputerDifficulty.values()) {
+            if (difficulty.isCustom == isCustom) {
+                int eloDiff = Math.abs(difficulty.eloRange - elo);
+                if (eloDiff < closestDiff) {
                     closestDifficulty = difficulty;
                     closestDiff = eloDiff;
                 }

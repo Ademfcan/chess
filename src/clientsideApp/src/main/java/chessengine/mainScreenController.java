@@ -23,20 +23,31 @@ import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ResourceBundle;
 
 public class mainScreenController implements Initializable {
 
+    private final ImageView[][] peicesAtLocations = new ImageView[8][8];
     public UserPreferences initPreferences = null;
-
+    @FXML
+    public Pane chessPieceBoard;
+    @FXML
+    public VBox gameoverMenu;
+    @FXML
+    public Label gameoverTitle;
+    @FXML
+    public Button gameoverHomebutton;
+    @FXML
+    public Label saveIndicator;
+    @FXML
+    public Button reset;
+    // methods called every new game
+    public MainScreenState currentState;
     VBox[][] Bgpanes = new VBox[8][8];
     StackPane[][] highlightPanes = new StackPane[8][8];
     VBox[][] moveBoxes = new VBox[8][8];
-    private ImageView[][] peicesAtLocations = new ImageView[8][8];
-
     @FXML
     StackPane fullScreen;
     @FXML
@@ -45,311 +56,185 @@ public class mainScreenController implements Initializable {
     HBox sideAreaFull;
     @FXML
     VBox leftSideSpacer;
-
     @FXML
     VBox leftTopAdvBox;
-
     @FXML
     VBox rightTopAdvBox;
-
     @FXML
     HBox topRightPlayer2;
-
     @FXML
     HBox bottomRightPlayer1;
-
-
     @FXML
     Pane mainMessageBoard;
-
     @FXML
     Button LeftReset;
-
     @FXML
     Button LeftButton;
-
     @FXML
     Button RightButton;
-
     @FXML
     Button RightReset;
-
     @FXML
     Label stateLabel;
-
     @FXML
     Button settingsButton;
-
     @FXML
     StackPane chessBoardContainer;
-
     @FXML
     HBox chessBoardAndEvalContainer;
-
-
     @FXML
     GridPane chessHighlightBoard;
-
     @FXML
     GridPane chessBgBoard;
-
     @FXML
     GridPane chessMoveBoard;
-
     @FXML
     Pane arrowBoard;
-
     @FXML
     Pane promotionScreen;
-
-    @FXML
-    public Pane chessPieceBoard;
-
-
-
-    @FXML
-    public VBox gameoverMenu;
-
-    @FXML
-    public Label gameoverTitle;
-
-    @FXML
-    public Button gameoverHomebutton;
-
-
-
-
-    @FXML
-    public Label saveIndicator;
-
-    @FXML
-    public Button reset;
-
     @FXML
     VBox evalBar;
-
     @FXML
     StackPane evalContainer;
-
     @FXML
     VBox evalLabelBox;
-
     @FXML
     Rectangle blackadvantage;
-
     @FXML
     Label blackEval;
-
     @FXML
     Rectangle whiteadvantage;
-
     @FXML
     Label whiteEval;
     @FXML
     Label evalDepth;
-
-
-
     @FXML
     Label victoryLabel;
-
     @FXML
     HBox eatenWhites;
-
     @FXML
     HBox eatenBlacks;
-
     @FXML
     Button homeButton;
-
     @FXML
     VBox promoContainer;
-
-
     // moves played area
     @FXML
     HBox movesPlayedBox;
-
     @FXML
     ScrollPane movesPlayed;
-
-
-
-
     // setting screen
     @FXML
     ScrollPane settingsScroller;
-
     @FXML
     VBox settingsScreen;
-
     @FXML
     VBox onlineControls;
-
     @FXML
     VBox viewerControls;
-
     @FXML
     VBox localControls;
-
     @FXML
     VBox campaignControls;
     @FXML
     VBox simulationControls;
-
     @FXML
     VBox sandboxControls;
-
     @FXML
     VBox bestMovesBox;
     @FXML
     GridPane sandboxPieces;
-
     @FXML
     TextArea localInfo;
-
-
-
-
     @FXML
     ImageView player1Select;
-
     @FXML
     ImageView player2Select;
-
     @FXML
     VBox player1TurnIndicator;
-
     @FXML
     VBox player2TurnIndicator;
-
     @FXML
     Label player1MoveClock;
-
     @FXML
     Label player2MoveClock;
-
     @FXML
     GridPane mainSidePanel;
-
     @FXML
     VBox gameControls;
-
-
-
-
-
     @FXML
     StackPane sidePanel;
-
-
     @FXML
     VBox topControls;
 
-    @FXML
-    VBox bottomControls;
-
-
 
     // settings screen
-
+    @FXML
+    VBox bottomControls;
     @FXML
     Label themeLabel;
-
     @FXML
     ChoiceBox<String> themeSelection;
-
     @FXML
     Label bgLabel;
-
     @FXML
     ComboBox<String> bgColorSelector;
-
     @FXML
     Label pieceLabel;
-
     @FXML
     ComboBox<String> pieceSelector;
-
     @FXML
     Label audioMuteEff;
-
     @FXML
     Button audioMuteEffButton;
-
     @FXML
     Label audioLabelEff;
-
     @FXML
     Slider audioSliderEff;
-
     @FXML
     Label evalLabel;
-
     @FXML
     ComboBox<Integer> evalOptions;
-
     @FXML
     Label computerLabel;
-
     @FXML
     ComboBox<Integer> computerOptions;
-
     @FXML
     Label pgnSaveLabel;
-
     @FXML
     Button pgnSaveButton;
-
-
-
-
-
     @FXML
     Label player1Label;
-
     @FXML
     Label player2Label;
-
     @FXML
     Label BlackNumericalAdv;
-
     @FXML
     Label WhiteNumericalAdv;
-
     @FXML
     TextArea inGameInfo;
-
     @FXML
     TextField chatInput;
-
     @FXML
     Button sendMessageButton;
-
     // simulation controls
     @FXML
     Button playPauseButton;
-
     @FXML
     Label simulationScore;
-
-
-
-
-
-
-
+    String[] labelStorage = new String[]{"_", "_"};
+    // change promotion peice colors if needed
+    boolean lastPromoWhite = false;
     private Logger logger;
-
+    private ChessCentralControl ChessCentralControl;
+    private VBox currentControls;
 
     public chessengine.ChessCentralControl getChessCentralControl() {
         return ChessCentralControl;
     }
 
-    private ChessCentralControl ChessCentralControl;
-
-    public void endAsync(){
-        if(this.ChessCentralControl != null){
+    public void endAsync() {
+        if (this.ChessCentralControl != null) {
             ChessConstants.mainLogger.debug("Killing threads");
             ChessCentralControl.asyncController.killAll();
         }
@@ -357,7 +242,6 @@ public class mainScreenController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
 
 
         // some elements need mouse transparency because they are on top of control elements
@@ -399,9 +283,9 @@ public class mainScreenController implements Initializable {
         setUpPiecesAndListeners();
         ChessCentralControl = App.ChessCentralControl;
 
-        ChessCentralControl.init(this,chessPieceBoard,eatenWhites,eatenBlacks,peicesAtLocations,inGameInfo,arrowBoard,bestMovesBox,localInfo,sandboxPieces,chatInput,sendMessageButton,Bgpanes,moveBoxes, highlightPanes,chessBgBoard,chessHighlightBoard,chessMoveBoard,movesPlayedBox,playPauseButton,player1TurnIndicator,player2TurnIndicator,player1MoveClock,player2MoveClock);
+        ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo, arrowBoard, bestMovesBox, localInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes, chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, playPauseButton, player1TurnIndicator, player2TurnIndicator, player1MoveClock, player2MoveClock);
 //         small change to make sure moves play box is always focused on the very end
-        movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change ->{
+        movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
             // makes sure its always at the end
             movesPlayed.setHvalue(1);
         });
@@ -413,9 +297,9 @@ public class mainScreenController implements Initializable {
         setUpButtons();
         setUpDragAction();
 
-        if(initPreferences != null){
+        if (initPreferences != null) {
 //            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth()); // todo
-            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString(),true);
+            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString(), true);
         }
 
 
@@ -425,87 +309,82 @@ public class mainScreenController implements Initializable {
 
     }
 
-    public void oneTimeSetup(){
+    public void oneTimeSetup() {
         // called after app's classes are initialized
         setUpBindings();
-        setEvalBar(0,-1,false,false);
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection,bgColorSelector,pieceSelector,null,null,audioMuteEffButton,audioSliderEff,evalOptions,computerOptions,true);
+        setEvalBar(0, -1, false, false);
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions, computerOptions, true);
         ChessCentralControl.chessActionHandler.reset();
 
     }
 
-
-    private void setUpDragAction(){
-        chessBgBoard.setOnMouseDragged(e->{
+    private void setUpDragAction() {
+        chessBgBoard.setOnMouseDragged(e -> {
             ChessCentralControl.chessActionHandler.handleBoardDrag(e);
         });
-        chessBgBoard.setOnMouseReleased(e->{
-            ChessCentralControl.chessActionHandler.handleBoardRelease(e,currentState);
+        chessBgBoard.setOnMouseReleased(e -> {
+            ChessCentralControl.chessActionHandler.handleBoardRelease(e, currentState);
 
         });
-        chessBgBoard.setOnMousePressed(e->{
-            ChessCentralControl.chessActionHandler.handleBoardPress(e,currentState);
+        chessBgBoard.setOnMousePressed(e -> {
+            ChessCentralControl.chessActionHandler.handleBoardPress(e, currentState);
         });
     }
 
+    private void setUpPiecesAndListeners() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                StackPane stackpane = new StackPane();
+                VBox Bgstackbox = new VBox();
+                Bgstackbox.setAlignment(Pos.CENTER);
+                StackPane innerBgBorder = new StackPane();
+                BindingController.bindRegionTo2Styles(innerBgBorder, fullScreen.widthProperty(), "-fx-border-width:", "-fx-border-radius:", ChessConstants.borderWidthFactor, ChessConstants.borderRadFactor, "-fx-border-color: white;-fx-background-color: transparent");
+                innerBgBorder.prefWidthProperty().bind(Bgstackbox.widthProperty().multiply(.99));
+                innerBgBorder.prefHeightProperty().bind(Bgstackbox.heightProperty().multiply(.99));
+                Bgstackbox.getChildren().add(innerBgBorder);
+                VBox moveShowContainer = new VBox();
+                moveShowContainer.setAlignment(Pos.CENTER);
+                Circle moveShow = new Circle();
+                moveShow.setFill(Color.valueOf(ChessConstants.InnerMoveCircleColor));
+                BindingController.bindRegionTo2Styles(moveShowContainer, fullScreen.widthProperty(), "-fx-border-width:", "-fx-border-radius:", ChessConstants.borderWidthFactor, ChessConstants.borderRadFactor, "-fx-border-color: black");
+                moveShow.radiusProperty().bind(chessMoveBoard.widthProperty().add(chessMoveBoard.heightProperty()).divide(75));
+                moveShowContainer.getChildren().add(moveShow);
 
-    private void setUpPiecesAndListeners(){for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            StackPane stackpane = new StackPane();
-            VBox Bgstackbox = new VBox();
-            Bgstackbox.setAlignment(Pos.CENTER);
-            StackPane innerBgBorder = new StackPane();
-            BindingController.bindRegionTo2Styles(innerBgBorder,fullScreen.widthProperty(),"-fx-border-width:","-fx-border-radius:",ChessConstants.borderWidthFactor,ChessConstants.borderRadFactor,"-fx-border-color: white;-fx-background-color: transparent");
-            innerBgBorder.prefWidthProperty().bind(Bgstackbox.widthProperty().multiply(.99));
-            innerBgBorder.prefHeightProperty().bind(Bgstackbox.heightProperty().multiply(.99));
-            Bgstackbox.getChildren().add(innerBgBorder);
-            VBox moveShowContainer = new VBox();
-            moveShowContainer.setAlignment(Pos.CENTER);
-            Circle moveShow = new Circle();
-            moveShow.setFill(Color.valueOf(ChessConstants.InnerMoveCircleColor));
-            BindingController.bindRegionTo2Styles(moveShowContainer,fullScreen.widthProperty(),"-fx-border-width:","-fx-border-radius:",ChessConstants.borderWidthFactor,ChessConstants.borderRadFactor,"-fx-border-color: black");
-            moveShow.radiusProperty().bind(chessMoveBoard.widthProperty().add(chessMoveBoard.heightProperty()).divide(75));
-            moveShowContainer.getChildren().add(moveShow);
+                Bgstackbox.setUserData(i + "," + j);
+                chessHighlightBoard.add(stackpane, i, j);
+                chessBgBoard.add(Bgstackbox, i, j);
+                chessMoveBoard.add(moveShowContainer, i, j);
+                setUpSquareClickEvent(Bgstackbox);
+                Bgpanes[i][j] = Bgstackbox;
+                moveBoxes[i][j] = moveShowContainer;
+                highlightPanes[i][j] = stackpane;
 
-            Bgstackbox.setUserData(i + "," + j);
-            chessHighlightBoard.add(stackpane, i, j);
-            chessBgBoard.add(Bgstackbox, i, j);
-            chessMoveBoard.add(moveShowContainer,i,j);
-            setUpSquareClickEvent(Bgstackbox);
-            Bgpanes[i][j] = Bgstackbox;
-            moveBoxes[i][j] = moveShowContainer;
-            highlightPanes[i][j] = stackpane;
+            }
 
         }
 
     }
 
-    }
-
-
-
-    private void setUpButtons(){
+    private void setUpButtons() {
 
         setupresetToHome(gameoverHomebutton);
         setupresetToHome(homeButton);
 
 
-
-
-        pgnSaveButton.setOnMouseClicked(e ->{
+        pgnSaveButton.setOnMouseClicked(e -> {
             String fileName = ChessCentralControl.gameHandler.currentGame.getGameName() + ".txt";
             String pgn = ChessCentralControl.gameHandler.currentGame.gameToPgn();
             logger.debug("Saving game");
-            GeneralChessFunctions.saveToFile(fileName,pgn);
+            GeneralChessFunctions.saveToFile(fileName, pgn);
         });
 
         settingsButton.setOnMouseClicked(e -> {
             toggleSettingsAndGameControls();
         });
 
-        LeftReset.setOnMouseClicked(e ->{
+        LeftReset.setOnMouseClicked(e -> {
             logger.debug("Left Reset clicked");
-            if(ChessCentralControl.gameHandler.currentGame.curMoveIndex > -1){
+            if (ChessCentralControl.gameHandler.currentGame.curMoveIndex > -1) {
                 changeToAbsoluteMoveIndex(-1);
 
             }
@@ -513,8 +392,8 @@ public class mainScreenController implements Initializable {
 
         LeftButton.setOnMouseClicked(e -> {
             logger.debug("Left button clicked");
-            if(ChessCentralControl.gameHandler.currentGame.curMoveIndex >= 0){
-                changeMove(-1,false);
+            if (ChessCentralControl.gameHandler.currentGame.curMoveIndex >= 0) {
+                changeMove(-1, false);
 
             }
 
@@ -523,31 +402,30 @@ public class mainScreenController implements Initializable {
 
         RightButton.setOnMouseClicked(e -> {
             logger.debug("Right button clicked");
-            if(ChessCentralControl.gameHandler.currentGame.curMoveIndex < ChessCentralControl.gameHandler.currentGame.maxIndex){
-                changeMove(1,false);
-
+            if (ChessCentralControl.gameHandler.currentGame.curMoveIndex < ChessCentralControl.gameHandler.currentGame.maxIndex) {
+                changeMove(1, false);
 
 
             }
         });
 
-        RightReset.setOnMouseClicked(e ->{
+        RightReset.setOnMouseClicked(e -> {
             logger.debug("right Reset clicked");
-            if(ChessCentralControl.gameHandler.currentGame.curMoveIndex < ChessCentralControl.gameHandler.currentGame.maxIndex){
+            if (ChessCentralControl.gameHandler.currentGame.curMoveIndex < ChessCentralControl.gameHandler.currentGame.maxIndex) {
                 changeToAbsoluteMoveIndex(ChessCentralControl.gameHandler.currentGame.maxIndex);
 
             }
         });
 
-        reset.setOnMouseClicked(e ->{
-            if(ChessCentralControl.gameHandler.currentGame.curMoveIndex != -1){
-                changeMove(0,true);
+        reset.setOnMouseClicked(e -> {
+            if (ChessCentralControl.gameHandler.currentGame.curMoveIndex != -1) {
+                changeMove(0, true);
             }
         });
     }
 
     private void setupresetToHome(Button gameoverHomebutton) {
-        gameoverHomebutton.setOnMouseClicked(e ->{
+        gameoverHomebutton.setOnMouseClicked(e -> {
             // clearing all board related stuff
             ChessCentralControl.chessBoardGUIHandler.removeAllPieces();
             ChessCentralControl.chessBoardGUIHandler.resetEverything(true);
@@ -558,12 +436,12 @@ public class mainScreenController implements Initializable {
             ChessCentralControl.asyncController.stopAll();
 
             // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
-            if(ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && !currentState.equals(MainScreenState.SIMULATION) && ChessCentralControl.gameHandler.currentGame.maxIndex > -1){
+            if (ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && !currentState.equals(MainScreenState.SIMULATION) && ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {
                 PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
                 App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame);
             }
             // need to leave online game if applicable
-            if(ChessCentralControl.gameHandler.currentGame.isWebGame()){
+            if (ChessCentralControl.gameHandler.currentGame.isWebGame()) {
                 ChessCentralControl.gameHandler.currentGame.leaveWebGame();
             }
 
@@ -571,42 +449,41 @@ public class mainScreenController implements Initializable {
             // boolean flag for scrolling to the next level
             boolean isNewLvl = false;
 
-           // if we are in campaign mode and the game finished, depending on the outcome we will want to move the player to the next level
-           if(currentState.equals(MainScreenState.CAMPAIGN)){
-               // draw will be one star regardless of difficulty
-               // other than that only a win will also have you progress
-               CampaignTier completedTier = ChessCentralControl.gameHandler.getCampaignTier();
-               int completedLevelOfTier = ChessCentralControl.gameHandler.getLevelOfCampaignTier();
-               int numStars = 0;
-               if(ChessCentralControl.gameHandler.currentGame.gameState.isStaleMated()){
-                   numStars = 1;
-               }
-               else if(ChessCentralControl.gameHandler.currentGame.gameState.isCheckMated()[1]){
-                   // game over only happens if draw or checkmate
-                   // so if not draw it must be checkmate
-                   // so we only have to check if white(the user) won
-                   numStars = ChessCentralControl.gameHandler.getGameDifficulty();
-               }
+            // if we are in campaign mode and the game finished, depending on the outcome we will want to move the player to the next level
+            if (currentState.equals(MainScreenState.CAMPAIGN)) {
+                // draw will be one star regardless of difficulty
+                // other than that only a win will also have you progress
+                CampaignTier completedTier = ChessCentralControl.gameHandler.getCampaignTier();
+                int completedLevelOfTier = ChessCentralControl.gameHandler.getLevelOfCampaignTier();
+                int numStars = 0;
+                if (ChessCentralControl.gameHandler.currentGame.gameState.isStaleMated()) {
+                    numStars = 1;
+                } else if (ChessCentralControl.gameHandler.currentGame.gameState.isCheckMated()[1]) {
+                    // game over only happens if draw or checkmate
+                    // so if not draw it must be checkmate
+                    // so we only have to check if white(the user) won
+                    numStars = ChessCentralControl.gameHandler.getGameDifficulty();
+                }
 
-               if(numStars != 0){
-                   // now if the user earned any stars make sure you add them
-                   // btw this will not decrement your level if you have done better before
-                   App.userManager.setLevelStars(completedTier,completedLevelOfTier,numStars);
+                if (numStars != 0) {
+                    // now if the user earned any stars make sure you add them
+                    // btw this will not decrement your level if you have done better before
+                    App.userManager.setLevelStars(completedTier, completedLevelOfTier, numStars);
 
-                   // now if this was a new level for them(and they were sucessful), unlock the next one
-                   if(completedTier.equals(App.userManager.getCurrentCampaignTier()) && completedLevelOfTier == App.userManager.getCurrentCampaignLevel()){
-                       isNewLvl =true;
-                       App.userManager.moveToNextLevel();
-                   }
+                    // now if this was a new level for them(and they were sucessful), unlock the next one
+                    if (completedTier.equals(App.userManager.getCurrentCampaignTier()) && completedLevelOfTier == App.userManager.getCurrentCampaignLevel()) {
+                        isNewLvl = true;
+                        App.userManager.moveToNextLevel();
+                    }
 
-               }
+                }
 
 
-           }
+            }
             ChessCentralControl.gameHandler.clearGame();
             App.changeToStart();
             // in campaign mode as you move to the next level, scroll up to that level
-            if(isNewLvl){
+            if (isNewLvl) {
                 App.startScreenController.campaignManager.scrollToPlayerTier(App.userManager.getCampaignProgress());
             }
 
@@ -615,16 +492,18 @@ public class mainScreenController implements Initializable {
 
     public void processChatInput() {
         App.soundPlayer.playEffect(Effect.MESSAGE);
-        ChessCentralControl.chessActionHandler.appendNewMessageToChat("("+ ChessCentralControl.gameHandler.currentGame.getPlayer1name() + ") " + chatInput.getText());
-        if(ChessCentralControl.gameHandler.currentGame.isWebGame() && ChessCentralControl.gameHandler.currentGame.isWebGameInitialized()){
-            App.sendRequest(INTENT.SENDCHAT,chatInput.getText());
+        ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + ChessCentralControl.gameHandler.currentGame.getWhitePlayerName() + ") " + chatInput.getText());
+        if (ChessCentralControl.gameHandler.currentGame.isWebGame() && ChessCentralControl.gameHandler.currentGame.isWebGameInitialized()) {
+            App.sendRequest(INTENT.SENDCHAT, chatInput.getText());
         }
         chatInput.clear();
     }
 
-    public void setUpBindings(){
+    // for campaign only
+
+    public void setUpBindings() {
         // moves played
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull,movesPlayedBox,50,.3);
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, movesPlayedBox, 50, .3);
 
         // pawn  promo
         promoContainer.prefWidthProperty().bind(chessPieceBoard.widthProperty().divide(8));
@@ -635,7 +514,7 @@ public class mainScreenController implements Initializable {
         content.prefWidthProperty().bind(fullScreen.widthProperty());
         content.prefHeightProperty().bind(fullScreen.heightProperty());
 
-        chessBoardContainer.prefWidthProperty().bind(Bindings.min(chessBoardAndEvalContainer.widthProperty().subtract(evalBar.widthProperty()),fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2))));
+        chessBoardContainer.prefWidthProperty().bind(Bindings.min(chessBoardAndEvalContainer.widthProperty().subtract(evalBar.widthProperty()), fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2))));
         chessBoardContainer.prefHeightProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
@@ -649,12 +528,12 @@ public class mainScreenController implements Initializable {
 
         // side panel
         // simulation controls
-        App.bindingController.bindSmallText(simulationScore,true,"Black");
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,playPauseButton,200,.3);
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull,playPauseButton,180,.2);
+        App.bindingController.bindSmallText(simulationScore, true, "Black");
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, playPauseButton, 200, .3);
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, playPauseButton, 180, .2);
         // eval bar related
         evalBar.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(chessBoardContainer,evalBar,75,.1);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(chessBoardContainer, evalBar, 75, .1);
         evalContainer.prefHeightProperty().bind(chessBoardContainer.heightProperty());
         evalLabelBox.spacingProperty().bind(evalLabelBox.heightProperty().divide(3));
         // default heights
@@ -672,11 +551,11 @@ public class mainScreenController implements Initializable {
         movesPlayed.prefWidthProperty().bind(sidePanel.widthProperty());
 
         // all the different side panels
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel,localInfo,100,.8);
-        App.bindingController.bindSmallText(localInfo,true,"black");
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, localInfo, 100, .8);
+        App.bindingController.bindSmallText(localInfo, true, "black");
 
         localInfo.prefHeightProperty().bind(gameControls.heightProperty().subtract(movesPlayed.heightProperty()).subtract(bottomControls.heightProperty()));
-        App.bindingController.bindSmallText(inGameInfo,true,"black");
+        App.bindingController.bindSmallText(inGameInfo, true, "black");
         inGameInfo.prefWidthProperty().bind(localInfo.widthProperty());
         inGameInfo.prefHeightProperty().bind(localInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
         sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(inGameInfo.widthProperty().divide(8)));
@@ -684,15 +563,14 @@ public class mainScreenController implements Initializable {
         chatInput.prefHeightProperty().bind(sendMessageButton.heightProperty());
 
 
-
         // side panel labels
 
-        App.bindingController.bindSmallText(stateLabel,true);
-        App.bindingController.bindLargeText(victoryLabel,true,"White");
-        App.bindingController.bindSmallText(player1Label,true);
-        App.bindingController.bindSmallText(player2Label,true);
-        App.bindingController.bindSmallText(WhiteNumericalAdv,true);
-        App.bindingController.bindSmallText(BlackNumericalAdv,true);
+        App.bindingController.bindSmallText(stateLabel, true);
+        App.bindingController.bindLargeText(victoryLabel, true, "White");
+        App.bindingController.bindSmallText(player1Label, true);
+        App.bindingController.bindSmallText(player2Label, true);
+        App.bindingController.bindSmallText(WhiteNumericalAdv, true);
+        App.bindingController.bindSmallText(BlackNumericalAdv, true);
 //        reset.prefWidthProperty().bind(chessPieceBoard.widthProperty().subtract(whiteadvantage.widthProperty().multiply(2)));
 //        LeftButton.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()).divide(3));
 //        LeftButton.prefHeightProperty().bind(LeftButton.widthProperty());
@@ -714,14 +592,14 @@ public class mainScreenController implements Initializable {
         player1MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                updateTextVisibility(player1MoveClock,true);
+                updateTextVisibility(player1MoveClock, true);
             }
         });
 
         player2MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                updateTextVisibility(player2MoveClock,false);
+                updateTextVisibility(player2MoveClock, false);
             }
         });
 
@@ -737,30 +615,28 @@ public class mainScreenController implements Initializable {
         settingsScreen.prefWidthProperty().bind(sidePanel.widthProperty());
 
         // game over menu
-        App.bindingController.bindXLargeText(gameoverTitle,true,"White");
-        App.bindingController.bindXLargeText(victoryLabel,true,"White");
+        App.bindingController.bindXLargeText(gameoverTitle, true, "White");
+        App.bindingController.bindXLargeText(victoryLabel, true, "White");
 
         // miscelaneus buttons
-        App.bindingController.bindSmallText(settingsButton,true);
-        App.bindingController.bindMediumText(LeftButton,true);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,LeftButton,110,.32);
-        App.bindingController.bindMediumText(RightButton,true);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,RightButton,110,.32);
-        App.bindingController.bindMediumText(LeftReset,true);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,LeftReset,140,.36);
-        App.bindingController.bindMediumText(RightReset,true);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,RightReset,140,.36);
-        App.bindingController.bindSmallText(homeButton,true);
-        App.bindingController.bindSmallText(saveIndicator,true);
-        App.bindingController.bindMediumText(reset,true);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull,reset,240,.45);
+        App.bindingController.bindSmallText(settingsButton, true);
+        App.bindingController.bindMediumText(LeftButton, true);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftButton, 110, .32);
+        App.bindingController.bindMediumText(RightButton, true);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightButton, 110, .32);
+        App.bindingController.bindMediumText(LeftReset, true);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftReset, 140, .36);
+        App.bindingController.bindMediumText(RightReset, true);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightReset, 140, .36);
+        App.bindingController.bindSmallText(homeButton, true);
+        App.bindingController.bindSmallText(saveIndicator, true);
+        App.bindingController.bindMediumText(reset, true);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, reset, 240, .45);
 //
     }
 
-    String[] labelStorage = new String[]{"_","_"};
-
     // label hide ellipsis hack
-    private void updateTextVisibility(Label label,boolean isP1Label) {
+    private void updateTextVisibility(Label label, boolean isP1Label) {
         Text textNode = new Text(label.getText());
         textNode.setFont(label.getFont());
 
@@ -775,33 +651,28 @@ public class mainScreenController implements Initializable {
             labelStorage[storageindex] = label.getText();
             label.setText(""); // Set text to empty string
         } else {
-            if(!labelStorage[storageindex].equals("_")){
+            if (!labelStorage[storageindex].equals("_")) {
                 label.setText(labelStorage[storageindex]); // Set the original stored if was cleared
             }
 
         }
     }
 
-
-
-    // methods called every new game
-    public MainScreenState currentState;
-
-    // for campaign only
-
-    /** Setup Steps that are called every game, regardless of campaign or not**/
-    private void setUp(String extraStuff){
+    /**
+     * Setup Steps that are called every game, regardless of campaign or not
+     **/
+    private void setUp(String extraStuff) {
         // side panel controls are slightly different for every mode
-        setMainControls(currentState,extraStuff);
+        setMainControls(currentState, extraStuff);
         // some modes do not want an eval bar
         checkHideEvalBar(currentState);
         checkHideMoveControls(currentState);
-        if(currentState.equals(MainScreenState.LOCAL)){
+        if (currentState.equals(MainScreenState.LOCAL)) {
             // since in campaign mode the diffiiculty might have been changed, when back to local set it to whatever selected
             ChessCentralControl.asyncController.setComputerDifficulty(App.userPreferenceManager.getPrefDifficulty());
         }
         // set up board
-        setEvalBar(0,-1,false,false);
+        setEvalBar(0, -1, false, false);
         clearSimpleAdvantageLabels();
         hidePromo();
         hideSettings();
@@ -811,68 +682,81 @@ public class mainScreenController implements Initializable {
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
 
 
-        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState,false,true);
+        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState, false, true);
 
-        
 
-        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex,ChessCentralControl.gameHandler.currentGame.maxIndex);
+        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex, ChessCentralControl.gameHandler.currentGame.maxIndex);
 
 
     }
 
-    public void setupCampaign(String player1Name, int player1Elo,String player1PfpUrl,CampaignTier levelTier,int levelOfTier,int campaignDifficuly){
+    public void setupCampaign(String player1Name, int player1Elo, String player1PfpUrl, CampaignTier levelTier, int levelOfTier, int campaignDifficuly) {
         String campaignOpponentName = levelTier.levelNames[levelOfTier];
         int campaignOpponentElo = levelTier.eloIndexes[levelOfTier];
         String pfpUrl2 = ProfilePicture.values()[levelTier.pfpIndexes[levelOfTier]].urlString;
 
         this.currentState = MainScreenState.CAMPAIGN;
         // set computer difficulty to closest based on elo
-        ChessCentralControl.asyncController.setComputerDifficulty(ComputerDifficulty.getDifficultyOffOfElo(campaignOpponentElo,false));
+        ChessCentralControl.asyncController.setComputerDifficulty(ComputerDifficulty.getDifficultyOffOfElo(campaignOpponentElo, false));
 
-        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal()+1) + "L: " + levelOfTier,player1Name,campaignOpponentName,player1Elo,campaignOpponentElo,player1PfpUrl,pfpUrl2,true,true));
+        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal() + 1) + "L: " + levelOfTier, player1Name, campaignOpponentName, player1Elo, campaignOpponentElo, player1PfpUrl, pfpUrl2, true, true));
         ChessCentralControl.gameHandler.setGameDifficulty(campaignDifficuly);
         ChessCentralControl.gameHandler.setCampaignTier(levelTier);
         ChessCentralControl.gameHandler.setLevelOfCampaignTier(levelOfTier);
 
         String campainDiffAsStr = "";
-        switch (campaignDifficuly){
-            case 1 : campainDiffAsStr = "Easy";
-            break;
-            case 2 : campainDiffAsStr = "Medium";
-            break;
-            case 3 : campainDiffAsStr = "Hard";
-            break;
+        switch (campaignDifficuly) {
+            case 1:
+                campainDiffAsStr = "Easy";
+                break;
+            case 2:
+                campainDiffAsStr = "Medium";
+                break;
+            case 3:
+                campainDiffAsStr = "Hard";
+                break;
         }
 
 
         // in campaign the user always plays white
-        setUp((levelTier.ordinal()+1) + "," + levelOfTier + "," + campainDiffAsStr);
+        setUp((levelTier.ordinal() + 1) + "," + levelOfTier + "," + campainDiffAsStr);
     }
 
-    public void setupWithoutGame(boolean isVsComputer, boolean isWhiteOriented, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState){
+    public void setupWithoutGame(boolean isVsComputer, boolean isWhiteOriented, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
         this.currentState = currentState;
-        if(gameName.isEmpty()){
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(player1Name,isVsComputer ? "Computer" : "Player 1",player1Elo,isVsComputer ? 3000 : player1Elo,player1PfpUrl,isVsComputer ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputer,isWhiteOriented));
-        }
-        else{
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName,player1Name,isVsComputer ? "Computer" : "Player 1",player1Elo,isVsComputer ? 3000 : player1Elo,player1PfpUrl,isVsComputer ? ProfilePicture.ROBOT.urlString: player1PfpUrl,isVsComputer,isWhiteOriented));
+
+        // ternary shit show
+        String whitePlayerName = playAsWhite ? player1Name : isVsComputer ? "Computer" : "Player 2";
+        String blackPlayerName = !playAsWhite ? player1Name : isVsComputer ? "Computer" : "Player 2";
+
+        int whiteElo = playAsWhite ? player1Elo : isVsComputer ? ChessConstants.ComputerEloEstimate : player1Elo;
+        int blackElo = !playAsWhite ? player1Elo : isVsComputer ? ChessConstants.ComputerEloEstimate : player1Elo;
+
+        String whitePfpUrl = playAsWhite ? player1PfpUrl : isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
+        String blackPfpUrl = !playAsWhite ? player1PfpUrl : isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
+
+
+        if (gameName.isEmpty()) {
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
+        } else {
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
         }
         String extraInfo = "";
-        if(currentState.equals(MainScreenState.LOCAL)){
+        if (currentState.equals(MainScreenState.LOCAL)) {
             extraInfo = isVsComputer ? "vs Computer" : "PvP";
         }
         setUp(extraInfo);
     }
 
-    public void setupWithGame(ChessGame gameToSetup,MainScreenState currentState,boolean isFirstLoad){
+    public void setupWithGame(ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
         this.currentState = currentState;
-        if(currentState.equals(MainScreenState.VIEWER)){
+        if (currentState.equals(MainScreenState.VIEWER)) {
             // in viewer mode, you will have a old game that you dont want to modify, however you still want to play around with a temporary copy
-            ChessCentralControl.gameHandler.switchToGame(gameToSetup.cloneGame(),isFirstLoad);
+            ChessCentralControl.gameHandler.switchToGame(gameToSetup.cloneGame(), isFirstLoad);
         }
-        ChessCentralControl.gameHandler.switchToGame(gameToSetup,isFirstLoad);
+        ChessCentralControl.gameHandler.switchToGame(gameToSetup, isFirstLoad);
         String extraStuff = "";
-        switch (currentState){
+        switch (currentState) {
             case VIEWER -> extraStuff = gameToSetup.getGameName();
             case LOCAL -> extraStuff = gameToSetup.isVsComputer() ? "vs Computer (Pgn)" : "PvP (Pgn)";
             case ONLINE -> extraStuff = gameToSetup.getGameType();
@@ -880,65 +764,57 @@ public class mainScreenController implements Initializable {
         setUp(extraStuff);
     }
 
-    public void preinitOnlineGame(ChessGame onlinePreinit){
+    public void preinitOnlineGame(ChessGame onlinePreinit) {
         this.currentState = MainScreenState.ONLINE;
         // put loading icon
-        ChessCentralControl.gameHandler.switchToGame(onlinePreinit,true);
+        ChessCentralControl.gameHandler.switchToGame(onlinePreinit, true);
         setUp(onlinePreinit.getGameType());
     }
 
     private void checkHideMoveControls(MainScreenState currentState) {
-        if(currentState.equals(MainScreenState.SIMULATION)){
+        if (currentState.equals(MainScreenState.SIMULATION)) {
             // hidden as these are real games
             bottomControls.setVisible(false);
             bottomControls.setMouseTransparent(true);
-        }
-        else{
+        } else {
             bottomControls.setVisible(true);
             bottomControls.setMouseTransparent(false);
         }
     }
 
     private void checkHideEvalBar(MainScreenState currentState) {
-        if(currentState.equals(MainScreenState.ONLINE) || currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)){
-            // hidden as these are real games
-            evalBar.setVisible(false);
-        }
-        else{
-            evalBar.setVisible(true);
-        }
+        // hidden as these are real games
+        evalBar.setVisible(!currentState.equals(MainScreenState.ONLINE) && !currentState.equals(MainScreenState.LOCAL) && !currentState.equals(MainScreenState.CAMPAIGN));
     }
 
-
-
-
-
-
-    public void setUpIcons(String player1Url,String player2Url){
-        player1Select.setImage(new Image(player1Url));
-        player2Select.setImage(new Image(player2Url));
+    public void setPlayerIcons(String player1Url, String player2Url, boolean isWhiteOriented) {
+        ImageView player1 = isWhiteOriented ? player1Select : player2Select;
+        ImageView player2 = isWhiteOriented ? player2Select : player1Select;
+        player1.setImage(new Image(player1Url));
+        player2.setImage(new Image(player2Url));
     }
 
+    public void setPlayerLabels(String whitePlayerName, int whiteElo, String blackPlayerName, int blackElo,boolean isWhiteOriented) {
+        Label p1Label = isWhiteOriented ? player1Label : player2Label;
+        Label p2Label = isWhiteOriented ? player2Label : player1Label;
+        p1Label.setText(whitePlayerName + " " + whiteElo);
+        p2Label.setText(blackPlayerName + " " + blackElo);
 
-
-    public void setPlayerLabels(String player1Name,int player1Elo, String player2Name,int player2Elo){
-        player1Label.setText(player1Name + " " + Integer.toString(player1Elo));
-        player2Label.setText(player2Name + " " + Integer.toString(player2Elo));
     }
-
-
 
     // toggle the pawn promotion screen
-    public void showPromo(int promoX, boolean isWhite,boolean isWhiteOriented){
+    public void showPromo(int promoX, boolean isWhite, boolean isWhiteOriented) {
         // reusing piece calculation as you can use it for the promo screen too.
         System.out.println("Promo shown");
         setPromoPeices(isWhite);
-        DoubleBinding x = ChessCentralControl.chessBoardGUIHandler.calcLayoutXBinding(promoX,promoContainer.widthProperty());
-        promoContainer.layoutXProperty().bind(x);
-        if(!isWhite == isWhiteOriented){
-            promoContainer.layoutYProperty().bind(chessBoardContainer.widthProperty().divide(2));
+        if(!isWhiteOriented){
+            promoX = 7-promoX; // invert
         }
-        else{
+        DoubleBinding x = ChessCentralControl.chessBoardGUIHandler.calcLayoutXBinding(promoX, promoContainer.widthProperty());
+        promoContainer.layoutXProperty().bind(x);
+        if (!isWhite == isWhiteOriented) {
+            promoContainer.layoutYProperty().bind(chessBoardContainer.widthProperty().divide(2));
+        } else {
             promoContainer.layoutYProperty().bind(new SimpleDoubleProperty(0));
         }
 
@@ -946,28 +822,28 @@ public class mainScreenController implements Initializable {
         promotionScreen.setVisible(!promotionScreen.isVisible());
     }
 
-    private void hidePromo(){
+    private void hidePromo() {
         promotionScreen.setMouseTransparent(true);
         promotionScreen.setVisible(false);
     }
 
-    private void toggleGameOver(){
+    private void toggleGameOver() {
         gameoverMenu.setMouseTransparent(!gameoverMenu.isMouseTransparent());
         gameoverMenu.setVisible(!gameoverMenu.isVisible());
 
     }
 
-    public void hideGameOver(){
+    public void hideGameOver() {
         gameoverMenu.setMouseTransparent(true);
         gameoverMenu.setVisible(false);
     }
 
-
-    public void showGameOver(){
+    public void showGameOver() {
         gameoverMenu.setMouseTransparent(false);
         gameoverMenu.setVisible(true);
     }
-    private void toggleSettingsAndGameControls(){
+
+    private void toggleSettingsAndGameControls() {
         settingsScroller.setMouseTransparent(!settingsScroller.isMouseTransparent());
         settingsScroller.setVisible(!settingsScroller.isVisible());
         mainSidePanel.setVisible(!mainSidePanel.isVisible());
@@ -975,22 +851,19 @@ public class mainScreenController implements Initializable {
 
     }
 
-    private void hideSettings(){
+    private void hideSettings() {
         settingsScroller.setMouseTransparent(true);
         settingsScroller.setVisible(false);
     }
 
-
-
-    private void showGameControlls(){
+    private void showGameControlls() {
         mainSidePanel.setMouseTransparent(false);
         mainSidePanel.setVisible(true);
     }
 
-    private VBox currentControls;
-    private void setMainControls(MainScreenState currentState,String extraStuff){
+    private void setMainControls(MainScreenState currentState, String extraStuff) {
         hideAllControls();
-        switch (currentState){
+        switch (currentState) {
             case VIEWER -> {
                 currentControls = viewerControls;
                 stateLabel.setText("Viewer: " + extraStuff); // game name
@@ -1013,7 +886,7 @@ public class mainScreenController implements Initializable {
                 int L = Integer.parseInt(split[1]); // level of tier
                 String Diff = split[2]; // difficuly
                 currentControls = campaignControls;
-                stateLabel.setText(String.format("Campaign T:%d L:%d (%s)",T,L,Diff));
+                stateLabel.setText(String.format("Campaign T:%d L:%d (%s)", T, L, Diff));
             }
             case SIMULATION -> {
                 currentControls = simulationControls;
@@ -1024,7 +897,7 @@ public class mainScreenController implements Initializable {
         currentControls.setVisible(true);
     }
 
-    private void hideAllControls(){
+    private void hideAllControls() {
         viewerControls.setMouseTransparent(true);
         viewerControls.setVisible(false);
         localControls.setMouseTransparent(true);
@@ -1039,23 +912,16 @@ public class mainScreenController implements Initializable {
         sandboxControls.setVisible(false);
     }
 
-
-
-
-
-
-    // change promotion peice colors if needed
-    boolean lastPromoWhite = false;
-    private void setPromoPeices(boolean isWhite){
-        if(lastPromoWhite != isWhite){
+    private void setPromoPeices(boolean isWhite) {
+        if (lastPromoWhite != isWhite) {
             // want different color promo peices
             promoContainer.getChildren().clear();
-            for(int i = 1;i<5;i++){
-                ImageView piece = new ImageView(ChessCentralControl.chessBoardGUIHandler.createPiecePath(i,isWhite));
+            for (int i = 1; i < 5; i++) {
+                ImageView piece = new ImageView(ChessCentralControl.chessBoardGUIHandler.createPiecePath(i, isWhite));
                 piece.fitWidthProperty().bind(promoContainer.widthProperty().multiply(.9));
                 piece.fitHeightProperty().bind(piece.fitWidthProperty());
                 piece.setPreserveRatio(true);
-                setUpPromoListener(piece,i);
+                setUpPromoListener(piece, i);
                 promoContainer.getChildren().add(piece);
             }
             lastPromoWhite = isWhite;
@@ -1065,167 +931,154 @@ public class mainScreenController implements Initializable {
     }
 
     // set up the onlick listeners for the pieces a pawn can promote too
-    private void setUpPromoListener(ImageView promo,int peiceType){
-        promo.setOnMouseClicked(event ->{
-            ChessCentralControl.chessActionHandler.promoPawn(peiceType,currentState);
+    private void setUpPromoListener(ImageView promo, int peiceType) {
+        promo.setOnMouseClicked(event -> {
+            ChessCentralControl.chessActionHandler.promoPawn(peiceType, currentState);
             hidePromo();
         });
 
     }
 
-    public void changeToAbsoluteMoveIndex(int absIndex){
+    public void changeToAbsoluteMoveIndex(int absIndex) {
         ChessCentralControl.chessBoardGUIHandler.clearAllHighlights();
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Resetting to abs index:" + absIndex);
 
 
-        ChessCentralControl.gameHandler.currentGame.moveToMoveIndexAbsolute(absIndex,false,true);
+        ChessCentralControl.gameHandler.currentGame.moveToMoveIndexAbsolute(absIndex, false, true);
 
-        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex,ChessCentralControl.gameHandler.currentGame.maxIndex);
+        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex, ChessCentralControl.gameHandler.currentGame.maxIndex);
 
         updateSimpleAdvantageLabels();
-        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState,false,false);
+        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState, false, false);
     }
 
     // change the board to a previosly saved position
-    private void changeMove(int direction, boolean isReset){
+    private void changeMove(int direction, boolean isReset) {
         ChessCentralControl.chessBoardGUIHandler.clearAllHighlights();
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Changing move by " + direction);
-        if(isReset){
+        if (isReset) {
             // resets the backend chessgame
             ChessCentralControl.gameHandler.currentGame.reset();
 
 
-        }
-        else{
-            ChessCentralControl.gameHandler.currentGame.changeToDifferentMove(direction,false,false);
+        } else {
+            ChessCentralControl.gameHandler.currentGame.changeToDifferentMove(direction, false, false);
 
 
         }
-        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex,ChessCentralControl.gameHandler.currentGame.maxIndex);
+        setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex, ChessCentralControl.gameHandler.currentGame.maxIndex);
 
         updateSimpleAdvantageLabels();
-        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState,false,false);
+        ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState, false, false);
 
     }
 
-    private void clearSimpleAdvantageLabels(){
+    private void clearSimpleAdvantageLabels() {
         WhiteNumericalAdv.setText("");
         BlackNumericalAdv.setText("");
     }
 
-    public void updateSimpleAdvantageLabels(){
+    public void updateSimpleAdvantageLabels() {
         boolean isWhiteOriented = ChessCentralControl.gameHandler.currentGame.isWhiteOriented();
         Label whiteLabel = isWhiteOriented ? WhiteNumericalAdv : BlackNumericalAdv;
         Label blackLabel = !isWhiteOriented ? WhiteNumericalAdv : BlackNumericalAdv;
         clearSimpleAdvantageLabels();
         int simpleAdvantage = AdvancedChessFunctions.getSimpleAdvantage(ChessCentralControl.gameHandler.currentGame.currentPosition.board);
-        if(simpleAdvantage > 0){
-            whiteLabel.setText("+" + Integer.toString(simpleAdvantage));
-        }
-        else if(simpleAdvantage < 0){
+        if (simpleAdvantage > 0) {
+            whiteLabel.setText("+" + simpleAdvantage);
+        } else if (simpleAdvantage < 0) {
             // flip the sign from a negative to a positive
-            blackLabel.setText("+" + Integer.toString(simpleAdvantage*-1));
-        }
-        else{
+            blackLabel.setText("+" + simpleAdvantage * -1);
+        } else {
             // clear labels as zero advantage
             clearSimpleAdvantageLabels();
         }
     }
+
     // draw the eval bar for the screen
-    public void setEvalBar(double advantage, int depth,boolean isEvalCallable,boolean gameOver){
-        setEvalBar(whiteEval,blackEval,whiteadvantage,blackadvantage,advantage,evalDepth);
-        if(!isEvalCallable){
-            if(advantage > 100000){
+    public void setEvalBar(double advantage, int depth, boolean isEvalCallable, boolean gameOver) {
+        setEvalBar(whiteEval, blackEval, whiteadvantage, blackadvantage, advantage, evalDepth);
+        if (!isEvalCallable) {
+            if (advantage > 100000) {
                 victoryLabel.setText("Winner : White!");
-            }
-            else if(advantage < -100000){
+            } else if (advantage < -100000) {
                 victoryLabel.setText("Winner : Black!");
             }
         }
-        if(gameOver){
-            if(advantage == 0){
+        if (gameOver) {
+            if (advantage == 0) {
                 victoryLabel.setText("Draw!");
             }
             showGameOver();
         }
-        if(depth > 0){
+        if (depth > 0) {
             evalDepth.setText(Integer.toString(depth));
         }
     }
 
-    public void setMoveLabels(int curIndex,int maxIndex){
-        saveIndicator.setText((curIndex + 1 )+ "/" + (maxIndex+1));
+    public void setMoveLabels(int curIndex, int maxIndex) {
+        saveIndicator.setText((curIndex + 1) + "/" + (maxIndex + 1));
     }
 
-    public void setSimScore(int numComputerWins,int numStockFishWins,int numDraws){
-        simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d",numComputerWins,numStockFishWins,numDraws));
+    public void setSimScore(int numComputerWins, int numStockFishWins, int numDraws,int estimatedElo) {
+        simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d Estimated elo: %d", numComputerWins, numStockFishWins, numDraws,estimatedElo));
     }
 
 
-    private void setEvalBar(Label whiteEval, Label blackEval, Rectangle whiteBar, Rectangle blackBar, double advantage,Label evalDepth){
-        double barModPercent = passThroughAsymptote(Math.abs(advantage))/5;
+    private void setEvalBar(Label whiteEval, Label blackEval, Rectangle whiteBar, Rectangle blackBar, double advantage, Label evalDepth) {
+        double barModPercent = passThroughAsymptote(Math.abs(advantage)) / 5;
         DecimalFormat decimalFormat = new DecimalFormat("0.0");
-        if(advantage >= 0){
+        if (advantage >= 0) {
             // white advantage or equal position
             evalDepth.setStyle("-fx-text-fill: black");
-            if(advantage < 1000000){
+            if (advantage < 1000000) {
                 whiteEval.setText(decimalFormat.format(advantage));
-            }
-            else{
+            } else {
                 whiteEval.setText("M");
 
             }
             blackEval.setText("");
             whiteBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).add(chessPieceBoard.heightProperty().divide(2).multiply(barModPercent)));
-            blackBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1-barModPercent));
-            
-        }
-        else{
-            if(advantage < -.2){
+            blackBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1 - barModPercent));
+
+        } else {
+            if (advantage < -.2) {
                 // change eval depth color to match the black covering it now that the black has an advantage
                 evalDepth.setStyle("-fx-text-fill: white");
             }
-            if(advantage > -1000000){
+            if (advantage > -1000000) {
                 blackEval.setText(decimalFormat.format(advantage));
-            }
-            else{
+            } else {
                 blackEval.setText("M");
 
             }
             whiteEval.setText("");
             blackBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).add(chessPieceBoard.heightProperty().divide(2).multiply(barModPercent)));
-            whiteBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1-barModPercent));
+            whiteBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1 - barModPercent));
 
 
         }
 
 
     }
+
     // make the growth of the eval bar nonlinear
-    private double passThroughAsymptote(double advantage){
-        return (5 * Math.pow(advantage,2))/(Math.pow(advantage,2)+0.5*advantage + 10);
+    private double passThroughAsymptote(double advantage) {
+        return (5 * Math.pow(advantage, 2)) / (Math.pow(advantage, 2) + 0.5 * advantage + 10);
     }
     // remove all square highlights
 
 
-
-
-
-
-
-
-
-
     // what actually happens when you click a square on the board
-    public void makeComputerMove(ChessMove move){
-        if((currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null && !App.isStartScreen){
+    public void makeComputerMove(ChessMove move) {
+        if ((currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null && !App.isStartScreen) {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
-            logger.info("Computer thinks move: \n" + move.toString());
+            logger.info("Computer thinks move: \n" + move);
             // computers move
             // since when eating a piece you have to change visuals, need to hanndle it differently
-            ChessCentralControl.chessActionHandler.handleMakingMove(move.getOldX(),move.getOldY(),move.getNewX(),move.getNewY(),move.isEating(),move.isWhite(),move.isCastleMove(),move.isEnPassant(),true,false,move.getPromoIndx(),currentState,false);
+            ChessCentralControl.chessActionHandler.handleMakingMove(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isEating(), move.isWhite(), move.isCastleMove(), move.isEnPassant(), true, false, move.getPromoIndx(), currentState, false);
 
         }
 
@@ -1240,21 +1093,17 @@ public class mainScreenController implements Initializable {
             String[] xy = pane.getUserData().toString().split(",");
             int x = Integer.parseInt(xy[0]);
             int y = Integer.parseInt(xy[1]);
-            logger.debug(String.format("Square clicked at coordinates X:%d, Y:%d",x,y));
+            logger.debug(String.format("Square clicked at coordinates X:%d, Y:%d", x, y));
             logger.debug(String.format("Is white turn?: %s", ChessCentralControl.gameHandler.currentGame.isWhiteTurn()));
             logger.debug(String.format("Is checkmated?: %b", ChessCentralControl.gameHandler.currentGame.gameState.isCheckMated()[0]));
-            if (event.getButton() == MouseButton.PRIMARY){
+            if (event.getButton() == MouseButton.PRIMARY) {
                 // if the click was a primary click then we want to check if the player can make a move
                 // boardinfo:  boardInfo[0] = is there a piece on that square?  boardInfo[1] = is that piece white?
-                int backendY = ChessCentralControl.gameHandler.currentGame.isWhiteOriented() ? y : 7-y;
-                int backendX = ChessCentralControl.gameHandler.currentGame.isWhiteOriented() ? x : 7-x;
-                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, ChessCentralControl.gameHandler.currentGame.currentPosition.board,"squareclick");
+                int backendY = ChessCentralControl.gameHandler.currentGame.isWhiteOriented() ? y : 7 - y;
+                int backendX = ChessCentralControl.gameHandler.currentGame.isWhiteOriented() ? x : 7 - x;
+                boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, ChessCentralControl.gameHandler.currentGame.currentPosition.board, "squareclick");
                 logger.debug("IsHit:" + boardInfo[0] + " isWhite: " + boardInfo[1]);
-                ChessCentralControl.chessActionHandler.handleSquareClick(x,y,boardInfo[0],boardInfo[1],currentState);
-
-
-
-
+                ChessCentralControl.chessActionHandler.handleSquareClick(x, y, boardInfo[0], boardInfo[1], currentState);
 
 
             } else if (event.getButton() == MouseButton.SECONDARY) {
@@ -1267,7 +1116,6 @@ public class mainScreenController implements Initializable {
     }
 
     // checks if square player wants to move is in the moves allowed for that peice
-
 
 
 }

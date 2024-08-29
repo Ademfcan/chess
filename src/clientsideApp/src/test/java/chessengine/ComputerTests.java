@@ -94,7 +94,7 @@ public class ComputerTests {
 //        System.out.println(cnt++);
 
         int objKey = Objects.hash(position.hashCode(),isWhiteTurn);
-        long zobKey = hasher.computeHash(position,isWhiteTurn);
+        long zobKey = hasher.computeHash(position.board,isWhiteTurn);
         if(zobristMap.containsKey(zobKey)){
 //            logger.info("Transtable value being used");
             TestContainer oldPos = zobristMap.get(zobKey);

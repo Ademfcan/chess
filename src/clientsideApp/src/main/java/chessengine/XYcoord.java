@@ -1,8 +1,34 @@
 package chessengine;
 
 public class XYcoord {
+    private final boolean isCastleMove;
     int x;
     int y;
+    int direction = -10;
+    int peiceType = -10;
+    private boolean isPawnPromo;
+    private boolean enPassant;
+    public XYcoord(int x, int y, int direction) {
+        this.x = x;
+        this.y = y;
+        this.isCastleMove = false;
+        this.enPassant = false;
+        this.direction = direction;
+    }
+
+    public XYcoord(int x, int y, boolean isCastleMove) {
+        this.x = x;
+        this.y = y;
+        this.isCastleMove = isCastleMove;
+        this.enPassant = false;
+    }
+
+    public XYcoord(int x, int y) {
+        this.x = x;
+        this.y = y;
+        this.isCastleMove = false;
+        this.enPassant = false;
+    }
 
     public boolean isCastleMove() {
         return isCastleMove;
@@ -16,46 +42,20 @@ public class XYcoord {
         isPawnPromo = pawnPromo;
     }
 
-    private boolean isPawnPromo;
-    private boolean isCastleMove;
-
-    private boolean enPassant;
-
-    int direction = -10;
-    int peiceType = -10;
-
-
-    public XYcoord(int x, int y, int direction) {
-        this.x = x;
-        this.y = y;
-        this.isCastleMove = false;
-        this.enPassant = false;
-        this.direction = direction;
-    }
-
-
-    public XYcoord(int x, int y, boolean isCastleMove) {
-        this.x = x;
-        this.y = y;
-        this.isCastleMove = isCastleMove;
-        this.enPassant = false;
-    }
-
-
-
-    public XYcoord(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.isCastleMove = false;
-        this.enPassant = false;
+    /**
+     * inline setting pawn promo
+     **/
+    public XYcoord setPromoHack(boolean pawnPromo) {
+        isPawnPromo = pawnPromo;
+        return this;
     }
 
     @Override
-    public boolean equals(Object obj){
-        if(this == obj){
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if(obj == null || obj.getClass() != getClass() ){
+        if (obj == null || obj.getClass() != getClass()) {
             return false;
 
         }
@@ -63,6 +63,7 @@ public class XYcoord {
         return (this.x == xy.x && this.y == xy.y);
 
     }
+
     public boolean isEnPassant() {
         return enPassant;
     }
@@ -71,7 +72,7 @@ public class XYcoord {
         this.enPassant = enPassant;
     }
 
-    public String toString(){
+    public String toString() {
         return "X: " + x + " Y: " + y + " Is castle move?: " + isCastleMove;
     }
 

@@ -3,38 +3,40 @@ package chessserver;
 import javax.websocket.Session;
 import java.util.Objects;
 
-public class BackendClient extends Client{
-    public boolean isInGame(){
-        return Objects.nonNull(currentGame);
-    }
-    public ChessGame getCurrentGame() {
-        return currentGame;
-    }
-
+public class BackendClient extends Client {
     private ChessGame currentGame;
     private Session clientSession;
 
-
-
-    public BackendClient(UserInfo info){
+    public BackendClient(UserInfo info) {
         super(info);
         this.currentGame = null;
     }
 
-    public void setCurrentGame(ChessGame currentGame){
+    public boolean isInGame() {
+        return Objects.nonNull(currentGame);
+    }
+
+    public ChessGame getCurrentGame() {
+        return currentGame;
+    }
+
+    public void setCurrentGame(ChessGame currentGame) {
         this.currentGame = currentGame;
     }
-    public void endGame(boolean isClientWinner,boolean isDraw,boolean isEarlyClose){
-        currentGame.closeGame(this,isClientWinner,isDraw,isEarlyClose);
+
+    public void endGame(boolean isClientWinner, boolean isDraw, boolean isEarlyClose) {
+        currentGame.closeGame(this, isClientWinner, isDraw, isEarlyClose);
     }
 
     public Session getClientSession() {
         return clientSession;
     }
+
     public void setClientSession(Session clientSession) {
         this.clientSession = clientSession;
 
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

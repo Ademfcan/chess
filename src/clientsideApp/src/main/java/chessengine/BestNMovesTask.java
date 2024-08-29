@@ -10,22 +10,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BestNMovesTask extends Task<Void> {
-    private int nSuggestions;
-    private boolean running = true;
-    private volatile boolean evaluationRequest = false;
-
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
     public volatile boolean currentIsWhite;
+    public volatile boolean isInvalidated;
+    private final int nSuggestions;
+    private boolean running = true;
+    private volatile boolean evaluationRequest = false;
+    private final mainScreenController controller;
+    private final Computer c;
+    private final ExecutorService executor;
+    private final Logger logger;
+    private boolean isCurrentlyEvaluating = false;
 
-    private mainScreenController controller;
-
-    private Computer c;
-
-    private ExecutorService executor;
-
-    private Logger logger;
-    public BestNMovesTask(Computer c, mainScreenController controller,int nSuggestions){
+    public BestNMovesTask(Computer c, mainScreenController controller, int nSuggestions) {
         this.logger = LogManager.getLogger(this.toString());
         this.c = c;
         this.nSuggestions = nSuggestions;
@@ -34,13 +32,11 @@ public class BestNMovesTask extends Task<Void> {
 
     }
 
-
-    public void evalRequest(){
+    public void evalRequest() {
         logger.info("Called Evaluation Request");
-        if(!isCurrentlyEvaluating){
+        if (!isCurrentlyEvaluating) {
             evaluationRequest = true;
-        }
-        else{
+        } else {
             stop();
             evaluationRequest = true;
         }
@@ -48,32 +44,29 @@ public class BestNMovesTask extends Task<Void> {
 
     }
 
-    public void stop(){
-        if(c.isRunning()){
+    public void stop() {
+        if (c.isRunning()) {
             c.stop.set(true);
         }
     }
-    private boolean isCurrentlyEvaluating = false;
 
-    public volatile boolean isInvalidated;
     @Override
-    public Void call(){
-        while (running){
+    public Void call() {
+        while (running) {
             try {
                 if (evaluationRequest) {
                     isInvalidated = false;
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
                     logger.info("Starting a best n moves evaluation");
-                    List<ComputerOutput> nmoves = c.getNMoves(currentIsWhite, currentPosition,currentGameState,nSuggestions);
-                    if(nmoves != null && !nmoves.isEmpty()){
-                        Platform.runLater(()->{
+                    List<ComputerOutput> nmoves = c.getNMoves(currentIsWhite, currentPosition, currentGameState, nSuggestions);
+                    if (nmoves != null && !nmoves.isEmpty()) {
+                        Platform.runLater(() -> {
                             // Update UI elements on the JavaFX Application Thread
                             controller.getChessCentralControl().chessActionHandler.addBestMovesToViewer(nmoves);
 
                         });
-                    }
-                    else{
+                    } else {
                         System.out.println("null best moves");
                     }
                     isCurrentlyEvaluating = false;
@@ -81,8 +74,7 @@ public class BestNMovesTask extends Task<Void> {
                 }
 
                 Thread.sleep(200);
-            }
-            catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -91,7 +83,7 @@ public class BestNMovesTask extends Task<Void> {
     }
 
 
-    public void endThread(){
+    public void endThread() {
         running = false;
         executor.shutdown();
     }

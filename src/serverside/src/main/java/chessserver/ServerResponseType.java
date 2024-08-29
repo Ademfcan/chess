@@ -13,5 +13,5 @@ public enum ServerResponseType {
     POOLERS,
     GAMEMOVEFROMOPPONENT,
     CHATFROMOPPONENT,
-    ELOUPDATE;
+    ELOUPDATE
 }

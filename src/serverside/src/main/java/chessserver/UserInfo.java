@@ -2,23 +2,12 @@ package chessserver;
 
 public class UserInfo {
     int userelo;
-
-    public void setUserCampaignProgress(CampaignProgress userCampaignProgress) {
-        this.userCampaignProgress = userCampaignProgress;
-    }
-
     CampaignProgress userCampaignProgress;
     String userName;
     String userEmail;
     String passwordHash;
-    private String profilePictureUrl;
     ProfilePicture profilePicture;
-
-    public CampaignProgress getUserCampaignProgress() {
-        return userCampaignProgress;
-    }
-
-
+    private String profilePictureUrl;
     public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture, CampaignProgress userCampaignProgress) {
         this.userelo = userelo;
         this.userName = userName;
@@ -29,10 +18,17 @@ public class UserInfo {
         this.userCampaignProgress = userCampaignProgress;
     }
 
-    public UserInfo(){
+    public UserInfo() {
         // empty for objectmapper serialization
     }
 
+    public CampaignProgress getUserCampaignProgress() {
+        return userCampaignProgress;
+    }
+
+    public void setUserCampaignProgress(CampaignProgress userCampaignProgress) {
+        this.userCampaignProgress = userCampaignProgress;
+    }
 
     public int getUserelo() {
         return userelo;
@@ -43,7 +39,7 @@ public class UserInfo {
     }
 
     public void adjustElo(int change) {
-        this.userelo=change;
+        this.userelo = change;
     }
 
     public String getUserName() {
@@ -73,6 +69,7 @@ public class UserInfo {
     public ProfilePicture getProfilePicture() {
         return profilePicture;
     }
+
     public void setProfilePicture(ProfilePicture profilePicture) {
         this.profilePicture = profilePicture;
     }
@@ -84,8 +81,6 @@ public class UserInfo {
     public void setProfilePictureUrl(String profilePictureUrl) {
         this.profilePictureUrl = profilePictureUrl;
     }
-
-
 
 
 }

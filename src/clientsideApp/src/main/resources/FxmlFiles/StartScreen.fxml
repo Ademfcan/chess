@@ -167,13 +167,13 @@
                                     </StackPane>
                                  </children>
                               </HBox>
-                              <HBox fx:id="sandboxScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
+                              <HBox fx:id="extraModesScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
                                  <children>
                                     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
                                        <children>
                                           <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                                              <children>
-                                                <Label text="Sandbox">
+                                                <Label text="Extra options">
                                                    <font>
                                                       <Font name="Franklin Gothic Medium" size="92.0" />
                                                    </font>
@@ -181,6 +181,16 @@
                                              </children>
                                           </HBox>
                                           <Button fx:id="enterSandboxButton" mnemonicParsing="false" styleClass="title-2" text="Enter Sandbox">
+                                             <font>
+                                                <Font size="23.0" />
+                                             </font>
+                                          </Button>
+                                          <Button fx:id="enterSimulationButton" mnemonicParsing="false" styleClass="title-2" text="Enter Simulation">
+                                             <font>
+                                                <Font size="23.0" />
+                                             </font>
+                                          </Button>
+                                          <Button fx:id="enterExplorerButton" mnemonicParsing="false" styleClass="title-2" text="Enter Explorer">
                                              <font>
                                                 <Font size="23.0" />
                                              </font>
@@ -259,50 +269,6 @@
                                     </ScrollPane>
                                  </children>
                               </HBox>
-                              <HBox fx:id="simulationScreen" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
-                                       <children>
-                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                             <children>
-                                                <Label text="Simulation">
-                                                   <font>
-                                                      <Font name="Franklin Gothic Medium" size="92.0" />
-                                                   </font>
-                                                </Label>
-                                             </children>
-                                          </HBox>
-                                          <Button fx:id="enterSimulationButton" mnemonicParsing="false" styleClass="title-2" text="Enter Simulation">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="explorerScreen" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
-                                       <children>
-                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                             <children>
-                                                <Label text="Explorer">
-                                                   <font>
-                                                      <Font name="Franklin Gothic Medium" size="92.0" />
-                                                   </font>
-                                                </Label>
-                                             </children>
-                                          </HBox>
-                                          <Button fx:id="enterExplorerButton" mnemonicParsing="false" styleClass="title-2" text="Enter Explorer">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
                            </children>
                         </StackPane>
                      </children>
@@ -313,13 +279,11 @@
                <children>
                   <Button fx:id="campaignButton" layoutX="29.0" layoutY="90.0" mnemonicParsing="false" text="Campaign" />
                   <Button fx:id="localButton" mnemonicParsing="false" text="Local" />
-                  <Button fx:id="pgnButton" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="PGN" />
                   <Button fx:id="multiplayerButton" layoutX="10.0" layoutY="46.0" mnemonicParsing="false" text="Online" />
-                  <Button fx:id="sandboxButton" layoutX="18.0" layoutY="172.0" mnemonicParsing="false" text="Sandbox" />
-                  <Button fx:id="simButton" layoutX="28.0" layoutY="211.0" mnemonicParsing="false" text="Simulation" />
-                  <Button fx:id="explorerButton" layoutX="28.0" layoutY="228.0" mnemonicParsing="false" text="Explorer" />
+                  <Button fx:id="pgnButton" layoutX="31.0" layoutY="101.0" mnemonicParsing="false" text="Pgn" />
                   <Button fx:id="settingsButton" layoutX="10.0" layoutY="82.0" mnemonicParsing="false" text="⚙" />
                   <Button fx:id="backgroundAudioButton" layoutX="10.0" layoutY="118.0" mnemonicParsing="false" text="🔉" />
+                  <Button fx:id="extraModesButton" layoutX="31.0" layoutY="124.0" mnemonicParsing="false" text="Extra" />
                </children>
             </VBox>
             <VBox fx:id="rightSidePanel" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">

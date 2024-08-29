@@ -1,33 +1,31 @@
 package chessengine;
 
 public class stateHandler {
-    private boolean isCurrentWhiteTurn;
     private final boolean doesWhiteStartFirst;
+    private boolean isCurrentWhiteTurn;
 
 
-
-
-    public stateHandler(boolean doesWhiteStartFirst){
+    public stateHandler(boolean doesWhiteStartFirst) {
         this.doesWhiteStartFirst = doesWhiteStartFirst;
         this.isCurrentWhiteTurn = this.doesWhiteStartFirst;
     }
-    public void moveMade(){
+
+    public void moveMade() {
         // change turn
         this.isCurrentWhiteTurn = !this.isCurrentWhiteTurn;
     }
 
-    public void resetTurns(){
+    public void resetTurns() {
         this.isCurrentWhiteTurn = this.doesWhiteStartFirst;
     }
 
-    public boolean isCurrentWhiteTurn(){
+    public boolean isCurrentWhiteTurn() {
         return this.isCurrentWhiteTurn;
     }
 
-    public void changingMove(){
+    public void changingMove() {
         moveMade();
     }
-
 
 
 }

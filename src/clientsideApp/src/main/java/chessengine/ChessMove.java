@@ -1,43 +1,35 @@
 package chessengine;
 
-import org.checkerframework.checker.units.qual.C;
-
 import java.util.Objects;
 
 public class ChessMove {
     // 0 = pawn, 1 = knight, 2 = bishop, 3 = rook, 4 = queen, 5 = king
-    private int oldX;
-    private int oldY;
+    private final int oldX;
+    private final int oldY;
 
-    private boolean isWhite;
+    private final boolean isWhite;
 
-    private int newX;
-    private int newY;
-    private boolean isCastleMove;
-
-
-
-    private boolean isPawnPromo;
+    private final int newX;
+    private final int newY;
+    private final boolean isCastleMove;
 
 
-
-    private int promoIndx;
-
-    private int boardIndex;
-
-    private boolean isEating;
-
-    private int eatingIndex;
-
-    private boolean isEnPassant;
+    private final boolean isPawnPromo;
 
 
-    private boolean isCustomMove;
+    private final int promoIndx;
+
+    private final int boardIndex;
+
+    private final boolean isEating;
+
+    private final int eatingIndex;
+
+    private final boolean isEnPassant;
 
 
-    public int getEatingIndex() {
-        return eatingIndex;
-    }
+    private final boolean isCustomMove;
+    private final int boardSize = 7;
 
     public ChessMove(int oldX, int oldY, int newX, int newY, int promoIndx, int boardIndex, boolean isWhite, boolean isCastleMove, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isCustomMove) {
         this.oldX = oldX;
@@ -56,12 +48,16 @@ public class ChessMove {
 
     }
 
-    private final int boardSize = 7;
-    public ChessMove invertMove(){
-        return new ChessMove(boardSize-oldX,boardSize-oldY,boardSize-newX,boardSize-newY,promoIndx,boardIndex,!isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove);
+    public int getEatingIndex() {
+        return eatingIndex;
     }
-    public ChessMove reverseMove(){
-        return new ChessMove(newX,newY,oldX,oldY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove);
+
+    public ChessMove invertMove() {
+        return new ChessMove(boardSize - oldX, boardSize - oldY, boardSize - newX, boardSize - newY, promoIndx, boardIndex, !isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove);
+    }
+
+    public ChessMove reverseMove() {
+        return new ChessMove(newX, newY, oldX, oldY, promoIndx, boardIndex, isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove);
     }
 
 
@@ -118,9 +114,9 @@ public class ChessMove {
         return newY;
     }
 
-    public ChessMove cloneMove(){
+    public ChessMove cloneMove() {
         // all by value
-        return new ChessMove(this.oldX,this.oldY,this.newX,this.newY,this.promoIndx,this.boardIndex,this.isWhite,this.isCastleMove,this.isEating,this.eatingIndex,this.isEnPassant,this.isCustomMove);
+        return new ChessMove(this.oldX, this.oldY, this.newX, this.newY, this.promoIndx, this.boardIndex, this.isWhite, this.isCastleMove, this.isEating, this.eatingIndex, this.isEnPassant, this.isCustomMove);
     }
 
     @Override
@@ -132,10 +128,9 @@ public class ChessMove {
     }
 
 
-
     @Override
     public int hashCode() {
-        return Objects.hash(oldX, oldY, newX, newY,boardIndex,isEating,eatingIndex,isWhite, isCastleMove);
+        return Objects.hash(oldX, oldY, newX, newY, boardIndex, isEating, eatingIndex, isWhite, isCastleMove);
     }
 
     @Override
@@ -156,12 +151,6 @@ public class ChessMove {
                 ", isCustomMove=" + isCustomMove +
                 '}';
     }
-
-
-
-
-
-
 
 
 }
