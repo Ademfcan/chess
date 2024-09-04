@@ -1,5 +1,8 @@
 package chessengine;
 
+import chessengine.ChessRepresentations.*;
+import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,42 +12,42 @@ import java.util.Stack;
 
 public class ChessPositionTests {
     @Test void localPositionMoveTest(){
-//        // simple pawn move
-//        BackendChessPosition pos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-//        GeneralChessFunctions.printBoardDetailed(pos.board);
-//        ChessMove simplePawnMove = new ChessMove(4,6,4,1,-10,0,true,false,true,0,false,false);
-//        pos.makeLocalPositionMove(simplePawnMove);
-//        GeneralChessFunctions.printBoardDetailed(pos.board);
-//        pos.undoLocalPositionMove(simplePawnMove);
-//        GeneralChessFunctions.printBoardDetailed(pos.board);
-//
-//
-//        // en passant
-//        ChessGame passant = new ChessGame("1.e4 e5 2.d4 exd4 3.c3 dxc3 4.Nxc3 Nf6 5.e5 Ng8 6.f4 d5 7.exd6","","",0,"",false);
-//        passant.moveToEndOfGame();
-//        ChessMove passantMove = passant.currentPosition.getMoveThatCreatedThis();
-//        System.out.println(passantMove.isEnPassant());
-//        passant.changeToDifferentMove(-1,true);
-//        BackendChessPosition prePassant = passant.currentPosition.toBackend(passant.gameStates,false);
-//        GeneralChessFunctions.printBoardDetailed(prePassant.board);
-//        prePassant.makeLocalPositionMove(passantMove);
-//        GeneralChessFunctions.printBoardDetailed(prePassant.board);
-//        prePassant.undoLocalPositionMove(passantMove);
-//        GeneralChessFunctions.printBoardDetailed(prePassant.board);
-//
-//
-//        // general test start state
-//        ChessStates start = new ChessStates();
-//        BackendChessPosition posGeneral = ChessConstants.startBoardState.clonePosition().toBackend(start,false);
-//        GeneralChessFunctions.printBoardDetailed(posGeneral.board);
-//        for(ChessMove c : posGeneral.getAllChildMoves(true,start)){
-//            System.out.println(c.toString());
-//            posGeneral.makeLocalPositionMove(c);
-//            GeneralChessFunctions.printBoardDetailed(posGeneral.board);
-//            posGeneral.undoLocalPositionMove(c);
-//            GeneralChessFunctions.printBoardDetailed(posGeneral.board);
-//
-//        }
+        // simple pawn move
+        BackendChessPosition pos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+        GeneralChessFunctions.printBoardDetailed(pos.board);
+        ChessMove simplePawnMove = new ChessMove(4,6,4,1,-10,0,true,false,true,0,false,false);
+        pos.makeLocalPositionMove(simplePawnMove);
+        GeneralChessFunctions.printBoardDetailed(pos.board);
+        pos.undoLocalPositionMove();
+        GeneralChessFunctions.printBoardDetailed(pos.board);
+
+
+        // en passant
+        ChessGame passant = ChessGame.createTestGame("1.e4 e5 2.d4 exd4 3.c3 dxc3 4.Nxc3 Nf6 5.e5 Ng8 6.f4 d5 7.exd6",false);
+        passant.moveToEndOfGame(true);
+        ChessMove passantMove = passant.currentPosition.getMoveThatCreatedThis();
+        System.out.println(passantMove.isEnPassant());
+        passant.changeToDifferentMove(-1,true,true);
+        BackendChessPosition prePassant = passant.currentPosition.toBackend(passant.gameState,false);
+        GeneralChessFunctions.printBoardDetailed(prePassant.board);
+        prePassant.makeLocalPositionMove(passantMove);
+        GeneralChessFunctions.printBoardDetailed(prePassant.board);
+        prePassant.undoLocalPositionMove();
+        GeneralChessFunctions.printBoardDetailed(prePassant.board);
+
+
+        // general test start state
+        ChessStates start = new ChessStates();
+        BackendChessPosition posGeneral = ChessConstants.startBoardState.clonePosition().toBackend(start,false);
+        GeneralChessFunctions.printBoardDetailed(posGeneral.board);
+        for(ChessMove c : posGeneral.getAllChildMoves(true,start)){
+            System.out.println(c.toString());
+            posGeneral.makeLocalPositionMove(c);
+            GeneralChessFunctions.printBoardDetailed(posGeneral.board);
+            posGeneral.undoLocalPositionMove();
+            GeneralChessFunctions.printBoardDetailed(posGeneral.board);
+
+        }
 
 
 
@@ -317,4 +320,6 @@ public class ChessPositionTests {
 
         }
     }
+
+
 }

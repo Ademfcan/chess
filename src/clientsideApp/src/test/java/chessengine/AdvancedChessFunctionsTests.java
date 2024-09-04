@@ -1,5 +1,7 @@
 package chessengine;
 
+import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Functions.AdvancedChessFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

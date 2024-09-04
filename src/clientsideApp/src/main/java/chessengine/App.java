@@ -1,5 +1,13 @@
 package chessengine;
 
+import chessengine.Audio.SoundPlayer;
+import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Enums.MainScreenState;
+import chessengine.Graphics.BindingController;
+import chessengine.Graphics.GlobalMessager;
+import chessengine.Managers.*;
+import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
@@ -31,8 +39,8 @@ public class App extends Application {
     public static ClientManager userManager;
     public static BindingController bindingController;
     public static UserPreferenceManager userPreferenceManager;
-    public static CampaignMessager campaignMessager;
-    public static ChessCentralControl ChessCentralControl;
+    public static CampaignMessageManager campaignMessager;
+    public static chessengine.CentralControlComponents.ChessCentralControl ChessCentralControl;
     public static double dpi;
     public static double dpiScaleFactor;
     private static Stage mainStage;
@@ -68,7 +76,7 @@ public class App extends Application {
         } catch (DeploymentException e) {
             messager.sendMessageQuick("No connection to server!", true);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            appLogger.error("Error when changing user",e);
         }
     }
 
@@ -80,7 +88,7 @@ public class App extends Application {
             ChessConstants.mainLogger.debug("Connection Failed");
             webclient = null;
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            appLogger.error("Error when attemting reconnection",e);
         }
         return false;
 
@@ -107,7 +115,7 @@ public class App extends Application {
             // nmoves and eval use same depth for now
             centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
             centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
-//            centralControl.asyncController.setComputerDepth(preferences.getComputerMoveDepth()); // todo
+            centralControl.asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
             boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
             centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString(), isWhiteOriented);
             // todo pieces theme
@@ -130,7 +138,7 @@ public class App extends Application {
 
     }
     /** play as white flag specifies wether player wants to play as white**/
-    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isWhiteOriented, MainScreenState state,boolean playAsWhite) {
+    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isWhiteOriented, MainScreenState state, boolean playAsWhite) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
@@ -139,7 +147,7 @@ public class App extends Application {
 
     }
 
-    public static void changeToMainScreenWithGame(ChessGame loadedGame, MainScreenState state, boolean isFirstLoad) {
+    public static void changeToMainScreenWithGame(chessengine.ChessRepresentations.ChessGame loadedGame, MainScreenState state, boolean isFirstLoad) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
@@ -210,10 +218,10 @@ public class App extends Application {
         try {
             webclient = userManager.getClientFromUser();
         } catch (DeploymentException e) {
-            System.out.println("No connection to server!");
+            appLogger.debug("No connection to server!");
             webclient = null;
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            appLogger.error("Io error on webclient creation",e);
         }
         soundPlayer = new SoundPlayer();
 
@@ -221,7 +229,7 @@ public class App extends Application {
         mainStage = primaryStage;
         messager = new GlobalMessager();
         userPreferenceManager = new UserPreferenceManager();
-        campaignMessager = new CampaignMessager(ChessCentralControl);
+        campaignMessager = new CampaignMessageManager(ChessCentralControl);
 
         try {
 
@@ -234,7 +242,7 @@ public class App extends Application {
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            appLogger.error("Error on loading fxml",e);
         }
         messager.Init(startScreenController.startMessageBoard, mainScreenController.mainMessageBoard);
         mainScene = new Scene(startRoot);

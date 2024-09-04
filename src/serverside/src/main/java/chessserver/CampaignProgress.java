@@ -85,13 +85,13 @@ public class CampaignProgress {
 
     public void moveToNextLevel() {
         if (currentTier != CampaignTier.LastTier && currentLevelOfTier != currentTier.NLevels) {
-            // max level already
+            // not max level already
             hasTierChanged = false;
             currentLevelOfTier++;
-            if (currentLevelOfTier > currentTier.NLevels) {
+            if (currentLevelOfTier >= currentTier.NLevels) {
                 // move to next tier
                 currentTier = CampaignTier.getNextTier(currentTier);
-                currentLevelOfTier = 1;
+                currentLevelOfTier = 0;
                 hasTierChanged = true;
             }
         }

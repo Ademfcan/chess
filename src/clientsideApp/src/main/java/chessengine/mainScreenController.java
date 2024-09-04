@@ -1,5 +1,16 @@
 package chessengine;
 
+import chessengine.Audio.Effect;
+import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.ChessRepresentations.ChessGame;
+import chessengine.ChessRepresentations.ChessMove;
+import chessengine.Enums.MainScreenState;
+import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Graphics.BindingController;
+import chessengine.Managers.PersistentSaveManager;
+import chessengine.Managers.UserPreferenceManager;
+import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -49,7 +60,7 @@ public class mainScreenController implements Initializable {
     StackPane[][] highlightPanes = new StackPane[8][8];
     VBox[][] moveBoxes = new VBox[8][8];
     @FXML
-    StackPane fullScreen;
+    public StackPane fullScreen;
     @FXML
     GridPane content;
     @FXML
@@ -163,7 +174,7 @@ public class mainScreenController implements Initializable {
     @FXML
     VBox gameControls;
     @FXML
-    StackPane sidePanel;
+    public StackPane sidePanel;
     @FXML
     VBox topControls;
 
@@ -174,31 +185,31 @@ public class mainScreenController implements Initializable {
     @FXML
     Label themeLabel;
     @FXML
-    ChoiceBox<String> themeSelection;
+    public ChoiceBox<String> themeSelection;
     @FXML
     Label bgLabel;
     @FXML
-    ComboBox<String> bgColorSelector;
+    public ComboBox<String> bgColorSelector;
     @FXML
     Label pieceLabel;
     @FXML
-    ComboBox<String> pieceSelector;
+    public ComboBox<String> pieceSelector;
     @FXML
     Label audioMuteEff;
     @FXML
-    Button audioMuteEffButton;
+    public Button audioMuteEffButton;
     @FXML
     Label audioLabelEff;
     @FXML
-    Slider audioSliderEff;
+    public Slider audioSliderEff;
     @FXML
     Label evalLabel;
     @FXML
-    ComboBox<Integer> evalOptions;
+    public ComboBox<Integer> evalOptions;
     @FXML
     Label computerLabel;
     @FXML
-    ComboBox<Integer> computerOptions;
+    public ComboBox<Integer> computerOptions;
     @FXML
     Label pgnSaveLabel;
     @FXML
@@ -229,7 +240,7 @@ public class mainScreenController implements Initializable {
     private ChessCentralControl ChessCentralControl;
     private VBox currentControls;
 
-    public chessengine.ChessCentralControl getChessCentralControl() {
+    public chessengine.CentralControlComponents.ChessCentralControl getChessCentralControl() {
         return ChessCentralControl;
     }
 
@@ -312,7 +323,7 @@ public class mainScreenController implements Initializable {
     public void oneTimeSetup() {
         // called after app's classes are initialized
         setUpBindings();
-        setEvalBar(0, -1, false, false);
+        setEvalBar(0, -1, false);
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions, computerOptions, true);
         ChessCentralControl.chessActionHandler.reset();
 
@@ -672,7 +683,7 @@ public class mainScreenController implements Initializable {
             ChessCentralControl.asyncController.setComputerDifficulty(App.userPreferenceManager.getPrefDifficulty());
         }
         // set up board
-        setEvalBar(0, -1, false, false);
+        setEvalBar(0, -1, false);
         clearSimpleAdvantageLabels();
         hidePromo();
         hideSettings();
@@ -699,7 +710,7 @@ public class mainScreenController implements Initializable {
         // set computer difficulty to closest based on elo
         ChessCentralControl.asyncController.setComputerDifficulty(ComputerDifficulty.getDifficultyOffOfElo(campaignOpponentElo, false));
 
-        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal() + 1) + "L: " + levelOfTier, player1Name, campaignOpponentName, player1Elo, campaignOpponentElo, player1PfpUrl, pfpUrl2, true, true));
+        ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal() + 1) + "L: " + levelOfTier, player1Name, campaignOpponentName, player1Elo, campaignOpponentElo, player1PfpUrl, pfpUrl2, true, true));
         ChessCentralControl.gameHandler.setGameDifficulty(campaignDifficuly);
         ChessCentralControl.gameHandler.setCampaignTier(levelTier);
         ChessCentralControl.gameHandler.setLevelOfCampaignTier(levelOfTier);
@@ -737,9 +748,9 @@ public class mainScreenController implements Initializable {
 
 
         if (gameName.isEmpty()) {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
+            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
         } else {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
+            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
         }
         String extraInfo = "";
         if (currentState.equals(MainScreenState.LOCAL)) {
@@ -748,7 +759,7 @@ public class mainScreenController implements Initializable {
         setUp(extraInfo);
     }
 
-    public void setupWithGame(ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
+    public void setupWithGame(chessengine.ChessRepresentations.ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
         this.currentState = currentState;
         if (currentState.equals(MainScreenState.VIEWER)) {
             // in viewer mode, you will have a old game that you dont want to modify, however you still want to play around with a temporary copy
@@ -805,7 +816,7 @@ public class mainScreenController implements Initializable {
     // toggle the pawn promotion screen
     public void showPromo(int promoX, boolean isWhite, boolean isWhiteOriented) {
         // reusing piece calculation as you can use it for the promo screen too.
-        System.out.println("Promo shown");
+        logger.debug("Showing promo");
         setPromoPeices(isWhite);
         if(!isWhiteOriented){
             promoX = 7-promoX; // invert
@@ -838,9 +849,10 @@ public class mainScreenController implements Initializable {
         gameoverMenu.setVisible(false);
     }
 
-    public void showGameOver() {
+    public void showGameOver(String title) {
         gameoverMenu.setMouseTransparent(false);
         gameoverMenu.setVisible(true);
+        victoryLabel.setText(title);
     }
 
     private void toggleSettingsAndGameControls() {
@@ -998,25 +1010,24 @@ public class mainScreenController implements Initializable {
     }
 
     // draw the eval bar for the screen
-    public void setEvalBar(double advantage, int depth, boolean isEvalCallable, boolean gameOver) {
+    public void setEvalBar(double advantage, int depth, boolean gameOver) {
         setEvalBar(whiteEval, blackEval, whiteadvantage, blackadvantage, advantage, evalDepth);
-        if (!isEvalCallable) {
-            if (advantage > 100000) {
-                victoryLabel.setText("Winner : White!");
-            } else if (advantage < -100000) {
-                victoryLabel.setText("Winner : Black!");
-            }
-        }
         if (gameOver) {
-            if (advantage == 0) {
-                victoryLabel.setText("Draw!");
+            String title = "Draw";
+            if (advantage > 100000) {
+                title = "Winner : White!";
+            } else if (advantage < -100000) {
+                title = "Winner : Black!";
             }
-            showGameOver();
+
+            showGameOver(title );
         }
         if (depth > 0) {
             evalDepth.setText(Integer.toString(depth));
         }
     }
+
+
 
     public void setMoveLabels(int curIndex, int maxIndex) {
         saveIndicator.setText((curIndex + 1) + "/" + (maxIndex + 1));
@@ -1077,7 +1088,6 @@ public class mainScreenController implements Initializable {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move);
             // computers move
-            // since when eating a piece you have to change visuals, need to hanndle it differently
             ChessCentralControl.chessActionHandler.handleMakingMove(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isEating(), move.isWhite(), move.isCastleMove(), move.isEnPassant(), true, false, move.getPromoIndx(), currentState, false);
 
         }

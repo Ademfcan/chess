@@ -201,68 +201,72 @@
                               </HBox>
                               <HBox fx:id="generalSettingsScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
                                  <children>
-                                    <ScrollPane fx:id="generalSettingsScrollpane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="360.0" prefWidth="325.0">
+                                    <ScrollPane fx:id="generalSettingsScrollpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="360.0" prefWidth="325.0">
                                        <content>
-                                          <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
+                                          <VBox fx:id="generalSettingsReference" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                              <children>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
                                                    <children>
-                                                      <Label fx:id="themeLabel" text="Theme: " />
-                                                      <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="themeLabel" text="Theme: " />
+                                                            <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
+                                                               <font>
+                                                                  <Font size="13.0" />
+                                                               </font>
+                                                            </Label>
+                                                            <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="pieceLabel" text="Piece Type: " />
+                                                            <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="audioMuteBG" text="BG Audo:" />
+                                                            <Button fx:id="audioMuteBGButton" mnemonicParsing="false" text="Button" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="audioLabelBG" text="Bg Volume" />
+                                                            <Slider fx:id="audioSliderBG" value="100.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="audioMuteEff" text="Effect Volume" />
+                                                            <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="audioLabelEff" text="Effect Volume" />
+                                                            <Slider fx:id="audioSliderEff" value="100.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" layoutX="10.0" layoutY="202.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="evalLabel" text="Evaluation Depth" />
+                                                            <ComboBox fx:id="evalOptions" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox alignment="CENTER" layoutX="10.0" layoutY="222.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                         <children>
+                                                            <Label fx:id="computerLabel" text="Computer Depth" />
+                                                            <ComboBox fx:id="computerOptions" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
                                                    </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
-                                                         <font>
-                                                            <Font size="13.0" />
-                                                         </font>
-                                                      </Label>
-                                                      <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="pieceLabel" text="Piece Type: " />
-                                                      <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="audioMuteBG" text="BG Audo:" />
-                                                      <Button fx:id="audioMuteBGButton" mnemonicParsing="false" text="Button" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="audioLabelBG" text="Bg Volume" />
-                                                      <Slider fx:id="audioSliderBG" value="100.0" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="audioMuteEff" text="Effect Volume" />
-                                                      <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="audioLabelEff" text="Effect Volume" />
-                                                      <Slider fx:id="audioSliderEff" value="100.0" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" layoutX="10.0" layoutY="202.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="evalLabel" text="Evaluation Depth" />
-                                                      <ComboBox fx:id="evalOptions" prefWidth="150.0" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" layoutX="10.0" layoutY="222.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                                   <children>
-                                                      <Label fx:id="computerLabel" text="Computer Depth" />
-                                                      <ComboBox fx:id="computerOptions" prefWidth="150.0" />
-                                                   </children>
-                                                </HBox>
+                                                </VBox>
                                              </children>
                                           </VBox>
                                        </content>

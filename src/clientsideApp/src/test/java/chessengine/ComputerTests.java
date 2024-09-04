@@ -1,5 +1,15 @@
 package chessengine;
 
+import chessengine.ChessRepresentations.*;
+import chessengine.Computation.Computer;
+import chessengine.Computation.ComputerHelperFunctions;
+import chessengine.Computation.MinimaxEvalOutput;
+import chessengine.Computation.Stockfish;
+import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Functions.PgnFunctions;
+import chessengine.Functions.ZobristHasher;
+import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -140,7 +150,7 @@ public class ComputerTests {
             return;
         }
         if(isWhiteTurn){
-            MinimaxOutput maxEval = new MinimaxOutput(Double.NEGATIVE_INFINITY);
+            MinimaxEvalOutput maxEval = new MinimaxEvalOutput(Double.NEGATIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(true,gameState);
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
@@ -152,7 +162,7 @@ public class ComputerTests {
             }
         }
         else{
-            MinimaxOutput minEval = new MinimaxOutput(Double.POSITIVE_INFINITY);
+            MinimaxEvalOutput minEval = new MinimaxEvalOutput(Double.POSITIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(false,gameState);
 
             for(int i = 0;i<childMoves.size();i++){

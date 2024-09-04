@@ -1,5 +1,11 @@
 package chessengine;
 
+import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Enums.MainScreenState;
+import chessengine.Enums.StartScreenState;
+import chessengine.Managers.CampaignManager;
+import chessengine.Managers.PersistentSaveManager;
+import chessengine.Managers.UserPreferenceManager;
 import chessserver.Gametype;
 import chessserver.INTENT;
 import chessserver.ProfilePicture;
@@ -26,9 +32,9 @@ public class StartScreenController implements Initializable {
     @FXML
     StackPane fullscreen;
     @FXML
-    GridPane content;
+    public GridPane content;
     @FXML
-    Pane startMessageBoard;
+    public Pane startMessageBoard;
     @FXML
     HBox profileBox;
     @FXML
@@ -129,7 +135,7 @@ public class StartScreenController implements Initializable {
     @FXML
     Button multiplayerStart;
     @FXML
-    Label poolCount;
+    public Label poolCount;
     @FXML
     Button reconnectButton;
     // general settings
@@ -140,42 +146,42 @@ public class StartScreenController implements Initializable {
     @FXML
     Label themeLabel;
     @FXML
-    ChoiceBox<String> themeSelection;
+    public ChoiceBox<String> themeSelection;
     @FXML
     Label bgLabel;
     @FXML
-    ComboBox<String> bgColorSelector;
+    public ComboBox<String> bgColorSelector;
     @FXML
     Label pieceLabel;
     @FXML
-    ComboBox<String> pieceSelector;
+    public ComboBox<String> pieceSelector;
     @FXML
     Label audioMuteBG;
     @FXML
-    Button audioMuteBGButton;
+    public Button audioMuteBGButton;
     @FXML
     Label audioLabelBG;
     @FXML
-    Slider audioSliderBG;
+    public Slider audioSliderBG;
     @FXML
     Label audioMuteEff;
     @FXML
-    Button audioMuteEffButton;
+    public Button audioMuteEffButton;
     @FXML
     Label audioLabelEff;
 
 
     // user settings
     @FXML
-    Slider audioSliderEff;
+    public Slider audioSliderEff;
     @FXML
     Label evalLabel;
     @FXML
-    ComboBox<Integer> evalOptions;
+    public ComboBox<Integer> evalOptions;
     @FXML
     Label computerLabel;
     @FXML
-    ComboBox<Integer> computerOptions;
+    public ComboBox<Integer> computerOptions;
     // login page
     @FXML
     Label loginTitle;
@@ -233,7 +239,6 @@ public class StartScreenController implements Initializable {
 
     public void setProfileInfo(ProfilePicture picture, String name, int elo) {
         profileButton.setImage(new Image(picture.urlString));
-        System.out.println("Changing image: " + picture.urlString);
         nameProfileLabel.setText(name);
         eloProfileLabel.setText(Integer.toString(elo));
     }
@@ -271,7 +276,6 @@ public class StartScreenController implements Initializable {
             App.changeToMainScreenWithoutAny("Local Game", true, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
         });
         playAsWhite.setOnAction(e -> {
-            System.out.println("clicked");
             playAsWhite.setSelected(playAsWhite.isSelected());
             if (playAsWhite.isSelected()) {
                 playAsWhite.setText("Play as White");
@@ -473,6 +477,7 @@ public class StartScreenController implements Initializable {
                 try {
                     ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), true);
                     App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, true);
+
                 } catch (Exception ex) {
                     pgnTextArea.clear();
                     pgnTextArea.setPromptText("Invalid pgn entered");

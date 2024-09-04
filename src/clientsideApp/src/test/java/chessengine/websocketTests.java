@@ -1,5 +1,6 @@
 package chessengine;
 
+import chessengine.Managers.WebSocketClient;
 import chessserver.*;
 import org.junit.jupiter.api.Test;
 

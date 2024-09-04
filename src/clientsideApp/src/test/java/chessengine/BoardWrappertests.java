@@ -1,7 +1,9 @@
 package chessengine;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.checkerframework.checker.units.qual.A;
+import chessengine.ChessRepresentations.BitBoardWrapper;
+import chessengine.ChessRepresentations.XYcoord;
+import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,6 @@
 package chessengine;
 
+import chessengine.Misc.EloEstimator;
 import chessserver.ComputerDifficulty;
 import org.junit.jupiter.api.Test;
 

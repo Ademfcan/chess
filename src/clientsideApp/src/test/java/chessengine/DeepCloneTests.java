@@ -1,6 +1,9 @@
 package chessengine;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import chessengine.ChessRepresentations.ChessMove;
+import chessengine.ChessRepresentations.ChessPosition;
+import chessengine.ChessRepresentations.ChessStates;
+import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
