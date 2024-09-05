@@ -1,5 +1,6 @@
-package chessengine;
+package chessengine.Graphics;
 
+import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
@@ -11,6 +12,7 @@ import chessserver.INTENT;
 import chessserver.ProfilePicture;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -128,7 +130,7 @@ public class StartScreenController implements Initializable {
 
 
     @FXML
-    Button backgroundAudioButton;
+    public Button backgroundAudioButton;
     // multiplayer options
     @FXML
     ComboBox<String> gameTypes;
@@ -276,6 +278,10 @@ public class StartScreenController implements Initializable {
             App.changeToMainScreenWithoutAny("Local Game", true, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
         });
         playAsWhite.setOnAction(e -> {
+            // Get the node's local bounds
+
+
+            App.messager.addMovingArrow(localButton,.03,.03,5,true);
             playAsWhite.setSelected(playAsWhite.isSelected());
             if (playAsWhite.isSelected()) {
                 playAsWhite.setText("Play as White");

@@ -69,8 +69,7 @@ public class Computer {
 
     public ChessMove getComputerMove(boolean isWhite, ChessPosition pos, ChessStates gameState) {
         setCallTimeEval(pos, gameState, isWhite);
-
-        logger.debug("Transtable size: " + transTable.size());
+        transTable.clear();
 
         ChessMove bestMove = null;
         double bestEval = isWhite ? -10000000 : 10000000;
@@ -179,6 +178,7 @@ public class Computer {
 
 
     public List<ComputerOutput> getNMoves(boolean isWhite, ChessPosition pos, ChessStates gameState, int nMoves) {
+        transTable.clear();
         List<ComputerOutput> BestMoves = new ArrayList<>(nMoves);
         HashSet<ChessMove> prevMoves = new HashSet<>(nMoves);
         List<BackendChessPosition> possiblePositions = pos.getAllChildPositions(isWhite, gameState);
@@ -317,7 +317,7 @@ public class Computer {
             return new MinimaxEvalOutput(-transTable.get(flippedKey));
         }
 
-        if (depth <= evalDepth - currentDifficulty.depthThreshold) {
+        if (currentDifficulty != ComputerDifficulty.MAXDIFFICULTY && depth <= evalDepth - currentDifficulty.depthThreshold) {
             // do a check to see if there is any noticeable advantage diff.  If not then return
             double posEval = ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true);
             double diff = posEval - callTimeEval;
@@ -346,6 +346,7 @@ public class Computer {
             logger.info("Stopping Minimax due to flag");
             return Stopped;
         }
+
 
         // recursive part
         if (isWhiteTurn) {
@@ -444,7 +445,7 @@ public class Computer {
 
     public MinimaxEvalOutput getFullEvalMinimax(ChessPosition pos, ChessStates gameState, int depth, boolean isWhite) {
         setCallTimeEval(pos, gameState, isWhite);
-
+        transTable.clear();
 
         MinimaxEvalOutput bestEval = isWhite ? new MinimaxEvalOutput(Double.MIN_VALUE) : new MinimaxEvalOutput(Double.MAX_VALUE);
         running = true;

@@ -4,7 +4,7 @@ import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
 import chessengine.Computation.ComputerOutput;
-import chessengine.mainScreenController;
+import chessengine.Graphics.MainScreenController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
@@ -22,13 +22,13 @@ public class BestNMovesTask extends Task<Void> {
     private final int nSuggestions;
     private boolean running = true;
     private volatile boolean evaluationRequest = false;
-    private final mainScreenController controller;
+    private final MainScreenController controller;
     private final Computer c;
     private final ExecutorService executor;
     private final Logger logger;
     private boolean isCurrentlyEvaluating = false;
 
-    public BestNMovesTask(Computer c, mainScreenController controller, int nSuggestions) {
+    public BestNMovesTask(Computer c, MainScreenController controller, int nSuggestions) {
         this.logger = LogManager.getLogger(this.toString());
         this.c = c;
         this.nSuggestions = nSuggestions;
@@ -66,6 +66,8 @@ public class BestNMovesTask extends Task<Void> {
                     logger.info("Starting a best n moves evaluation");
                     List<ComputerOutput> nmoves = c.getNMoves(currentIsWhite, currentPosition, currentGameState, nSuggestions);
                     if (nmoves != null && !nmoves.isEmpty()) {
+                        // todo updating when should be stopped
+                        djdjsk
                         Platform.runLater(() -> {
                             // Update UI elements on the JavaFX Application Thread
                             controller.getChessCentralControl().chessActionHandler.addBestMovesToViewer(nmoves);

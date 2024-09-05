@@ -1,11 +1,11 @@
 package chessengine.Async;
 
-import chessengine.*;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
 import chessengine.Functions.PgnFunctions;
+import chessengine.Graphics.MainScreenController;
 import chessengine.Misc.ChessConstants;
 import chessserver.ComputerDifficulty;
 import javafx.application.Platform;
@@ -13,12 +13,11 @@ import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class GetComputerMoveTask extends Task<Void> {
-    private final mainScreenController controller;
+    private final MainScreenController controller;
     private final Computer c;
     private final ExecutorService executor;
     private final Logger logger;
@@ -32,7 +31,7 @@ public class GetComputerMoveTask extends Task<Void> {
     private SimulationTask simTaskForStockfish;
 
 
-    public GetComputerMoveTask(Computer c, mainScreenController controller,SimulationTask simtaskForStockfish) {
+    public GetComputerMoveTask(Computer c, MainScreenController controller, SimulationTask simtaskForStockfish) {
         this.logger = LogManager.getLogger(this.toString());
         this.c = c;
         this.executor = Executors.newFixedThreadPool(6);

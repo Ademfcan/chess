@@ -10,9 +10,11 @@ import chessengine.Graphics.Arrow;
 import chessengine.Graphics.BindingController;
 import chessserver.ChessboardTheme;
 import javafx.animation.PathTransition;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -103,9 +105,19 @@ public class ChessBoardGUIHandler {
             Pane childContainer = new Pane();
             parent.getChildren().add(childContainer);
             childContainer.prefHeightProperty().bind(parent.heightProperty());
-            childContainer.prefWidthProperty().bind(Bindings.createDoubleBinding(() ->
-                    childContainer.getChildren().stream().mapToDouble(n -> n.getBoundsInParent().getWidth() * (overlapFactor)).sum() + (childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth()), childContainer.getChildren()
-            ));
+            parent.widthProperty().addListener(e->{
+                Platform.runLater(()->{
+                    double newWidth = childContainer.getChildren().stream().mapToDouble(n -> (n.getBoundsInParent().getWidth() * overlapFactor)).sum() + (childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth());
+                    childContainer.setPrefWidth(newWidth);
+                });
+            });
+            childContainer.getChildren().addListener((ListChangeListener<? super Node>) e->{
+                Platform.runLater(()->{
+                    double newWidth = childContainer.getChildren().stream().mapToDouble(n -> (n.getBoundsInParent().getWidth() * overlapFactor)).sum() + (childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth());
+                    childContainer.setPrefWidth(newWidth);
+                });
+            });
+
             ref[i] = childContainer;
         }
 
@@ -136,7 +148,7 @@ public class ChessBoardGUIHandler {
     }
 
     private void drawArrow(Arrow arrow) {
-        SVGPath path = arrow.generateSvg((int) arrowBoard.getPrefHeight(), (int) arrowBoard.getPrefWidth());
+        SVGPath path = arrow.generateSvg(arrowBoard.getPrefHeight(),arrowBoard.getPrefWidth());
         arrowBoard.getChildren().add(path);
         path.setUserData(arrow.toString());
 

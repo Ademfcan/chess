@@ -168,7 +168,7 @@ public class BackendChessPosition extends ChessPosition {
         // somewhere below
         ChessMove move = super.getMoveThatCreatedThis();
         gameState.moveBackward(this);
-//        gameState.clearIndexes(gameState.getCurrentIndex());
+        gameState.clearIndexes(gameState.getCurrentIndex());
         // in here
 
 

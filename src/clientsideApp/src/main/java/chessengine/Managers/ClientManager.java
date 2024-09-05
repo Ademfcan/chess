@@ -2,7 +2,7 @@ package chessengine.Managers;
 
 import chessengine.App;
 import chessengine.Misc.ChessConstants;
-import chessengine.StartScreenController;
+import chessengine.Graphics.StartScreenController;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
 

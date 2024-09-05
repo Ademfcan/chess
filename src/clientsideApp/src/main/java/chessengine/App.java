@@ -6,6 +6,8 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Enums.MainScreenState;
 import chessengine.Graphics.BindingController;
 import chessengine.Graphics.GlobalMessager;
+import chessengine.Graphics.MainScreenController;
+import chessengine.Graphics.StartScreenController;
 import chessengine.Managers.*;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
@@ -30,7 +32,7 @@ public class App extends Application {
     private final static String startCss = "/CSSFiles/StartScreenCss.css";
     private final static String mainCss = "/CSSFiles/MainScreenCss.css";
     public static Logger appLogger = LogManager.getLogger("App_Logger");
-    public static mainScreenController mainScreenController;
+    public static MainScreenController mainScreenController;
     public static StartScreenController startScreenController;
     public static GlobalMessager messager;
     public static SoundPlayer soundPlayer;
@@ -287,8 +289,8 @@ public class App extends Application {
         }
     }
 
-    private mainScreenController setMainScreenController() {
-        mainScreenController = new mainScreenController();
+    private MainScreenController setMainScreenController() {
+        mainScreenController = new MainScreenController();
         return mainScreenController;
     }
 

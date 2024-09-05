@@ -3,12 +3,14 @@ package chessengine.CentralControlComponents;
 import chessengine.*;
 import chessengine.Audio.Effect;
 import chessengine.ChessRepresentations.*;
+import chessengine.Computation.ComputerHelperFunctions;
 import chessengine.Computation.ComputerOutput;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Graphics.Arrow;
+import chessengine.Graphics.MoveArrow;
 import chessengine.Misc.ChessConstants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -94,6 +95,7 @@ public class ChessActionHandler {
     // if ok then when you drag it follows you to where you eventually release the piece
 
     private final Logger logger = LogManager.getLogger(this.toString());
+
     public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Button playPauseButton, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
@@ -269,18 +271,24 @@ public class ChessActionHandler {
 
     public void highlightMovesPlayedLine(int highlightIndex) {
         logger.debug("Highlighting moves played line");
-        int prevNumSpacers = highlightIndex / 2;
-        int tot = highlightIndex + prevNumSpacers + 1;
+        if(highlightIndex > -1 && highlightIndex <= myControl.gameHandler.currentGame.maxIndex){
+            int prevNumSpacers = highlightIndex / 2;
+            int tot = highlightIndex + prevNumSpacers + 1;
 
-        if (tot < movesPlayedBox.getChildren().size()) {
-            if (lastHighlight != null) {
-                lastHighlight.setBackground(ChessConstants.defaultBg);
+            if (tot < movesPlayedBox.getChildren().size()) {
+                if (lastHighlight != null) {
+                    lastHighlight.setBackground(ChessConstants.defaultBg);
+                }
+                lastHighlight = (Label) movesPlayedBox.getChildren().get(tot);
+                lastHighlight.setBackground(ChessConstants.highlightBg);
+            } else {
+                logger.error("Should not be here, highlight index past total size h: " + highlightIndex);
             }
-            lastHighlight = (Label) movesPlayedBox.getChildren().get(tot);
-            lastHighlight.setBackground(ChessConstants.highlightBg);
-        } else {
-            logger.debug("Highlight index total past the size!: " + highlightIndex);
         }
+        else{
+            logger.debug("Invalid highlight index passed to highlight moves played line h: " + highlightIndex);
+        }
+
     }
 
     public void clearMovesPlayedHighlight() {
@@ -690,7 +698,7 @@ public class ChessActionHandler {
             dragging = false;
         } else if (e.getButton() == MouseButton.SECONDARY) {
             if (creatingArrow && (oldArrowX != newXY[0] || oldArrowY != newXY[1])) {
-                myControl.chessBoardGUIHandler.addArrow(new Arrow(oldArrowX, oldArrowY, newXY[0], newXY[1], ChessConstants.arrowColor));
+                myControl.chessBoardGUIHandler.addArrow(new MoveArrow(oldArrowX, oldArrowY, newXY[0], newXY[1], ChessConstants.arrowColor));
             }
             creatingArrow = false;
         }
@@ -935,11 +943,11 @@ public class ChessActionHandler {
                 // for pgn generation
                 ChessStates testState = myControl.gameHandler.currentGame.gameState.cloneState();
                 ChessPosition testPos = new ChessPosition(myControl.gameHandler.currentGame.currentPosition.clonePosition(), testState, best);
-                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(bestMoves.get(i).move, testPos, testState));
+                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(best, testPos, testState));
 
                 // add arrow showing move
                 boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
-                Arrow moveArrow = new Arrow(isWhiteOriented ? best.getOldX() : 7 - best.getOldX(), isWhiteOriented ? best.getOldY() : 7 - best.getOldY(), isWhiteOriented ? best.getNewX() : 7 - best.getNewX(), isWhiteOriented ? best.getNewY() : 7 - best.getNewY(), ChessConstants.moveArrowColor);
+                Arrow moveArrow = new MoveArrow(isWhiteOriented ? best.getOldX() : 7 - best.getOldX(), isWhiteOriented ? best.getOldY() : 7 - best.getOldY(), isWhiteOriented ? best.getNewX() : 7 - best.getNewX(), isWhiteOriented ? best.getNewY() : 7 - best.getNewY(), getColorBasedOnAdvantage(best.isWhite(),adv));
                 myControl.chessBoardGUIHandler.addArrow(moveArrow);
                 String advStr = formatter.format(adv);
                 String prefix = adv == 0 ? "" : adv > 0 ? "+" : "-";
@@ -961,6 +969,27 @@ public class ChessActionHandler {
 
         }
     }
+    private double currentEval;
+
+    private String[] clrs = new String[]{"rgba(61, 245, 39, 0.8)","rgba(245, 241, 39, 0.8)","rgba(245, 151, 39, 0.8)","rgba(245, 65, 39, 0.8)"};
+    private double goodChange = 1.1;
+    private String getColorBasedOnAdvantage(boolean isWhite,double advantage){
+
+        int sign = isWhite ? 1: -1;
+        double change = advantage-currentEval;
+        double relativeAdvtg = change * sign;
+        if(relativeAdvtg > goodChange){
+            return clrs[0];
+        }
+        if(relativeAdvtg < -goodChange){
+            return clrs[3];
+        }
+        if(relativeAdvtg >= -goodChange/15){
+            return clrs[1];
+        }
+        return clrs[2];
+
+    }
 
 
     private void updateEvalThread() {
@@ -976,6 +1005,7 @@ public class ChessActionHandler {
     }
 
     private void updateNMovesTask() {
+        this.currentEval = ComputerHelperFunctions.getFullEval(myControl.gameHandler.currentGame.currentPosition,myControl.gameHandler.currentGame.gameState,myControl.gameHandler.currentGame.isWhiteTurn(),false);
         myControl.asyncController.nMovesTask.currentPosition = myControl.gameHandler.currentGame.currentPosition;
         myControl.asyncController.nMovesTask.currentGameState = myControl.gameHandler.currentGame.gameState;
         myControl.asyncController.nMovesTask.currentIsWhite = myControl.gameHandler.currentGame.isWhiteTurn();

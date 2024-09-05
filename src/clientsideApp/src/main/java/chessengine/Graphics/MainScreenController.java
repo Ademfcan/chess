@@ -1,5 +1,6 @@
-package chessengine;
+package chessengine.Graphics;
 
+import chessengine.App;
 import chessengine.Audio.Effect;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
@@ -7,7 +8,6 @@ import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Graphics.BindingController;
 import chessengine.Managers.PersistentSaveManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Misc.ChessConstants;
@@ -38,7 +38,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ResourceBundle;
 
-public class mainScreenController implements Initializable {
+public class MainScreenController implements Initializable {
 
     private final ImageView[][] peicesAtLocations = new ImageView[8][8];
     public UserPreferences initPreferences = null;
@@ -62,7 +62,7 @@ public class mainScreenController implements Initializable {
     @FXML
     public StackPane fullScreen;
     @FXML
-    GridPane content;
+    public GridPane content;
     @FXML
     HBox sideAreaFull;
     @FXML
@@ -76,7 +76,7 @@ public class mainScreenController implements Initializable {
     @FXML
     HBox bottomRightPlayer1;
     @FXML
-    Pane mainMessageBoard;
+    public Pane mainMessageBoard;
     @FXML
     Button LeftReset;
     @FXML
@@ -1047,7 +1047,7 @@ public class mainScreenController implements Initializable {
             if (advantage < 1000000) {
                 whiteEval.setText(decimalFormat.format(advantage));
             } else {
-                whiteEval.setText("M");
+                whiteEval.setText("M"+evalDepth);
 
             }
             blackEval.setText("");
@@ -1062,7 +1062,7 @@ public class mainScreenController implements Initializable {
             if (advantage > -1000000) {
                 blackEval.setText(decimalFormat.format(advantage));
             } else {
-                blackEval.setText("M");
+                blackEval.setText("M"+evalDepth);
 
             }
             whiteEval.setText("");

@@ -4,7 +4,7 @@ import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
 import chessengine.Computation.MinimaxEvalOutput;
-import chessengine.mainScreenController;
+import chessengine.Graphics.MainScreenController;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
 
 public class EvaluationBarTask extends Task<Void> {
     private final Computer c;
-    private final mainScreenController controller;
+    private final MainScreenController controller;
     private final ExecutorService executor;
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
@@ -28,7 +28,7 @@ public class EvaluationBarTask extends Task<Void> {
 
     private static final Logger logger = LogManager.getLogger("Eval_Task");
 
-    public EvaluationBarTask(Computer c, mainScreenController controller, int maxDepth) {
+    public EvaluationBarTask(Computer c, MainScreenController controller, int maxDepth) {
         this.c = c;
         this.controller = controller;
         this.maxD = maxDepth;

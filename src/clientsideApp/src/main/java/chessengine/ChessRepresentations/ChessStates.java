@@ -279,8 +279,8 @@ public class ChessStates {
         whiteShortRookRight = newMoveIndex <= whiteShortRookIndx;
         blackLongRookRight = newMoveIndex <= blackLongRookIndx;
         blackShortRookRight = newMoveIndex <= blackShortRookIndx;
-        isCheckMated = newMoveIndex >= checkMateIndex;
-        isStaleMated = newMoveIndex >= staleMateIndex;
+        isCheckMated = newMoveIndex > checkMateIndex;
+        isStaleMated = newMoveIndex > staleMateIndex;
     }
 
     public void moveBackward(ChessPosition oldPositionToRemove) {
