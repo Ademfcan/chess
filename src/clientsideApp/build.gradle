@@ -6,7 +6,7 @@ plugins {
 
 javafx {
     version = "20"
-    modules = [ 'javafx.controls', 'javafx.fxml','javafx.media' ]
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
 
 repositories {
@@ -32,11 +32,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(20)
     }
-
 }
 
-run{
-    jvmArgs '-ea', '-Dprism.allowhidpi=false','-Dsun.java2d.dpiaware=false'
+run {
+    jvmArgs '-ea', '-Dprism.allowhidpi=false', '-Dsun.java2d.dpiaware=false'
 }
 
 application {
@@ -47,18 +46,22 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-
 jar {
+    archiveClassifier.set('fat')
     manifest {
         attributes(
                 'Main-Class': 'chessengine.Main',
-                'Class-Path': configurations.runtimeClasspath.files.collect { it.name }.join(' '),
-                'Application-Args': '-Dprism.allowhidpi=false','-Dsun.java2d.dpiaware=false' // Adding the DPI scaling argument
+                'Class-Path': configurations.runtimeClasspath.asFileTree.files.collect { "lib/${it.name}" }.join(' '),
+                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false'
         )
     }
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.asFileTree.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveFileName = 'chessengine-fat.jar'
+
+    from sourceSets.main.output
 
 }
+

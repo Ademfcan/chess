@@ -18,8 +18,25 @@ public class Stockfish {
     public boolean startEngine() {
         try {
             URL stockfishLocation = getClass().getClassLoader().getResource(ENGINE_PATH);
-            File file = Paths.get(stockfishLocation.toURI()).toFile();
-            ProcessBuilder processBuilder = new ProcessBuilder(file.getAbsolutePath());
+            if (stockfishLocation == null) {
+                logger.error("Stockfish executable not found at " + ENGINE_PATH);
+                return false;
+            }
+
+            // Create a temporary file to extract the executable
+            File tempFile = File.createTempFile("stockfish", ".exe");
+            try (InputStream in = stockfishLocation.openStream();
+                 OutputStream out = new FileOutputStream(tempFile)) {
+                byte[] buffer = new byte[1024];
+                int len;
+                while ((len = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, len);
+                }
+            }
+
+            tempFile.deleteOnExit(); // Ensure the file is deleted on exit
+
+            ProcessBuilder processBuilder = new ProcessBuilder(tempFile.getAbsolutePath());
             engineProcess = processBuilder.start();
             engineReader = new BufferedReader(new InputStreamReader(engineProcess.getInputStream()));
             processWriter = new OutputStreamWriter(engineProcess.getOutputStream());
@@ -29,6 +46,7 @@ public class Stockfish {
         }
         return true;
     }
+
 
     private void restartProcess() {
         clearStreams();
