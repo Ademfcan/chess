@@ -107,7 +107,7 @@ public class ChessPositionTests {
                     String ogPassant = GeneralChessFunctions.getBoardDetailedString(passantBackend.board);
                     Assertions.assertEquals(ogPassant,GeneralChessFunctions.getBoardDetailedString(childPos.board));
                     passantBackend.makeLocalPositionMove(childMove2);
-
+                    // todo fix this mf
 
                     String childPosStr2 = GeneralChessFunctions.getBoardDetailedString(childPos2.board);
                     String childMoveStr2 = GeneralChessFunctions.getBoardDetailedString(passantBackend.board);

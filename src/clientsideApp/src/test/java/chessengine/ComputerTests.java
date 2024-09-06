@@ -55,7 +55,7 @@ public class ComputerTests {
                 String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameState, game.isWhiteTurn());
 
                 // Calculate evaluation with Computer
-                float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameState, 5, false).getAdvantage();
+                float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameState, 3, false).getAdvantage();
 
                 // Calculate evaluation with Stockfish
                 float stockfishEval = stockfish.getEvalScore(fen, 1000); // 1000 milliseconds time limit
@@ -239,7 +239,6 @@ public class ComputerTests {
         game.moveToEndOfGame(false);
         GeneralChessFunctions.printBoardDetailed(game.currentPosition.board);
         System.out.println(AdvancedChessFunctions.isCheckmated(game.currentPosition,game.gameState));
-//        duhwauidhuawhuda // ischecmated fix
     }
 
 }

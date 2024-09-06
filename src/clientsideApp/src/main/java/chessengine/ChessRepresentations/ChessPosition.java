@@ -221,17 +221,17 @@ public class ChessPosition {
 
             }
         }
-//        childPositionsPriority1.sort((a, b) -> {
-//            double attackerValueA = ChessConstants.valueMap[a.getBoardIndex()];
-//            double victimValueA = ChessConstants.valueMap[a.getEatingIndex()];
-//
-//            double attackerValueB = ChessConstants.valueMap[b.getBoardIndex()];
-//            double victimValueB = ChessConstants.valueMap[b.getEatingIndex()];
-//
-//            double valueA = victimValueA - attackerValueA;
-//            double valueB = victimValueB - attackerValueB;
-//            return Double.compare(valueB, valueA); // Sort in descending order of MVV-LVA
-//        });
+        childPositionsPriority1.sort((a, b) -> {
+            double attackerValueA = ChessConstants.valueMap[a.getBoardIndex()];
+            double victimValueA = ChessConstants.valueMap[a.getEatingIndex()];
+
+            double attackerValueB = ChessConstants.valueMap[b.getBoardIndex()];
+            double victimValueB = ChessConstants.valueMap[b.getEatingIndex()];
+
+            double valueA = victimValueA - attackerValueA;
+            double valueB = victimValueB - attackerValueB;
+            return Double.compare(valueB, valueA); // Sort in descending order of MVV-LVA
+        });
 
 
         childPositionsPriority2.addAll(childPositionsPriority3);
