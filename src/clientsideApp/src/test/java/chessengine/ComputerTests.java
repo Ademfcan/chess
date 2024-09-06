@@ -151,7 +151,7 @@ public class ComputerTests {
         }
         if(isWhiteTurn){
             MinimaxEvalOutput maxEval = new MinimaxEvalOutput(Double.NEGATIVE_INFINITY);
-            List<ChessMove> childMoves = position.getAllChildMoves(true,gameState);
+            List<ChessMove> childMoves = position.getAllChildMoves(true,gameState,new HashMap<>());
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
                 position.makeLocalPositionMove(c);
@@ -163,7 +163,7 @@ public class ComputerTests {
         }
         else{
             MinimaxEvalOutput minEval = new MinimaxEvalOutput(Double.POSITIVE_INFINITY);
-            List<ChessMove> childMoves = position.getAllChildMoves(false,gameState);
+            List<ChessMove> childMoves = position.getAllChildMoves(false,gameState,new HashMap<>());
 
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
@@ -186,10 +186,10 @@ public class ComputerTests {
         game.moveToEndOfGame(false);
         BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameState,false);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
+        ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState,new HashMap<>()).stream().filter(ChessMove::isCastleMove).toList().get(0);
         castleTest.makeLocalPositionMove(castleMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState,new HashMap<>()).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove();
@@ -198,7 +198,7 @@ public class ComputerTests {
 
         castleTest.undoLocalPositionMove();
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState,new HashMap<>()).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove2);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove();

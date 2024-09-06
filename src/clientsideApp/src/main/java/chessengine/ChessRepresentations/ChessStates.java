@@ -92,8 +92,8 @@ public class ChessStates {
 
     public void clearIndexes(int newMoveIndex) {
         // if you undo a move, clear the indexes for flags;
-        checkMateIndex = checkMateIndex >= newMoveIndex ? 1000 : checkMateIndex;
-        staleMateIndex = staleMateIndex >= newMoveIndex ? 1000 : staleMateIndex;
+        checkMateIndex = checkMateIndex > newMoveIndex ? 1000 : checkMateIndex;
+        staleMateIndex = staleMateIndex > newMoveIndex ? 1000 : staleMateIndex;
         whiteCastleIndx = whiteCastleIndx >= newMoveIndex ? 1000 : whiteCastleIndx;
         blackCastleIndx = blackCastleIndx >= newMoveIndex ? 1000 : blackCastleIndx;
         whiteLongRookIndx = whiteLongRookIndx >= newMoveIndex ? 1000 : whiteLongRookIndx;
@@ -128,6 +128,8 @@ public class ChessStates {
         clearIndexes(currentIndex + 1);
         // first check draw by insufficient material
         if(GeneralChessFunctions.isInsufiicientMaterial(newPosition.board)){
+            staleMateIndex = currentIndex;
+            isStaleMated = true;
             return true;
         }
 
@@ -140,6 +142,7 @@ public class ChessStates {
         if (posCount + 1 > 2) {
             // draw by repetition
 //            ChessConstants.mainLogger.debug("Draw by repetition triggered");
+            isStaleMated = true;
             return true;
         }
         // next check 50 move rule
@@ -150,9 +153,11 @@ public class ChessStates {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-//                if(isMain && movesSinceNoCheckOrNoPawn > 99){
+                if(movesSinceNoCheckOrNoPawn > 99){
+//                    staleMateIndex = currentIndex;
+//                    isStaleMated = true;
 //                    ChessConstants.mainLogger.debug("50 move rule triggered");
-//                }
+                }
                 return movesSinceNoCheckOrNoPawn > 99;
 
             } else {
@@ -279,8 +284,8 @@ public class ChessStates {
         whiteShortRookRight = newMoveIndex <= whiteShortRookIndx;
         blackLongRookRight = newMoveIndex <= blackLongRookIndx;
         blackShortRookRight = newMoveIndex <= blackShortRookIndx;
-        isCheckMated = newMoveIndex > checkMateIndex;
-        isStaleMated = newMoveIndex > staleMateIndex;
+        isCheckMated = newMoveIndex >= checkMateIndex;
+        isStaleMated = newMoveIndex >= staleMateIndex;
     }
 
     public void moveBackward(ChessPosition oldPositionToRemove) {

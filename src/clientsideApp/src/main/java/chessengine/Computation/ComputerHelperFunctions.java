@@ -66,14 +66,14 @@ public class ComputerHelperFunctions {
             defensiveness += Math.max(-moveForwardValue, 0);
         }
         if (moveThatCreated.isEating()) {
-            agressiveness += .3;
+            agressiveness += .15;
             double tradeValue = moveThatCreated.getEatingIndex() - moveThatCreated.getBoardIndex();
 
             risk += -Math.min(tradeValue, 0);
         }
         risk += AdvancedChessFunctions.getNumAttackers(moveThatCreated.getNewX(), moveThatCreated.getNewY(), moveThatCreated.isWhite(), newPos.board) * squareWorth;
 
-        defensiveness += moveThatCreated.isCastleMove() ? .2 : 0;
+        defensiveness += moveThatCreated.isCastleMove() ? .25 : 0;
         agressiveness += moveThatCreated.isPawnPromo() ? .2 : 0;
 
         // clipping

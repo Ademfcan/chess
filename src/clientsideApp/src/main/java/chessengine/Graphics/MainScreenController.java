@@ -76,7 +76,7 @@ public class MainScreenController implements Initializable {
     @FXML
     HBox bottomRightPlayer1;
     @FXML
-    public Pane mainMessageBoard;
+    public Pane mainRef;
     @FXML
     Button LeftReset;
     @FXML
@@ -129,7 +129,26 @@ public class MainScreenController implements Initializable {
     Button homeButton;
     @FXML
     VBox promoContainer;
+
+    @FXML
+    Label lineLabel; //  current game line
+
     // moves played area
+
+    @FXML
+    StackPane switchingOptions;
+
+    @FXML
+    Label player1SimLabel;
+    @FXML
+    Label player2SimLabel;
+
+    @FXML
+    ComboBox<String> player1SimSelector;
+
+    @FXML
+    ComboBox<String> player2SimSelector;
+
     @FXML
     HBox movesPlayedBox;
     @FXML
@@ -240,6 +259,7 @@ public class MainScreenController implements Initializable {
     private ChessCentralControl ChessCentralControl;
     private VBox currentControls;
 
+
     public chessengine.CentralControlComponents.ChessCentralControl getChessCentralControl() {
         return ChessCentralControl;
     }
@@ -256,7 +276,7 @@ public class MainScreenController implements Initializable {
 
 
         // some elements need mouse transparency because they are on top of control elements
-        mainMessageBoard.setMouseTransparent(true);
+        mainRef.setMouseTransparent(true);
         chessMoveBoard.setMouseTransparent(true);
         chessHighlightBoard.setMouseTransparent(true);
         chessPieceBoard.setMouseTransparent(true);
@@ -294,7 +314,10 @@ public class MainScreenController implements Initializable {
         setUpPiecesAndListeners();
         ChessCentralControl = App.ChessCentralControl;
 
-        ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo, arrowBoard, bestMovesBox, localInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes, chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, playPauseButton, player1TurnIndicator, player2TurnIndicator, player1MoveClock, player2MoveClock);
+        ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
+                arrowBoard, bestMovesBox, localInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
+                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton, player1TurnIndicator,
+                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
             // makes sure its always at the end
@@ -557,6 +580,15 @@ public class MainScreenController implements Initializable {
         sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessBoardAndEvalContainer.widthProperty()).subtract(leftSideSpacer.widthProperty()));
         sidePanel.prefHeightProperty().bind(content.heightProperty());
 
+        switchingOptions.prefHeightProperty().bind(gameControls.heightProperty().subtract(bottomControls.heightProperty().subtract(lineLabel.heightProperty()).subtract(movesPlayed.heightProperty()).subtract(gameControls.heightProperty().divide(6))));
+
+        App.bindingController.bindSmallText(player1SimLabel,true,"Black");
+        App.bindingController.bindSmallText(player2SimLabel,true,"Black");
+
+        sandboxPieces.prefHeightProperty().bind(switchingOptions.heightProperty());
+
+        App.bindingController.bindSmallText(lineLabel,true,"Black");
+
         // moves played box
         movesPlayed.setFitToHeight(true);
         movesPlayed.prefWidthProperty().bind(sidePanel.widthProperty());
@@ -565,7 +597,7 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, localInfo, 100, .8);
         App.bindingController.bindSmallText(localInfo, true, "black");
 
-        localInfo.prefHeightProperty().bind(gameControls.heightProperty().subtract(movesPlayed.heightProperty()).subtract(bottomControls.heightProperty()));
+        localInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
         App.bindingController.bindSmallText(inGameInfo, true, "black");
         inGameInfo.prefWidthProperty().bind(localInfo.widthProperty());
         inGameInfo.prefHeightProperty().bind(localInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
@@ -783,14 +815,14 @@ public class MainScreenController implements Initializable {
     }
 
     private void checkHideMoveControls(MainScreenState currentState) {
-        if (currentState.equals(MainScreenState.SIMULATION)) {
-            // hidden as these are real games
-            bottomControls.setVisible(false);
-            bottomControls.setMouseTransparent(true);
-        } else {
+//        if (currentState.equals(MainScreenState.SIMULATION)) {
+//            // hidden as these are real games
+//            bottomControls.setVisible(false);
+//            bottomControls.setMouseTransparent(true);
+//        } else {
             bottomControls.setVisible(true);
             bottomControls.setMouseTransparent(false);
-        }
+//        }
     }
 
     private void checkHideEvalBar(MainScreenState currentState) {
@@ -956,7 +988,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Resetting to abs index:" + absIndex);
 
-
+        int curMoveIndex = ChessCentralControl.gameHandler.currentGame.curMoveIndex;
         ChessCentralControl.gameHandler.currentGame.moveToMoveIndexAbsolute(absIndex, false, true);
 
         setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex, ChessCentralControl.gameHandler.currentGame.maxIndex);
@@ -1084,7 +1116,7 @@ public class MainScreenController implements Initializable {
 
     // what actually happens when you click a square on the board
     public void makeComputerMove(ChessMove move) {
-        if ((currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null && !App.isStartScreen) {
+        if (!App.isStartScreen && (currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null && !App.isStartScreen) {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move);
             // computers move

@@ -8,16 +8,15 @@ import chessengine.Computation.ComputerOutput;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Functions.LineLabeler;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Graphics.Arrow;
 import chessengine.Graphics.MoveArrow;
 import chessengine.Misc.ChessConstants;
+import chessserver.ComputerDifficulty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
@@ -35,6 +34,8 @@ import java.util.List;
 
 
 public class ChessActionHandler {
+
+    private final Label lineLabel;
     private final HBox movesPlayedBox;
     private final ChessCentralControl myControl;
     // viewer controls
@@ -53,6 +54,8 @@ public class ChessActionHandler {
 
     private final Label p1moveClk;
     private final Label p2moveClk;
+    private final ComboBox<String> player1SimSelector;
+    private final ComboBox<String> player2SimSelector;
 
     private final Button playPauseButton;
     // [0] = x ,[1] =  y , [2] = (1 = white, -1 = black), [3] (only used for sandbox mode) = (1 = regular piece selected,-1 = additional piece selected), [4] = pieceselectedIndex;
@@ -96,7 +99,7 @@ public class ChessActionHandler {
 
     private final Logger logger = LogManager.getLogger(this.toString());
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Button playPauseButton, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Label lineLabel, Button playPauseButton, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<String> player1SimSelector,ComboBox<String> player2SimSelector) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -104,12 +107,15 @@ public class ChessActionHandler {
         this.gameInfo = gameInfo;
         this.chatInput = chatInput;
         this.sendMessageButton = sendMessageButton;
+        this.lineLabel = lineLabel;
         this.movesPlayedBox = movesPlayedBox;
         this.playPauseButton = playPauseButton;
         this.p1Indicator = p1Indicator;
         this.p2Indicator = p2Indicator;
         this.p1moveClk = p1moveClk;
         this.p2moveClk = p2moveClk;
+        this.player1SimSelector = player1SimSelector;
+        this.player2SimSelector = player2SimSelector;
         onlineInit();
         localInit();
         sandboxInit();
@@ -136,7 +142,36 @@ public class ChessActionHandler {
 
     private void simulationInit() {
         playPauseButton.setOnMouseClicked(e -> {
+            if(playPauseButton.getText().equals("pause")){
+                playPauseButton.setText("play");
+            }
+            else{
+                playPauseButton.setText("pause");
+            }
             myControl.asyncController.toggleSimPlay();
+        });
+
+        player1SimSelector.getItems().addAll("Stockfish","My Computer");
+        player2SimSelector.getItems().addAll("Stockfish","My Computer");
+        player1SimSelector.getSelectionModel().select(1);
+        player2SimSelector.getSelectionModel().select(0);
+
+        player1SimSelector.setOnAction(e->{
+            if(player1SimSelector.getValue().equals("Stockfish")){
+                myControl.asyncController.simTask.setPlayer1SimulationDifficulty(ComputerDifficulty.STOCKFISHLOL);
+            }
+            else{
+                myControl.asyncController.simTask.setPlayer1SimulationDifficulty(ComputerDifficulty.MAXDIFFICULTY);
+            }
+        });
+
+        player2SimSelector.setOnAction(e->{
+            if(player2SimSelector.getValue().equals("Stockfish")){
+                myControl.asyncController.simTask.setPlayer2SimulationDifficulty(ComputerDifficulty.STOCKFISHLOL);
+            }
+            else{
+                myControl.asyncController.simTask.setPlayer2SimulationDifficulty(ComputerDifficulty.MAXDIFFICULTY);
+            }
         });
     }
 
@@ -150,7 +185,7 @@ public class ChessActionHandler {
                 ImageView piece = new ImageView(myControl.chessBoardGUIHandler.createPiecePath(j, isWhite));
                 StackPane pieceBg = new StackPane(piece);
                 pieceBg.setUserData(i + "," + j);
-                piece.fitWidthProperty().bind(myControl.mainScreenController.sidePanel.widthProperty().divide(5));
+                piece.fitWidthProperty().bind(myControl.mainScreenController.sidePanel.widthProperty().divide(9));
                 piece.fitHeightProperty().bind(piece.fitWidthProperty());
                 pieceBg.prefWidthProperty().bind(piece.fitWidthProperty());
                 pieceBg.prefHeightProperty().bind(piece.fitWidthProperty());
@@ -199,18 +234,6 @@ public class ChessActionHandler {
 
     }
 
-    public void clearMovePlayedLine() {
-
-        if (numLabels % 2 == 1) {
-            // opposite as last time, we need to remove a number separator if odd. See below addtolocalinfo method
-            movesPlayedBox.getChildren().remove(movesPlayedBox.getChildren().size() - 1);
-
-        }
-
-        movesPlayedBox.getChildren().remove(movesPlayedBox.getChildren().size() - 1);
-        numLabels--;
-    }
-
     public void clearMovesPlayed() {
         movesPlayedBox.getChildren().clear();
     }
@@ -256,18 +279,34 @@ public class ChessActionHandler {
             numLabels = 0;
             clearMovesPlayed();
         } else {
-            numLabels = curMoveIndex;
+            numLabels = curMoveIndex+1;
             int to = movesPlayedBox.getChildren().size();
-            if (to > curMoveIndex + 1) {
-                logger.debug(String.format("Clearing moves played from %d", curMoveIndex + 1));
+            int prevNumSpacers = (numLabels+1) / 2;
+            if (to > numLabels + prevNumSpacers) {
+//                logger.debug(String.format("Clearing moves played from %d", curMoveIndex + 1));
 
-                int prevNumSpacers = curMoveIndex / 2;
 
-                movesPlayedBox.getChildren().subList(curMoveIndex + 1 + prevNumSpacers, to).clear();
+                movesPlayedBox.getChildren().subList(numLabels + prevNumSpacers, to).clear();
+            }
+            else{
+                logger.error("Clear moves played out of bounds");
             }
         }
 
     }
+
+    private void adjustMovesPlayed(int currentMoveIndex) {
+        if(currentMoveIndex < numLabels-1){
+            clearMovesPlayedUpToIndex(currentMoveIndex);
+        }
+        else{
+            String[] pgn =myControl.gameHandler.currentGame.gameToPgnArr();
+            for(int i = numLabels;i<=currentMoveIndex;i++){
+                addToMovesPlayed(pgn[i]);
+            }
+        }
+    }
+
 
     public void highlightMovesPlayedLine(int highlightIndex) {
         logger.debug("Highlighting moves played line");
@@ -358,13 +397,14 @@ public class ChessActionHandler {
         myControl.chessBoardGUIHandler.clearArrows();
         myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
         highlightMovesPlayedLine(myControl.gameHandler.currentGame.curMoveIndex);
-        if (!currentState.equals(MainScreenState.SANDBOX))
+        if (!currentState.equals(MainScreenState.SANDBOX)){
             updateTurnIndicators(myControl.gameHandler.currentGame.isWhiteTurn(), myControl.gameHandler.currentGame.isWhiteOriented(), !myControl.gameHandler.currentGame.isWebGame()); // web game will send time updates
-
-        if (isNewMoveMade && !currentState.equals(MainScreenState.SANDBOX)) {
-            String pgn = PgnFunctions.moveToPgn(myControl.gameHandler.currentGame.currentPosition.getMoveThatCreatedThis(), myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameState);
-            addToMovesPlayed(pgn);
-
+            if(myControl.gameHandler.currentGame.curMoveIndex >-1){
+                lineLabel.setText(LineLabeler.getLineName(myControl.gameHandler.currentGame.gameToPgn(myControl.gameHandler.currentGame.curMoveIndex)));
+            }
+        }
+        if(!currentState.equals(MainScreenState.SANDBOX) && (numLabels-1) != myControl.gameHandler.currentGame.maxIndex){
+            adjustMovesPlayed(myControl.gameHandler.currentGame.maxIndex);
         }
         switch (currentState) {
             case SIMULATION -> {
@@ -433,42 +473,47 @@ public class ChessActionHandler {
                     } else if (myControl.gameHandler.currentGame.gameState.isStaleMated()) {
                         String message = App.campaignMessager.getStalemateMessage();
                         addCampaignMessage(message);
-                    } else if (AdvancedChessFunctions.isAnyChecked(myControl.gameHandler.currentGame.currentPosition.board)) {
-                        String message = App.campaignMessager.getCheckMessage(move.isWhite());
-                        addCampaignMessage(message);
-                    } else {
-                        if (!move.equals(ChessConstants.startMove)) {
-                            if (move.isEating()) {
-                                int curIndex = myControl.gameHandler.currentGame.curMoveIndex;
-                                int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), move.getNewY(), !move.isWhite(), myControl.gameHandler.currentGame.getPos(curIndex - 1).board);
-                                String message = App.campaignMessager.getEatingMessage(eatenAddIndex, move.isWhite());
-                                addCampaignMessage(message);
-                            } else if (move.isPawnPromo()) {
-                                String message = App.campaignMessager.getPromoMessage(move.getPromoIndx(), move.isWhite());
-                                addCampaignMessage(message);
-                            } else if (move.isCastleMove()) {
-                                String message = App.campaignMessager.getCastleMessage(move.isWhite());
+                    } else{
+                        int rand = ChessConstants.generalRandom.nextInt(0, 100);
+                        if (rand > 70) {
+                            // 30% of the time send some message
+                            if (AdvancedChessFunctions.isAnyChecked(myControl.gameHandler.currentGame.currentPosition.board)) {
+                                String message = App.campaignMessager.getCheckMessage(move.isWhite());
                                 addCampaignMessage(message);
                             } else {
-                                int rand = ChessConstants.generalRandom.nextInt(0, 100);
-                                if (rand > 70) {
-                                    // 30% of the time send some message
-                                    String message = App.campaignMessager.getMoveMessage(AdvancedChessFunctions.getSimpleAdvantage(myControl.gameHandler.currentGame.currentPosition.board), move.isWhite());
-                                    addCampaignMessage(message);
+                                if (!move.equals(ChessConstants.startMove)) {
+                                    if (move.isEating()) {
+                                        int curIndex = myControl.gameHandler.currentGame.curMoveIndex;
+                                        int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), move.getNewY(), !move.isWhite(), myControl.gameHandler.currentGame.getPos(curIndex - 1).board);
+                                        String message = App.campaignMessager.getEatingMessage(eatenAddIndex, move.isWhite());
+                                        addCampaignMessage(message);
+                                    } else if (move.isPawnPromo()) {
+                                        String message = App.campaignMessager.getPromoMessage(move.getPromoIndx(), move.isWhite());
+                                        addCampaignMessage(message);
+                                    } else if (move.isCastleMove()) {
+                                        String message = App.campaignMessager.getCastleMessage(move.isWhite());
+                                        addCampaignMessage(message);
+                                    } else {
+                                        String message = App.campaignMessager.getMoveMessage(AdvancedChessFunctions.getSimpleAdvantage(myControl.gameHandler.currentGame.currentPosition.board), move.isWhite());
+                                        addCampaignMessage(message);
+                                    }
                                 }
+
                             }
+
                         }
 
                     }
 
 
                 } else if (isInit) {
-                    String message = App.campaignMessager.getIntroductionMessage();
+                    String message = App.campaignMessager.getIntroductionMessage(true);
                     addCampaignMessage(message);
                 }
             }
         }
     }
+
 
     private void setPrevPeice(int x, int y, boolean prevPieceColor, boolean isOnBoard, int selectedPieceIndex, boolean calculatePossibleMoves) {
         prevPeiceSelected = true;
@@ -648,7 +693,7 @@ public class ChessActionHandler {
                 int oldbackendX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7 - oldX;
                 if (currentState.equals(MainScreenState.SANDBOX)) {
                     // for sandbox we dont care about rules, we just move wherever we want
-                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldbackendX, oldbackendY, backendX, backendY, 0, oldDragPieceIndex, oldIsWhite, false, false, ChessConstants.EMPTYINDEX, false, false), false, true);
+                    myControl.gameHandler.currentGame.makeNewMove(new ChessMove(oldbackendX, oldbackendY, backendX, backendY, ChessConstants.EMPTYINDEX, oldDragPieceIndex, oldIsWhite, false, GeneralChessFunctions.checkIfContains(backendX,backendY,myControl.gameHandler.currentGame.currentPosition.board,"nut")[0], ChessConstants.EMPTYINDEX, false, false), false, true);
                     placePiece(selected, newX, newY);
                 } else {
                     // all we have to do is check to see if where the piece has been released is a valid square

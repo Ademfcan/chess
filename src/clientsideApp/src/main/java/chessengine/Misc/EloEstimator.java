@@ -27,18 +27,15 @@ public class EloEstimator {
                 while (!testGame.gameState.isGameOver()) {
                     boolean isWhiteTurn = isComputerTurn == isComputerFirst;
                     if (isComputerTurn) {
-                        ChessMove move = testComputer.getComputerMove(isWhiteTurn, testGame.currentPosition, testGame.gameState);
+                        ChessMove move = testComputer.getComputerMove(isWhiteTurn, testGame.currentPosition, testGame.gameState,null); // wont use computers stockfish
                         testGame.makeNewMove(move, !isShow, false);
                     } else {
                         String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(testGame.currentPosition, testGame.gameState, isWhiteTurn),stockFishElo ,300);
 
-                        System.out.println("Stockfish uci: " + moveUci);
                         ChessMove move = PgnFunctions.uciToChessMove(moveUci, isWhiteTurn, testGame.currentPosition.board);
 
-                        System.out.println("Stockfish move: " + move);
                         testGame.makeNewMove(move, !isShow, false);
                     }
-                    System.out.println("Current position:\n" + GeneralChessFunctions.getBoardDetailedString(testGame.currentPosition.board));
                     isComputerTurn = !isComputerTurn;
                 }
                 if (testGame.gameState.isStaleMated()) {

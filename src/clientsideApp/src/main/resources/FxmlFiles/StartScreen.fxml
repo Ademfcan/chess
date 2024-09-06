@@ -332,7 +332,7 @@
             </HBox>
          </children>
       </GridPane>
-      <Pane fx:id="startMessageBoard" prefHeight="200.0" prefWidth="200.0">
+      <Pane fx:id="startRef" prefHeight="200.0" prefWidth="200.0">
          <StackPane.margin>
             <Insets />
          </StackPane.margin>

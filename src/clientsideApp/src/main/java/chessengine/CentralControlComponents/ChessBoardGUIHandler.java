@@ -70,12 +70,7 @@ public class ChessBoardGUIHandler {
         this.chessBgBoard = chessBgBoard;
         this.moveBoxes = moveBoxes;
         arrows = new ArrayList<>();
-        chessPieceBoard.widthProperty().addListener(e -> {
-            redrawArrows();
-
-        });
-        chessPieceBoard.heightProperty().addListener(e -> {
-
+        chessPieceBoard.layoutBoundsProperty().addListener(e -> {
             redrawArrows();
 
         });

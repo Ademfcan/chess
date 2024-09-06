@@ -14,9 +14,11 @@ import chessserver.*;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
@@ -246,7 +248,10 @@ public class App extends Application {
         } catch (IOException e) {
             appLogger.error("Error on loading fxml",e);
         }
-        messager.Init(startScreenController.startMessageBoard, mainScreenController.mainMessageBoard);
+        Group startMessageBoard = new Group();
+        Group mainMessageBoard = new Group();
+
+        messager.Init(startMessageBoard, mainMessageBoard,startScreenController.startRef,mainScreenController.mainRef);
         mainScene = new Scene(startRoot);
         userManager.init(startScreenController);
         isStartScreen = true;
@@ -269,8 +274,12 @@ public class App extends Application {
 
         userPreferenceManager.setDefaultSelections();
 
+        ((StackPane)startRoot).getChildren().add(startMessageBoard);
+        ((StackPane)mainRoot).getChildren().add(mainMessageBoard);
 
         primaryStage.setScene(mainScene);
+        primaryStage.setHeight(540);
+        primaryStage.setWidth(960);
         primaryStage.show();
         primaryStage.setMaximized(true);
         primaryStage.getIcons().add(new Image("/appIcon/icon.png"));

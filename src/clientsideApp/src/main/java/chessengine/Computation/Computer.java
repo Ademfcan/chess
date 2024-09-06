@@ -1,15 +1,18 @@
 package chessengine.Computation;
 
+import chessengine.Async.SimulationTask;
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Functions.PgnFunctions;
 import chessengine.Functions.ZobristHasher;
 import chessengine.Misc.ChessConstants;
 import chessengine.Misc.LimitedSizeMap;
 import chessserver.ComputerDifficulty;
+import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +29,7 @@ public class Computer {
     private final int maxEntries = 600000;
     private final Random randomComp = new Random();
     public volatile AtomicBoolean stop;
+    protected Map<ChessMove, Double> moveTable;
     protected Map<Long, Double> transTable;
     protected int evalDepth;
     public ComputerDifficulty currentDifficulty = ComputerDifficulty.MAXDIFFICULTY;
@@ -35,7 +39,8 @@ public class Computer {
     private boolean running = false;
 
     public Computer(int evalDepth) {
-        this.transTable = Collections.synchronizedMap(new LimitedSizeMap<>(maxEntries));
+        this.transTable = Collections.synchronizedMap(new HashMap<>());
+        this.moveTable = Collections.synchronizedMap(new LimitedSizeMap<>(maxEntries));
         this.hasher = new ZobristHasher();
         logger = LogManager.getLogger(this.toString());
         stop = new AtomicBoolean(false);
@@ -67,7 +72,17 @@ public class Computer {
         this.currentDifficulty = currentDifficulty;
     }
 
-    public ChessMove getComputerMove(boolean isWhite, ChessPosition pos, ChessStates gameState) {
+    public ChessMove getComputerMove(boolean isWhite, ChessPosition pos, ChessStates gameState, Stockfish stockfish) {
+        if(currentDifficulty.equals(ComputerDifficulty.STOCKFISHLOL)){
+            logger.debug("Getting stockfish move");
+            String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(pos,gameState,isWhite), 3200,1000);
+
+//            logger.debug("Stockfish uci: " + moveUci);
+            return PgnFunctions.uciToChessMove(moveUci, isWhite, pos.board);
+
+
+        }
+
         setCallTimeEval(pos, gameState, isWhite);
         transTable.clear();
 
@@ -351,7 +366,7 @@ public class Computer {
         // recursive part
         if (isWhiteTurn) {
             MinimaxEvalOutput maxEval = new MinimaxEvalOutput(Double.NEGATIVE_INFINITY);
-            List<ChessMove> childMoves = position.getAllChildMoves(true, position.gameState);
+            List<ChessMove> childMoves = position.getAllChildMoves(true, position.gameState,moveTable);
            if(childMoves == null){
                logger.error("Childmoves error!");
                return Stopped;
@@ -369,15 +384,17 @@ public class Computer {
                 if (beta <= alpha) {
                     break;
                 }
+                if(depth == evalDepth-1){
+                    moveTable.put(c,out.getAdvantage()+moveTable.getOrDefault(c,0d));
+                    transTable.put(key,out.getAdvantage());
+                }
 
             }
-            if(depth == evalDepth-1){
-                transTable.put(key,maxEval.getAdvantage());
-            }
+
             return maxEval.incrementAndReturn();
         } else {
             MinimaxEvalOutput minEval = new MinimaxEvalOutput(Double.POSITIVE_INFINITY);
-            List<ChessMove> childMoves = position.getAllChildMoves(false, position.gameState);
+            List<ChessMove> childMoves = position.getAllChildMoves(false, position.gameState,moveTable);
             if(childMoves == null){
                 logger.error("Childmoves error!");
                 return Stopped;
@@ -399,11 +416,13 @@ public class Computer {
                 if (beta <= alpha) {
                     break;
                 }
+                if(depth == evalDepth-1) {
+                    moveTable.put(c, out.getAdvantage() + moveTable.getOrDefault(c, 0d));
+                    transTable.put(key,out.getAdvantage());
+                }
 
             }
-            if(depth == evalDepth-1){
-                transTable.put(key,minEval.getAdvantage());
-            }
+
 
             return minEval.incrementAndReturn();
         }

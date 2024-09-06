@@ -6,6 +6,7 @@ import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -40,7 +41,7 @@ public class ChessPositionTests {
         ChessStates start = new ChessStates();
         BackendChessPosition posGeneral = ChessConstants.startBoardState.clonePosition().toBackend(start,false);
         GeneralChessFunctions.printBoardDetailed(posGeneral.board);
-        for(ChessMove c : posGeneral.getAllChildMoves(true,start)){
+        for(ChessMove c : posGeneral.getAllChildMoves(true,start,new HashMap<>())){
             System.out.println(c.toString());
             posGeneral.makeLocalPositionMove(c);
             GeneralChessFunctions.printBoardDetailed(posGeneral.board);
@@ -76,7 +77,7 @@ public class ChessPositionTests {
             BackendChessPosition passantBackend = generaltest.currentPosition.toBackend(generaltest.gameState,false);
             Assertions.assertEquals(passantBackend.gameState.toString(),generaltest.gameState.toString());
             List<BackendChessPosition> childPositions = generaltest.currentPosition.getAllChildPositions(generaltest.isWhiteTurn(),generaltest.gameState);
-            List<ChessMove> childMoves = generaltest.currentPosition.getAllChildMoves(generaltest.isWhiteTurn(),generaltest.gameState);
+            List<ChessMove> childMoves = generaltest.currentPosition.getAllChildMoves(generaltest.isWhiteTurn(),generaltest.gameState,new HashMap<>());
             assert childPositions.size() == childMoves.size();
 
             for(int i = 0;i<childPositions.size();i++){
@@ -91,7 +92,7 @@ public class ChessPositionTests {
 //                GeneralChessFunctions.printBoardDetailed(passantBackend.board);
 
                 List<BackendChessPosition> childPositions2 = childPos.getAllChildPositions(!generaltest.isWhiteTurn(),childPos.gameState);
-                List<ChessMove> childMoves2 = childPos.getAllChildMoves(!generaltest.isWhiteTurn(),childPos.gameState);
+                List<ChessMove> childMoves2 = childPos.getAllChildMoves(!generaltest.isWhiteTurn(),childPos.gameState,new HashMap<>());
                 Assertions.assertEquals(childPositions2.size(),childMoves2.size());
 
                 for(int j = 0;j<childPositions2.size();j++){
@@ -301,7 +302,7 @@ public class ChessPositionTests {
         BackendChessPosition referencePosition = game.currentPosition.clonePosition().toBackend(game.gameState.cloneState(),game.gameState.isStaleMated());
 
         List<BackendChessPosition> possiblePositions = referencePosition.getAllChildPositions(game.isWhiteTurn(),referencePosition.gameState);
-        List<ChessMove> possibleMoves = referencePosition.getAllChildMoves(game.isWhiteTurn(), referencePosition.gameState);
+        List<ChessMove> possibleMoves = referencePosition.getAllChildMoves(game.isWhiteTurn(), referencePosition.gameState,new HashMap<>());
 
         List<BackendChessPosition> rookFilteredPos = possiblePositions.stream().filter(p->p.getMoveThatCreatedThis().getBoardIndex()==ChessConstants.ROOKINDEX).toList();
         List<ChessMove> rookFilteredMoves = possibleMoves.stream().filter(m->m.getBoardIndex()==ChessConstants.ROOKINDEX).toList();

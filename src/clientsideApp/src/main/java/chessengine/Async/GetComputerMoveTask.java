@@ -64,7 +64,7 @@ public class GetComputerMoveTask extends Task<Void> {
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
                     Thread.sleep(800);
-                    getComputerMove();
+                    makeComputerMove();
                     isCurrentlyEvaluating = false;
 
                 }
@@ -79,30 +79,17 @@ public class GetComputerMoveTask extends Task<Void> {
     }
 
 
-    private void getComputerMove() {
+    private void makeComputerMove() {
         logger.info("Starting a best move evaluation");
         // handle stockfish
-        if(c.currentDifficulty.equals(ComputerDifficulty.STOCKFISHLOL)){
-            logger.debug("Getting stockfish move");
-            String moveUci = simTaskForStockfish.stockfish.getBestMove(PgnFunctions.positionToFEN(currentPosition,currentGameState,currentIsWhite), 3200,1000);
 
-//            logger.debug("Stockfish uci: " + moveUci);
-            ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentIsWhite, currentPosition.board);
-
+            // if not random move then now we need to customize how we get the move
+        ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition, currentGameState,simTaskForStockfish.stockfish);
+        if (bestMove != ChessConstants.emptyOutput.move) {
             Platform.runLater(()->{
-                controller.makeComputerMove(move);
+                controller.makeComputerMove(bestMove);
 
             });
-        }
-        else{
-            // if not random move then now we need to customize how we get the move
-            ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition, currentGameState);
-            if (bestMove != ChessConstants.emptyOutput.move) {
-                Platform.runLater(()->{
-                    controller.makeComputerMove(bestMove);
-
-                });
-            }
         }
 
 

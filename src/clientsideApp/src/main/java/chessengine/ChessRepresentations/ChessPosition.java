@@ -4,9 +4,7 @@ import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class ChessPosition {
     public BitBoardWrapper board;
@@ -68,6 +66,7 @@ public class ChessPosition {
         if (isCustomMove) {
             // skip all logic, as these moves are for adding extra pieces in sandbox
             currentBoardMod[peiceType] = GeneralChessFunctions.AddPeice(newX, newY, currentBoardMod[peiceType]);
+            currentBoardMod[peiceType] = GeneralChessFunctions.RemovePeice(oldX, oldY, currentBoardMod[peiceType]);
         } else {
             // normal move
             if (isCastle) {
@@ -181,7 +180,7 @@ public class ChessPosition {
     }
 
 
-    public List<ChessMove> getAllChildMoves(boolean isWhite, ChessStates gameState) {
+    public List<ChessMove> getAllChildMoves(boolean isWhite, ChessStates gameState, Map<ChessMove,Double> orderingTable) {
         List<ChessMove> childPositionsPriority1 = new ArrayList<>();
         List<ChessMove> childPositionsPriority2 = new ArrayList<>();
         List<ChessMove> childPositionsPriority3 = new ArrayList<>();
@@ -222,23 +221,22 @@ public class ChessPosition {
 
             }
         }
-        childPositionsPriority1.sort((a, b) -> {
-            double attackerValueA = ChessConstants.valueMap[a.getBoardIndex()];
-            double victimValueA = ChessConstants.valueMap[a.getEatingIndex()];
-
-            double attackerValueB = ChessConstants.valueMap[b.getBoardIndex()];
-            double victimValueB = ChessConstants.valueMap[b.getEatingIndex()];
-
-            double valueA = victimValueA - attackerValueA;
-            double valueB = victimValueB - attackerValueB;
-            return Double.compare(valueB, valueA); // Sort in descending order of MVV-LVA
-        });
+//        childPositionsPriority1.sort((a, b) -> {
+//            double attackerValueA = ChessConstants.valueMap[a.getBoardIndex()];
+//            double victimValueA = ChessConstants.valueMap[a.getEatingIndex()];
+//
+//            double attackerValueB = ChessConstants.valueMap[b.getBoardIndex()];
+//            double victimValueB = ChessConstants.valueMap[b.getEatingIndex()];
+//
+//            double valueA = victimValueA - attackerValueA;
+//            double valueB = victimValueB - attackerValueB;
+//            return Double.compare(valueB, valueA); // Sort in descending order of MVV-LVA
+//        });
 
 
         childPositionsPriority2.addAll(childPositionsPriority3);
         childPositionsPriority1.addAll(childPositionsPriority2);
+//        childPositionsPriority1.sort(Comparator.comparing(a -> orderingTable.getOrDefault(a, 0d))); // todo make this worth it
         return childPositionsPriority1;
     }
-
-
 }

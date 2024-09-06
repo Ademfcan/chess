@@ -5,7 +5,6 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Computation.Computer;
 import chessengine.Misc.EloEstimator;
-import chessengine.Functions.PgnFunctions;
 import chessengine.Enums.MainScreenState;
 import chessengine.Computation.Stockfish;
 import chessserver.ComputerDifficulty;
@@ -21,7 +20,8 @@ public class SimulationTask extends Task<Void> {
 
     private final int testStockfishElo = 1500; // todo make changeable in gui maybe?
 
-    private final Computer c;
+    private final Computer player1Computer;
+    private final Computer player2Computer;
     private final ChessCentralControl control;
     public final Stockfish stockfish;
     private final Random random;
@@ -83,16 +83,19 @@ public class SimulationTask extends Task<Void> {
     private volatile boolean running = true;
     private volatile boolean evaluating = false;
     private boolean isMakingMove = false;
-    private boolean isMyComputerWhitePlayer = true; // starts true
-    private boolean isMyComputerTurn = true; // starts true
+    private boolean isPlayer1WhitePlayer = true; // starts true
+    private boolean isPlayer1Turn = true; // starts true
     private int numComputerWins = 0;
     private int numStockFishWins = 0;
     private int numDraws = 0;
     private ChessGame currentSimGame = null;
 
-    public SimulationTask(Computer c, ChessCentralControl control) {
+    public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
-        this.c = c;
+        this.player1Computer = new Computer(1);
+        this.player2Computer = new Computer(1);
+        this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MAXDIFFICULTY);
+        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.STOCKFISHLOL); // defaults
         this.control = control;
         stockfish = new Stockfish();
         if (stockfish.startEngine()) {
@@ -112,8 +115,11 @@ public class SimulationTask extends Task<Void> {
         return isMakingMove;
     }
 
-    public void setSimulationDifficulty(ComputerDifficulty diff) {
-        c.setCurrentDifficulty(diff);
+    public void setPlayer1SimulationDifficulty(ComputerDifficulty diff) {
+        player1Computer.setCurrentDifficulty(diff);
+    }
+    public void setPlayer2SimulationDifficulty(ComputerDifficulty diff) {
+        player2Computer.setCurrentDifficulty(diff);
     }
 
     public void startSimulation() {
@@ -127,14 +133,17 @@ public class SimulationTask extends Task<Void> {
 
     }
 
+    private volatile boolean stop = false;
+
     public void stopAndReset() {
+        stop = true;
         logger.debug("Stopping sim");
         evaluating = false;
-        if (c.isRunning()) {
-            c.stop.set(true);
+        if (player1Computer.isRunning()) {
+            player1Computer.stop.set(true);
         }
-        isMyComputerWhitePlayer = true;
-        isMyComputerTurn = true;
+        isPlayer1WhitePlayer = true;
+        isPlayer1Turn = true;
         currentSimGame = null;
         numComputerWins = 0;
         numStockFishWins = 0;
@@ -145,9 +154,12 @@ public class SimulationTask extends Task<Void> {
     public Void call() {
         while (running) {
             if (evaluating) {
+                stop = false;
+                System.out.println("loopin");
                 makeNewMove();
+                isMakingMove = false;
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(200);
                 } catch (Exception e) {
                     logger.error("Error when waiting", e);
                 }
@@ -167,73 +179,38 @@ public class SimulationTask extends Task<Void> {
 
     private void makeNewMove() {
 //        System.out.println("In loop: " + (currentSimGame != null));
+        System.out.println("Here mf");
         isMakingMove = true;
         if (currentSimGame == null) {
             logger.debug("Creating new game");
             // start new game
             // start from random opening as to make the sim different
             String randomOpening = top50Openings[random.nextInt(top50Openings.length)];
-            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isMyComputerWhitePlayer ? "My Computer" : "Stockfish", !isMyComputerWhitePlayer ? "My Computer" : "Stockfish", isMyComputerWhitePlayer ? 9999 : testStockfishElo, !isMyComputerWhitePlayer ? 9999 : testStockfishElo, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isMyComputerWhitePlayer);
+            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? "My Computer" : "Stockfish", !isPlayer1WhitePlayer ? "My Computer" : "Stockfish", isPlayer1WhitePlayer ? 9999 : testStockfishElo, !isPlayer1WhitePlayer ? 9999 : testStockfishElo, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isPlayer1WhitePlayer);
+            if(stop){
+                return;
+            }
             Platform.runLater(() -> {
                 control.chessActionHandler.reset();
-                control.chessBoardGUIHandler.resetEverything(isMyComputerWhitePlayer);
+                control.chessBoardGUIHandler.resetEverything(isPlayer1WhitePlayer);
                 control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION, true);
                 simGame.moveToEndOfGame(false);
             });
             currentSimGame = simGame;
             try {
-                Thread.sleep(1500); // sleep a bit to show starting position
+                Thread.sleep(800); // sleep a bit to show starting position
             } catch (Exception e) {
                 logger.error("Error on sleep before simgame creation", e);
             }
             // set white turn based on starting position
-            isMyComputerTurn = simGame.isWhiteTurn() == isMyComputerWhitePlayer;
+            isPlayer1Turn = simGame.isWhiteTurn() == isPlayer1WhitePlayer;
         } else {
-            // if in current game then play
-            boolean isWhiteTurn = isMyComputerTurn == isMyComputerWhitePlayer;
-            if (isMyComputerTurn) {
-                logger.debug("Getting my computer move");
-                ChessMove move = c.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState);
-                if(move == null){
-                    // stopped
-                    logger.debug("Stopped sim comp output");
-                    return;
-                }
-                currentSimGame.makeNewMove(move, true, false);
 
-//                logger.debug("Getting stockfish move");
-//                String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(currentSimGame.currentPosition, currentSimGame.gameState, isWhiteTurn), testStockfishElo,350);
-//
-//                System.out.println("Stockfish uci: " + moveUci);
-//                ChessMove move = PgnFunctions.uciToChessMove(moveUci, isWhiteTurn, currentSimGame.currentPosition.board);
-//
-//                System.out.println("Stockfish move: " + move);
-//                currentSimGame.makeNewMove(move, true, false);
-
-            } else {
-                logger.debug("Getting stockfish move");
-                String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(currentSimGame.currentPosition, currentSimGame.gameState, isWhiteTurn), testStockfishElo,350);
-
-                System.out.println("Stockfish uci: " + moveUci);
-                ChessMove move = PgnFunctions.uciToChessMove(moveUci, isWhiteTurn, currentSimGame.currentPosition.board);
-
-                System.out.println("Stockfish move: " + move);
-                currentSimGame.makeNewMove(move, true, false);
-//
-//                ChessMove move = c.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState);
-//                if(move == null){
-//                    // stopped
-//                    logger.debug("Stopped sim comp output");
-//                    return;
-//                }
-//                currentSimGame.makeNewMove(move, true, false);
-            }
-
-            // check end conditions
             if (currentSimGame.gameState.isGameOver()) {
+                System.out.println("game over");
                 // end game
                 try {
-                    Thread.sleep(4000); // show end of game for a little
+                    Thread.sleep(200); // show end of game for a little
                 } catch (Exception e) {
                     logger.error("Error on thread sleep", e);
                 }
@@ -244,7 +221,7 @@ public class SimulationTask extends Task<Void> {
                 // else one side must have one,
                 boolean isPlayer1Win = currentSimGame.gameState.isCheckMated()[1];
                 if (isPlayer1Win) {
-                    if (isMyComputerWhitePlayer) {
+                    if (isPlayer1WhitePlayer) {
                         // computer is player 1 and won (Computer win)
                         numComputerWins++;
                     } else {
@@ -252,7 +229,7 @@ public class SimulationTask extends Task<Void> {
                         numStockFishWins++;
                     }
                 } else {
-                    if (isMyComputerWhitePlayer) {
+                    if (isPlayer1WhitePlayer) {
                         // computer is player 1 but lost (Stockfish win)
                         numStockFishWins++;
                     } else {
@@ -261,24 +238,52 @@ public class SimulationTask extends Task<Void> {
                     }
                 }
                 // set start for next game (flip first player)
-                isMyComputerWhitePlayer = !isMyComputerWhitePlayer;
-                isMyComputerTurn = isMyComputerWhitePlayer;
-
-                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb(numComputerWins,numDraws,testStockfishElo);
+                isPlayer1WhitePlayer = !isPlayer1WhitePlayer;
+                isPlayer1Turn = isPlayer1WhitePlayer;
+                int totalCount = numDraws + numComputerWins + numStockFishWins;
+                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins /totalCount, (double) numDraws /totalCount,3200);
                 if(estimatedElo < 0){
                     // no wins so formula breaks :(
                     estimatedElo = -1;
                 }
                 int finalEst = estimatedElo;
                 // update info
-                Platform.runLater(() -> {
-                    control.mainScreenController.setSimScore(numComputerWins, numStockFishWins, numDraws,finalEst);
-                });
+                Platform.runLater(() -> control.mainScreenController.setSimScore(numComputerWins, numStockFishWins, numDraws,finalEst));
                 currentSimGame = null;
-            } else {
-                // else just change turn as normall
-                isMyComputerTurn = !isMyComputerTurn;
             }
+            else {
+                // else just change turn as normall
+                boolean isWhiteTurn = isPlayer1Turn == isPlayer1WhitePlayer;
+                if (isPlayer1Turn) {
+                    logger.error("Player 1 turn");
+                    ChessMove move = player1Computer.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState,this.stockfish);
+                    if(stop){
+                        return;
+                    }
+                    if(move == null){
+                        // stopped
+                        logger.error("Stopped sim comp output");
+                        return;
+                    }
+                    Platform.runLater(()->{
+                        currentSimGame.makeNewMove(move, true, false);
+                    });
+                } else {
+                    logger.error("Player 2 turn");
+                    ChessMove move = player2Computer.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState,this.stockfish);
+                    if(move == null){
+                        // stopped
+                        logger.error("Stopped sim comp output");
+                        return;
+                    }
+                    Platform.runLater(()->{
+                        currentSimGame.makeNewMove(move, true, false);
+                    });
+
+                }
+                isPlayer1Turn = !isPlayer1Turn;
+            }
+
         }
 
 

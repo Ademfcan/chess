@@ -23,7 +23,7 @@ public class ThreadController {
         chessAiForEvalBar = new Computer(defaultEvaluationDepth);
         chessAiForNMoves = new Computer(defaultEvaluationDepth);
 
-        simTask = new SimulationTask(new Computer(5), control);
+        simTask = new SimulationTask(control);
         new Thread((simTask)).start();
 
         evalTask = new EvaluationBarTask(chessAiForEvalBar, control.mainScreenController, defaultEvaluationDepth);

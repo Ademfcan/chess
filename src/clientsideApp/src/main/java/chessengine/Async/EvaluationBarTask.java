@@ -67,7 +67,7 @@ public class EvaluationBarTask extends Task<Void> {
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
 
-                    for (int i = Math.max(maxD-2,1); i < maxD; i++) {
+                    for (int i = Math.max(maxD-3,1); i < maxD; i++) {
                         EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition, currentGameState, i, currentIsWhite);
                         Future<MinimaxEvalOutput> evalOut = executor.submit(evalCallable);
                         MinimaxEvalOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout

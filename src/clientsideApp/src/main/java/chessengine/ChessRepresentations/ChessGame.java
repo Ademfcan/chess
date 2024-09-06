@@ -607,7 +607,10 @@ public class ChessGame {
                         if (gameState.isCheckMated()[0]) {
                             int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                             centralControl.mainScreenController.setEvalBar(eval, -1, true);
-                        } else {
+                        } else if(gameState.isStaleMated()){
+                            centralControl.mainScreenController.setEvalBar(0, -1, true);
+                        }
+                        else{
                             centralControl.mainScreenController.hideGameOver();
                         }
                     });
@@ -615,7 +618,10 @@ public class ChessGame {
                     if (gameState.isCheckMated()[0]) {
                         int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                         centralControl.mainScreenController.setEvalBar(eval, -1, true);
-                    } else {
+                    } else if(gameState.isStaleMated()){
+                        centralControl.mainScreenController.setEvalBar(0, -1, true);
+                    }
+                    else{
                         centralControl.mainScreenController.hideGameOver();
                     }
                 }
@@ -870,6 +876,12 @@ public class ChessGame {
                     centralControl.chessActionHandler.incrementNumRedos();
                 }
             }
+        }
+        else{
+            if(curMoveIndex != maxIndex){
+                moveToEndOfGame(false);
+            }
+
         }
         ChessPosition newPos = new ChessPosition(currentPosition, gameState, move);
         MakeMove(newPos, move, false, isDragMove);
@@ -1154,6 +1166,10 @@ public class ChessGame {
     }
 
     public String gameToPgn() {
+        return gameToPgn(maxIndex);
+    }
+
+    public String gameToPgn(int maxIndex) {
         if (maxIndex == -1) {
             // empty game
             return "";

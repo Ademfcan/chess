@@ -12,7 +12,6 @@ import chessserver.INTENT;
 import chessserver.ProfilePicture;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -36,7 +35,7 @@ public class StartScreenController implements Initializable {
     @FXML
     public GridPane content;
     @FXML
-    public Pane startMessageBoard;
+    public Pane startRef;
     @FXML
     HBox profileBox;
     @FXML
@@ -209,9 +208,11 @@ public class StartScreenController implements Initializable {
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
 
+
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        startMessageBoard.setMouseTransparent(true);
+        startRef.setMouseTransparent(true);
         oldGamesPanelContent.setStyle("-fx-background-color: lightgray");
 
 
@@ -280,8 +281,9 @@ public class StartScreenController implements Initializable {
         playAsWhite.setOnAction(e -> {
             // Get the node's local bounds
 
-
-            App.messager.addMovingArrow(localButton,.03,.03,5,true);
+//            App.messager.addFocusNode(playAsWhite,true);
+//            App.messager.addMovingArrow(playAsWhite,.03,.03,5,true);
+//            App.messager.addInformationBox(.5,.5,.3,.3,"Welcome","Hello, i will guide you through a small tutorial",true);
             playAsWhite.setSelected(playAsWhite.isSelected());
             if (playAsWhite.isSelected()) {
                 playAsWhite.setText("Play as White");
