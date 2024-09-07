@@ -66,7 +66,6 @@ public class BestNMovesTask extends Task<Void> {
                     logger.info("Starting a best n moves evaluation");
                     List<ComputerOutput> nmoves = c.getNMoves(currentIsWhite, currentPosition, currentGameState, nSuggestions);
                     if (nmoves != null && !nmoves.isEmpty()) {
-                        // todo updating when should be stopped
                         Platform.runLater(() -> {
                             // Update UI elements on the JavaFX Application Thread
                             controller.getChessCentralControl().chessActionHandler.addBestMovesToViewer(nmoves);

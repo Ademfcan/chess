@@ -995,8 +995,7 @@ public class ChessActionHandler {
                 Arrow moveArrow = new MoveArrow(isWhiteOriented ? best.getOldX() : 7 - best.getOldX(), isWhiteOriented ? best.getOldY() : 7 - best.getOldY(), isWhiteOriented ? best.getNewX() : 7 - best.getNewX(), isWhiteOriented ? best.getNewY() : 7 - best.getNewY(), getColorBasedOnAdvantage(best.isWhite(),adv));
                 myControl.chessBoardGUIHandler.addArrow(moveArrow);
                 String advStr = formatter.format(adv);
-                String prefix = adv == 0 ? "" : adv > 0 ? "+" : "-";
-                Label expectedAdvantage = new Label(prefix + advStr);
+                Label expectedAdvantage = new Label(advStr);
                 App.bindingController.bindSmallText(moveNumber, true);
                 App.bindingController.bindSmallText(moveAsPgn, true);
                 App.bindingController.bindSmallText(expectedAdvantage, true);

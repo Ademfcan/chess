@@ -264,7 +264,7 @@ public class PgnFunctions {
         // eating (technically should check to see if its a correct piece color or throw error but nahh its fine)
         boolean isEating = GeneralChessFunctions.checkIfContains(endX, endY, board, "ya")[0];
         int eatingIndex = GeneralChessFunctions.getBoardWithPiece(endX, endY, board);
-        boolean isCastleMove = uci.equals("e1g1") /* white short castle */ || uci.equals("e8g8") /*black short castle*/ || uci.equals("e1c1") /* white long*/ || uci.equals("e8c8")/*black short*/;
+        boolean isCastleMove = boardIndex == ChessConstants.KINGINDEX && (uci.equals("e1g1") /* white short castle */ || uci.equals("e8g8") /*black short castle*/ || uci.equals("e1c1") /* white long*/ || uci.equals("e8c8"))/*black short*/;
         int promoIndex = c.length > 4 ? turnPgnPieceToPieceIndex(Character.toUpperCase(c[4])) : ChessConstants.EMPTYINDEX;
         int backDir = isWhite ? 1 : -1;
         boolean isEnPassant = startX != endX && boardIndex == ChessConstants.PAWNINDEX && GeneralChessFunctions.getBoardWithPiece(endX, endY + backDir, !isWhite, board) == ChessConstants.PAWNINDEX && !isEating;

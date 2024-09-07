@@ -124,7 +124,6 @@ public class SimulationTask extends Task<Void> {
 
     public void startSimulation() {
         logger.debug("Starting sim");
-        System.out.println("is already evaluating? " + evaluating);
         evaluating = true;
     }
 
@@ -155,7 +154,6 @@ public class SimulationTask extends Task<Void> {
         while (running) {
             if (evaluating) {
                 stop = false;
-                System.out.println("loopin");
                 makeNewMove();
                 isMakingMove = false;
                 try {
@@ -172,14 +170,12 @@ public class SimulationTask extends Task<Void> {
             }
 
         }
-        System.out.println("Ending sim thread");
+//        System.out.println("Ending sim thread");
         return null;
 
     }
 
     private void makeNewMove() {
-//        System.out.println("In loop: " + (currentSimGame != null));
-        System.out.println("Here mf");
         isMakingMove = true;
         if (currentSimGame == null) {
             logger.debug("Creating new game");
@@ -207,7 +203,6 @@ public class SimulationTask extends Task<Void> {
         } else {
 
             if (currentSimGame.gameState.isGameOver()) {
-                System.out.println("game over");
                 // end game
                 try {
                     Thread.sleep(200); // show end of game for a little

@@ -97,8 +97,6 @@ public class StartScreenController implements Initializable {
     @FXML
     RadioButton computerRadioButton;
     @FXML
-    Button addNewGame;
-    @FXML
     Label oldGamesLabel;
     @FXML
     ScrollPane oldGamesPanel;
@@ -535,8 +533,6 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput, 350, .45);
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, nameInput, 350, .45);
 
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, addNewGame, maxNewGameButtonSize, .1);
-        addNewGame.prefHeightProperty().bind(addNewGame.widthProperty());
         oldGamesPanel.prefHeightProperty().bind(mainArea.heightProperty());
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea, oldGamesPanel, 350, .5);
         App.bindingController.bindChildHeightToParentHeightWithMaxSize(mainArea, themeSelection, 50, .1);

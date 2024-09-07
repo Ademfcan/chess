@@ -3,7 +3,7 @@ package chessserver;
 public enum ComputerDifficulty {
     // for stockfish none of these values matter at all
     STOCKFISHLOL(3400, 5, 0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false),
-    MAXDIFFICULTY(3000, 5, 0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false),
+    MAXDIFFICULTY(3000, 4, 0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false),
     D1(2800, 4, -0.5, 4, 1.5, 0.015, 15, 1, 0.8, 0.9, ServerConstants.QUEENINDEX, .2, true, false),
     D2(2600, 4, 0.4, 4, 1.5, 0.02, 15, 1, 1, .3, ServerConstants.ROOKINDEX, .3, true, false),
     D3(2400, 4, -1, 4, 1.5, 0.09, 10, 0.9, 0.4, 0.9, ServerConstants.ROOKINDEX, .3, true, false),

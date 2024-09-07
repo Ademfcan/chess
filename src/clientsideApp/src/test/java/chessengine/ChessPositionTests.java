@@ -179,6 +179,13 @@ public class ChessPositionTests {
 
     }
 
+
+    @Test void promoTest(){
+        ChessGame testGame1 = ChessGame.createTestGame("1.e4 e5 2.Nf3 Qf6 3.Bc4 Bc5 4.d3 b5 5.Bb3 h6 6.O-O Bb7 7.Nc3 Bc6 8.a4 xa4 9.Nxa4 Bd6 10.c4 Na6 11.d4 xd4 12.Nxd4 Bxe4 13.Nb5 Rb8 14.Nxd6+ Qxd6 15.Qxd6 xd6 16.Ba2 Rb4 17.Nc3 Bd3 18.Rd1 Nc5 19.Bf4 Rb6 20.Nd5 Rxb2 21.Bxd6 Ne4 22.Bc7 Nxf2 23.Rde1+ Ne4 24.Rad1 Bc2 25.Rd4 f5 26.Be5 Rxa2 27.Bxg7 Rh7 28.Be5 d6 29.Bxd6 Rd7 30.c5 Ra4 31.Rxa4 Bxa4 32.Nc7+ Kd8 33.Ne6+ Kc8 34.Ra1 Nxd6 35.xd6 Rxd6 36.Rxa4 Rd1+ 37.Kf2 Nf6 38.Rxa7 Ne4+ 39.Kf3 Rf1+ 40.Ke3 Re1+ 41.Kf4 Nd6 42.Ng7 Rb1 43.Nxf5 Nxf5 44.Kxf5 Kb8 45.Rh7 Rb2 46.Rxh6 Ka7 47.Rg6 Rb5+ 48.Kf6 Rh5 49.h3 Kb8 50.Kg7 Rd5 51.Kh6 Ka7 52.g4 Rd8 53.Kh7 Kb7 54.h4 Rd3 55.h5 Rd7+ 56.Rg7 Rxg7+ 57.Kxg7 Kc7 58.h6 Kb7 59.h7 Kb6 60.h8=Q Ka5 61.Qe8 Kb4 62.Kf6 Ka3 63.g5 Ka2 64.g6 Kb2",false);
+        testGame1.moveToEndOfGame(false);
+//        List<ChessMove>
+    }
+
     @Test void inlinePositionTest(){
         String[] pgns = {
                 // Good test cases

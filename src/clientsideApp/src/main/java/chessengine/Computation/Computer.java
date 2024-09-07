@@ -200,11 +200,14 @@ public class Computer {
 
         running = true;
         for (int i = 0; i < Math.min(nMoves,possiblePositions.size()); i++) {
+            System.out.println(i);
             ComputerOutput out = getComputerMoveWithCondiditon(isWhite, pos, gameState, prevMoves,possiblePositions);
-            if (!out.equals(ChessConstants.emptyOutput)) {
-                BestMoves.add(out);
-                prevMoves.add(out.move);
+            if (out.equals(ChessConstants.emptyOutput)) {
+                logger.error("Empty out");
+                return null;
             }
+            BestMoves.add(out);
+            prevMoves.add(out.move);
 
         }
         clearFlags();
@@ -229,10 +232,12 @@ public class Computer {
             futures.add(executor.submit(() -> {
                 ChessMove move = childPos.getMoveThatCreatedThis();
                 if (stop.get()) {
+                    logger.error("Stop get");
                     return null;
                 }
                 MinimaxEvalOutput miniMaxOut = miniMax(childPos, evalDepth - 1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, !isWhite);
                 if (miniMaxOut == Stopped) {
+                    logger.error("minimax stopped");
                     return null;
                 }
 
@@ -249,7 +254,8 @@ public class Computer {
             for (Future<MinimaxMoveResult> future : futures) {
                 MinimaxMoveResult result = future.get();
                 if (result == null) {
-                    continue;
+                    System.out.println("null result");
+                    return ChessConstants.emptyOutput; // stop flag
                 }
 
                 double advtg = result.getAdvantage();
@@ -319,18 +325,18 @@ public class Computer {
 
         long key = hasher.computeHash(position.board, isWhiteTurn);
         // flip board for inverse position check
-        position.board.flipBoard();
-        long flippedKey = hasher.computeHash(position.board, !isWhiteTurn);
-        position.board.flipBoard(); // flip back
+//        position.board.flipBoard();
+//        long flippedKey = hasher.computeHash(position.board, !isWhiteTurn);
+//        position.board.flipBoard(); // flip back
 
 
-//        // todo fix transtable erratic behaviour
-        if (transTable.containsKey(key)) {
-            return new MinimaxEvalOutput(transTable.get(key));
-        }
-        if (transTable.containsKey(flippedKey)) {
-            return new MinimaxEvalOutput(-transTable.get(flippedKey));
-        }
+        // todo fix transtables
+//        if (transTable.containsKey(key)) {
+//            return new MinimaxEvalOutput(transTable.get(key));
+//        }
+//        if (transTable.containsKey(flippedKey)) {
+//            return new MinimaxEvalOutput(-transTable.get(flippedKey));
+//        }
 
         if (currentDifficulty != ComputerDifficulty.MAXDIFFICULTY && depth <= evalDepth - currentDifficulty.depthThreshold) {
             // do a check to see if there is any noticeable advantage diff.  If not then return

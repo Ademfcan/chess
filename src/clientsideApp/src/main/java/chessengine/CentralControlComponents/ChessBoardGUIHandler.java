@@ -11,15 +11,16 @@ import chessengine.Graphics.BindingController;
 import chessserver.ChessboardTheme;
 import javafx.animation.PathTransition;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
@@ -56,7 +57,9 @@ public class ChessBoardGUIHandler {
     // pretty self explanatory
     String currentColorType = ChessboardTheme.TRADITIONAL.toString(); // default type
 
-    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard) {
+    TextArea localInfo;
+
+    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhitesContainer = eatenWhites;
         this.eatenBlacksContainer = eatenBlacks;
@@ -69,6 +72,7 @@ public class ChessBoardGUIHandler {
         this.chessMoveBoard = chessMoveBoard;
         this.chessBgBoard = chessBgBoard;
         this.moveBoxes = moveBoxes;
+        this.localInfo = localInfo;
         arrows = new ArrayList<>();
         chessPieceBoard.layoutBoundsProperty().addListener(e -> {
             redrawArrows();
@@ -390,7 +394,7 @@ public class ChessBoardGUIHandler {
 
     public void reloadNewBoard(ChessPosition position, boolean isWhiteOriented) {
         // adjust chess bg squares depending on orientation
-        changeChessBg(currentColorType, isWhiteOriented);
+        changeChessBg(currentColorType);
 
         removeAllPieces();
         boolean isWhite = true;
@@ -539,12 +543,20 @@ public class ChessBoardGUIHandler {
         return false;
     }
 
-    public void changeChessBg(String colorType, boolean isWhiteOriented) {
+    public void changeChessBg(String colorType) {
         currentColorType = colorType;
         boolean isLight = true;
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
-        int count = 0;
 
+        // set local info background based on theme.darkcolor
+
+        if (localInfo.styleProperty().isBound()){
+            localInfo.styleProperty().unbind();
+        }
+//        App.bindingController.bindSmallTextCustom(localInfo, true, "-fx-text-fill: white; -fx-background-color: " + theme.darkColor);
+//        localInfo.setBackground(new Background(new BackgroundFill(Paint.valueOf(theme.darkColor),null,null)));
+
+        int count = 0;
         for (Node n : chessBgBoard.getChildren()) {
             String curr = "";
             if (isLight) {

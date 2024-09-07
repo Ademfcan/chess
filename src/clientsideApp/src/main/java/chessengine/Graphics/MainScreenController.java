@@ -333,7 +333,7 @@ public class MainScreenController implements Initializable {
 
         if (initPreferences != null) {
 //            ChessCentralControl.asyncController.setComputerDepth(initPreferences.getComputerMoveDepth()); // todo
-            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString(), true);
+            ChessCentralControl.chessBoardGUIHandler.changeChessBg(initPreferences.getChessboardTheme().toString());
         }
 
 
@@ -580,7 +580,7 @@ public class MainScreenController implements Initializable {
         sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessBoardAndEvalContainer.widthProperty()).subtract(leftSideSpacer.widthProperty()));
         sidePanel.prefHeightProperty().bind(content.heightProperty());
 
-        switchingOptions.prefHeightProperty().bind(gameControls.heightProperty().subtract(bottomControls.heightProperty().subtract(lineLabel.heightProperty()).subtract(movesPlayed.heightProperty()).subtract(gameControls.heightProperty().divide(6))));
+        switchingOptions.prefHeightProperty().bind(gameControls.heightProperty().subtract(bottomControls.heightProperty().subtract(lineLabel.heightProperty()).subtract(movesPlayed.heightProperty()).subtract(gameControls.heightProperty().divide(4))));
 
         App.bindingController.bindSmallText(player1SimLabel,true,"Black");
         App.bindingController.bindSmallText(player2SimLabel,true,"Black");
@@ -595,7 +595,6 @@ public class MainScreenController implements Initializable {
 
         // all the different side panels
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, localInfo, 100, .8);
-        App.bindingController.bindSmallText(localInfo, true, "black");
 
         localInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
         App.bindingController.bindSmallText(inGameInfo, true, "black");

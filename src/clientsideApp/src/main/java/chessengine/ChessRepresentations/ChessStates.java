@@ -127,11 +127,6 @@ public class ChessStates {
     public boolean makeNewMoveAndCheckDraw(ChessPosition newPosition) {
         clearIndexes(currentIndex + 1);
         // first check draw by insufficient material
-        if(GeneralChessFunctions.isInsufiicientMaterial(newPosition.board)){
-            staleMateIndex = currentIndex;
-            isStaleMated = true;
-            return true;
-        }
 
         // second check draw by repetition
         // white move not important in this case so just set constant
@@ -142,7 +137,6 @@ public class ChessStates {
         if (posCount + 1 > 2) {
             // draw by repetition
 //            ChessConstants.mainLogger.debug("Draw by repetition triggered");
-            isStaleMated = true;
             return true;
         }
         // next check 50 move rule
@@ -168,7 +162,7 @@ public class ChessStates {
             }
         }
 
-        return false;
+        return GeneralChessFunctions.isInsufiicientMaterial(newPosition.board);
 
     }
 
@@ -316,7 +310,9 @@ public class ChessStates {
                 if (movesWhenResetted.isEmpty()) {
                     ChessConstants.mainLogger.error("moveswhen ressetted does not have needed elements, are you moving backward before forward");
                 }
-                movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
+                else{
+                    movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
+                }
             }
         }
 

@@ -121,7 +121,7 @@ public class App extends Application {
             centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
             centralControl.asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
             boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
-            centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString(), isWhiteOriented);
+            centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
             // todo pieces theme
 
         } else {

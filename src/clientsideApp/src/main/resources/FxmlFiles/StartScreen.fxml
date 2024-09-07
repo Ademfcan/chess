@@ -302,11 +302,6 @@
             <HBox alignment="CENTER" prefHeight="44.0" prefWidth="120.0" spacing="10.0" GridPane.columnIndex="2">
                <children>
                   <Label fx:id="oldGamesLabel" text="Saved Games" />
-                  <Button fx:id="addNewGame" mnemonicParsing="false" prefHeight="38.0" prefWidth="42.0" text="➕">
-                     <font>
-                        <Font size="17.0" />
-                     </font>
-                  </Button>
                </children>
                <padding>
                   <Insets right="10.0" />
