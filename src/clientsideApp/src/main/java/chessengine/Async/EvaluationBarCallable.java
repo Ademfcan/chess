@@ -3,11 +3,11 @@ package chessengine.Async;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
-import chessengine.Computation.MinimaxEvalOutput;
+import chessengine.Computation.EvalOutput;
 
 import java.util.concurrent.Callable;
 
-public class EvaluationBarCallable implements Callable<MinimaxEvalOutput> {
+public class EvaluationBarCallable implements Callable<EvalOutput> {
     final Computer c;
     final int d;
     final boolean isWhite;
@@ -23,7 +23,7 @@ public class EvaluationBarCallable implements Callable<MinimaxEvalOutput> {
     }
 
     @Override
-    public MinimaxEvalOutput call() throws Exception {
+    public EvalOutput call() throws Exception {
         return c.getFullEvalMinimax(position, gameState, d, isWhite);
     }
 }

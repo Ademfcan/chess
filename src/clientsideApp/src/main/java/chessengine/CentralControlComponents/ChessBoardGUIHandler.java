@@ -548,13 +548,7 @@ public class ChessBoardGUIHandler {
         boolean isLight = true;
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
 
-        // set local info background based on theme.darkcolor
 
-        if (localInfo.styleProperty().isBound()){
-            localInfo.styleProperty().unbind();
-        }
-//        App.bindingController.bindSmallTextCustom(localInfo, true, "-fx-text-fill: white; -fx-background-color: " + theme.darkColor);
-//        localInfo.setBackground(new Background(new BackgroundFill(Paint.valueOf(theme.darkColor),null,null)));
 
         int count = 0;
         for (Node n : chessBgBoard.getChildren()) {

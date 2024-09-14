@@ -3,7 +3,6 @@ package chessengine.Misc;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Computation.Computer;
-import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Computation.Stockfish;
 import chessserver.ComputerDifficulty;
@@ -13,7 +12,7 @@ public class EloEstimator {
     private final int stockFishElo = 1500;
 
     public int testElo(ComputerDifficulty testDifficulty, boolean isShow) {
-        Computer testComputer = new Computer(7); // eval depth not used
+        Computer testComputer = new Computer();
         testComputer.setCurrentDifficulty(testDifficulty);
         Stockfish stockfish = new Stockfish();
         int numComputerWins = 0;
@@ -27,7 +26,7 @@ public class EloEstimator {
                 while (!testGame.gameState.isGameOver()) {
                     boolean isWhiteTurn = isComputerTurn == isComputerFirst;
                     if (isComputerTurn) {
-                        ChessMove move = testComputer.getComputerMove(isWhiteTurn, testGame.currentPosition, testGame.gameState,null); // wont use computers stockfish
+                        ChessMove move = testComputer.getComputerMoveWithFlavors(isWhiteTurn, testGame.currentPosition, testGame.gameState).getMove();
                         testGame.makeNewMove(move, !isShow, false);
                     } else {
                         String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(testGame.currentPosition, testGame.gameState, isWhiteTurn),stockFishElo ,300);

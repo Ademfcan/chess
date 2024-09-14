@@ -412,8 +412,8 @@ public class ChessGame {
         if (isMainGame) {
             Platform.runLater(() -> {
                 // now do a full init
-                centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, blackPlayerName, blackElo,isWhiteOriented);
-                centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, player2PfpUrl,isWhiteOriented);
+                centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, blackPlayerName, blackElo, isWhiteOriented);
+                centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, player2PfpUrl, isWhiteOriented);
                 centralControl.mainScreenController.setupWithGame(this, MainScreenState.ONLINE, true);
             });
         }
@@ -422,7 +422,7 @@ public class ChessGame {
     }
 
     public ChessGame cloneGame() {
-        List<ChessPosition> clonedMoves = moves.stream().map(ChessPosition::clonePosition).toList();
+        List<ChessPosition> clonedMoves = new ArrayList<>(moves.stream().map(ChessPosition::clonePosition).toList());
         return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(), gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePlayerPfpUrl, blackPlayerPfpUrl, isVsComputer, isWebGame, isWhiteOriented, maxIndex);
     }
 
@@ -436,15 +436,15 @@ public class ChessGame {
             // since we dont have any info on the second player, we only do a basic setup of the UI
             // also send request for online match here
             client.sendRequest(INTENT.CREATEGAME, gameType);
-            centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, ProfilePicture.DEFAULT.urlString,isWhiteOriented);
-            centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, "Loading...", 0,isWhiteOriented);
+            centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, ProfilePicture.DEFAULT.urlString, isWhiteOriented);
+            centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, "Loading...", 0, isWhiteOriented);
 
 
         } else {
             // in this case all the info is here so we can do a full Ui setup
             // now set player icons
-            centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, blackPlayerPfpUrl,isWhiteOriented);
-            centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, blackPlayerName, blackElo,isWhiteOriented);
+            centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, blackPlayerPfpUrl, isWhiteOriented);
+            centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, blackPlayerName, blackElo, isWhiteOriented);
             if (maxIndex > -1) {
                 // this game has some moves we need to add to moves played
                 String[] pgns = gameToPgnArr();
@@ -607,10 +607,9 @@ public class ChessGame {
                         if (gameState.isCheckMated()[0]) {
                             int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                             centralControl.mainScreenController.setEvalBar(eval, -1, true);
-                        } else if(gameState.isStaleMated()){
+                        } else if (gameState.isStaleMated()) {
                             centralControl.mainScreenController.setEvalBar(0, -1, true);
-                        }
-                        else{
+                        } else {
                             centralControl.mainScreenController.hideGameOver();
                         }
                     });
@@ -618,10 +617,9 @@ public class ChessGame {
                     if (gameState.isCheckMated()[0]) {
                         int eval = gameState.isCheckMated()[1] ? 1000000 : -1000000;
                         centralControl.mainScreenController.setEvalBar(eval, -1, true);
-                    } else if(gameState.isStaleMated()){
+                    } else if (gameState.isStaleMated()) {
                         centralControl.mainScreenController.setEvalBar(0, -1, true);
-                    }
-                    else{
+                    } else {
                         centralControl.mainScreenController.hideGameOver();
                     }
                 }
@@ -641,6 +639,7 @@ public class ChessGame {
             }
 
             currentPosition = newPos;
+
         } else {
             // wait for transition
             ChessConstants.mainLogger.error("Dir zero or no transition, so did not move to new index");
@@ -876,9 +875,8 @@ public class ChessGame {
                     centralControl.chessActionHandler.incrementNumRedos();
                 }
             }
-        }
-        else{
-            if(curMoveIndex != maxIndex){
+        } else {
+            if (curMoveIndex != maxIndex) {
                 moveToEndOfGame(false);
             }
 
@@ -919,7 +917,7 @@ public class ChessGame {
                 }
             } else if (AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(), newPosition, gameState)) {
                 if (AdvancedChessFunctions.isCheckmated(!move.isWhite(), newPosition, gameState)) {
-                    gameState.setCheckMated(move.isWhite());
+                    gameState.setCheckMated(move.isWhite(),ChessConstants.EMPTYINDEX);
                     if (isMainGame) {
                         ChessConstants.mainLogger.debug("checkmate");
                         if (isWebMove) {
@@ -1055,7 +1053,7 @@ public class ChessGame {
         if (simplefiedPgn.length() == 2) {
             // simple pawn move
             if (pgn.contains("#")) {
-                gameState.setCheckMated(isWhiteMove);
+                gameState.setCheckMated(isWhiteMove,gameState.getCurrentIndex()+1);
             }
 
 
@@ -1081,7 +1079,7 @@ public class ChessGame {
                     // Indicates a check
                 } else if (c == '#') {
                     // Indicates a checkmate
-                    gameState.setCheckMated(isWhiteMove);
+                    gameState.setCheckMated(isWhiteMove,gameState.getCurrentIndex()+1);
                 } else if (Character.isDigit(c)) {
                     // If the character is a digit, it denotes the destination square
                     // Update x and y coordinates accordingly
@@ -1256,4 +1254,7 @@ public class ChessGame {
         return sb.toString();
     }
 
+    public String getCurrentFen() {
+        return PgnFunctions.positionToFEN(currentPosition, gameState, isWhiteTurn);
+    }
 }

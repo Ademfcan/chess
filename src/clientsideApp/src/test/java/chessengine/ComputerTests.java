@@ -3,7 +3,7 @@ package chessengine;
 import chessengine.ChessRepresentations.*;
 import chessengine.Computation.Computer;
 import chessengine.Computation.ComputerHelperFunctions;
-import chessengine.Computation.MinimaxEvalOutput;
+import chessengine.Computation.EvalOutput;
 import chessengine.Computation.Stockfish;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
@@ -46,7 +46,7 @@ public class ComputerTests {
         };
 
         Stockfish stockfish = new Stockfish();
-        Computer computer = new Computer(6); // Example depth for minimax evaluation
+        Computer computer = new Computer();
 
         if (stockfish.startEngine()) {
             for (String pgn : pgns) {
@@ -58,13 +58,13 @@ public class ComputerTests {
                 float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameState, 3, false).getAdvantage();
 
                 // Calculate evaluation with Stockfish
-                float stockfishEval = stockfish.getEvalScore(fen, 1000); // 1000 milliseconds time limit
+                double stockfishEval = stockfish.getEvalScore(fen, game.isWhiteTurn(),1000).getAdvantage(); // 1000 milliseconds time limit
 
                 // Compare evaluations within a percentage difference (10%)
-                float tolerance = 0.1f; // 10%
-                float difference = Math.abs(computerEval - stockfishEval);
-                float average = (computerEval + stockfishEval) / 2;
-                float percentageDifference = (difference / average) * 100;
+                double tolerance = 0.1d; // 10%
+                double difference = Math.abs(computerEval - stockfishEval);
+                double average = (computerEval + stockfishEval) / 2;
+                double percentageDifference = (difference / average) * 100;
 
                 System.out.println("PGN: " + pgn);
                 System.out.println("FEN: " + fen);
@@ -150,7 +150,7 @@ public class ComputerTests {
             return;
         }
         if(isWhiteTurn){
-            MinimaxEvalOutput maxEval = new MinimaxEvalOutput(Double.NEGATIVE_INFINITY);
+            EvalOutput maxEval = new EvalOutput(Double.NEGATIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(true,gameState,new HashMap<>());
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
@@ -162,7 +162,7 @@ public class ComputerTests {
             }
         }
         else{
-            MinimaxEvalOutput minEval = new MinimaxEvalOutput(Double.POSITIVE_INFINITY);
+            EvalOutput minEval = new EvalOutput(Double.POSITIVE_INFINITY);
             List<ChessMove> childMoves = position.getAllChildMoves(false,gameState,new HashMap<>());
 
             for(int i = 0;i<childMoves.size();i++){

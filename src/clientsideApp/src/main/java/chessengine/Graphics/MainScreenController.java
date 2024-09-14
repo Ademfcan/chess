@@ -224,11 +224,17 @@ public class MainScreenController implements Initializable {
     @FXML
     Label evalLabel;
     @FXML
-    public ComboBox<Integer> evalOptions;
+    public ComboBox<String> evalOptions;
+
+    @FXML
+    Label nMovesLabel;
+    @FXML
+    public ComboBox<String> nMovesOptions;
+
     @FXML
     Label computerLabel;
     @FXML
-    public ComboBox<Integer> computerOptions;
+    public ComboBox<String> computerOptions;
     @FXML
     Label pgnSaveLabel;
     @FXML
@@ -252,6 +258,13 @@ public class MainScreenController implements Initializable {
     Button playPauseButton;
     @FXML
     Label simulationScore;
+
+    @FXML
+    TextArea currentGamePgn;
+    @FXML
+    Label currentGamePgnLabel;
+
+
     String[] labelStorage = new String[]{"_", "_"};
     // change promotion peice colors if needed
     boolean lastPromoWhite = false;
@@ -273,7 +286,7 @@ public class MainScreenController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        currentGamePgn.setEditable(false);
 
         // some elements need mouse transparency because they are on top of control elements
         mainRef.setMouseTransparent(true);
@@ -317,7 +330,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, localInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
                 chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton, player1TurnIndicator,
-                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector);
+                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
             // makes sure its always at the end
@@ -347,7 +360,7 @@ public class MainScreenController implements Initializable {
         // called after app's classes are initialized
         setUpBindings();
         setEvalBar(0, -1, false);
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions, computerOptions, true);
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, true);
         ChessCentralControl.chessActionHandler.reset();
 
     }
@@ -536,6 +549,9 @@ public class MainScreenController implements Initializable {
     // for campaign only
 
     public void setUpBindings() {
+        App.bindingController.bindSmallText(currentGamePgnLabel,true);
+        currentGamePgn.prefWidthProperty().bind(settingsScreen.widthProperty());
+
         // moves played
         App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, movesPlayedBox, 50, .3);
 
@@ -548,7 +564,7 @@ public class MainScreenController implements Initializable {
         content.prefWidthProperty().bind(fullScreen.widthProperty());
         content.prefHeightProperty().bind(fullScreen.heightProperty());
 
-        chessBoardContainer.prefWidthProperty().bind(Bindings.min(chessBoardAndEvalContainer.widthProperty().subtract(evalBar.widthProperty()), fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2))));
+        chessBoardContainer.prefWidthProperty().bind(Bindings.min(fullScreen.widthProperty().subtract(evalBar.widthProperty()).subtract(sideAreaFull.widthProperty()).subtract(leftSideSpacer.widthProperty()), fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2))));
         chessBoardContainer.prefHeightProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
         chessPieceBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
@@ -595,6 +611,7 @@ public class MainScreenController implements Initializable {
 
         // all the different side panels
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, localInfo, 100, .8);
+        App.bindingController.bindSmallText(localInfo, true, "white");
 
         localInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
         App.bindingController.bindSmallText(inGameInfo, true, "black");
@@ -661,7 +678,8 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindXLargeText(victoryLabel, true, "White");
 
         // miscelaneus buttons
-        App.bindingController.bindSmallText(settingsButton, true);
+        App.bindingController.bindMediumText(settingsButton, true,"Black");
+        App.bindingController.bindMediumText(homeButton, true,"Black");
         App.bindingController.bindMediumText(LeftButton, true);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftButton, 110, .32);
         App.bindingController.bindMediumText(RightButton, true);
@@ -670,11 +688,13 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftReset, 140, .36);
         App.bindingController.bindMediumText(RightReset, true);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightReset, 140, .36);
-        App.bindingController.bindSmallText(homeButton, true);
         App.bindingController.bindSmallText(saveIndicator, true);
         App.bindingController.bindMediumText(reset, true);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, reset, 240, .45);
 //
+        App.bindingController.bindSmallText(evalLabel,true);
+        App.bindingController.bindSmallText(nMovesLabel,true);
+        App.bindingController.bindSmallText(computerLabel,true);
     }
 
     // label hide ellipsis hack
@@ -792,10 +812,6 @@ public class MainScreenController implements Initializable {
 
     public void setupWithGame(chessengine.ChessRepresentations.ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
         this.currentState = currentState;
-        if (currentState.equals(MainScreenState.VIEWER)) {
-            // in viewer mode, you will have a old game that you dont want to modify, however you still want to play around with a temporary copy
-            ChessCentralControl.gameHandler.switchToGame(gameToSetup.cloneGame(), isFirstLoad);
-        }
         ChessCentralControl.gameHandler.switchToGame(gameToSetup, isFirstLoad);
         String extraStuff = "";
         switch (currentState) {

@@ -1,12 +1,14 @@
 package chessengine.Async;
 
+import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Computation.Computer;
+import chessengine.Functions.PgnFunctions;
+import chessengine.Misc.ChessConstants;
 import chessengine.Misc.EloEstimator;
 import chessengine.Enums.MainScreenState;
-import chessengine.Computation.Stockfish;
 import chessserver.ComputerDifficulty;
 import chessserver.ProfilePicture;
 import javafx.application.Platform;
@@ -23,7 +25,6 @@ public class SimulationTask extends Task<Void> {
     private final Computer player1Computer;
     private final Computer player2Computer;
     private final ChessCentralControl control;
-    public final Stockfish stockfish;
     private final Random random;
     private final Logger logger;
     private final String[] top50Openings = {
@@ -92,17 +93,13 @@ public class SimulationTask extends Task<Void> {
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
-        this.player1Computer = new Computer(1);
-        this.player2Computer = new Computer(1);
-        this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MAXDIFFICULTY);
-        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.STOCKFISHLOL); // defaults
+        this.player1Computer = new Computer();
+        this.player2Computer = new Computer();
+        this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MaxDifficulty);
+        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.STOCKFISHMax); // defaults
+        this.player2Computer.setStockfishElo(testStockfishElo);
         this.control = control;
-        stockfish = new Stockfish();
-        if (stockfish.startEngine()) {
-            logger.debug("Started stockfish succesfully");
-        } else {
-            logger.error("Stockfish start failed");
-        }
+
         random = new Random();
 
     }
@@ -141,6 +138,9 @@ public class SimulationTask extends Task<Void> {
         if (player1Computer.isRunning()) {
             player1Computer.stop.set(true);
         }
+        if(App.stockfishForNmoves.isCalling()){
+            App.stockfishForNmoves.stop.set(true);
+        }
         isPlayer1WhitePlayer = true;
         isPlayer1Turn = true;
         currentSimGame = null;
@@ -152,6 +152,7 @@ public class SimulationTask extends Task<Void> {
     @Override
     public Void call() {
         while (running) {
+//            System.out.println("Sim");
             if (evaluating) {
                 stop = false;
                 makeNewMove();
@@ -236,7 +237,7 @@ public class SimulationTask extends Task<Void> {
                 isPlayer1WhitePlayer = !isPlayer1WhitePlayer;
                 isPlayer1Turn = isPlayer1WhitePlayer;
                 int totalCount = numDraws + numComputerWins + numStockFishWins;
-                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins /totalCount, (double) numDraws /totalCount,3200);
+                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins /totalCount, (double) numDraws /totalCount,player2Computer.currentDifficulty.eloRange);
                 if(estimatedElo < 0){
                     // no wins so formula breaks :(
                     estimatedElo = -1;
@@ -250,30 +251,48 @@ public class SimulationTask extends Task<Void> {
                 // else just change turn as normall
                 boolean isWhiteTurn = isPlayer1Turn == isPlayer1WhitePlayer;
                 if (isPlayer1Turn) {
-                    logger.error("Player 1 turn");
-                    ChessMove move = player1Computer.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState,this.stockfish);
-                    if(stop){
-                        return;
+                    logger.debug("Player 1 turn");
+                    if(player1Computer.currentDifficulty.isStockfishBased){
+                        String moveUci = App.stockfishForNmoves.getBestMove(currentSimGame.getCurrentFen(), player1Computer.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
+                        ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentSimGame.isWhiteTurn(),currentSimGame.currentPosition.board);
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move,true,false);
+                        });
                     }
-                    if(move == null){
-                        // stopped
-                        logger.error("Stopped sim comp output");
-                        return;
+                    else{
+                        ChessMove move = player1Computer.getComputerMoveWithFlavors(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState).getMove();
+                        if(stop){
+                            return;
+                        }
+                        if(move == null){
+                            // stopped
+                            logger.error("Stopped sim comp output");
+                            return;
+                        }
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move, true, false);
+                        });
                     }
-                    Platform.runLater(()->{
-                        currentSimGame.makeNewMove(move, true, false);
-                    });
                 } else {
-                    logger.error("Player 2 turn");
-                    ChessMove move = player2Computer.getComputerMove(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState,this.stockfish);
-                    if(move == null){
-                        // stopped
-                        logger.error("Stopped sim comp output");
-                        return;
+                    logger.debug("Player 2 turn");
+                    if(player2Computer.currentDifficulty.isStockfishBased){
+                        String moveUci = App.stockfishForNmoves.getBestMove(currentSimGame.getCurrentFen(), player2Computer.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
+                        ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentSimGame.isWhiteTurn(),currentSimGame.currentPosition.board);
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move,true,false);
+                        });
                     }
-                    Platform.runLater(()->{
-                        currentSimGame.makeNewMove(move, true, false);
-                    });
+                    else{
+                        ChessMove move = player2Computer.getComputerMoveWithFlavors(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState).getMove();
+                        if(move == null){
+                            // stopped
+                            logger.error("Stopped sim comp output");
+                            return;
+                        }
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move, true, false);
+                        });
+                    }
 
                 }
                 isPlayer1Turn = !isPlayer1Turn;
@@ -286,8 +305,8 @@ public class SimulationTask extends Task<Void> {
 
 
     public void endThread() {
-        stockfish.stopEngine();
         running = false;
+        stopAndReset();
     }
 
 

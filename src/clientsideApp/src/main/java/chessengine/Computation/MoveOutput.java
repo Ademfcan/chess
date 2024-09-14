@@ -2,12 +2,12 @@ package chessengine.Computation;
 
 import chessengine.ChessRepresentations.ChessMove;
 
-public class MinimaxMoveResult {
+public class MoveOutput {
     private final ChessMove move;
     private final double advantage;
-    private final double depth;
+    private final int depth;
 
-    public MinimaxMoveResult(ChessMove move, double advantage, double depth) {
+    public MoveOutput(ChessMove move, double advantage, int depth) {
         this.move = move;
         this.advantage = advantage;
         this.depth = depth;
@@ -21,7 +21,7 @@ public class MinimaxMoveResult {
         return advantage;
     }
 
-    public double getDepth() {
+    public int getDepth() {
         return depth;
     }
 }

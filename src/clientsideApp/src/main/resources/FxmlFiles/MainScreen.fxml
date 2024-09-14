@@ -372,8 +372,14 @@
                                     </HBox>
                                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                                        <children>
-                                          <Label fx:id="evalLabel" text="Evaluation Depth" />
+                                          <Label fx:id="evalLabel" text="Eval Bar Generator:" />
                                           <ComboBox fx:id="evalOptions" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                       <children>
+                                          <Label fx:id="nMovesLabel" text="Best Move Generator:" />
+                                          <ComboBox fx:id="nMovesOptions" prefWidth="150.0" />
                                        </children>
                                     </HBox>
                                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
@@ -382,6 +388,12 @@
                                           <ComboBox fx:id="computerOptions" prefWidth="150.0" />
                                        </children>
                                     </HBox>
+                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                       <children>
+                                          <Label fx:id="currentGamePgnLabel" text="PGN:" />
+                                          <TextArea fx:id="currentGamePgn" prefHeight="200.0" prefWidth="200.0" />
+                                       </children>
+                                    </VBox>
                                     <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
                                        <children>
                                           <Label fx:id="pgnSaveLabel" text="Save current pgn" />
@@ -398,7 +410,7 @@
       </HBox>
             <VBox fx:id="leftSideSpacer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1">
                <children>
-                  <VBox fx:id="topControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                  <VBox fx:id="topControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
                      <children>
                         <Button fx:id="settingsButton" mnemonicParsing="false" text="⚙">
                            <font>

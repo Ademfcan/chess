@@ -107,13 +107,13 @@ public class WebSocketClient {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error on websocket recieve message",e);
+            logger.error("Error on websocket recieve message", e);
         }
     }
 
     @OnError
     public void onError(Throwable t) {
-        logger.error("Webclient error occurred",t);
+        logger.error("Webclient error occurred", t);
     }
 
     @OnClose
@@ -127,7 +127,7 @@ public class WebSocketClient {
             String message = objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
             session.getBasicRemote().sendText(message);
         } catch (Exception e) {
-            logger.error("Error on sending request",e);
+            logger.error("Error on sending request", e);
         }
     }
 

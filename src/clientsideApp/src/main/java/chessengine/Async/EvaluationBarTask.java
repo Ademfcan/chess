@@ -1,94 +1,100 @@
 package chessengine.Async;
 
+import chessengine.App;
+import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
-import chessengine.Computation.MinimaxEvalOutput;
-import chessengine.Graphics.MainScreenController;
+import chessengine.Computation.EvalOutput;
+import chessengine.Misc.ChessConstants;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Queue;
+import java.util.concurrent.*;
 
 public class EvaluationBarTask extends Task<Void> {
+
+    private final Logger logger = LogManager.getLogger(this.toString());
+    private volatile boolean evalRequest = false;
+    private volatile boolean endEval = false;
+
     private final Computer c;
-    private final MainScreenController controller;
-    private final ExecutorService executor;
-    public volatile ChessPosition currentPosition;
-    public volatile ChessStates currentGameState;
-    public volatile boolean currentIsWhite;
-    private boolean running = true;
-    private volatile boolean evaluationRequest = false;
-    private int maxD;
-    private boolean isCurrentlyEvaluating = false;
+    private final ChessCentralControl myControl;
 
-    private static final Logger logger = LogManager.getLogger("Eval_Task");
-
-    public EvaluationBarTask(Computer c, MainScreenController controller, int maxDepth) {
+    private volatile boolean running = true;
+    public EvaluationBarTask(Computer c, ChessCentralControl myControl) {
         this.c = c;
-        this.controller = controller;
-        this.maxD = maxDepth;
-        executor = Executors.newFixedThreadPool(4);
-    }
-
-    public void setDepth(int maxD) {
-        this.maxD = maxD;
-        c.setEvalDepth(maxD);
-    }
-
-    public void evalRequest() {
-        // stop old minimax
-        if (!isCurrentlyEvaluating) {
-            evaluationRequest = true;
-        } else {
-            stop();
-            evaluationRequest = true;
-
-        }
+        this.myControl = myControl;
 
     }
+
+    private final int iterCount = 6;
+
+    private int lastIndex = ChessConstants.EMPTYINDEX;
+
+    public void evalRequest(){
+        stop();
+        evalRequest = true;
+    }
+
 
     public void stop() {
-        if (c.isRunning()) {
+        if(c.isRunning()){
             c.stop.set(true);
         }
+        if(App.stockfishForNmoves.isCalling()){
+            App.stockfishForNmoves.stop.set(true);
+        }
 
+        endEval = true;
     }
 
     @Override
     public Void call() {
-        while (running && !executor.isShutdown()) {
-            try {
-                if (evaluationRequest) {
-                    evaluationRequest = false;
-                    isCurrentlyEvaluating = true;
-
-                    for (int i = Math.max(maxD-3,1); i < maxD; i++) {
-                        EvaluationBarCallable evalCallable = new EvaluationBarCallable(c, currentPosition, currentGameState, i, currentIsWhite);
-                        Future<MinimaxEvalOutput> evalOut = executor.submit(evalCallable);
-                        MinimaxEvalOutput evaluationOutput = evalOut.get(); // blocking call, consider timeout
-                        // Update UI elements on the JavaFX Application Thread
-                        if (evaluationOutput != Computer.Stopped) {
-                            // output might have been stopped and output will be useless
-                            Platform.runLater(() -> {
-                                controller.setEvalBar(evaluationOutput.getAdvantage(), evaluationOutput.getOutputDepth(), false);
-                            });
+        while (running) {
+            if(evalRequest){
+                evalRequest = false;
+                endEval = false;
+                c.clearFlags();
+                if(App.userPreferenceManager.getEvalStockfishBased()){
+                    for(int i = 1;i<=iterCount;i++){
+                        if(endEval || myControl.gameHandler.currentGame == null){
+                            break;
                         }
-
+                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
+                        EvalOutput output = App.stockfishForNmoves.getEvalScore(myControl.gameHandler.currentGame.getCurrentFen(),myControl.gameHandler.currentGame.isWhiteTurn(),(ChessConstants.DefaultWaitTime/iterCount)*i);
+                        if(lastIndex == myControl.gameHandler.currentGame.curMoveIndex && output != null && !App.isStartScreen && !endEval) {
+                            Platform.runLater(()-> myControl.mainScreenController.setEvalBar(output.getAdvantage(),output.getOutputDepth(),false));
+                        }
                     }
-                    isCurrentlyEvaluating = false;
-
-
+                }
+                else{
+                    for(int i = ChessConstants.evalDepth-iterCount+1;i<=ChessConstants.evalDepth;i++){
+                        if(endEval || myControl.gameHandler.currentGame == null){
+                            break;
+                        }
+                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
+                        EvalOutput output = c.getFullEvalMinimax(myControl.gameHandler.currentGame.currentPosition,myControl.gameHandler.currentGame.gameState,i,myControl.gameHandler.currentGame.isWhiteTurn());
+                        if(lastIndex == myControl.gameHandler.currentGame.curMoveIndex && output != Computer.Stopped && !App.isStartScreen && !endEval) {
+                            Platform.runLater(()-> myControl.mainScreenController.setEvalBar(output.getAdvantage(),output.getOutputDepth(),false));
+                        }
+                    }
                 }
 
 
-                Thread.sleep(50);
-            } catch (Exception e) {
-                logger.error("Error on eval call",e);
+
+            }
+            try {
+                Thread.sleep(100);
+
+            }
+            catch (Exception e){
+                logger.error("Error best eval task sleep:",e);
             }
         }
         logger.debug("Eval callable ending");
@@ -99,7 +105,7 @@ public class EvaluationBarTask extends Task<Void> {
 
     public void endThread() {
         running = false;
-        executor.shutdown();
+        stop();
     }
 
 

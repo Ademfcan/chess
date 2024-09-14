@@ -230,8 +230,13 @@ public class ChessStates {
         return new boolean[]{this.isCheckMated, this.isWhiteWin};
     }
 
-    public void setCheckMated(boolean isWhiteWin) {
-        this.checkMateIndex = currentIndex;
+    public void setCheckMated(boolean isWhiteWin,int customIndex) {
+        if(customIndex != ChessConstants.EMPTYINDEX){
+            this.checkMateIndex = customIndex;
+        }
+        else{
+            this.checkMateIndex = currentIndex;
+        }
         this.isWhiteWin = isWhiteWin;
         isCheckMated = true;
     }

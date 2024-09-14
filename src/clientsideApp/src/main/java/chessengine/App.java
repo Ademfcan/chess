@@ -3,6 +3,7 @@ package chessengine;
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Computation.Stockfish;
 import chessengine.Enums.MainScreenState;
 import chessengine.Graphics.BindingController;
 import chessengine.Graphics.GlobalMessager;
@@ -117,8 +118,8 @@ public class App extends Application {
         if (ChessCentralControl.isInit()) {
             ChessCentralControl centralControl = mainScreenController.getChessCentralControl();
             // nmoves and eval use same depth for now
-            centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
-            centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
+//            centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
+//            centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
             centralControl.asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
             boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
             centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
@@ -213,8 +214,25 @@ public class App extends Application {
         return "Hello World!";
     }
 
+    public static Stockfish stockfishForEval;
+    public static Stockfish stockfishForNmoves;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+        stockfishForEval = new Stockfish();
+        if (stockfishForEval.startEngine()) {
+            appLogger.debug("Started stockfish for eval succesfully");
+        } else {
+            appLogger.error("Stockfish for eval start failed");
+        }
+
+        stockfishForNmoves = new Stockfish();
+        if (stockfishForNmoves.startEngine()) {
+            appLogger.debug("Started stockfish for nmoves succesfully");
+        } else {
+            appLogger.error("Stockfish for nmoves start failed");
+        }
+
         dpi = Screen.getPrimary().getDpi();
         dpiScaleFactor = dpi / referenceDpi;
         userManager = new ClientManager();
@@ -289,6 +307,7 @@ public class App extends Application {
 
     @Override
     public void stop() {
+        stockfishForEval.stopEngine();
         mainScreenController.endAsync();
         if (ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)) {
             if (ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {

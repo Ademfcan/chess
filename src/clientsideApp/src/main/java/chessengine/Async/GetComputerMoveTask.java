@@ -1,25 +1,21 @@
 package chessengine.Async;
 
+import chessengine.App;
+import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.Computer;
 import chessengine.Functions.PgnFunctions;
-import chessengine.Graphics.MainScreenController;
 import chessengine.Misc.ChessConstants;
-import chessserver.ComputerDifficulty;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class GetComputerMoveTask extends Task<Void> {
-    private final MainScreenController controller;
+    private final ChessCentralControl control;
     private final Computer c;
-    private final ExecutorService executor;
     private final Logger logger;
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
@@ -28,19 +24,16 @@ public class GetComputerMoveTask extends Task<Void> {
     private volatile boolean evaluationRequest = false;
     private boolean isCurrentlyEvaluating = false;
 
-    private SimulationTask simTaskForStockfish;
 
 
-    public GetComputerMoveTask(Computer c, MainScreenController controller, SimulationTask simtaskForStockfish) {
+    public GetComputerMoveTask(Computer c, ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
         this.c = c;
-        this.executor = Executors.newFixedThreadPool(6);
-        this.controller = controller;
-        this.simTaskForStockfish = simtaskForStockfish;
+        this.control = control;
 
     }
 
-    public void evalRequest() {
+    public void evaluationRequest() {
         logger.info("Called Evaluation Request");
         if (isCurrentlyEvaluating) {
             stop();
@@ -59,17 +52,17 @@ public class GetComputerMoveTask extends Task<Void> {
     @Override
     public Void call() {
         while (running) {
+//            System.out.println("comp move");
             try {
                 if (evaluationRequest) {
+                    c.clearFlags();
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
-                    Thread.sleep(800);
                     makeComputerMove();
                     isCurrentlyEvaluating = false;
 
                 }
-
-                Thread.sleep(100);
+                Thread.sleep(50);
             } catch (Exception e) {
                 logger.error("Error on get comp move task",e);
             }
@@ -81,15 +74,22 @@ public class GetComputerMoveTask extends Task<Void> {
 
     private void makeComputerMove() {
         logger.info("Starting a best move evaluation");
-        // handle stockfish
-
-            // if not random move then now we need to customize how we get the move
-        ChessMove bestMove = c.getComputerMove(currentIsWhite, currentPosition, currentGameState,simTaskForStockfish.stockfish);
-        if (bestMove != ChessConstants.emptyOutput.move) {
+        if(c.currentDifficulty.isStockfishBased){
+            logger.debug("Getting stockfish move");
+            String moveUci = App.stockfishForNmoves.getBestMove(PgnFunctions.positionToFEN(currentPosition,currentGameState,currentIsWhite), c.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
             Platform.runLater(()->{
-                controller.makeComputerMove(bestMove);
-
+                control.mainScreenController.makeComputerMove(PgnFunctions.uciToChessMove(moveUci, currentIsWhite, currentPosition.board));
             });
+
+        }
+        else{
+            ChessMove bestMove =  c.getComputerMoveWithFlavors(currentIsWhite, currentPosition, currentGameState).getMove();
+            if (bestMove != null) {
+                Platform.runLater(()->{
+                    control.mainScreenController.makeComputerMove(bestMove);
+                });
+            }
+
         }
 
 
@@ -99,7 +99,6 @@ public class GetComputerMoveTask extends Task<Void> {
 
     public void endThread() {
         running = false;
-        executor.shutdown();
     }
 
 

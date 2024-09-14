@@ -9,8 +9,8 @@ public class UserPreferences {
 
     private boolean isEffectSounds;
     private double effectVolume;
-
-    private int evalDepth;
+    private boolean isEvalStockfishBased;
+    private boolean isNMovesStockfishBased;
 
     private ComputerDifficulty computerMoveDiff;
 
@@ -21,13 +21,14 @@ public class UserPreferences {
 
 
     public UserPreferences(boolean isBackgroundmusic, double backgroundVolume, boolean isEffectSounds, double effectVolume,
-                           int evalDepth, ComputerDifficulty computerDiff, GlobalTheme globalTheme,
+                           boolean isEvalStockfishBased, boolean isNMovesStockfishBased, ComputerDifficulty computerDiff, GlobalTheme globalTheme,
                            ChessboardTheme chessboardTheme, ChessPieceTheme pieceTheme) {
         this.isBackgroundmusic = isBackgroundmusic;
         this.backgroundVolume = backgroundVolume;
         this.isEffectSounds = isEffectSounds;
         this.effectVolume = effectVolume;
-        this.evalDepth = evalDepth;
+        this.isEvalStockfishBased = isEvalStockfishBased;
+        this.isNMovesStockfishBased = isNMovesStockfishBased;
         this.computerMoveDiff = computerDiff;
         this.globalTheme = globalTheme;
         this.chessboardTheme = chessboardTheme;
@@ -95,12 +96,20 @@ public class UserPreferences {
         this.pieceTheme = pieceTheme;
     }
 
-    public int getEvalDepth() {
-        return evalDepth;
+    public boolean getNMovesStockfishBased() {
+        return isNMovesStockfishBased;
     }
 
-    public void setEvalDepth(int evalDepth) {
-        this.evalDepth = evalDepth;
+    public void setNMovesStockfishBased(boolean isNMovesStockfishBased) {
+        this.isNMovesStockfishBased = isNMovesStockfishBased;
+    }
+
+    public boolean getEvalStockfishBased() {
+        return isEvalStockfishBased;
+    }
+
+    public void setEvalStockfishBased(boolean isEvalStockfishBased) {
+        this.isEvalStockfishBased = isEvalStockfishBased;
     }
 
     public ComputerDifficulty getComputerMoveDiff() {

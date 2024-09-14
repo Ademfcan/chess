@@ -31,11 +31,36 @@ public class StartScreenController implements Initializable {
     private final Image playerIcon = new Image("/StartScreenIcons/player.png");
     public CampaignManager campaignManager;
     @FXML
-    StackPane fullscreen;
-    @FXML
     public GridPane content;
     @FXML
     public Pane startRef;
+    @FXML
+    public Button backgroundAudioButton;
+    @FXML
+    public Label poolCount;
+    @FXML
+    public ChoiceBox<String> themeSelection;
+    @FXML
+    public ComboBox<String> bgColorSelector;
+    @FXML
+    public ComboBox<String> pieceSelector;
+    @FXML
+    public Button audioMuteBGButton;
+    @FXML
+    public Slider audioSliderBG;
+    @FXML
+    public Button audioMuteEffButton;
+    // user settings
+    @FXML
+    public Slider audioSliderEff;
+    @FXML
+    public ComboBox<String> evalOptions;
+    @FXML
+    public ComboBox<String> nMovesOptions;
+    @FXML
+    public ComboBox<String> computerOptions;
+    @FXML
+    StackPane fullscreen;
     @FXML
     HBox profileBox;
     @FXML
@@ -63,7 +88,6 @@ public class StartScreenController implements Initializable {
     HBox generalSettingsScreen;
     @FXML
     HBox extraModesScreen;
-
     @FXML
     Button enterSandboxButton;
     @FXML
@@ -75,8 +99,6 @@ public class StartScreenController implements Initializable {
     StackPane levelContainer;
     @FXML
     Pane levelContainerPath;
-
-
     // pgn screen
     @FXML
     Pane levelContainerElements;
@@ -123,18 +145,11 @@ public class StartScreenController implements Initializable {
     Button settingsButton;
     @FXML
     Button extraModesButton;
-
-
-
-    @FXML
-    public Button backgroundAudioButton;
     // multiplayer options
     @FXML
     ComboBox<String> gameTypes;
     @FXML
     Button multiplayerStart;
-    @FXML
-    public Label poolCount;
     @FXML
     Button reconnectButton;
     // general settings
@@ -145,42 +160,23 @@ public class StartScreenController implements Initializable {
     @FXML
     Label themeLabel;
     @FXML
-    public ChoiceBox<String> themeSelection;
-    @FXML
     Label bgLabel;
-    @FXML
-    public ComboBox<String> bgColorSelector;
     @FXML
     Label pieceLabel;
     @FXML
-    public ComboBox<String> pieceSelector;
-    @FXML
     Label audioMuteBG;
-    @FXML
-    public Button audioMuteBGButton;
     @FXML
     Label audioLabelBG;
     @FXML
-    public Slider audioSliderBG;
-    @FXML
     Label audioMuteEff;
     @FXML
-    public Button audioMuteEffButton;
-    @FXML
     Label audioLabelEff;
-
-
-    // user settings
-    @FXML
-    public Slider audioSliderEff;
     @FXML
     Label evalLabel;
     @FXML
-    public ComboBox<Integer> evalOptions;
+    Label nMovesLabel;
     @FXML
     Label computerLabel;
-    @FXML
-    public ComboBox<Integer> computerOptions;
     // login page
     @FXML
     Label loginTitle;
@@ -201,15 +197,48 @@ public class StartScreenController implements Initializable {
     Label eloProfileLabel;
     @FXML
     Button saveUserOptions;
+
+    @FXML
+    HBox settingSpacer;
+
+    @FXML
+    HBox s1;
+
+    @FXML
+    HBox s2;
+
+    @FXML
+    HBox s3;
+
+    @FXML
+    HBox s4;
+
+    @FXML
+    VBox s5;
+
+    @FXML
+    HBox s6;
+
+    @FXML
+    VBox s7;
+
+    @FXML
+    HBox s8;
+
+    @FXML
+    HBox s9;
+
+    @FXML
+    HBox s10;
     List<ChessGame> oldGames;
     boolean isRed = false;
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
 
 
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
         startRef.setMouseTransparent(true);
         oldGamesPanelContent.setStyle("-fx-background-color: lightgray");
 
@@ -270,11 +299,11 @@ public class StartScreenController implements Initializable {
         playAsWhite.setText("Play as White");
         App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
         vsPlayer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Local Game", false, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
+            App.changeToMainScreenWithoutAny("Local Game", false, playAsWhite.isSelected(), MainScreenState.LOCAL, playAsWhite.isSelected());
 
         });
         vsComputer.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Local Game", true, playAsWhite.isSelected(), MainScreenState.LOCAL,playAsWhite.isSelected());
+            App.changeToMainScreenWithoutAny("Local Game", true, playAsWhite.isSelected(), MainScreenState.LOCAL, playAsWhite.isSelected());
         });
         playAsWhite.setOnAction(e -> {
             // Get the node's local bounds
@@ -327,9 +356,6 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindSmallText(settingsButton, false);
 
 
-
-
-
         backgroundAudioButton.setOnMouseClicked(e -> {
             boolean isCurPaused = App.soundPlayer.getPaused();
             if (isCurPaused) {
@@ -373,7 +399,7 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpGeneralSettings() {
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, audioMuteBGButton, audioSliderBG, audioMuteEffButton, audioSliderEff, evalOptions, computerOptions, false);
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, audioMuteBGButton, audioSliderBG, audioMuteEffButton, audioSliderEff, evalOptions, nMovesOptions, computerOptions, false);
         App.bindingController.bindSmallText(themeLabel, false);
         App.bindingController.bindSmallText(bgLabel, false);
         App.bindingController.bindSmallText(pieceLabel, false);
@@ -382,7 +408,8 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindSmallText(audioLabelEff, false);
         App.bindingController.bindSmallText(audioMuteEff, false);
         App.bindingController.bindSmallText(evalLabel, false);
-        App.bindingController.bindSmallText(computerOptions, false);
+        App.bindingController.bindSmallText(nMovesLabel, false);
+        App.bindingController.bindSmallText(computerLabel, false);
 
 
         // container bindings
@@ -391,6 +418,18 @@ public class StartScreenController implements Initializable {
 
         generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
 
+        settingSpacer.prefHeightProperty().bind(fullscreen.heightProperty().multiply(.25));
+
+        s1.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s2.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s3.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s4.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s5.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s6.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s7.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s8.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s9.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
+        s10.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
 
         // binding selectors and buttons
 
@@ -496,7 +535,7 @@ public class StartScreenController implements Initializable {
 
     private void setupSandboxOptions() {
         enterSandboxButton.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Sandbox Game", false, true, MainScreenState.SANDBOX,true);
+            App.changeToMainScreenWithoutAny("Sandbox Game", false, true, MainScreenState.SANDBOX, true);
         });
     }
 
@@ -508,11 +547,14 @@ public class StartScreenController implements Initializable {
 
     private void setupSimulationOptions() {
         enterSimulationButton.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithoutAny("Simulation Game", true, true, MainScreenState.SIMULATION,true);
+            App.changeToMainScreenWithoutAny("Simulation Game", true, true, MainScreenState.SIMULATION, true);
         });
     }
 
     private void setUpBindings() {
+
+
+
         // top left profile info
         App.bindingController.bindSmallText(nameProfileLabel, false);
         App.bindingController.bindSmallText(eloProfileLabel, false);
@@ -574,7 +616,6 @@ public class StartScreenController implements Initializable {
 
         extraModesScreen.setVisible(false);
         extraModesScreen.setMouseTransparent(true);
-
 
 
 //        profileButton.setStyle("");
@@ -666,7 +707,7 @@ public class StartScreenController implements Initializable {
 
         Button openGame = new Button();
         openGame.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithGame(newGame, MainScreenState.VIEWER, false);
+            App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER, false);
 
         });
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer, openGame, 30, .3);

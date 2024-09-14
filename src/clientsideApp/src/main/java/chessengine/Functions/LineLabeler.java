@@ -43,11 +43,19 @@ public class LineLabeler {
 
 
     public static String getLineName(String lineAsPgn){
+        boolean foundMatch = false;
+        String bestMatch = "";
         for(String key : lineToName.keySet()){
             if(key.contains(lineAsPgn)){
-                return lineToName.get(key);
+                if(!foundMatch){
+                    foundMatch = true;
+                    bestMatch = lineToName.get(key);
+                }
+                else{
+                    return "";
+                }
             }
         }
-        return "";
+        return bestMatch;
     }
 }

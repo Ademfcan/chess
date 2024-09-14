@@ -1,18 +1,23 @@
 package chessengine.Computation;
 
-public class MinimaxEvalOutput {
+public class EvalOutput {
 
 
     private final double advantage;
 
     private int outputDepth;
 
-    public MinimaxEvalOutput(double advantage) {
+    public EvalOutput(double advantage) {
         this.advantage = advantage;
         this.outputDepth = 1;
     }
 
-    public MinimaxEvalOutput incrementAndReturn() {
+    public EvalOutput(double advantage,int outputDepth) {
+        this.advantage = advantage;
+        this.outputDepth = outputDepth;
+    }
+
+    public EvalOutput incrementAndReturn() {
         this.outputDepth++;
         return this;
     }

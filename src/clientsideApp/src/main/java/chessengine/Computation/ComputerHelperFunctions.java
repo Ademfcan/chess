@@ -111,8 +111,9 @@ public class ComputerHelperFunctions {
         for (int i = 0; i < whiteP.length - 1; i++) {
             List<XYcoord> coordsW = getPieceCoords(whiteP[i]);
             for (XYcoord s : coordsW) {
-
-                sum1 += ChessConstants.valueMap[i] + currentMap[i][s.x][s.y];
+                int Normx = s.x;
+                int Normy = 7 - s.y;
+                sum1 += ChessConstants.valueMap[i] + currentMap[i][Normx][Normy];
                 if (i == 0) {
                     float extraPawnPushValue = (float) (16 - whitePieceCount) / 16;
                     sum1 += extraPawnPushValue;
@@ -135,9 +136,8 @@ public class ComputerHelperFunctions {
                 }
                 // reverse coordinates to match white peices
 
-                int Normx = s.x;
-                int Normy = 7 - s.y;
-                sum2 += ChessConstants.valueMap[i] + currentMap[i][Normx][Normy];
+
+                sum2 += ChessConstants.valueMap[i] + currentMap[i][s.x][s.y];
                 if (i > 1) {
                     if (i == 4) {
                         sum2 += addOpenFileValue(s.x, s.y, 3, pos.board);
@@ -206,12 +206,20 @@ public class ComputerHelperFunctions {
     /** 0,1 returned wether a move extension is needed to search deeper **/
     public static int calculateMoveExtension(ChessPosition pos,boolean isWhiteTurn,boolean isChecked){
         // todo
+        ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
         if(isChecked){
 //            System.out.println("Extending check");
             return 1;
         }
-        if(pos.getMoveThatCreatedThis().isShouldRequireExtension()){
+        if(moveThatCreated.isShouldRequireExtension()){
 //            System.out.println("Extending eating");
+            return 1;
+        }
+        double minAttacker = AdvancedChessFunctions.getMinAttacker(moveThatCreated.getNewX(),moveThatCreated.getNewY(),moveThatCreated.isWhite(),pos.board);
+        if(minAttacker != ChessConstants.EMPTYINDEX && minAttacker < ChessConstants.valueMap[moveThatCreated.getBoardIndex()]){
+            return 1;
+        }
+        if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX && AdvancedChessFunctions.isPromoPossible(moveThatCreated.getNewX(),moveThatCreated.getNewY(),moveThatCreated.isWhite(),pos.board)){
             return 1;
         }
         return 0;

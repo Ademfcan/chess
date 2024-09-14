@@ -2,6 +2,7 @@ package chessengine;
 
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,18 @@ public class AdvancedChessFunctionsTests {
         boolean isCheckmated5 = AdvancedChessFunctions.isCheckmated(AnastasiasMate.getPos(AnastasiasMate.maxIndex), AnastasiasMate.gameState);
         Assertions.assertTrue(isCheckmated5);
         System.out.println("pgnout" + AnastasiasMate.gameToPgn());
+
+    }
+
+    @Test void getMinMaxAttackerTest(){
+        ChessGame game = ChessGame.createTestGame("1.e4 f6 2.Nf3 Nh6 3.Nd4 Ng4 4.Qf3 d5 5.c3 Qd6",false);
+        game.moveToEndOfGame(false);
+        Assertions.assertEquals(ChessConstants.valueMap[ChessConstants.QUEENINDEX],AdvancedChessFunctions.getMaxAttacker(4,3,true,game.currentPosition.board));
+        Assertions.assertEquals(ChessConstants.valueMap[ChessConstants.PAWNINDEX],AdvancedChessFunctions.getMinAttacker(4,3,true,game.currentPosition.board));
+
+    }
+
+    @Test void pawnPromotionCheck(){
 
     }
 

@@ -207,13 +207,14 @@
                                              <children>
                                                 <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
                                                    <children>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <HBox fx:id="settingSpacer" alignment="CENTER" layoutX="72.0" layoutY="-142.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" />
+                                                      <HBox fx:id="s1" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="themeLabel" text="Theme: " />
                                                             <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <HBox fx:id="s2" alignment="CENTER" layoutX="72.0" layoutY="-73.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
                                                                <font>
@@ -223,43 +224,49 @@
                                                             <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <HBox fx:id="s3" alignment="CENTER" layoutX="72.0" layoutY="1036.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="pieceLabel" text="Piece Type: " />
                                                             <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <HBox fx:id="s4" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="audioMuteBG" text="BG Audo:" />
                                                             <Button fx:id="audioMuteBGButton" mnemonicParsing="false" text="Button" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <VBox fx:id="s5" alignment="CENTER" layoutX="122.0" layoutY="833.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
                                                          <children>
                                                             <Label fx:id="audioLabelBG" text="Bg Volume" />
                                                             <Slider fx:id="audioSliderBG" value="100.0" />
                                                          </children>
-                                                      </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      </VBox>
+                                                      <HBox fx:id="s6" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="audioMuteEff" text="Effect Volume" />
                                                             <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <VBox fx:id="s7" alignment="CENTER" layoutX="122.0" layoutY="869.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
                                                          <children>
                                                             <Label fx:id="audioLabelEff" text="Effect Volume" />
                                                             <Slider fx:id="audioSliderEff" value="100.0" />
                                                          </children>
-                                                      </HBox>
-                                                      <HBox alignment="CENTER" layoutX="10.0" layoutY="202.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      </VBox>
+                                                      <HBox fx:id="s8" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
-                                                            <Label fx:id="evalLabel" text="Evaluation Depth" />
+                                                            <Label fx:id="evalLabel" text="Eval Bar Generator:" />
                                                             <ComboBox fx:id="evalOptions" prefWidth="150.0" />
                                                          </children>
                                                       </HBox>
-                                                      <HBox alignment="CENTER" layoutX="10.0" layoutY="222.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                                      <HBox fx:id="s9" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
+                                                         <children>
+                                                            <Label fx:id="nMovesLabel" text="Best Move Generator:" />
+                                                            <ComboBox fx:id="nMovesOptions" prefWidth="150.0" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox fx:id="s10" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
                                                          <children>
                                                             <Label fx:id="computerLabel" text="Computer Depth" />
                                                             <ComboBox fx:id="computerOptions" prefWidth="150.0" />

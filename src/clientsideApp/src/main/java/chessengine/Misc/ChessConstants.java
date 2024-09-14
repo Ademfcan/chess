@@ -23,7 +23,6 @@ public class ChessConstants {
     public static final XYcoord blackKingStart = new XYcoord(4, 0);
     public static final Logger mainLogger = LogManager.getLogger("Central Logger");
     public static final Random generalRandom = new Random(1226891211);
-    public static final Computer generalComp = new Computer(10);
     public static final int EMPTYINDEX = -10;
     public static final ChessMove startMove = new ChessMove(-10, -10, -10, -10, ChessConstants.EMPTYINDEX, ChessConstants.EMPTYINDEX, false, false, false, ChessConstants.EMPTYINDEX, false, false);
     public static final int KINGINDEX = 5;
@@ -39,7 +38,7 @@ public class ChessConstants {
     public static final int BLACKCHECKMATEVALUE = -1000000;
     public static final String NOEMAIL = "no-email";
     public static final String NOPASS = "no-password";
-    public static final UserPreferences defaultPreferences = new UserPreferences(true, .75, true, .75, 5, ComputerDifficulty.MAXDIFFICULTY, GlobalTheme.Light, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
+    public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false,false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
     public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0, "anonymous", NOEMAIL, NOPASS, ProfilePicture.DEFAULT, new CampaignProgress(123)));
     // only used for simple evals, no minimax so depth dosent matter
     public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10, -10, -10, -10, ChessConstants.EMPTYINDEX, ChessConstants.EMPTYINDEX, false, false, false, ChessConstants.EMPTYINDEX, false, false), 0);
@@ -54,6 +53,7 @@ public class ChessConstants {
     public static final Background blackTurnActive = new Background(new BackgroundFill(Paint.valueOf("rgb(0,0,0)"), new CornerRadii(5), null));
     public static final Background whiteTurnActive = new Background(new BackgroundFill(Paint.valueOf("rgb(255,255,255)"), new CornerRadii(5), null));
     public static final Background gameOverBackground = new Background(new BackgroundFill(Paint.valueOf("rgba(175,175,175,.67)"), CornerRadii.EMPTY, null));
+    public static final int NMOVES = 4;
     private static final long blackPawns = 0b0000000000000000000000000000000000000000000000001111111100000000L;
     private static final long blackKnights = 0b0000000000000000000000000000000000000000000000000000000001000010L;
     private static final long blackBishops = 0b00000000000000000000000000000000000000000000000000000000000100100L;
@@ -77,4 +77,6 @@ public class ChessConstants {
     public static ChessStates NEWGAMESTATE = new ChessStates();
 
     public static int ComputerEloEstimate = 3000; // not 3000 lol todo make 3k
+    public static int DefaultWaitTime = 1000; // ms;
+    public static int evalDepth = 5;
 }

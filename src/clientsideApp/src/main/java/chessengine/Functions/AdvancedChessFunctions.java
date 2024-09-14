@@ -445,6 +445,121 @@ public class AdvancedChessFunctions {
         return moves;
     }
 
+
+    public static boolean isPromoPossible(int x, int y, boolean isWhite, BitBoardWrapper board){
+        int forwardDir = isWhite ? -1 : 1;
+        int newY = y+forwardDir;
+        while (GeneralChessFunctions.isValidCoord(x,newY)){
+            if(GeneralChessFunctions.checkIfContains(x,newY,board,"promo possible")[0]){
+                return false;
+            }
+            newY+=forwardDir;
+        }
+        return true;
+
+    }
+
+    public static double getMinAttacker(int x, int y, boolean isWhite, BitBoardWrapper board) {
+        // general checking if a square is checked
+        List<XYcoord> possibleRookFiles = calculateRookMoves(x, y, isWhite, true, ChessConstants.EMPTYINDEX, board, true);
+        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x, y, isWhite, true, ChessConstants.EMPTYINDEX, board, true);
+        List<XYcoord> possibleHorseJumps = calculateKnightMoves(x, y, isWhite, true, board, true);
+        List<XYcoord> possibleKingMoves = basicKingMoveCalc(x, y, isWhite, board);
+
+        double minAttacker = ChessConstants.EMPTYINDEX;
+
+        // check pawns
+        int jump = isWhite ? 1 : -1;
+        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x - jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
+            minAttacker = ChessConstants.valueMap[ChessConstants.PAWNINDEX];
+        }
+        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x + jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
+            minAttacker = ChessConstants.valueMap[ChessConstants.PAWNINDEX];
+        }
+        for (XYcoord s : possibleKingMoves) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KINGINDEX) {
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.KINGINDEX],minAttacker); // questionable if this is needed
+            }
+        }
+        for (XYcoord s : possibleRookFiles) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.ROOKINDEX) {
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.ROOKINDEX],minAttacker);
+            }
+            else if(peiceType == ChessConstants.QUEENINDEX){
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.QUEENINDEX],minAttacker);
+            }
+        }
+        for (XYcoord s : possibleHorseJumps) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KNIGHTINDEX) {
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.KNIGHTINDEX],minAttacker);
+            }
+        }
+        for (XYcoord s : possibleBishopFiles) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.BISHOPINDEX) {
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.BISHOPINDEX],minAttacker);
+            }
+            else if(peiceType == ChessConstants.QUEENINDEX){
+                minAttacker = Math.min(ChessConstants.valueMap[ChessConstants.QUEENINDEX],minAttacker);
+            }
+        }
+        return minAttacker;
+    }
+
+
+    public static double getMaxAttacker(int x, int y, boolean isWhite, BitBoardWrapper board) {
+        // general checking if a square is checked
+        List<XYcoord> possibleRookFiles = calculateRookMoves(x, y, isWhite, true, ChessConstants.EMPTYINDEX, board, true);
+        List<XYcoord> possibleBishopFiles = calculateBishopMoves(x, y, isWhite, true, ChessConstants.EMPTYINDEX, board, true);
+        List<XYcoord> possibleHorseJumps = calculateKnightMoves(x, y, isWhite, true, board, true);
+        List<XYcoord> possibleKingMoves = basicKingMoveCalc(x, y, isWhite, board);
+        double maxAttacker = ChessConstants.EMPTYINDEX;
+        // check pawns
+        int jump = isWhite ? 1 : -1;
+        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x - jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
+            maxAttacker = ChessConstants.valueMap[ChessConstants.PAWNINDEX];
+        }
+        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x + jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
+            maxAttacker = ChessConstants.valueMap[ChessConstants.PAWNINDEX];
+        }
+        for (XYcoord s : possibleKingMoves) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KINGINDEX) {
+                maxAttacker = ChessConstants.valueMap[ChessConstants.KINGINDEX]; // questionable if this is needed
+            }
+        }
+        for (XYcoord s : possibleRookFiles) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.ROOKINDEX) {
+                maxAttacker = Math.max(ChessConstants.valueMap[ChessConstants.ROOKINDEX],maxAttacker);
+            }
+            else if(peiceType == ChessConstants.QUEENINDEX){
+                maxAttacker = Math.max(ChessConstants.valueMap[ChessConstants.QUEENINDEX],maxAttacker);
+            }
+        }
+        for (XYcoord s : possibleHorseJumps) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KNIGHTINDEX) {
+                maxAttacker = Math.max(ChessConstants.valueMap[ChessConstants.KNIGHTINDEX],maxAttacker);
+            }
+        }
+        for (XYcoord s : possibleBishopFiles) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.BISHOPINDEX) {
+                maxAttacker = Math.max(ChessConstants.valueMap[ChessConstants.BISHOPINDEX],maxAttacker);
+            }
+            else if(peiceType == ChessConstants.QUEENINDEX){
+                maxAttacker = Math.max(ChessConstants.valueMap[ChessConstants.QUEENINDEX],maxAttacker);
+            }
+        }
+        return maxAttacker;
+    }
+
+
+
     public static boolean isAnyNotMovePossible(boolean isWhite, ChessPosition pos, ChessStates gameState) {
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? pos.board.getWhitePieces() : pos.board.getBlackPieces());
         for (XYcoord pcoord : peices) {
@@ -481,33 +596,33 @@ public class AdvancedChessFunctions {
         List<XYcoord> possibleKingMoves = basicKingMoveCalc(x, y, isWhite, board);
         // check pawns
         int jump = isWhite ? 1 : -1;
-        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && getPieceType(x - jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x - jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             return true;
         }
-        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && getPieceType(x + jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x + jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             return true;
         }
         for (XYcoord s : possibleKingMoves) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("King")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KINGINDEX) {
                 return true;
             }
         }
         for (XYcoord s : possibleRookFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Rook") || peiceType.equals("Queen")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.ROOKINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 return true;
             }
         }
         for (XYcoord s : possibleHorseJumps) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Knight")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KNIGHTINDEX) {
                 return true;
             }
         }
         for (XYcoord s : possibleBishopFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Bishop") || peiceType.equals("Queen")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.BISHOPINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 return true;
             }
         }
@@ -528,35 +643,35 @@ public class AdvancedChessFunctions {
         // check pawns
         int jump = isWhite ? 1 : -1;
 
-        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && getPieceType(x - jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x - jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             retainIfNotEmpty(files, new XYcoord(x - jump, y - jump));
         }
 
-        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && getPieceType(x + jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x + jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             retainIfNotEmpty(files, new XYcoord(x + jump, y - jump));
 
         }
 
         for (XYcoord s : possibleRookFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Rook") || peiceType.equals("Queen")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.ROOKINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 List<XYcoord> filtered = calculateRookMoves(x, y, isWhite, false, s.direction, board, true);
                 retainIfNotEmpty(files, filtered);
 
             }
         }
         for (XYcoord s : possibleHorseJumps) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Knight")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KNIGHTINDEX) {
                 retainIfNotEmpty(files, new XYcoord(s.x, s.y));
 
 
             }
         }
         for (XYcoord s : possibleBishopFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
 
-            if (peiceType.equals("Bishop") || peiceType.equals("Queen")) {
+            if (peiceType == ChessConstants.BISHOPINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 List<XYcoord> filtered = calculateBishopMoves(x, y, isWhite, false, s.direction, board, true);
                 retainIfNotEmpty(files, filtered);
 
@@ -598,33 +713,33 @@ public class AdvancedChessFunctions {
         List<XYcoord> possibleKingMoves = basicKingMoveCalc(x, y, isWhite, board);
         // check pawns
         int jump = isWhite ? 1 : -1;
-        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && getPieceType(x - jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x - jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x - jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             attackerCount++;
         }
-        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && getPieceType(x + jump, y - jump, !isWhite, board).equals("Pawn")) {
+        if (GeneralChessFunctions.isValidCoord(x + jump, y - jump) && GeneralChessFunctions.getBoardWithPiece(x + jump, y - jump, !isWhite, board) == ChessConstants.PAWNINDEX) {
             attackerCount++;
         }
         for (XYcoord s : possibleKingMoves) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("King")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KINGINDEX) {
                 attackerCount++;
             }
         }
         for (XYcoord s : possibleRookFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Rook") || peiceType.equals("Queen")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.ROOKINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 attackerCount++;
             }
         }
         for (XYcoord s : possibleHorseJumps) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Knight")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.KNIGHTINDEX) {
                 attackerCount++;
             }
         }
         for (XYcoord s : possibleBishopFiles) {
-            String peiceType = getPieceType(s.x, s.y, !isWhite, board);
-            if (peiceType.equals("Bishop") || peiceType.equals("Queen")) {
+            int peiceType = GeneralChessFunctions.getBoardWithPiece(s.x, s.y, !isWhite, board);
+            if (peiceType == ChessConstants.BISHOPINDEX || peiceType == ChessConstants.QUEENINDEX) {
                 attackerCount++;
             }
         }

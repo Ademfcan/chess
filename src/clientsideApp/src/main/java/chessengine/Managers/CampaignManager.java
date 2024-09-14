@@ -64,13 +64,13 @@ public class CampaignManager {
     private final float widthToTierSpacerHeight = .5f;
     private final float widthToTierSpacerSpaceBetweenLevelAndSpacer = .03f;
     private final Random random = new Random();
+    private final Logger logger = LogManager.getLogger(this.toString());
     private ImageView currentImageView;
     private ImageView standbyImageView;
     private CampaignTier currentScrollerTier = null;
     private DoubleBinding yJumpPerLevel;
     private DoubleBinding tierSpacerSpaceBetween;
 
-    private final Logger logger = LogManager.getLogger(this.toString());
     public CampaignManager(StackPane levelContainer, Pane levelContainerElements, Pane levelContainerPath, ScrollPane campaignScroller, StackPane mainArea, ImageView campaignBackground, ImageView campaignBackground2) {
         this.levelContainer = levelContainer;
         this.levelContainerElements = levelContainerElements;
@@ -142,7 +142,7 @@ public class CampaignManager {
             total = yLayoutBindings.get(curCloudOrdinal)[curTier];
             // slight offset
             total = total.add(levelContainerPath.widthProperty().multiply(0.33));
-            total = total.subtract(levelContainerPath.widthProperty().multiply(widthToTierSpacerHeight*.9).multiply(curCloudOrdinal));
+            total = total.subtract(levelContainerPath.widthProperty().multiply(widthToTierSpacerHeight * .9).multiply(curCloudOrdinal));
         }
         return total.divide(currentHeight).getValue();
     }
@@ -161,7 +161,7 @@ public class CampaignManager {
             CampaignTier curTier = CampaignTier.values()[i];
             int lockedAmnt = -1;
             int unlockedAmnt = -1;
-            if (playerProgress.getCurrentTier().equals(curTier) && playerProgress.getCurrentLevelOfTier() < curTier.NLevels-1) {
+            if (playerProgress.getCurrentTier().equals(curTier) && playerProgress.getCurrentLevelOfTier() < curTier.NLevels - 1) {
                 // means that somewhere along this tier you will have unlocked levels and locked levels
                 unlockedAmnt = playerProgress.getCurrentLevelOfTier() + 1;
                 lockedAmnt = curTier.NLevels - unlockedAmnt;
@@ -415,7 +415,7 @@ public class CampaignManager {
         this.currentImageView = standByImageView;
     }
 
-        // todo when set up server figure out profile picture cycle system
+    // todo when set up server figure out profile picture cycle system
 //    private void cycleProfilePicture(Circle clicked) {
 //        if (clicked.getUserData() == null) {
 //            clicked.setUserData("1");

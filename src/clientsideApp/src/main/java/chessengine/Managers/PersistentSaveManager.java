@@ -1,7 +1,7 @@
 package chessengine.Managers;
 
-import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Misc.ChessConstants;
 import chessserver.FrontendClient;
 import chessserver.UserInfo;
 import chessserver.UserPreferences;

@@ -26,7 +26,7 @@ public class UserPreferenceManager {
 
     }
 
-    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<Integer> evalOptions, ComboBox<Integer> computerOptions, boolean isMainScreen) {
+    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<String> evalOptions, ComboBox<String> nMovesOptions, ComboBox<String> computerOptions, boolean isMainScreen) {
         if (themeSelection != null) {
             themeSelection.getItems().addAll("Light", "Dark");
             App.bindingController.bindSmallText(themeSelection, isMainScreen);
@@ -108,12 +108,25 @@ public class UserPreferenceManager {
         if (evalOptions != null) {
             App.bindingController.bindSmallText(evalOptions, isMainScreen);
             evalOptions.getItems().addAll(
-                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+                    "Stockfish", "My Computer"
             );
             evalOptions.setOnAction(e -> {
                 if (!evalOptions.getSelectionModel().isEmpty()) {
-                    App.userPreferenceManager.setEvalDepth(evalOptions.getValue());
-                    App.messager.sendMessageQuick("New Evalation Depth: " + evalOptions.getValue(), App.isStartScreen);
+                    App.userPreferenceManager.setEvalStockfishBased(evalOptions.getValue().equals("Stockfish"));
+                    App.messager.sendMessageQuick("Changing eval base to: " + evalOptions.getValue(), App.isStartScreen);
+                }
+            });
+        }
+
+        if (nMovesOptions != null) {
+            App.bindingController.bindSmallText(nMovesOptions, isMainScreen);
+            nMovesOptions.getItems().addAll(
+                    "Stockfish", "My Computer"
+            );
+            nMovesOptions.setOnAction(e -> {
+                if (!nMovesOptions.getSelectionModel().isEmpty()) {
+                    App.userPreferenceManager.setNMovesStockfishBased(nMovesOptions.getValue().equals("Stockfish"));
+                    App.messager.sendMessageQuick("Changing nMoves base to: " + nMovesOptions.getValue(), App.isStartScreen);
                 }
             });
         }
@@ -122,13 +135,17 @@ public class UserPreferenceManager {
             App.bindingController.bindSmallText(computerOptions, isMainScreen);
             computerOptions.setOnAction(e -> {
                 if (!computerOptions.getSelectionModel().isEmpty()) {
-                    App.userPreferenceManager.setComputerMoveDiff(ComputerDifficulty.getDifficultyOffOfElo(computerOptions.getValue(), false));
-                    App.messager.sendMessageQuick("New computer Level: " + computerOptions.getValue(), App.isStartScreen);
+                    String out = computerOptions.getValue();
+                    if (out.contains("(S*)")) {
+                        out = out.substring(0, out.indexOf("(S*)"));
+                    }
+                    App.userPreferenceManager.setComputerMoveDiff(ComputerDifficulty.getDifficultyOffOfElo(Integer.parseInt(out), false));
+                    App.messager.sendMessageQuick("New computer elo: " + out, App.isStartScreen);
                 }
             });
 
             computerOptions.getItems().addAll(
-                    3400,3000,2600, 2400, 2200, 2000, 1800, 1500, 1000, 800, 600, 500, 400, 300, 200
+                    Arrays.stream(ComputerDifficulty.values()).map(c -> c.eloRange + (c.isStockfishBased ? "(S*)" : "")).toList()
             );
         }
 
@@ -136,8 +153,9 @@ public class UserPreferenceManager {
 
     public void setDefaultSelections() {
         App.startScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.startScreenController.computerOptions.getSelectionModel().select(Integer.valueOf(userPref.getComputerMoveDiff().eloRange));
-        App.startScreenController.evalOptions.getSelectionModel().select(userPref.getEvalDepth() - 1);
+        App.startScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
+        App.startScreenController.evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
+        App.startScreenController.nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
         App.startScreenController.audioSliderBG.setValue(userPref.getBackgroundVolume());
         App.startScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
         App.startScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
@@ -147,8 +165,9 @@ public class UserPreferenceManager {
 
 
         App.mainScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.mainScreenController.computerOptions.getSelectionModel().select(Integer.valueOf(userPref.getComputerMoveDiff().eloRange));
-        App.mainScreenController.evalOptions.getSelectionModel().select(userPref.getEvalDepth() - 1);
+        App.mainScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
+        App.mainScreenController.evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
+        App.mainScreenController.nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
         App.mainScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
         App.mainScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
         App.mainScreenController.pieceSelector.setValue(userPref.getPieceTheme().toString());
@@ -180,8 +199,22 @@ public class UserPreferenceManager {
         loadChanges();
     }
 
-    public void setEvalDepth(int evalDepth) {
-        userPref.setEvalDepth(evalDepth);
+    public boolean getEvalStockfishBased() {
+        return userPref.getEvalStockfishBased();
+    }
+
+    public void setEvalStockfishBased(boolean isEvalStockfishBased) {
+        userPref.setEvalStockfishBased(isEvalStockfishBased);
+        pushChangesToDatabase();
+        loadChanges();
+    }
+
+    public boolean getNMovesStockfishBased() {
+        return userPref.getNMovesStockfishBased();
+    }
+
+    public void setNMovesStockfishBased(boolean isNMovesStockfishBased) {
+        userPref.setNMovesStockfishBased(isNMovesStockfishBased);
         pushChangesToDatabase();
         loadChanges();
     }

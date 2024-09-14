@@ -1,16 +1,27 @@
 package chessengine.Computation;
 
+import chessengine.ChessRepresentations.BitBoardWrapper;
+import chessengine.ChessRepresentations.ChessMove;
+import chessengine.Functions.PgnFunctions;
+import chessengine.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Stockfish {
     private static final String ENGINE_PATH = "stockfish/stockfish-windows-x86-64-avx2.exe";
     private static final Logger logger = LogManager.getLogger("Stockfish Logger");
+
+    private boolean isCalling = false;
+
+    public boolean isCalling() {
+        return isCalling;
+    }
+    public volatile AtomicBoolean stop = new AtomicBoolean(false);
     private Process engineProcess;
     private BufferedReader engineReader;
     private OutputStreamWriter processWriter;
@@ -90,8 +101,14 @@ public class Stockfish {
     public String getOutput(int waitTimeMillis) {
         StringBuilder output = new StringBuilder();
         try {
+            for(int i = 0;i<waitTimeMillis;i++){
+                TimeUnit.MILLISECONDS.sleep(1);
+                if(stop.get()){
+                    stop.set(false);
+                    return null;
+                }
+            }
             // Wait for the engine to process the command
-            TimeUnit.MILLISECONDS.sleep(waitTimeMillis);
 
             String line;
             while ((line = engineReader.readLine()) != null) {
@@ -106,32 +123,83 @@ public class Stockfish {
         return output.toString();
     }
 
-    public String getOutputEval(int waitTime) {
-        StringBuilder buffer = new StringBuilder();
-        try {
-            TimeUnit.MILLISECONDS.sleep(waitTime);
-            sendCommand("isready");
-            while (true) {
-                String text = engineReader.readLine();
-                if (text.equals("readyok")) break;
-                buffer.append(text).append("\n");
-            }
-        } catch (Exception e) {
-            logger.error("Error on get output eval", e);
-        }
-        return buffer.toString();
-    }
-
-    public String getBestMove(String fen, int stockfishElo,int timeLimitMillis) {
+    public String getBestMove(String fen, int stockfishElo, int timeLimitMillis) {
+        isCalling = true;
         sendCommand("uci");
-        sendCommand("setoption name UCI_LimitStrength value true");
-        sendCommand("setoption name UCI_Elo value " + stockfishElo);
+        if (stockfishElo <= 3200) {
+            sendCommand("setoption name UCI_LimitStrength value true");
+            sendCommand("setoption name UCI_Elo value " + stockfishElo);
+        }
         sendCommand("position fen " + fen);
         sendCommand("go movetime " + timeLimitMillis);
         String out = getOutput(timeLimitMillis);
+        isCalling = false;
+        if(out == null){
+            return null;
+        }
         String[] s = out.split("\n");
         String last = s[s.length - 1];
         return last.split("bestmove ")[1].split(" ")[0];
+    }
+
+    public MoveOutput[] getBestNMoves(String fen, boolean isWhite, BitBoardWrapper board, int timeLimitMillis, int nMoves) {
+        isCalling = true;
+        sendCommand("uci");
+        sendCommand("position fen " + fen);
+        sendCommand("setoption name MultiPV value " + nMoves);
+        sendCommand("go movetime " + timeLimitMillis);
+        String uciOut = getOutput(timeLimitMillis);
+        isCalling = false;
+        if(uciOut == null){
+            return null;
+        }
+        String[] split = uciOut.split("\n");
+        MoveOutput[] ret = new MoveOutput[nMoves];
+        if (split.length > 5) {
+            int cnt = nMoves - 1;
+            for (int i = split.length - 2; i >=0; i--) {
+                String[] evalSplit = split[i].split(" ");
+
+                if(split.length >= minStockfishLen) {
+                    ChessMove move = null;
+                    int evalScore = 0;
+                    int depth = 0;
+                    for(int j = 0;j<evalSplit.length-1;j++ ){
+                        String entry = evalSplit[j];
+                        String next = evalSplit[j+1];
+                        switch (entry) {
+                            case "depth" -> depth = Integer.parseInt(next);
+                            case "pv" -> {
+                                String moveUci = next;
+                                move = PgnFunctions.uciToChessMove(moveUci, isWhite, board);
+                            }
+                            case "cp" -> {
+                                if (next.equals("move")) {
+                                    int mateInfo = Integer.parseInt(evalSplit[j + 2]);
+                                    evalScore = mateInfo > 0 ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE;
+                                    depth = Math.abs(mateInfo);
+                                } else {
+                                    evalScore = Integer.parseInt(next);
+                                }
+                            }
+                        }
+                    }
+                    ret[cnt] = new MoveOutput(move,(double)evalScore/100*(isWhite ? 1 : -1),depth);
+                    cnt--;
+                    if(cnt < 0){
+                        break;
+                    }
+
+                }
+
+
+            }
+        } else {
+            logger.error("Not enough lines out of stockfish best n moves");
+        }
+
+        return ret;
+
     }
 
     public void stopEngine() {
@@ -145,37 +213,51 @@ public class Stockfish {
         }
     }
 
-    public String getLegalMoves(String fen) {
-        sendCommand("position fen " + fen);
-        sendCommand("d");
-        return getOutput(0).split("Legal moves: ")[1];
-    }
+    private final int minStockfishLen = 23;
 
-    public float getEvalScore(String fen, int waitTime) {
+
+    public EvalOutput getEvalScore(String fen,boolean isWhite, int waitTime) {
+        isCalling = true;
         sendCommand("position fen " + fen);
         sendCommand("go movetime " + waitTime);
-
+        int depth = 0;
         float evalScore = 0.0f;
-        String[] dump = getOutput(waitTime + 20).split("\n");
-
+        String out = getOutput(waitTime);
+        isCalling = false;
+        if(out == null){
+            return null;
+        }
+        String[] dump = out.split("\n");
         for (int i = dump.length - 1; i >= 0; i--) {
             if (dump[i].startsWith("info depth ")) {
-                String[] parts = dump[i].split("score cp ");
-                if (parts.length > 1) {
-                    String scoreString = parts[1].split(" ")[0];
-                    try {
-                        evalScore = Float.parseFloat(scoreString);
-                    } catch (NumberFormatException e) {
-                        // Handle parsing error gracefully, if needed
-                        logger.error("Error parsing eval", e);
+                String focus = dump[i];
+                String[] split = focus.split(" ");
+                for(int j = 0;j<split.length-1;j++ ){
+                    String entry = split[j];
+                    String next = split[j+1];
+                    if(entry.equals("depth")){
+                        depth = Integer.parseInt(next);
                     }
-                    break;
+                    else if(entry.equals("cp")){
+                        if(next.equals("move")){
+                            int mateInfo = Integer.parseInt(split[j + 2]);
+                            evalScore = mateInfo > 0 ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE;
+                            depth = Math.abs(mateInfo);
+                        }
+                        else{
+                            evalScore = Integer.parseInt(next);
+                        }
+                    }
+                    if(evalScore != 0 && depth != 0){
+                        break;
+                    }
                 }
             }
         }
 
-        return evalScore / 100;
+        return new EvalOutput(evalScore / 100 * (isWhite ? 1 : -1), depth);
     }
+
 
 
 }
