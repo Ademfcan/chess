@@ -1,6 +1,7 @@
 package chessengine.Computation;
 
 import chessengine.ChessRepresentations.BackendChessPosition;
+import chessengine.Functions.BitFunctions;
 import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.BitBoardWrapper;
 import chessengine.ChessRepresentations.ChessMove;
@@ -87,8 +88,8 @@ public class ComputerHelperFunctions {
 
     public static double getFullEval(ChessPosition pos, ChessStates gameState, boolean isWhiteTurn, boolean isCheckmateKnown) {
         // todo: test against known positions
-        long[] whiteP = pos.board.getWhitePieces();
-        long[] blackP = pos.board.getBlackPieces();
+        long[] whiteP = pos.board.getWhitePiecesBB();
+        long[] blackP = pos.board.getBlackPiecesBB();
         int whitePieceCount = GeneralChessFunctions.getPieceCount(whiteP);
         int blackPieceCount = GeneralChessFunctions.getPieceCount(blackP);
         double[][][] currentMap = pieceMapHandler.getMap(whitePieceCount + blackPieceCount);
@@ -173,7 +174,7 @@ public class ComputerHelperFunctions {
             long mask = 1L << z;
 
             if ((board & mask) != 0) {
-                int[] coords = GeneralChessFunctions.bitindexToXY(z);
+                int[] coords = BitFunctions.bitindexToXY(z);
                 coord.add(new XYcoord(coords[0], coords[1]));
             }
         }
@@ -223,5 +224,17 @@ public class ComputerHelperFunctions {
             return 1;
         }
         return 0;
+    }
+
+    public static int getMoveValue(ChessMove m){
+        int moveValueGuess = 0;
+        if(m.isEating()){
+            moveValueGuess = 10*(m.getEatingIndex()-m.getBoardIndex());
+        }
+        if(m.isPawnPromo()){
+            moveValueGuess+= m.getPromoIndx();
+        }
+
+        return moveValueGuess;// todo
     }
 }

@@ -288,6 +288,7 @@ public class MainScreenController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         currentGamePgn.setEditable(false);
 
+
         // some elements need mouse transparency because they are on top of control elements
         mainRef.setMouseTransparent(true);
         chessMoveBoard.setMouseTransparent(true);
@@ -549,7 +550,8 @@ public class MainScreenController implements Initializable {
     // for campaign only
 
     public void setUpBindings() {
-        App.bindingController.bindSmallText(currentGamePgnLabel,true);
+        App.bindingController.bindSmallText(currentGamePgnLabel,true,"Black");
+        App.bindingController.bindSmallText(currentGamePgn,true,"Black");
         currentGamePgn.prefWidthProperty().bind(settingsScreen.widthProperty());
 
         // moves played

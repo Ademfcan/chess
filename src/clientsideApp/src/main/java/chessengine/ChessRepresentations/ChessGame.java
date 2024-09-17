@@ -5,6 +5,7 @@ import chessengine.Audio.Effect;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.BitFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Managers.WebSocketClient;
@@ -508,6 +509,7 @@ public class ChessGame {
     }
 
     public void changeToDifferentMove(int dir, boolean isNotAppThread, boolean noAnimate) {
+//        System.out.println(GeneralChessFunctions.getBoardDetailedString(currentPosition.board));
         if (dir != 0 && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition || !centralControl.asyncController.simTask.isMakingMove())) {
             int moveChange = Math.abs(dir % 2);
             // if not an even number the turn flips
@@ -1063,7 +1065,7 @@ public class ChessGame {
             y = 7 - y;
 
 
-            int OldY = AdvancedChessFunctions.getColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
+            int OldY = AdvancedChessFunctions.getColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
             return new ChessMove(x, OldY, x, y, ChessConstants.EMPTYINDEX, pieceType, isWhiteMove, false, false, ChessConstants.EMPTYINDEX, false, false);
 
 
@@ -1132,7 +1134,7 @@ public class ChessGame {
                                 int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY()) / 2;
                                 if (y == midY && x == moveThatCreated.getNewX()) {
                                     // en passant
-                                    int oldX = AdvancedChessFunctions.getEnPassantOriginX(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePieces()[pieceType] : currentPosition.board.getBlackPieces()[pieceType]);
+                                    int oldX = AdvancedChessFunctions.getEnPassantOriginX(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
                                     return new ChessMove(oldX, y + backdir, x, y, ChessConstants.EMPTYINDEX, pieceType, isWhiteMove, false, false, ChessConstants.EMPTYINDEX, true, false);
 
                                 }

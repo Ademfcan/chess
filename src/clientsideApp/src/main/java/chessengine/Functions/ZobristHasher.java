@@ -30,7 +30,7 @@ public class ZobristHasher {
 
         // Loop over the two colors (white and black)
         for (int color = 0; color < 2; color++) {
-            long[] piecesClr = color == 0 ? board.getWhitePieces() : board.getBlackPieces();
+            long[] piecesClr = color == 0 ? board.getWhitePiecesBB() : board.getBlackPiecesBB();
 
             // Loop over the six piece types (pawn, knight, bishop, rook, queen, king)
             for (int pieceType = 0; pieceType < 6; pieceType++) {

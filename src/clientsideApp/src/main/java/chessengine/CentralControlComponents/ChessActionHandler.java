@@ -3,18 +3,13 @@ package chessengine.CentralControlComponents;
 import chessengine.*;
 import chessengine.Audio.Effect;
 import chessengine.ChessRepresentations.*;
-import chessengine.Computation.EvalOutput;
 import chessengine.Computation.MoveOutput;
 import chessengine.Enums.MainScreenState;
-import chessengine.Functions.AdvancedChessFunctions;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Functions.LineLabeler;
-import chessengine.Functions.PgnFunctions;
+import chessengine.Functions.*;
 import chessengine.Graphics.Arrow;
 import chessengine.Graphics.MoveArrow;
 import chessengine.Misc.ChessConstants;
 import chessserver.ComputerDifficulty;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -253,7 +248,8 @@ public class ChessActionHandler {
         pgnDescriptor.setPadding(new Insets(2, 10, 2, 10));
         App.bindingController.bindSmallText(pgnDescriptor, true, "Black");
         pgnDescriptor.setUserData(numLabels);
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(60).add(40));
+        int pgnLen = pgn.length();
+        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(240).add(8).multiply(pgnLen));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -267,7 +263,7 @@ public class ChessActionHandler {
             // ready for a number
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(85).add(13));
+            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(170).add(7).multiply(Math.log10(moveNum)+1));
             App.bindingController.bindSmallText(numSeparator, true, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 
@@ -427,10 +423,10 @@ public class ChessActionHandler {
                 // if both kings are on the board we do a regular eval check
                 // if any king is off the board this breaks everything so instead we just say one side checkmated
                 BitBoardWrapper board = myControl.gameHandler.currentGame.currentPosition.board;
-                if (GeneralChessFunctions.getPieceCoords(board.getWhitePieces()[5]).isEmpty()) {
+                if (GeneralChessFunctions.getPieceCoords(board.getWhitePiecesBB()[5]).isEmpty()) {
                     // no white king but shouldnt trigger game over
                     myControl.mainScreenController.setEvalBar(-10000000, -1, false);
-                } else if (GeneralChessFunctions.getPieceCoords(board.getBlackPieces()[5]).isEmpty()) {
+                } else if (GeneralChessFunctions.getPieceCoords(board.getBlackPiecesBB()[5]).isEmpty()) {
                     // no black king but shouldnt trigger game over
                     myControl.mainScreenController.setEvalBar(10000000, -1, false);
                 } else {
@@ -755,6 +751,9 @@ public class ChessActionHandler {
     }
 
     public void handleSquareClick(int clickX, int clickY, boolean isHitPiece, boolean isWhiteHitPiece, MainScreenState currentState) {
+        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.currentPosition.board));
+        System.out.println(BitFunctions.getBitStr(myControl.gameHandler.currentGame.currentPosition.board.getWhiteAttackTableCombined()));
+        System.out.println(BitFunctions.getBitStr(myControl.gameHandler.currentGame.currentPosition.board.getBlackAttackTableCombined()));
         int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? clickY : 7 - clickY;
         int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? clickX : 7 - clickX;
         if (prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY) {

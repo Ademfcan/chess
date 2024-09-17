@@ -2,7 +2,14 @@ package chessengine.ChessRepresentations;
 
 import chessengine.Misc.ChessConstants;
 
+import java.util.Objects;
+
 public class XYcoord {
+    @Override
+    public int hashCode() {
+        return Objects.hash(isCastleMove, x, y, isPawnPromo, enPassant);
+    }
+
     private final boolean isCastleMove;
     public int x;
     public int y;

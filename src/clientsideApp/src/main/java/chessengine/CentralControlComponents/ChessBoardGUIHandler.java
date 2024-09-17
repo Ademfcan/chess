@@ -20,7 +20,6 @@ import javafx.scene.Node;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
@@ -400,7 +399,7 @@ public class ChessBoardGUIHandler {
         boolean isWhite = true;
         for (int j = 0; j < 2; j++) {
             // one pass for white pieces then black
-            long[] pieces = isWhite ? position.board.getWhitePieces() : position.board.getBlackPieces();
+            long[] pieces = isWhite ? position.board.getWhitePiecesBB() : position.board.getBlackPiecesBB();
             for (int i = 0; i < 6; i++) {
                 if (i == 5) {
                     // king

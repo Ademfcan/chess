@@ -5,7 +5,6 @@ import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.XYcoord;
 import chessengine.ChessRepresentations.ChessStates;
-import chessengine.Computation.Computer;
 import chessengine.Computation.ComputerOutput;
 import chessserver.*;
 import javafx.scene.layout.Background;
@@ -69,7 +68,7 @@ public class ChessConstants {
     private static final long whiteQueens = 0b0000100000000000000000000000000000000000000000000000000000000000L;
     private static final long whiteKings = 0b0001000000000000000000000000000000000000000000000000000000000000L;
     public static final long[] whitePiecesC = {whitePawns, whiteKnights, whiteBishops, whiteRooks, whiteQueens, whiteKings};
-    public static final ChessPosition startBoardState = new ChessPosition(new BitBoardWrapper(whitePiecesC, blackPiecesC, whiteKingStart, blackKingStart), new ChessMove(-10, -10, -10, -10, ChessConstants.EMPTYINDEX, ChessConstants.EMPTYINDEX, false, false, false, ChessConstants.EMPTYINDEX, false, false));
+    public static final ChessPosition startBoardState = new ChessPosition(new BitBoardWrapper(whitePiecesC, blackPiecesC), new ChessMove(-10, -10, -10, -10, ChessConstants.EMPTYINDEX, ChessConstants.EMPTYINDEX, false, false, false, ChessConstants.EMPTYINDEX, false, false));
     private static final BackgroundFill backgroundFillDefault = new BackgroundFill(Color.LIGHTGRAY, new CornerRadii(3), null);
     public static final Background defaultBg = new Background(backgroundFillDefault);
     private static final BackgroundFill backgroundFillHighlight = new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(3), null);
@@ -79,4 +78,6 @@ public class ChessConstants {
     public static int ComputerEloEstimate = 3000; // not 3000 lol todo make 3k
     public static int DefaultWaitTime = 1000; // ms;
     public static int evalDepth = 5;
+
+    public static final int MAXTIMEMS = 1000;
 }

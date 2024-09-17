@@ -53,16 +53,17 @@ public class GeneralChessFunctions {
         if (boardPosition == ChessConstants.EMPTYINDEX) {
             logger.error("Checkifcontains array is guilty: " + callLoc);
         }
-        long[] whitePieces = board.getWhitePieces();
-        long[] blackPieces = board.getBlackPieces();
+        long[] whitePieces = board.getWhitePiecesBB();
+        long[] blackPieces = board.getBlackPiecesBB();
         long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
         long bigBlackSum = blackPieces[0] | blackPieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
 
-        if ((bigWhiteSum & boardPosition) != 0L) {
-            return new boolean[]{true, true};
-        }
+
         if ((bigBlackSum & boardPosition) != 0L) {
             return new boolean[]{true, false};
+        }
+        if ((bigWhiteSum & boardPosition) != 0L) {
+            return new boolean[]{true, true};
         }
         return new boolean[]{false, false};
     }
@@ -73,12 +74,12 @@ public class GeneralChessFunctions {
             logger.error("Check if contains nonarray is guity");
         }
         if (isWhite) {
-            long[] whitePieces = board.getWhitePieces();
+            long[] whitePieces = board.getWhitePiecesBB();
             long bigWhiteSum = whitePieces[0] | whitePieces[1] | whitePieces[2] | whitePieces[3] | whitePieces[4] | whitePieces[5];
             return (bigWhiteSum & boardPos) != 0L;
 
         } else {
-            long[] blackPieces = board.getBlackPieces();
+            long[] blackPieces = board.getBlackPiecesBB();
             long bigBlackSum = blackPieces[0] | blackPieces[1] | blackPieces[2] | blackPieces[3] | blackPieces[4] | blackPieces[5];
             return (bigBlackSum & boardPos) != 0L;
         }
@@ -123,7 +124,7 @@ public class GeneralChessFunctions {
             long mask = 1L << z;
 
             if ((board & mask) != 0) {
-                int[] coords = bitindexToXY(z);
+                int[] coords = BitFunctions.bitindexToXY(z);
                 coord.add(new XYcoord(coords[0], coords[1]));
             }
         }
@@ -131,10 +132,22 @@ public class GeneralChessFunctions {
         return coord;
     }
 
+    public static int[] getAllPieceIndexes(long board) {
+        int[] indexes = new int[Long.bitCount(board)];
+        int cnt = 0;
+        for (int z = 0; z < 64; z++) {
+            long mask = 1L << z;
 
-    public static int[] bitindexToXY(int bitIndex) {
-        return new int[]{bitIndex % 8, bitIndex / 8};
+            if ((board & mask) != 0) {
+                indexes[cnt] = z;
+                cnt++;
+            }
+        }
+
+        return indexes;
     }
+
+
 
     public static boolean isValidCoord(int x, int y) {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
@@ -157,8 +170,8 @@ public class GeneralChessFunctions {
         if (bitIndex == ChessConstants.EMPTYINDEX) {
             logger.error("Get board with piece specific is guilty ");
         }
-        long[] whitePieces = board.getWhitePieces();
-        long[] blackPieces = board.getBlackPieces();
+        long[] whitePieces = board.getWhitePiecesBB();
+        long[] blackPieces = board.getBlackPiecesBB();
         if (isWhite) {
             for (int i = 0; i < whitePieces.length; i++) {
                 long sum = bitIndex & whitePieces[i];
@@ -182,16 +195,16 @@ public class GeneralChessFunctions {
 
     public static int getBoardWithPiece(int x, int y, BitBoardWrapper board) {
         long bitIndex = GeneralChessFunctions.positionToBitboard(x, y);
-        long[] whitePieces = board.getWhitePieces();
-        long[] blackPieces = board.getBlackPieces();
-        for (int i = 0; i < whitePieces.length; i++) {
-            long sum = bitIndex & whitePieces[i];
+        long[] whitePieces = board.getWhitePiecesBB();
+        long[] blackPieces = board.getBlackPiecesBB();
+        for (int i = 0; i < blackPieces.length; i++) {
+            long sum = bitIndex & blackPieces[i];
             if (sum != 0L) {
                 return i;
             }
         }
-        for (int i = 0; i < blackPieces.length; i++) {
-            long sum = bitIndex & blackPieces[i];
+        for (int i = 0; i < whitePieces.length; i++) {
+            long sum = bitIndex & whitePieces[i];
             if (sum != 0L) {
                 return i;
             }
@@ -320,17 +333,17 @@ public class GeneralChessFunctions {
     }
 
     public static boolean isInsufiicientMaterial(BitBoardWrapper board) {
-        if (getPieceCount(board.getWhitePieces()[ChessConstants.PAWNINDEX]) > 0 || getPieceCount(board.getBlackPieces()[ChessConstants.PAWNINDEX]) > 0) {
+        if (getPieceCount(board.getWhitePiecesBB()[ChessConstants.PAWNINDEX]) > 0 || getPieceCount(board.getBlackPiecesBB()[ChessConstants.PAWNINDEX]) > 0) {
             return false; // only can be true if all pawns are off the board
         }
-        int wqC = getPieceCount(board.getWhitePieces()[ChessConstants.QUEENINDEX]);
-        int bqC = getPieceCount(board.getBlackPieces()[ChessConstants.QUEENINDEX]);
-        int wrC = getPieceCount(board.getWhitePieces()[ChessConstants.ROOKINDEX]);
-        int brC = getPieceCount(board.getBlackPieces()[ChessConstants.ROOKINDEX]);
-        int wbC = getPieceCount(board.getWhitePieces()[ChessConstants.BISHOPINDEX]);
-        int bbC = getPieceCount(board.getBlackPieces()[ChessConstants.BISHOPINDEX]);
-        int wnC = getPieceCount(board.getWhitePieces()[ChessConstants.KNIGHTINDEX]);
-        int bnC = getPieceCount(board.getBlackPieces()[ChessConstants.KNIGHTINDEX]);
+        int wqC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.QUEENINDEX]);
+        int bqC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]);
+        int wrC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.ROOKINDEX]);
+        int brC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.ROOKINDEX]);
+        int wbC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.BISHOPINDEX]);
+        int bbC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.BISHOPINDEX]);
+        int wnC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.KNIGHTINDEX]);
+        int bnC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.KNIGHTINDEX]);
         if(wqC + bqC + wrC + brC > 0){
             // any of these pieces on the board means no draw
             return false;

@@ -32,7 +32,7 @@ public enum ComputerDifficulty {
 //    D10(1600, 4, 0.1, 4, 1.5, 0.4, 1, 1, 0.75, 0.95, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
 
     // Lower intermediate levels with more randomness and less depth
-    MaxDifficulty(1500, 5, 0.0, 4, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    MaxDifficulty(1500, 6, 0.0, 5, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
     D12(1400, 3, 0.0, 3, 1.5, 0.3, 8, 1, 0.75, 0.8, ServerConstants.QUEENINDEX, .3, true, false, false, 0),
     D13(1300, 3, 0.0, 3, 1.5, 0.85, 10, 1, 0.3, 0.85, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
     D14(1200, 3, 0.0, 3, 1.5, 0.4, 7, 0.35, 0.65, 0.6, ServerConstants.KINGINDEX, .2, true, false, false, 0),

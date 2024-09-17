@@ -3,6 +3,7 @@ package chessengine;
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Computation.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
 import chessengine.Enums.MainScreenState;
 import chessengine.Graphics.BindingController;
@@ -217,9 +218,12 @@ public class App extends Application {
     public static Stockfish stockfishForEval;
     public static Stockfish stockfishForNmoves;
 
+    public static MagicBitboardGenerator magicBitboardGenerator;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         stockfishForEval = new Stockfish();
+        magicBitboardGenerator = new MagicBitboardGenerator();
         if (stockfishForEval.startEngine()) {
             appLogger.debug("Started stockfish for eval succesfully");
         } else {

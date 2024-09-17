@@ -97,7 +97,6 @@ public class SimulationTask extends Task<Void> {
         this.player2Computer = new Computer();
         this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MaxDifficulty);
         this.player2Computer.setCurrentDifficulty(ComputerDifficulty.STOCKFISHMax); // defaults
-        this.player2Computer.setStockfishElo(testStockfishElo);
         this.control = control;
 
         random = new Random();
