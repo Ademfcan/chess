@@ -90,8 +90,8 @@ public class ComputerHelperFunctions {
         // todo: test against known positions
         long[] whiteP = pos.board.getWhitePiecesBB();
         long[] blackP = pos.board.getBlackPiecesBB();
-        int whitePieceCount = GeneralChessFunctions.getPieceCount(whiteP);
-        int blackPieceCount = GeneralChessFunctions.getPieceCount(blackP);
+        int whitePieceCount = pos.board.getWhitePieceCount();
+        int blackPieceCount = pos.board.getBlackPieceCount();
         double[][][] currentMap = pieceMapHandler.getMap(whitePieceCount + blackPieceCount);
 
         if (!isCheckmateKnown) {

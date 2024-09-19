@@ -143,7 +143,7 @@ public class ChessStates {
         if (!newPosition.equals(ChessConstants.startBoardState)) {
             ChessMove moveThatCreated = newPosition.getMoveThatCreatedThis();
             // check that the move is not a pawn move or a check
-            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX || AdvancedChessFunctions.isAnyChecked(newPosition.board)) {
+            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(newPosition.board)) {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
@@ -307,13 +307,15 @@ public class ChessStates {
         // now handle the 50 move rule
         if (!oldPositionToRemove.equals(ChessConstants.startBoardState)) {
             ChessMove moveThatCreated = oldPositionToRemove.getMoveThatCreatedThis();
-            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX || AdvancedChessFunctions.isAnyChecked(oldPositionToRemove.board)) {
+            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(oldPositionToRemove.board)) {
                 // moves since check or pawn move was not reset so we just decrement
                 movesSinceNoCheckOrNoPawn--;
             } else {
                 // we need to recover the movesSinceNoCheckOrNoPawn value before reset
                 if (movesWhenResetted.isEmpty()) {
                     ChessConstants.mainLogger.error("moveswhen ressetted does not have needed elements, are you moving backward before forward");
+                    ChessConstants.mainLogger.error(oldPositionToRemove.getMoveThatCreatedThis().toString());
+                    ChessConstants.mainLogger.error(GeneralChessFunctions.getBoardDetailedString(oldPositionToRemove.board));
                 }
                 else{
                     movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
@@ -340,7 +342,7 @@ public class ChessStates {
         if (!newPositionToAdd.equals(ChessConstants.startBoardState)) {
             ChessMove moveThatCreated = newPositionToAdd.getMoveThatCreatedThis();
             // check that the move is not a pawn move or a check
-            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX || AdvancedChessFunctions.isAnyChecked(newPositionToAdd.board)) {
+            if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(newPositionToAdd.board)) {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
 

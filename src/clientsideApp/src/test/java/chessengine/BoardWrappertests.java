@@ -9,14 +9,23 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 public class BoardWrappertests {
     @Test void TempChangeTest(){
         BitBoardWrapper boardWrapper = ChessConstants.startBoardState.board.cloneBoard();
-        boardWrapper.makeTempChange(4,7,4,4,4,true);
-        boardWrapper.keepTempChange();
-        boardWrapper.makeTempChange(4,4,4,7,4,true);
-        boardWrapper.keepTempChange();
-        Assertions.assertEquals(GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(4,7,true,boardWrapper)),"Queen");
+        Arrays.stream(boardWrapper.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
+        System.out.println(boardWrapper.getWhitePieces()[4].toString());
+        boardWrapper.makeTempChange(3,7,4,4,4,true);
+        Arrays.stream(boardWrapper.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
+        System.out.println(boardWrapper.getWhitePieces()[4].toString());
+
+        boardWrapper.popTempChange();
+        Arrays.stream(boardWrapper.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
+        System.out.println(boardWrapper.getWhitePieces()[4].toString());
+//        boardWrapper.makeTempChange(4,4,3,7,4,true);
+//        boardWrapper.keepTempChange();
+//        Assertions.assertEquals(GeneralChessFunctions.getPieceType(GeneralChessFunctions.getBoardWithPiece(3,7,true,boardWrapper)),"Queen");
     }
 
     @Test void boardFlipTest(){

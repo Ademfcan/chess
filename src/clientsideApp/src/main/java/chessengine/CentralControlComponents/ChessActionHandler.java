@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -76,6 +77,7 @@ public class ChessActionHandler {
     private int oldArrowY;
     private boolean creatingArrow = false;
     private int oldDragPieceIndex;
+    private boolean oldPieceType = false;
     private boolean oldIsWhite = false;
     private int overX = -1;
     private int overY = -1;
@@ -340,6 +342,7 @@ public class ChessActionHandler {
     }
 
     public void updateViewerSuggestions() {
+        System.out.println("updating suggestion");
         bestmovesBox.getChildren().clear();
         myControl.chessBoardGUIHandler.clearArrows();
         if(!myControl.gameHandler.currentGame.gameState.isGameOver()){
@@ -704,7 +707,7 @@ public class ChessActionHandler {
                     boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.currentGame.currentPosition.board, "boardRelease");
                     boolean isHit = boardInfo[0];
                     boolean isWhitePieceDroppedOn = boardInfo[1];
-                    int[] moveInfo = checkIfMovePossible(prevPieceMoves, newX, newY);
+                    int[] moveInfo = checkIfMovePossible(prevPieceMoves,oldX,oldY, newX, newY,oldDragPieceIndex,oldIsWhite);
                     boolean isMovePossible = moveInfo[0] == 1;
                     boolean isCastle = moveInfo[1] > 0;
                     boolean isEnPassant = moveInfo[1] < 0;
@@ -751,9 +754,10 @@ public class ChessActionHandler {
     }
 
     public void handleSquareClick(int clickX, int clickY, boolean isHitPiece, boolean isWhiteHitPiece, MainScreenState currentState) {
-        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.currentPosition.board));
-        System.out.println(BitFunctions.getBitStr(myControl.gameHandler.currentGame.currentPosition.board.getWhiteAttackTableCombined()));
-        System.out.println(BitFunctions.getBitStr(myControl.gameHandler.currentGame.currentPosition.board.getBlackAttackTableCombined()));
+//        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.currentPosition.board));
+//        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
+//        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getBlackAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
+        System.out.println(AdvancedChessFunctions.isChecked(isWhiteHitPiece,myControl.gameHandler.currentGame.currentPosition.board));
         int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? clickY : 7 - clickY;
         int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? clickX : 7 - clickX;
         if (prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY) {
@@ -783,13 +787,14 @@ public class ChessActionHandler {
                     } else {
                         // can possibly be a move, however it needs to be within prevpiecemoves
                         // [0] = is move possible [1] = is castle move
-                        int[] moveInfo = checkIfMovePossible(prevPieceMoves, clickX, clickY);
+                        boolean pieceSelectedIsWhite = selectedPeiceInfo[2] > 0;
+                        int pieceSelectedIndex = selectedPeiceInfo[4];
+                        int oldX = selectedPeiceInfo[0];
+                        int oldY = selectedPeiceInfo[1];
+                        int[] moveInfo = checkIfMovePossible(prevPieceMoves, oldX,oldY,clickX, clickY,pieceSelectedIndex,pieceSelectedIsWhite);
                         if (moveInfo[0] == 1) {
                             // move is within prev moves
-                            boolean pieceSelectedIsWhite = selectedPeiceInfo[2] > 0;
-                            int pieceSelectedIndex = selectedPeiceInfo[4];
-                            int oldX = selectedPeiceInfo[0];
-                            int oldY = selectedPeiceInfo[1];
+
                             int backendOldY = myControl.gameHandler.currentGame.isWhiteOriented() ? oldY : 7 - oldY;
                             int backendOldX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7 - oldX;
                             boolean isCastleMove = moveInfo[1] > 0;
@@ -958,15 +963,18 @@ public class ChessActionHandler {
         }
     }
 
-    private int[] checkIfMovePossible(List<XYcoord> moves, int x, int y) {
+    private int[] checkIfMovePossible(List<XYcoord> moves,int oldX,int oldY,int newX, int newY,int peiceType,boolean isWhite) {
         // todo: change this to bitboard logic
         if (moves != null) {
             for (XYcoord s : moves) {
-                if ((s.x == x && s.y == y) && s.isCastleMove()) {
+                boolean isCastle = peiceType == ChessConstants.KINGINDEX && Math.abs(oldX-s.x) > 1;
+                boolean isEating = GeneralChessFunctions.checkIfContains(s.x,s.y,!isWhite,myControl.gameHandler.currentGame.currentPosition.board);
+                boolean isEnPassant = peiceType == ChessConstants.PAWNINDEX && !isEating && oldX != s.x;
+                if ((s.x == newX && s.y == newY) && isCastle) {
                     return new int[]{1, 1};
-                } else if ((s.x == x && s.y == y) && s.isEnPassant()) {
+                } else if ((s.x == newX && s.y == newY) && isEnPassant) {
                     return new int[]{1, -1};
-                } else if (s.x == x && s.y == y) {
+                } else if (s.x == newX && s.y == newY) {
                     return new int[]{1, 0};
                 }
             }

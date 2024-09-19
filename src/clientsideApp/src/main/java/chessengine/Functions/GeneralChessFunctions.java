@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -49,7 +50,17 @@ public class GeneralChessFunctions {
      * Checks the board for each color at a square [0] = isHitPiece [1] = isWhiteHitPiece
      **/
     public static boolean[] checkIfContains(int x, int y, BitBoardWrapper board, String callLoc) {
-        long boardPosition = positionToBitboard(x, y);
+        long boardPosition = positionToBitboard(x,y);
+        return checkIfContains(boardPosition,board,callLoc);
+    }
+
+    public static boolean[] checkIfContains(int bitIndex, BitBoardWrapper board, String callLoc) {
+
+        long boardPosition = positionToBitboard(bitIndex);
+        return checkIfContains(boardPosition,board,callLoc);
+    }
+
+    private static boolean[] checkIfContains(long boardPosition, BitBoardWrapper board, String callLoc) {
         if (boardPosition == ChessConstants.EMPTYINDEX) {
             logger.error("Checkifcontains array is guilty: " + callLoc);
         }
@@ -166,7 +177,10 @@ public class GeneralChessFunctions {
     }
 
     public static int getBoardWithPiece(int x, int y, boolean isWhite, BitBoardWrapper board) {
-        long bitIndex = GeneralChessFunctions.positionToBitboard(x, y);
+        int bitIndex = GeneralChessFunctions.positionToBitIndex(x, y);
+        return getBoardWithPiece(bitIndex,isWhite,board);
+    }
+    public static int getBoardWithPiece(int bitIndex, boolean isWhite, BitBoardWrapper board) {
         if (bitIndex == ChessConstants.EMPTYINDEX) {
             logger.error("Get board with piece specific is guilty ");
         }
@@ -174,15 +188,14 @@ public class GeneralChessFunctions {
         long[] blackPieces = board.getBlackPiecesBB();
         if (isWhite) {
             for (int i = 0; i < whitePieces.length; i++) {
-                long sum = bitIndex & whitePieces[i];
-                if (sum != 0L) {
+                if(GeneralChessFunctions.checkIfContains(bitIndex,whitePieces[i])){
                     return i;
                 }
+
             }
         } else {
             for (int i = 0; i < blackPieces.length; i++) {
-                long sum = bitIndex & blackPieces[i];
-                if (sum != 0L) {
+                if(GeneralChessFunctions.checkIfContains(bitIndex,blackPieces[i])){
                     return i;
                 }
             }

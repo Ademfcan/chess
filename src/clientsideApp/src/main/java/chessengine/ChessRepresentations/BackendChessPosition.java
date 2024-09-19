@@ -153,11 +153,24 @@ public class BackendChessPosition extends ChessPosition {
             // promo with new peice at new location
             int promoIndex = move.getPromoIndx();
             board.addPiece(newBitIndex,promoIndex,friendlyColor);
+//            board.updateAttackMask(promoIndex,friendlyColor);
         } else {
             // move to new place as usual
             board.addPiece(newBitIndex,peiceType,friendlyColor);
         }
+//        board.updateAttackMask(peiceType,friendlyColor);
+//        if(move.isCastleMove()){
+//            board.updateAttackMask(ChessConstants.ROOKINDEX,friendlyColor);
+//        }
+//        if(move.isEating()){
+//            board.updateAttackMask(eatingIndex,enemyColor);
+//        }
+//        if(move.isEnPassant()){
+//            board.updateAttackMask(ChessConstants.PAWNINDEX,enemyColor);
+//
+//        }
         board.updateAttackMasks();
+
         movesThatCreated.push(this.getMoveThatCreatedThis());
         super.setMoveThatCreatedThis(move);
 
@@ -236,10 +249,21 @@ public class BackendChessPosition extends ChessPosition {
             // remove promo with at new location
             int promoIndex = move.getPromoIndx();
             board.removePiece(newBitIndex,promoIndex,friendlyColor);
+//            board.updateAttackMask(promoIndex,friendlyColor);
         } else {
             // remove new place
             board.removePiece(newBitIndex,peiceType,friendlyColor);
         }
+//        board.updateAttackMask(peiceType,friendlyColor);
+//        if(move.isCastleMove()){
+//            board.updateAttackMask(ChessConstants.ROOKINDEX,friendlyColor);
+//        }
+//        if(move.isEating()){
+//            board.updateAttackMask(eatingIndex,enemyColor);
+//        }
+//        if(move.isEnPassant()){
+//            board.updateAttackMask(ChessConstants.PAWNINDEX,enemyColor);
+//        }
         board.updateAttackMasks();
         setMoveThatCreatedThis(movesThatCreated.pop());
         isDraw = false;

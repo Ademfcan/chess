@@ -106,7 +106,6 @@ public class Computer {
         }
 
         int threadCount = Math.min(Math.max(Runtime.getRuntime().availableProcessors() - 1, 1), filteredPositions.size());
-//        int threadCount = Math.max(Runtime.getRuntime().availableProcessors() - 1, 1);
         logger.debug("Thread count: " + threadCount);
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         List<Future<MoveOutput>> futures = new ArrayList<>();
@@ -269,10 +268,10 @@ public class Computer {
 //            extension += 2;
         }
         long currentTime = System.currentTimeMillis();
-        if(currentTime-callTimeMs > ChessConstants.MAXTIMEMS){
-            TIMEOUTFLAG = true;
-            return TIMEOUT;
-        }
+//        if(currentTime-callTimeMs > ChessConstants.MAXTIMEMS){
+//            TIMEOUTFLAG = true;
+//            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+//        }
 
 //        long key = hasher.computeHash(position.board, isWhiteTurn);
 ////         flip board for inverse position check
@@ -317,32 +316,31 @@ public class Computer {
 
         // recursive part
         EvalOutput bestEval = isWhiteTurn ?  new EvalOutput(Double.NEGATIVE_INFINITY) : new EvalOutput(Double.POSITIVE_INFINITY) ;
-        for (int i = 0; i < possibleMoves.size(); i++) {
-            ChessMove c = possibleMoves.get(i);
+        for (ChessMove c : possibleMoves) {
             position.makeLocalPositionMove(c);
             EvalOutput out = miniMax(position, depth - 1, alpha, beta, !isWhiteTurn, extension);
             position.undoLocalPositionMove();
             if (out == Stopped) {
                 return Stopped;
             }
-            if(TIMEOUTFLAG){
-                break;
-            }
-            if(isWhiteTurn){
+
+            if (isWhiteTurn) {
                 bestEval = max(out, bestEval);
                 alpha = Math.max(alpha, out.getAdvantage());  // Update alpha after the recursive call
 
-            }
-            else{
+            } else {
                 bestEval = min(out, bestEval);
                 beta = Math.min(beta, out.getAdvantage());  // Update beta after the recursive call
             }
             if (beta <= alpha) {
                 break;
             }
-            if (depth == currentDifficulty.depth - 1) {
-//                transTable.put(key, out.getAdvantage());
+            if (TIMEOUTFLAG) {
+                break;
             }
+//            if (depth == currentDifficulty.depth - 1) {
+//                transTable.put(key, out.getAdvantage());
+//            }
 
         }
 

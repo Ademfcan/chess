@@ -11,6 +11,49 @@ import java.util.List;
 public class BitFunctions {
     private static MagicBitboardGenerator m = new MagicBitboardGenerator();
 
+    public static long generateHorizontalRookMask(int bitIndex){
+        int[] xy = bitindexToXY(bitIndex);
+        // shift a horizontal line bitmask from the bottom upwards by the y component of the bitindex
+        return 0xFFL << 8*xy[1];
+    }
+    public static long generateVerticalRookMask(int bitIndex){
+        int[] xy = bitindexToXY(bitIndex);
+        // shift a vertical line bitmask from the left to right by the x component of the bitindex
+        // then & it with another bitmask to avoid overflow
+        // lastly use bitwise or to handle wraparound
+        return (0x0101010101010101L << (xy[0]));
+    }
+
+    public static long generateRtLBishopMask(int bitIndex){
+        int[] xy = bitindexToXY(bitIndex);
+        // find the bottom point of the line with slope 1 as to find the origin of bishop files
+        int rightMinDist = Math.min(xy[0],xy[1]);
+        int rightOriginX = xy[0]-rightMinDist;
+        int rightOriginY = xy[1]-rightMinDist;
+        // shift the right mask by the right origin values
+        long bishopRightToLeftMask = 0x8040201008040201L;
+        bishopRightToLeftMask <<= rightOriginX;
+        bishopRightToLeftMask &= generateClipMaskForRightX(rightOriginX); // Ensure no wrap-around occurs
+        bishopRightToLeftMask <<= (8 * rightOriginY); // shift upward
+
+
+        return bishopRightToLeftMask;
+    }
+
+    public static long generateLtRBishopMask(int bitIndex){
+        int[] xy = bitindexToXY(bitIndex);
+        // now find the bottom point of line with slope -1
+        int leftMinDist = Math.min(7-xy[0],xy[1]);
+        int leftOriginX = xy[0]+leftMinDist;
+        int leftOriginY = xy[1]-leftMinDist;
+        // shift the left mask by the left origin values
+        long bishopLeftToRightMask = 0x0102040810204080L;
+        bishopLeftToRightMask >>= (7-leftOriginX); // shift
+        bishopLeftToRightMask &= generateClipMaskForLeftX(leftOriginX); // shift
+        bishopLeftToRightMask <<= (8* leftOriginY); // shift upward
+
+        return bishopLeftToRightMask;
+    }
 
     public static long generateRookMoveMask(int bitindex){
         int[] xy = bitindexToXY(bitindex);
@@ -227,28 +270,48 @@ public class BitFunctions {
 
     }
 
+    public static Long calculateRookAttackBitBoard(int bitIndex,boolean isWhite,boolean includeFriends,long customPieceBoard,BitBoardWrapper board){
+        long rookMaskNoEdges = BitFunctions.generateRookMoveMaskNoEdges(bitIndex);
+        long key = m.getRookMagicKey(customPieceBoard & rookMaskNoEdges,bitIndex);
+        long possibleMoves = m.rookMap[bitIndex][(int)key];
+        // remove friendly pieces
+        if(!includeFriends){
+            return possibleMoves & ~ (isWhite ? board.getWhitePieceMask() : board.getBlackPieceMask());
+        }
+        return possibleMoves;
+    }
+
+    public static Long calculateBishopAttackBitBoard(int bitIndex,boolean isWhite,boolean includeFriends,long customPieceBoard,BitBoardWrapper board){
+        long bishopMaskNoEdges = BitFunctions.generateBishopMoveMaskNoEdges(bitIndex);
+        long key = m.getBishopMagicKey(customPieceBoard & bishopMaskNoEdges ,bitIndex);
+        long possibleMoves = m.bishopMap[bitIndex][(int)key];
+        // remove friendly pieces
+        if(!includeFriends){
+            return possibleMoves & ~ (isWhite ? board.getWhitePieceMask() : board.getBlackPieceMask());
+        }
+        return possibleMoves;
+
+    }
+
+
+    public static Long calculateQueenAtackBitboard(int bitIndex,boolean isWhite,boolean includeFriends,BitBoardWrapper board){
+        return calculateRookAttackBitBoard(bitIndex,isWhite,includeFriends,board) | calculateBishopAttackBitBoard(bitIndex,isWhite,includeFriends,board);
+    }
+    public static Long calculateQueenAtackBitboard(int bitIndex,boolean isWhite,boolean includeFriends,long customPieceBoard,BitBoardWrapper board){
+        return calculateRookAttackBitBoard(bitIndex,isWhite,includeFriends,customPieceBoard,board) | calculateBishopAttackBitBoard(bitIndex,isWhite,includeFriends,customPieceBoard,board);
+    }
+
     // todo make these bitwise
 
-    public static long calculatePawnMask(int index, boolean isWhitePiece, BitBoardWrapper bitBoardWrapper) {
+    public static long calculatePawnAttackMask(int index, boolean isWhitePiece, BitBoardWrapper bitBoardWrapper) {
         int[] xy = bitindexToXY(index);
-        List<XYcoord> pawnMoves = AdvancedChessFunctions.calculatePawnMoves(xy[0],xy[1],isWhitePiece,new ChessPosition(bitBoardWrapper, ChessConstants.startMove),true, true);
-        long mask = 0L;
-        for(XYcoord c : pawnMoves){
-            mask = GeneralChessFunctions.AddPeice(c.x,c.y,mask);
-        }
-
-        return mask;
+        return AdvancedChessFunctions.calculatePawnMoves(xy[0],xy[1],isWhitePiece,new ChessPosition(bitBoardWrapper, ChessConstants.startMove),true, true);
 
     }
 
     public static long calculateKnightAttackBitBoard(int index, boolean isWhitePiece, BitBoardWrapper bitBoardWrapper) {
         int[] xy = bitindexToXY(index);
-        List<XYcoord> pawnMoves = AdvancedChessFunctions.calculateKnightMoves(xy[0],xy[1],isWhitePiece,false,bitBoardWrapper,true, true);
-        long mask = 0L;
-        for(XYcoord c : pawnMoves){
-           mask =  GeneralChessFunctions.AddPeice(c.x,c.y,mask);
-        }
-        return mask;
+        return AdvancedChessFunctions.calculateKnightMoves(xy[0],xy[1],isWhitePiece,bitBoardWrapper,true, true);
     }
 
     public static long calculateKingAttackBitboard(int index, boolean isWhitePiece, BitBoardWrapper bitBoardWrapper) {

@@ -6,9 +6,7 @@ import chessengine.Misc.ChessConstants;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class BitBoardWrapper {
 
@@ -21,8 +19,20 @@ public class BitBoardWrapper {
     private long[] blackAttackTables;
     private XYcoord whiteKingLocation;
     private XYcoord blackKingLocation;
-    private long tempChange;
-    private int tempIndex;
+
+    public int getWhitePieceCount() {
+        return whitePieceCount;
+    }
+
+    public int getBlackPieceCount() {
+        return blackPieceCount;
+    }
+
+    private int whitePieceCount = 0;
+    private int blackPieceCount = 0;
+    private int tempOldIndex;
+    private int tempBoardIndex;
+    private int tempNewIndex;
     private boolean tempIsWhite;
 
     public BitBoardWrapper(long[] whitePiecesBB, long[] blackPiecesBB) {
@@ -36,11 +46,13 @@ public class BitBoardWrapper {
             whitePieces[i] = new HashSet<>();
             blackPieces[i] = new HashSet<>();
             for(int index : whitePieceLocations){
-                System.out.println("White index: " + index);
+//                System.out.println("White index: " + index);
+                whitePieceCount++;
                 whitePieces[i].add(index);
             }
             for(int index : blackPieceLocations){
-                System.out.println("Black index: " + index);
+//                System.out.println("Black index: " + index);
+                blackPieceCount++;
                 blackPieces[i].add(index);
             }
         }
@@ -52,7 +64,7 @@ public class BitBoardWrapper {
             updateAttackMask(i, true);
             updateAttackMask(i, false);
         }
-        this.tempIndex = ChessConstants.EMPTYINDEX;
+        this.tempNewIndex = ChessConstants.EMPTYINDEX;
     }
 
     public void updateAttackMasks(){
@@ -64,7 +76,7 @@ public class BitBoardWrapper {
 
     public BitBoardWrapper(HashSet<Integer>[] whitePieces, HashSet<Integer>[] blackPieces, long[] whitePiecesBB,
                            long[] blackPiecesBB, long[] whiteAttackTables, long[] blackAttackTables, XYcoord whiteKingLocation,
-                           XYcoord blackKingLocation, long tempChange, int tempIndex, boolean tempIsWhite) {
+                           XYcoord blackKingLocation, int tempChange, int tempIndex,int tempBoardIndex, boolean tempIsWhite) {
         this.whitePieces = whitePieces;
         this.blackPieces = blackPieces;
         this.whitePiecesBB = whitePiecesBB;
@@ -73,9 +85,10 @@ public class BitBoardWrapper {
         this.blackAttackTables = blackAttackTables;
         this.whiteKingLocation = whiteKingLocation;
         this.blackKingLocation = blackKingLocation;
-        this.tempChange = tempChange;
-        this.tempIndex = tempIndex;
+        this.tempOldIndex = tempChange;
+        this.tempNewIndex = tempIndex;
         this.tempIsWhite = tempIsWhite;
+        this.tempBoardIndex = tempBoardIndex;
     }
 
     public HashSet<Integer>[] getWhitePieces() {
@@ -109,17 +122,24 @@ public class BitBoardWrapper {
     public long getBlackAttackTableCombined(){
         return blackAttackTables[0] | blackAttackTables[1] | blackAttackTables[2] | blackAttackTables[3] | blackAttackTables[4] | blackAttackTables[5];
     }
+    public long getWhiteSlidingAttackers(){
+        return whiteAttackTables[2] | whiteAttackTables[3] | whiteAttackTables[4] | whiteAttackTables[5];
+    }
+
+    public long getBlackSlidingAttackers(){
+        return blackAttackTables[2] | blackAttackTables[3] | blackAttackTables[4] | blackAttackTables[5];
+    }
 
     /**
      * adds a piece to the given bitindex
      **/
-    private void updateAttackMask(int pieceIndex, boolean isWhitePiece) {
+    public void updateAttackMask(int pieceIndex, boolean isWhitePiece) {
         long mask = 0L;
         HashSet<Integer>[] pieces = isWhitePiece ? whitePieces : blackPieces;
         for (int index : pieces[pieceIndex]) {
             switch (pieceIndex) {
                 case ChessConstants.PAWNINDEX -> {
-                    mask |= BitFunctions.calculatePawnMask(index, isWhitePiece, this);
+                    mask |= BitFunctions.calculatePawnAttackMask(index, isWhitePiece, this);
                 }
                 case ChessConstants.KNIGHTINDEX -> {
                     mask |= BitFunctions.calculateKnightAttackBitBoard(index, isWhitePiece, this);
@@ -131,7 +151,7 @@ public class BitBoardWrapper {
                     mask |= BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true,this);
                 }
                 case ChessConstants.QUEENINDEX -> {
-                    mask |= (BitFunctions.calculateBishopAttackBitBoard(index, isWhitePiece, true,this) | BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true,this));
+                    mask |= BitFunctions.calculateQueenAtackBitboard(index, isWhitePiece, true,this);
                 }
                 case ChessConstants.KINGINDEX -> {
                     mask |= BitFunctions.calculateKingAttackBitboard(index, isWhitePiece, this);
@@ -151,25 +171,29 @@ public class BitBoardWrapper {
     public void addPiece(int bitIndex, int pieceIndex, boolean isWhitePiece) {
 //        System.out.println("adding : " + isWhitePiece + " " + GeneralChessFunctions.getPieceType(pieceIndex) + " at : " + bitIndex);
         if (isWhitePiece) {
+            whitePieceCount++;
             whitePiecesBB[pieceIndex] = GeneralChessFunctions.AddPeice(bitIndex, whitePiecesBB[pieceIndex]);
             whitePieces[pieceIndex].add(bitIndex);
         } else {
+            blackPieceCount++;
             blackPiecesBB[pieceIndex] = GeneralChessFunctions.AddPeice(bitIndex, blackPiecesBB[pieceIndex]);
             blackPieces[pieceIndex].add(bitIndex);
         }
-        updateAttackMask(pieceIndex, isWhitePiece);
+//        updateAttackMask(pieceIndex, isWhitePiece);
     }
 
     public void removePiece(int bitIndex, int pieceIndex, boolean isWhitePiece) {
 //        System.out.println("removing : " + isWhitePiece + " " + GeneralChessFunctions.getPieceType(pieceIndex) + " at : " + bitIndex);
         if (isWhitePiece) {
+            whitePieceCount--;
             whitePiecesBB[pieceIndex] = GeneralChessFunctions.RemovePeice(bitIndex, whitePiecesBB[pieceIndex]);
             whitePieces[pieceIndex].remove(bitIndex);
         } else {
+            blackPieceCount--;
             blackPiecesBB[pieceIndex] = GeneralChessFunctions.RemovePeice(bitIndex, blackPiecesBB[pieceIndex]);
             blackPieces[pieceIndex].remove(bitIndex);
         }
-        updateAttackMask(pieceIndex, isWhitePiece);
+//        updateAttackMask(pieceIndex, isWhitePiece);
 
     }
 
@@ -193,14 +217,14 @@ public class BitBoardWrapper {
      **/
     public boolean contains(int bitIndex, boolean isWhite) {
         if (isWhite) {
-            for (int i = 0; i < whitePieces.length; i++) {
-                if (whitePieces[i].contains(bitIndex)) {
+            for (long l : whitePiecesBB) {
+                if (GeneralChessFunctions.checkIfContains(bitIndex, l)) {
                     return true;
                 }
             }
         } else {
-            for (int i = 0; i < blackPieces.length; i++) {
-                if (blackPieces[i].contains(bitIndex)) {
+            for (long l : blackPiecesBB) {
+                if (GeneralChessFunctions.checkIfContains(bitIndex, l)) {
                     return true;
                 }
             }
@@ -213,7 +237,7 @@ public class BitBoardWrapper {
      * Flips each bitboard one by one then also updates king location
      **/
     public void flipBoard() {
-        if (tempIndex == ChessConstants.EMPTYINDEX) {
+        if (tempNewIndex == ChessConstants.EMPTYINDEX) {
             for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {
                 whitePiecesBB[i] = Long.reverse(whitePiecesBB[i]);
                 blackPiecesBB[i] = Long.reverse(blackPiecesBB[i]);
@@ -270,14 +294,14 @@ public class BitBoardWrapper {
         HashSet<Integer>[] newWhitePieces = new HashSet[whitePieces.length];
         HashSet<Integer>[] newBlackPieces = new HashSet[blackPieces.length];
         for (int i = 0; i < whitePieces.length; i++) {
-            newWhitePieces[i] = (HashSet<Integer>) whitePieces[i].clone();
-            newBlackPieces[i] = (HashSet<Integer>) blackPieces[i].clone();
+            newWhitePieces[i] = new HashSet<>(whitePieces[i]);
+            newBlackPieces[i] = new HashSet<>(blackPieces[i]);
         }
         return new BitBoardWrapper(newWhitePieces, newBlackPieces,
                 Arrays.copyOf(this.whitePiecesBB, this.whitePiecesBB.length), Arrays.copyOf(this.blackPiecesBB, this.blackPiecesBB.length),
-                Arrays.copyOf(whiteAttackTables, whiteAttackTables.length), Arrays.copyOf(blackAttackTables, blackAttackTables.length),
+                Arrays.copyOf(this.whiteAttackTables, whiteAttackTables.length), Arrays.copyOf(this.blackAttackTables, blackAttackTables.length),
                 new XYcoord(this.whiteKingLocation.x, this.whiteKingLocation.y), new XYcoord(this.blackKingLocation.x, this.blackKingLocation.y),
-                tempChange, tempIndex, tempIsWhite);
+                tempOldIndex, tempNewIndex,tempBoardIndex, tempIsWhite);
     }
 
     public void setKingLocation(boolean isWhite, XYcoord kingLocation) {
@@ -287,20 +311,19 @@ public class BitBoardWrapper {
             blackKingLocation = kingLocation;
         }
     }
-
+    static int a = 0;
 
     public void makeTempChange(int oldX, int oldY, int newX, int newY, int boardIndex, boolean isWhiteBoard) {
-        if (tempIndex == ChessConstants.EMPTYINDEX) {
-            long changingBoard = isWhiteBoard ? whitePiecesBB[boardIndex] : blackPiecesBB[boardIndex];
-            tempChange = changingBoard;
-            changingBoard = GeneralChessFunctions.RemovePeice(oldX, oldY, changingBoard);
-            changingBoard = GeneralChessFunctions.AddPeice(newX, newY, changingBoard);
-            if (isWhiteBoard) {
-                whitePiecesBB[boardIndex] = changingBoard;
-            } else {
-                blackPiecesBB[boardIndex] = changingBoard;
-            }
-            tempIndex = boardIndex;
+        if (tempNewIndex == ChessConstants.EMPTYINDEX) {
+//            System.out.println(a++);
+            int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX,oldY);
+            int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX,newY);
+            addPiece(newBitIndex,boardIndex,isWhiteBoard);
+            removePiece(oldBitIndex,boardIndex,isWhiteBoard);
+            updateAttackMasks();
+            tempNewIndex = newBitIndex;
+            tempOldIndex = oldBitIndex;
+            tempBoardIndex = boardIndex;
             tempIsWhite = isWhiteBoard;
         } else {
             ChessConstants.mainLogger.error("Cannot make another temp change, one is already present");
@@ -311,14 +334,13 @@ public class BitBoardWrapper {
 
 
     public void popTempChange() {
-        if (tempIndex != ChessConstants.EMPTYINDEX) {
-            if (tempIsWhite) {
-                whitePiecesBB[tempIndex] = tempChange;
-            } else {
-                blackPiecesBB[tempIndex] = tempChange;
-            }
-            tempIndex = ChessConstants.EMPTYINDEX;
-
+        if (tempNewIndex != ChessConstants.EMPTYINDEX) {
+//            System.out.println("popping");
+            removePiece(tempNewIndex,tempBoardIndex,tempIsWhite);
+            addPiece(tempOldIndex,tempBoardIndex,tempIsWhite);
+            updateAttackMasks();
+            tempNewIndex = ChessConstants.EMPTYINDEX;
+            tempOldIndex = ChessConstants.EMPTYINDEX;
         } else {
             ChessConstants.mainLogger.error("Trying to pop temp change when not active!");
         }
@@ -327,7 +349,7 @@ public class BitBoardWrapper {
     }
 
     public void keepTempChange() {
-        tempIndex = ChessConstants.EMPTYINDEX;
+        tempNewIndex = ChessConstants.EMPTYINDEX;
     }
 
 

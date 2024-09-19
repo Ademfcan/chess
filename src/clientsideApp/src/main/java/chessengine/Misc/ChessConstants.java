@@ -79,5 +79,5 @@ public class ChessConstants {
     public static int DefaultWaitTime = 1000; // ms;
     public static int evalDepth = 5;
 
-    public static final int MAXTIMEMS = 1000;
+    public static final int MAXTIMEMS = 5000;
 }

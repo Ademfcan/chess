@@ -44,13 +44,8 @@ public class XYcoord {
         this.peiceType = ChessConstants.EMPTYINDEX;
     }
 
-    public boolean isCastleMove() {
-        return isCastleMove;
-    }
 
-    public boolean isPawnPromo() {
-        return isPawnPromo;
-    }
+
 
     public void setPawnPromo(boolean pawnPromo) {
         isPawnPromo = pawnPromo;
@@ -59,10 +54,6 @@ public class XYcoord {
     /**
      * inline setting pawn promo
      **/
-    public XYcoord setPromoHack(boolean pawnPromo) {
-        isPawnPromo = pawnPromo;
-        return this;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -78,13 +69,7 @@ public class XYcoord {
 
     }
 
-    public boolean isEnPassant() {
-        return enPassant;
-    }
 
-    public void setEnPassant(boolean enPassant) {
-        this.enPassant = enPassant;
-    }
 
     public String toString() {
         return "X: " + x + " Y: " + y + " Is castle move?: " + isCastleMove;

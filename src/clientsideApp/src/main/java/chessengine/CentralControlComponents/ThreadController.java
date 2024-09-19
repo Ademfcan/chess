@@ -19,13 +19,13 @@ public class ThreadController {
         new Thread((simTask)).start();
 
         evalTask = new EvaluationBarTask(new Computer(),control);
-//        new Thread(evalTask).start();
+        new Thread(evalTask).start();
 
         computerTask = new GetComputerMoveTask(chessAiForBestMove, control);
         new Thread(computerTask).start();
 
         nMovesTask = new BestNMovesTask(new Computer(),control);
-//        new Thread(nMovesTask).start();
+        new Thread(nMovesTask).start();
 
     }
 

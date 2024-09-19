@@ -2,6 +2,8 @@ package chessengine;
 
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.BitFunctions;
+import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,30 @@ public class AdvancedChessFunctionsTests {
     }
 
     @Test void pawnPromotionCheck(){
+
+    }
+
+    @Test void willResultInDeadChecks(){
+        ChessGame game = ChessGame.createTestGame("1.e4 d5 2.Bb5+ c6 3.Ba4 Na6 4.b3 ",false);
+        game.moveToEndOfGame(false);
+        // todo
+//        System.out.println(AdvancedChessFunctions.willResultInDead());
+    }
+
+    @Test void checkedFileTests(){
+        String[] pgns = {
+                // 1. Simple Check by a Rook
+//                "1.e4 d5 2.Bb5",
+                "1.e4 h6 2.e5 Na6 3.e6 dxe6 4.Qh5 Qxd2+"
+        };
+        for(String pgn : pgns){
+            ChessGame game = ChessGame.createTestGame(pgn,false);
+            game.moveToEndOfGame(false);
+            GeneralChessFunctions.printBoardDetailed(game.currentPosition.board);
+            System.out.println(AdvancedChessFunctions.createPinMask(2,1, game.isWhiteTurn(),game.currentPosition.board));
+            System.out.println(BitFunctions.getBitStr(AdvancedChessFunctions.getCheckedFileMask(game.isWhiteTurn(),game.currentPosition.board)));
+
+        }
 
     }
 
