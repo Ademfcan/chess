@@ -262,7 +262,8 @@ public class Computer {
 //
 //            }
 //            if (moveExtension == 0) {
-            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+//            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+            return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
 //            }
 //            depth += moveExtension;
 //            extension += 2;
@@ -348,6 +349,49 @@ public class Computer {
 
 
 
+    }
+
+    public double quiescenceSearch(BackendChessPosition position,double alpha, double beta,boolean isWhiteTurn) {
+        // Static evaluation of the current position
+        double eval = ComputerHelperFunctions.getFullEval(position,position.gameState,isWhiteTurn,false)*(isWhiteTurn ? 1 : -1);
+
+        // Alpha-Beta pruning: if the evaluation already exceeds beta, cut off search
+        if (eval >= beta) {
+            return beta;
+        }
+
+        // Raise alpha if the position's static evaluation is better than alpha
+        if (eval > alpha) {
+            alpha = eval;
+        }
+
+        // Generate all legal capture moves
+        List<ChessMove> captureMoves = position.getAllChildMoves(isWhiteTurn,position.gameState).stream().filter(m -> ComputerHelperFunctions.isNotQuiet(position.board,m)).toList();
+
+        // Evaluate all capture moves
+        for (ChessMove move : captureMoves) {
+            // Apply the move
+            position.makeLocalPositionMove(move);
+
+            // Recursively search this position
+            double score = -quiescenceSearch(position,-beta, -alpha,!isWhiteTurn);
+
+            // Undo the move
+            position.undoLocalPositionMove();
+
+            // If the score exceeds beta, cut off search (beta-cutoff)
+            if (score >= beta) {
+                return beta;
+            }
+
+            // If the score is better than alpha, update alpha
+            if (score > alpha) {
+                alpha = score;
+            }
+        }
+
+        // Return the best evaluation found
+        return alpha;
     }
 
     protected EvalOutput min(EvalOutput m1, EvalOutput m2) {

@@ -237,4 +237,8 @@ public class ComputerHelperFunctions {
 
         return moveValueGuess;// todo
     }
+
+    public static boolean isNotQuiet(BitBoardWrapper board, ChessMove m) {
+        return m.isEating();
+    }
 }
