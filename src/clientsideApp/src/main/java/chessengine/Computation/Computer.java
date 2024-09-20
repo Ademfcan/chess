@@ -262,8 +262,8 @@ public class Computer {
 //
 //            }
 //            if (moveExtension == 0) {
-//            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
-            return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
+                return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+//            return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
 //            }
 //            depth += moveExtension;
 //            extension += 2;
