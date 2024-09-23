@@ -151,7 +151,7 @@ public class ComputerHelperFunctions {
             }
         }
         double total = sum1 - sum2;
-        total += kingDistanceAncCornerEval(king1, king2, isWhiteTurn ? whitePieceCount : blackPieceCount, isWhiteTurn) * (isWhiteTurn ? 1 : -1);
+//        total += kingDistanceAncCornerEval(king1, king2, isWhiteTurn ? blackPieceCount : whitePieceCount, isWhiteTurn) * (isWhiteTurn ? 1 : -1);
         return total;
 
     }
@@ -164,7 +164,7 @@ public class ComputerHelperFunctions {
         int xDist = Math.abs(king1.x - king2.x);
         int yDist = Math.abs(king1.y - king2.y);
         int distanceKingsvalue = 14 - (xDist + yDist);
-        double weight = 1 - ((double) piecesOnBoard / ChessConstants.ONESIDEPIECECOUNT);
+        double weight = (1 - ((double) piecesOnBoard / ChessConstants.ONESIDEPIECECOUNT))/2;
         return (distanceKingsvalue + distFromCenterValue) * weight;
     }
 

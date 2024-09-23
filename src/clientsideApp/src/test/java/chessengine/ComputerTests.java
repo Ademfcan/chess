@@ -104,7 +104,7 @@ public class ComputerTests {
 //        System.out.println(cnt++);
 
         int objKey = Objects.hash(position.hashCode(),isWhiteTurn);
-        long zobKey = hasher.computeHash(position.board,isWhiteTurn);
+        long zobKey = hasher.computeHash(position.board);
         if(zobristMap.containsKey(zobKey)){
 //            logger.info("Transtable value being used");
             TestContainer oldPos = zobristMap.get(zobKey);
@@ -184,7 +184,7 @@ public class ComputerTests {
     @Test void castlingTest(){
         ChessGame game = ChessGame.createTestGame("1.e4 e5 2.Nf3 Nf6 3.Bc4 Bc5 4.h4 h5",true);
         game.moveToEndOfGame(false);
-        BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameState,false);
+        BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameState, game.isWhiteTurn());
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
         castleTest.makeLocalPositionMove(castleMove);

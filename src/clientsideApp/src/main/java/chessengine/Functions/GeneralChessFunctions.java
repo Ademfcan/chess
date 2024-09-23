@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 
@@ -141,6 +140,21 @@ public class GeneralChessFunctions {
         }
 
         return coord;
+    }
+
+    public static XYcoord[] getPieceCoordsArray(long board) {
+        XYcoord[] coords = new XYcoord[Long.bitCount(board)];
+        int count = 0;
+        for (int z = 0; z < 64; z++) {
+            long mask = 1L << z;
+
+            if ((board & mask) != 0) {
+                int[] c = BitFunctions.bitindexToXY(z);
+                coords[count++] = new XYcoord(c[0], c[1]);
+            }
+        }
+
+        return coords;
     }
 
     public static int[] getAllPieceIndexes(long board) {

@@ -45,6 +45,7 @@ public class ChessConstants {
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
     public static final double[] valueMap = {1.5, 3.25, 3.3, 5.25, 10, 100};
+    public static final int[] valueMapCentiPawn = {100, 300, 310, 500, 1000, 1000000};
     public static final String arrowColor = "rgba(255,181,10,.8)";
     public static final String moveArrowColor = "rgba(20,181,255,.8)";
     public static final String InnerMoveCircleColor = "rgba(60,60,60, 0.40)";
@@ -53,6 +54,7 @@ public class ChessConstants {
     public static final Background whiteTurnActive = new Background(new BackgroundFill(Paint.valueOf("rgb(255,255,255)"), new CornerRadii(5), null));
     public static final Background gameOverBackground = new Background(new BackgroundFill(Paint.valueOf("rgba(175,175,175,.67)"), CornerRadii.EMPTY, null));
     public static final int NMOVES = 4;
+    public static final int NONE = Integer.MIN_VALUE;
     private static final long blackPawns = 0b0000000000000000000000000000000000000000000000001111111100000000L;
     private static final long blackKnights = 0b0000000000000000000000000000000000000000000000000000000001000010L;
     private static final long blackBishops = 0b00000000000000000000000000000000000000000000000000000000000100100L;

@@ -4,6 +4,8 @@ import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Computation.Computer;
 import chessengine.Computation.EvalOutput;
+import chessengine.Computation.SearchResult;
+import chessengine.Computation.Searcher;
 import chessengine.Misc.ChessConstants;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -21,6 +23,7 @@ public class EvaluationBarTask extends Task<Void> {
     private volatile boolean running = true;
     private int lastIndex = ChessConstants.EMPTYINDEX;
 
+    private final Searcher searcher = new Searcher();
     public EvaluationBarTask(Computer c, ChessCentralControl myControl) {
         this.c = c;
         this.myControl = myControl;

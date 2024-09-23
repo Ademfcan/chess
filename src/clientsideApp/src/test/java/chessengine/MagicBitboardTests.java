@@ -49,8 +49,7 @@ public class MagicBitboardTests {
 
     }
 
-    @Test
-    void  MagicBishopGenerationTest(){
+    @Test void  MagicBishopGenerationTest(){
         String[] pgns = {
                 // Good test cases
                 "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5.O-O Nxe4", // Ruy Lopez, Berlin Defense
@@ -90,36 +89,36 @@ public class MagicBitboardTests {
     @Test void rookMaskTests(){
         for(int i = 0;i<64;i++){
             System.out.println(BitFunctions.getBitStr(BitFunctions.generateRookMoveMask(i)));
-            try {
-                Thread.sleep(1000);
-            }
-            catch (Exception e){
-                System.out.println(e.getStackTrace());
-            }
+//            try {
+//                Thread.sleep(1000);
+//            }
+//            catch (Exception e){
+//                System.out.println(e.getStackTrace());
+//            }
 
         }
     }
     @Test void rookMaskNoEdgeTests(){
         for(int i = 0;i<64;i++){
             System.out.println(BitFunctions.getBitStr(BitFunctions.generateRookMoveMaskNoEdges(i)));
-            try {
-                Thread.sleep(1000);
-            }
-            catch (Exception e){
-                System.out.println(e.getStackTrace());
-            }
+//            try {
+//                Thread.sleep(1000);
+//            }
+//            catch (Exception e){
+//                System.out.println(e.getStackTrace());
+//            }
 
         }
 
     }
     @Test void bishopMaskTests(){
         for(int i = 0;i<64;i++){
-            try {
-                Thread.sleep(1000);
-            }
-            catch (Exception e){
-                System.out.println(e.getStackTrace());
-            }
+//            try {
+//                Thread.sleep(1000);
+//            }
+//            catch (Exception e){
+//                System.out.println(e.getStackTrace());
+//            }
             System.out.println(BitFunctions.getBitStr(BitFunctions.generateBishopMoveMask(i),i));
 
         }
@@ -128,12 +127,12 @@ public class MagicBitboardTests {
     @Test void bishopMaskNoEdgeTests(){
         for(int i = 0;i<64;i++){
             System.out.println(BitFunctions.getBitStr(BitFunctions.generateBishopMoveMaskNoEdges(i)));
-            try {
-                Thread.sleep(1000);
-            }
-            catch (Exception e){
-                System.out.println(e.getStackTrace());
-            }
+//            try {
+//                Thread.sleep(1000);
+//            }
+//            catch (Exception e){
+//                System.out.println(e.getStackTrace());
+//            }
 
         }
     }
@@ -144,12 +143,12 @@ public class MagicBitboardTests {
             long[] blockerPositions = BitFunctions.createAllBlockerBitMasks(moveMask);
 //            for(long blockerPosition : blockerPositions){
                 System.out.println(BitFunctions.getBitStr(blockerPositions[blockerPositions.length-1]));
-                try {
-                    Thread.sleep(1000);
-                }
-                catch (Exception e){
-                    System.out.println(e.getStackTrace());
-                }
+//                try {
+//                    Thread.sleep(1000);
+//                }
+//                catch (Exception e){
+//                    System.out.println(e.getStackTrace());
+//                }
 //            }
 
         }
@@ -163,12 +162,12 @@ public class MagicBitboardTests {
                 System.out.println(BitFunctions.getBitStr(blockerPosition));
                 System.out.println("---------------------------");
                 System.out.println(BitFunctions.getBitStr(BitFunctions.generateLegalRookMoveBitboard(i,blockerPosition)));
-                try {
-                    Thread.sleep(2000);
-                }
-                catch (Exception e){
-                    System.out.println(e.getStackTrace());
-                }
+//                try {
+//                    Thread.sleep(2000);
+//                }
+//                catch (Exception e){
+//                    System.out.println(e.getStackTrace());
+//                }
             }
 
         }

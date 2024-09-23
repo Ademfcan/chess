@@ -3,7 +3,9 @@ package chessengine.CentralControlComponents;
 import chessengine.*;
 import chessengine.Audio.Effect;
 import chessengine.ChessRepresentations.*;
+import chessengine.Computation.MoveGenerator;
 import chessengine.Computation.MoveOutput;
+import chessengine.Computation.PromotionType;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.*;
 import chessengine.Graphics.Arrow;
@@ -753,11 +755,11 @@ public class ChessActionHandler {
         }
     }
 
+    MoveGenerator moveGenerator = new MoveGenerator();
     public void handleSquareClick(int clickX, int clickY, boolean isHitPiece, boolean isWhiteHitPiece, MainScreenState currentState) {
 //        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.currentPosition.board));
 //        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
 //        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getBlackAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
-        System.out.println(AdvancedChessFunctions.isChecked(isWhiteHitPiece,myControl.gameHandler.currentGame.currentPosition.board));
         int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? clickY : 7 - clickY;
         int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? clickX : 7 - clickX;
         if (prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY) {

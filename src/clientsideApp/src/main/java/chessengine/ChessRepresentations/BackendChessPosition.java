@@ -1,5 +1,6 @@
 package chessengine.ChessRepresentations;
 
+import chessengine.Functions.ZobristHasher;
 import chessengine.Misc.ChessConstants;
 import chessengine.Functions.GeneralChessFunctions;
 
@@ -7,8 +8,13 @@ import java.util.Stack;
 
 public class BackendChessPosition extends ChessPosition {
 
+    private ZobristHasher zobristHasher = new ZobristHasher();
+
+    public boolean isWhiteTurn;
 
     public ChessStates gameState;
+
+    public long zobristKey;
 
     private boolean isDraw;
 
@@ -16,28 +22,32 @@ public class BackendChessPosition extends ChessPosition {
 
     public BackendChessPosition(BackendChessPosition pos, ChessMove newMove) {
         super(pos.addMovesThatCreatedHack(pos, pos.movesThatCreated), pos.gameState, newMove);
+        this.isWhiteTurn = pos.isWhiteTurn;
         this.gameState = pos.gameState;
         this.isDraw = gameState.makeNewMoveAndCheckDraw(this);
         this.movesThatCreated = cloneStack(pos.movesThatCreated);
         // remove the saved entry now
         pos.movesThatCreated.pop();
+        zobristKey = zobristHasher.computeHash(this.board);
 
     }
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isDraw) {
+    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isDraw,boolean isWhiteTurn) {
         super(pos.board, pos.getMoveThatCreatedThis());
         this.gameState = gameState;
         this.isDraw = isDraw;
         this.movesThatCreated = new Stack<>();
+        this.isWhiteTurn = isWhiteTurn;
 
     }
 
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState, int peiceType, boolean isWhite, boolean isCastle,boolean isEating,int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
+    public BackendChessPosition(ChessPosition pos, ChessStates gameState,boolean isWhiteTurn, int peiceType, boolean isWhite, boolean isCastle,boolean isEating,int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
         super(pos, gameState, peiceType, isWhite, isCastle, isEating,eatingIndex,isEnPassant, isPawnPromo, oldX, oldY, newX, newY, promoIndex, false);
         this.gameState = gameState;
         isDraw = this.gameState.makeNewMoveAndCheckDraw(this);
         this.movesThatCreated = new Stack<>();
+        this.isWhiteTurn = isWhiteTurn;
     }
 
     private Stack<ChessMove> cloneStack(Stack<ChessMove> moves) {
@@ -173,9 +183,11 @@ public class BackendChessPosition extends ChessPosition {
 
         movesThatCreated.push(this.getMoveThatCreatedThis());
         super.setMoveThatCreatedThis(move);
+        zobristKey = zobristHasher.computeHash(this.board);
 
 
         isDraw = gameState.makeNewMoveAndCheckDraw(this);
+        isWhiteTurn = !isWhiteTurn;
     }
 
 
@@ -267,6 +279,8 @@ public class BackendChessPosition extends ChessPosition {
         board.updateAttackMasks();
         setMoveThatCreatedThis(movesThatCreated.pop());
         isDraw = false;
+        zobristKey = zobristHasher.computeHash(this.board);
+        isWhiteTurn = !isWhiteTurn;
     }
 
 

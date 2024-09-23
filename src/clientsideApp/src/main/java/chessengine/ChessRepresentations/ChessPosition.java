@@ -129,8 +129,8 @@ public class ChessPosition {
         this.moveThatCreatedThis = moveThatCreatedThis;
     }
 
-    public BackendChessPosition toBackend(ChessStates gameState, boolean isDraw) {
-        return new BackendChessPosition(this, gameState, isDraw);
+    public BackendChessPosition toBackend(ChessStates gameState, boolean isWhiteTurn) {
+        return new BackendChessPosition(this, gameState, gameState.isStaleMated(),isWhiteTurn);
     }
 
     public ChessPosition clonePosition() {
@@ -141,7 +141,7 @@ public class ChessPosition {
         List<BackendChessPosition> childPositionsPriority1 = new ArrayList<>();
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePiecesBB() : board.getBlackPiecesBB());
         for (XYcoord coord : peices) {
-            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState,coord.peiceType);
+            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState,coord.peiceType, false);
             if (Objects.isNull(piecePossibleMoves)) {
                 ChessConstants.mainLogger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
                 return null;
@@ -150,7 +150,7 @@ public class ChessPosition {
             for (XYcoord move : piecePossibleMoves) {
                 int endSquarePiece = GeneralChessFunctions.getBoardWithPiece(move.x, move.y, !isWhite, board);
                 if(endSquarePiece == ChessConstants.KINGINDEX){
-                    System.out.println("You fucked up");
+                    System.out.println("You fucked up childpositions");
                     System.out.println(coord.peiceType);
                     System.out.println(this.getMoveThatCreatedThis() != null ? this.getMoveThatCreatedThis() : "null move");
                     System.out.println(coord.toString());
@@ -163,12 +163,12 @@ public class ChessPosition {
                 boolean isEating = endSquarePiece != ChessConstants.EMPTYINDEX;
                 boolean isEnPassant = coord.peiceType == ChessConstants.PAWNINDEX && !isEating && coord.x != move.x;
                 if (!isPromo) {
-                    BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, isCastle,isEating,endSquarePiece, isEnPassant, false, coord.x, coord.y, move.x, move.y, -10);
+                    BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(),!isWhite, peiceType, isWhite, isCastle,isEating,endSquarePiece, isEnPassant, false, coord.x, coord.y, move.x, move.y, -10);
                     childPositionsPriority1.add(childPos);
                 } else {
                     // pawn promo can be 4 options so have to add them all (knight, bishop,rook,queen)
                     for (int i = ChessConstants.KNIGHTINDEX; i < ChessConstants.KINGINDEX; i++) {
-                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(), peiceType, isWhite, false,isEating,endSquarePiece, false, true, coord.x, coord.y, move.x, move.y, i);
+                        BackendChessPosition childPos = new BackendChessPosition(this.clonePosition(), gameState.cloneState(),!isWhite, peiceType, isWhite, false,isEating,endSquarePiece, false, true, coord.x, coord.y, move.x, move.y, i);
                         childPositionsPriority1.add(childPos);
 
                     }
@@ -186,7 +186,7 @@ public class ChessPosition {
         List<ChessMove> childPositionsPriority1 = new ArrayList<>();
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePiecesBB() : board.getBlackPiecesBB());
         for (XYcoord coord : peices) {
-            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState,coord.peiceType);
+            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState,coord.peiceType, false);
             if (Objects.isNull(piecePossibleMoves)) {
                 ChessConstants.mainLogger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
                 return null;
@@ -194,7 +194,7 @@ public class ChessPosition {
             for (XYcoord move : piecePossibleMoves) {
                 int endSquarePiece = GeneralChessFunctions.getBoardWithPiece(move.x, move.y, !isWhite, board);
                 if(endSquarePiece == ChessConstants.KINGINDEX){
-                    System.out.println("You fucked up");
+                    System.out.println("You fucked up childMoves");
                     System.out.println(coord.peiceType);
                     System.out.println(this.getMoveThatCreatedThis() != null ? this.getMoveThatCreatedThis() : "null move");
                     System.out.println(coord.toString());

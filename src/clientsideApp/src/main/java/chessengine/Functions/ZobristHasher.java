@@ -25,7 +25,7 @@ public class ZobristHasher {
         zobristWhiteToMove[1] = random.nextLong();
     }
 
-    public long computeHash(BitBoardWrapper board, boolean isWhiteMove) {
+    public long computeHash(BitBoardWrapper board) {
         long hash = 0L;
 
         // Loop over the two colors (white and black)
@@ -45,10 +45,6 @@ public class ZobristHasher {
             }
         }
 
-        // XOR in a value based on the side to move
-//        if (isWhiteMove) {
-////            hash ^= zobristWhiteToMove[isWhiteMove ? 0 : 1]; // todo see if needed
-//        }
 
         return hash;
     }

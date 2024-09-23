@@ -131,7 +131,7 @@ public class ChessStates {
         // second check draw by repetition
         // white move not important in this case so just set constant
 //        int hash = newPosition.board.hashCode();
-        long hash = hasher.computeHash(newPosition.board, false);
+        long hash = hasher.computeHash(newPosition.board);
         Integer posCount = posMap.getOrDefault(hash, 0);
         posMap.put(hash, posCount + 1);
         if (posCount + 1 > 2) {
@@ -206,7 +206,7 @@ public class ChessStates {
     }
 
     public ChessStates cloneState() {
-        HashMap<Long, Integer> clonedPosMap = new HashMap<>((HashMap<Long,Integer>)posMap.clone());
+        HashMap<Long, Integer> clonedPosMap = new HashMap<>(posMap);
         Stack<Integer> clonedMovesWhenResetted = cloneStack(movesWhenResetted);
 
         return new ChessStates(
@@ -290,7 +290,7 @@ public class ChessStates {
     public void moveBackward(ChessPosition oldPositionToRemove) {
         // remove the position from posmap
 //        int key = oldPositionToRemove.board.hashCode();
-        long key = hasher.computeHash(oldPositionToRemove.board, false);
+        long key = hasher.computeHash(oldPositionToRemove.board);
 
         int count = posMap.getOrDefault(key, ChessConstants.EMPTYINDEX);
         if (count != ChessConstants.EMPTYINDEX) {
@@ -334,7 +334,7 @@ public class ChessStates {
     public void moveForward(ChessPosition newPositionToAdd) {
         // add the position to posmap
 //        int hash = newPositionToAdd.board.hashCode();
-        long hash = hasher.computeHash(newPositionToAdd.board, false);
+        long hash = hasher.computeHash(newPositionToAdd.board);
         Integer posCount = posMap.getOrDefault(hash, 0);
         posMap.put(hash, posCount + 1);
 

@@ -13,7 +13,7 @@ import java.util.Stack;
 public class ChessPositionTests {
     @Test void localPositionMoveTest(){
         // simple pawn move
-        BackendChessPosition pos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+        BackendChessPosition pos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(), true);
         GeneralChessFunctions.printBoardDetailed(pos.board);
         ChessMove simplePawnMove = new ChessMove(4,6,4,1,-10,0,true,false,true,0,false,false);
         pos.makeLocalPositionMove(simplePawnMove);
@@ -28,7 +28,7 @@ public class ChessPositionTests {
         ChessMove passantMove = passant.currentPosition.getMoveThatCreatedThis();
         System.out.println(passantMove.isEnPassant());
         passant.changeToDifferentMove(-1,true,true);
-        BackendChessPosition prePassant = passant.currentPosition.toBackend(passant.gameState,false);
+        BackendChessPosition prePassant = passant.currentPosition.toBackend(passant.gameState, false);
         GeneralChessFunctions.printBoardDetailed(prePassant.board);
         prePassant.makeLocalPositionMove(passantMove);
         GeneralChessFunctions.printBoardDetailed(prePassant.board);
@@ -38,7 +38,7 @@ public class ChessPositionTests {
 
         // general test start state
         ChessStates start = new ChessStates();
-        BackendChessPosition posGeneral = ChessConstants.startBoardState.clonePosition().toBackend(start,false);
+        BackendChessPosition posGeneral = ChessConstants.startBoardState.clonePosition().toBackend(start, true);
         GeneralChessFunctions.printBoardDetailed(posGeneral.board);
         for(ChessMove c : posGeneral.getAllChildMoves(true,start)){
             System.out.println(c.toString());
@@ -73,7 +73,7 @@ public class ChessPositionTests {
             ChessGame generaltest = ChessGame.createTestGame(pgn,false);
             generaltest.moveToEndOfGame(false);
 //            GeneralChessFunctions.printBoardDetailed(generaltest.currentPosition.board);
-            BackendChessPosition passantBackend = generaltest.currentPosition.toBackend(generaltest.gameState,false);
+            BackendChessPosition passantBackend = generaltest.currentPosition.toBackend(generaltest.gameState, generaltest.isWhiteTurn());
             Assertions.assertEquals(passantBackend.gameState.toString(),generaltest.gameState.toString());
             List<BackendChessPosition> childPositions = generaltest.currentPosition.getAllChildPositions(generaltest.isWhiteTurn(),generaltest.gameState);
             List<ChessMove> childMoves = generaltest.currentPosition.getAllChildMoves(generaltest.isWhiteTurn(),generaltest.gameState);
@@ -204,8 +204,8 @@ public class ChessPositionTests {
         for(String pgn : pgns){
             ChessGame testGame = ChessGame.createTestGame(pgn,false);
             // follower possition will make all the moves and compare gamestates + positions
-            BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-            BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+            BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(), true);
+            BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(), true);
             List<ChessMove> moves = testGame.getMoves();
 
             Stack<BackendChessPosition> truthPositions = new Stack<>();
@@ -239,8 +239,8 @@ public class ChessPositionTests {
     @Test void moveForwardAndBackwardTests(){
         ChessGame testGame = ChessGame.createTestGame("1.e4 d5 2.Nf3 Nf6 3.Bb5+ Bd7 4.Nc3 e6 5.a3 Bc5 6.O-O O-O 7.Re1 Re8 8.Re3 Re7",false);
         // follower possition will make all the moves and compare gamestates + positions
-        BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
-        BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
+        BackendChessPosition follower = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(), true);
+        BackendChessPosition followerTruth = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(), true);
         List<ChessMove> moves = testGame.getMoves();
 
         Stack<BackendChessPosition> truthPositions = new Stack<>();
@@ -305,7 +305,7 @@ public class ChessPositionTests {
     @Test void rookEdgeCaseTest(){
         ChessGame game = ChessGame.createTestGame("1.c4 c5 2.Nf3 Nf6 3.Qc2 Qc7 4.e4 e5 5.Bd3 Bd6 6.Nxe5 Bxe5 7.Qc3 Bxc3 8.dxc3 Qxh2",false);
         game.moveToEndOfGame(false);
-        BackendChessPosition referencePosition = game.currentPosition.clonePosition().toBackend(game.gameState.cloneState(),game.gameState.isStaleMated());
+        BackendChessPosition referencePosition = game.currentPosition.clonePosition().toBackend(game.gameState.cloneState(), game.isWhiteTurn());
 
         List<BackendChessPosition> possiblePositions = referencePosition.getAllChildPositions(game.isWhiteTurn(),referencePosition.gameState);
         List<ChessMove> possibleMoves = referencePosition.getAllChildMoves(game.isWhiteTurn(), referencePosition.gameState);

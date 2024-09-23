@@ -16,16 +16,20 @@ public class AdvancedChessFunctions {
     public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessStates gameState) {
         int indx = GeneralChessFunctions.getBoardWithPiece(x, y, isWhite, pos.board);
         //System.out.println("Getting moves for peice at " + x + " " + y);
-        return getPossibleMoves(x, y, isWhite, pos, gameState, indx);
+        return getPossibleMoves(x, y, isWhite, pos, gameState, indx, false);
 
     }
 
-    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessStates gameState, int boardIndex) {
+    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessStates gameState, int boardIndex, boolean capturesOnly) {
         //System.out.println("Getting moves for peice at " + x + " " + y);
         long possibleMoves = getPossibleMoveBoard(x, y, isWhite, boardIndex, pos, gameState);
         if (boardIndex != ChessConstants.KINGINDEX && isChecked(isWhite, pos.board)) {
 //            System.out.println("Checked");
             possibleMoves &= getCheckedFileMask(isWhite, pos.board);
+        }
+        if(capturesOnly){
+            long enemyPieceMask = isWhite ? pos.board.getBlackPieceMask() : pos.board.getWhitePieceMask();
+            possibleMoves &= enemyPieceMask;
         }
         return GeneralChessFunctions.getPieceCoords(possibleMoves);
 
@@ -274,12 +278,13 @@ public class AdvancedChessFunctions {
                 if (Math.abs(moveThatCreated.getOldY() - moveThatCreated.getNewY()) > 1) {
                     // jumped 2 so means that there is a possibilty of en passant
                     if (y == moveThatCreated.getNewY() && (x == moveThatCreated.getNewX() - 1 || x == moveThatCreated.getNewX() + 1)) {
-                        // pawn is in the right position so add en passant
                         int midY = (moveThatCreated.getOldY() + moveThatCreated.getNewY()) / 2;
-                        possibleMoveBoard = GeneralChessFunctions.AddPeice(moveThatCreated.getNewX(),midY,possibleMoveBoard);
-//                        XYcoord passantMove = new XYcoord(moveThatCreated.getNewX(), midY);
-//                        passantMove.setEnPassant(true);
-//                        moves.add(passantMove);
+                        int passantX = moveThatCreated.getNewX();
+                        if(!passantMoveWillDie(x,y,passantX,midY,passantX,moveThatCreated.getNewY(),isWhite,board)){
+                            // pawn is in the right position so add en passant
+                            possibleMoveBoard = GeneralChessFunctions.AddPeice(moveThatCreated.getNewX(),midY,possibleMoveBoard);
+
+                        }
                     }
 
 
@@ -569,6 +574,22 @@ public class AdvancedChessFunctions {
         long rookAttacks = BitFunctions.calculateRookAttackBitBoard(testBitIndex,isWhite,false,allPieceMask,board);
         return ((enemyBishopAndQueenBoard & bishopAttacks) != 0) || ((enemyRookAndQueenBoard & rookAttacks) != 0);
     }
+    private static boolean passantMoveWillDie(int oldX,int oldY,int newX,int newY,int passantX,int passantY,boolean isWhite,BitBoardWrapper board){
+        XYcoord kingLocation = isWhite ? board.getWhiteKingLocation() : board.getBlackKingLocation();
+        int kingIndex = GeneralChessFunctions.positionToBitIndex(kingLocation.x,kingLocation.y);
+//        return false;
+        long whitePieceMask = board.getWhitePieceMask();
+        long blackPieceMask = board.getBlackPieceMask();
+        long allPieceMask = whitePieceMask | blackPieceMask;
+        allPieceMask = GeneralChessFunctions.RemovePeice(oldX,oldY,allPieceMask);
+        allPieceMask = GeneralChessFunctions.AddPeice(newX,newY,allPieceMask);
+        allPieceMask = GeneralChessFunctions.RemovePeice(passantX,passantY,allPieceMask);
+        long enemyRookAndQueenBoard = isWhite ? (board.getBlackPiecesBB()[ChessConstants.ROOKINDEX] | board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]) : (board.getWhitePiecesBB()[ChessConstants.ROOKINDEX] | board.getWhitePiecesBB()[ChessConstants.QUEENINDEX]);
+        long enemyBishopAndQueenBoard = isWhite ? (board.getBlackPiecesBB()[ChessConstants.BISHOPINDEX] | board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]) : (board.getWhitePiecesBB()[ChessConstants.BISHOPINDEX] | board.getWhitePiecesBB()[ChessConstants.QUEENINDEX]);
+        long bishopAttacks = BitFunctions.calculateBishopAttackBitBoard(kingIndex,isWhite,false,allPieceMask,board);
+        long rookAttacks = BitFunctions.calculateRookAttackBitBoard(kingIndex,isWhite,false,allPieceMask,board);
+        return ((enemyBishopAndQueenBoard & bishopAttacks) != 0) || ((enemyRookAndQueenBoard & rookAttacks) != 0);
+    }
 
 
     public static boolean isPromoPossible(int x, int y, boolean isWhite, BitBoardWrapper board){
@@ -612,7 +633,7 @@ public class AdvancedChessFunctions {
     public static boolean isAnyNotMovePossible(boolean isWhite, ChessPosition pos, ChessStates gameState) {
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? pos.board.getWhitePiecesBB() : pos.board.getBlackPiecesBB());
         for (XYcoord pcoord : peices) {
-            List<XYcoord> piecePossibleMoves = getPossibleMoves(pcoord.x, pcoord.y, isWhite, pos, gameState, pcoord.peiceType);
+            List<XYcoord> piecePossibleMoves = getPossibleMoves(pcoord.x, pcoord.y, isWhite, pos, gameState, pcoord.peiceType, false);
             if (!piecePossibleMoves.isEmpty()) {
                 return false;
             }
@@ -689,9 +710,6 @@ public class AdvancedChessFunctions {
         int kingIndex = GeneralChessFunctions.positionToBitIndex(kingLocation.x,kingLocation.y);
         long rookPossibleMoves = BitFunctions.calculateRookAttackBitBoard(kingIndex,isWhite,false,board);
         long bishopPossibleMoves = BitFunctions.calculateBishopAttackBitBoard(kingIndex,isWhite,false,board);
-        if (rookPossibleMoves == 0L && bishopPossibleMoves == 0L) {
-            return 0L;
-        }
         long rookVerticalFile = rookPossibleMoves & ~BitFunctions.generateHorizontalRookMask(kingIndex);
         int rookVerticalHighBit = 63-Long.numberOfLeadingZeros(rookVerticalFile);
         int rookVerticalLowBit = Long.numberOfTrailingZeros(rookVerticalFile);
@@ -736,7 +754,6 @@ public class AdvancedChessFunctions {
             attackerFound = true;
             fileMask = (rookHorizontalFile & BitFunctions.calculateRookAttackBitBoard(rookHorizontalLowBit,isWhite,false,board)) | personalLocation;
 
-
         }
         if(rookHorizontalLowBit != rookHorizontalHighBit && rookHorizontalHighBit > -1 && GeneralChessFunctions.checkIfContains(rookHorizontalHighBit,enemyRookAndQueenBoard)){
             if(attackerFound){
@@ -753,6 +770,9 @@ public class AdvancedChessFunctions {
         long enemyBishopAndQueenBoard = isWhite ? (board.getBlackPiecesBB()[ChessConstants.BISHOPINDEX] | board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]) : (board.getWhitePiecesBB()[ChessConstants.BISHOPINDEX] | board.getWhitePiecesBB()[ChessConstants.QUEENINDEX]);
 
         if(bishopLtRLowBit < 64 && GeneralChessFunctions.checkIfContains(bishopLtRLowBit,enemyBishopAndQueenBoard)){
+            if(attackerFound){
+                return 0L; // cannot block double check
+            }
             long personalLocation = GeneralChessFunctions.positionToBitboard(bishopLtRLowBit);
             attackerFound = true;
             fileMask = (bishopLtRFile & BitFunctions.calculateBishopAttackBitBoard(bishopLtRLowBit,isWhite,false,board)) | personalLocation;
@@ -798,6 +818,7 @@ public class AdvancedChessFunctions {
             if(attackerFound){
                 return 0L; // cannot block double check
             }
+
             fileMask = combinedKnightMask;
         }
 

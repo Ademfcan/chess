@@ -245,8 +245,8 @@ public class Computer {
             return Stopped;
         }
 
+        boolean isChecked = AdvancedChessFunctions.isChecked(isWhiteTurn, position.board);
         if (possibleMoves.isEmpty()) {
-            boolean isChecked = AdvancedChessFunctions.isChecked(isWhiteTurn, position.board);
             // possiblity of a black winning from checkmate, else draw
             if (isChecked) {
                 return new EvalOutput(isWhiteTurn ? ChessConstants.BLACKCHECKMATEVALUE : ChessConstants.WHITECHECKMATEVALUE);
@@ -256,17 +256,17 @@ public class Computer {
 //
         if (depth == 0) {
 //            // first check move extensions
-//            int moveExtension = 0;
-//            if (extension <= maxExtensions) {
-//                moveExtension = ComputerHelperFunctions.calculateMoveExtension(position, isWhiteTurn, isChecked);
-//
-//            }
-//            if (moveExtension == 0) {
+            int moveExtension = 0;
+            if (extension <= maxExtensions) {
+                moveExtension = ComputerHelperFunctions.calculateMoveExtension(position, isWhiteTurn, isChecked);
+
+            }
+            if (moveExtension == 0) {
                 return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
-//            return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
-//            }
-//            depth += moveExtension;
-//            extension += 2;
+//                return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
+            }
+            depth += moveExtension;
+            extension += 2;
         }
         long currentTime = System.currentTimeMillis();
 //        if(currentTime-callTimeMs > ChessConstants.MAXTIMEMS){
@@ -353,7 +353,7 @@ public class Computer {
 
     public double quiescenceSearch(BackendChessPosition position,double alpha, double beta,boolean isWhiteTurn) {
         // Static evaluation of the current position
-        double eval = ComputerHelperFunctions.getFullEval(position,position.gameState,isWhiteTurn,false)*(isWhiteTurn ? 1 : -1);
+        double eval = ComputerHelperFunctions.getFullEval(position,position.gameState,isWhiteTurn,false) * (isWhiteTurn ? 1 : -1);
 
         // Alpha-Beta pruning: if the evaluation already exceeds beta, cut off search
         if (eval >= beta) {
@@ -379,15 +379,15 @@ public class Computer {
             // Undo the move
             position.undoLocalPositionMove();
 
+            // If the score is better than alpha, update alpha
+            if (score > alpha) {
+                alpha = score;
+            }
             // If the score exceeds beta, cut off search (beta-cutoff)
             if (score >= beta) {
                 return beta;
             }
 
-            // If the score is better than alpha, update alpha
-            if (score > alpha) {
-                alpha = score;
-            }
         }
 
         // Return the best evaluation found

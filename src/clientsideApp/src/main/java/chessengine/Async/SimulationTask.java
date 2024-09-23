@@ -5,6 +5,7 @@ import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Computation.Computer;
+import chessengine.Computation.Searcher;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Misc.ChessConstants;
 import chessengine.Misc.EloEstimator;
@@ -90,16 +91,18 @@ public class SimulationTask extends Task<Void> {
     private int numStockFishWins = 0;
     private int numDraws = 0;
     private ChessGame currentSimGame = null;
+    private Searcher searcher;
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
         this.player1Computer = new Computer();
         this.player2Computer = new Computer();
         this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MaxDifficulty);
-        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.STOCKFISHMax); // defaults
+        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.StockfishD10); // defaults
         this.control = control;
 
         random = new Random();
+        searcher = new Searcher();
 
     }
 
@@ -258,6 +261,20 @@ public class SimulationTask extends Task<Void> {
                             currentSimGame.makeNewMove(move,true,false);
                         });
                     }
+                    else if(player1Computer.currentDifficulty == ComputerDifficulty.MaxDifficulty){
+                        ChessMove move = searcher.search(currentSimGame.currentPosition.toBackend(currentSimGame.gameState,isPlayer1Turn),ChessConstants.DefaultWaitTime).bestMove();
+                        if(stop){
+                            return;
+                        }
+                        if(move == null){
+                            // stopped
+                            logger.error("Stopped sim comp output");
+                            return;
+                        }
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move, true, false);
+                        });
+                    }
                     else{
                         ChessMove move = player1Computer.getComputerMoveWithFlavors(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState).getMove();
                         if(stop){
@@ -279,6 +296,20 @@ public class SimulationTask extends Task<Void> {
                         ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentSimGame.isWhiteTurn(),currentSimGame.currentPosition.board);
                         Platform.runLater(()->{
                             currentSimGame.makeNewMove(move,true,false);
+                        });
+                    }
+                    else if(player2Computer.currentDifficulty == ComputerDifficulty.MaxDifficulty){
+                        ChessMove move = searcher.search(currentSimGame.currentPosition.toBackend(currentSimGame.gameState,isPlayer1Turn),ChessConstants.DefaultWaitTime).bestMove();
+                        if(stop){
+                            return;
+                        }
+                        if(move == null){
+                            // stopped
+                            logger.error("Stopped sim comp output");
+                            return;
+                        }
+                        Platform.runLater(()->{
+                            currentSimGame.makeNewMove(move, true, false);
                         });
                     }
                     else{
