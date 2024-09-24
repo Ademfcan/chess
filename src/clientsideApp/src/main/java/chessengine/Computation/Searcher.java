@@ -135,10 +135,10 @@ public class Searcher {
 //                    bestMove = transpositionTable.markedIndex1.bestMove();
 //                }
 //            }
-//            System.out.println("Using transposed value of" + transpositionEvaluation);
+////            System.out.println("Using transposed value of" + transpositionEvaluation);
 //            return transpositionEvaluation;
 //        }
-        transpositionTable.clearProbe();
+//        transpositionTable.clearProbe();
         searchInfo.incrementUniquePositionsSearched();
 
         if(currentPly <= 0){
@@ -227,6 +227,9 @@ public class Searcher {
             }
 
             if(EvaluationFunctions.isMateScore(eval)){
+                bestMoveIter = move;
+                bestEvalIter = alpha;
+                hasSearchedAtLeastOneThisIter = true;
                 break;
             }
 

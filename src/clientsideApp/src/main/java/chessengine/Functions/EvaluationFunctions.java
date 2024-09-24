@@ -12,11 +12,11 @@ public class EvaluationFunctions {
     public static  final int maxDepthPossible = 256;
 
     public static boolean isMateScore(int currentScore){
-        return Math.abs(currentScore) > -(baseMateScore - maxDepthPossible);
+        return Math.abs(currentScore) >= -(baseMateScore);
     }
 
     public static  int extractDepthFromMateScore(int mateScore){
-        return -(mateScore-baseMateScore);
+        return (Math.abs(mateScore)+baseMateScore);
     }
 
 

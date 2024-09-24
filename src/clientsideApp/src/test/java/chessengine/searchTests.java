@@ -96,4 +96,20 @@ public class searchTests {
             }
         }
     }
+
+    @Test void checkmateAvoidanceFix(){
+        ChessGame testGame = ChessGame.createTestGame("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 \n" +
+                "8. c3 O-O 9. h3 Na5 10. Bc2 c5 11. d4 Qc7 12. Nbd2 cxd4 13. cxd4 exd4 \n" +
+                "14. Nxd4 Re8 15. b4 Nc6 16. Nxc6 Qxc6 17. Bb2 Bb7 18. Rc1 Qb6 19. Nb3 Rac8 \n" +
+                "20. Bd4 Qd8 21. Na5 Ba8 22. Bd3 Rxc1 23. Qxc1 d5 24. e5 Nd7 25. a3 Bg5 \n" +
+                "26. Qd1 Bf4 27. g3 Bxe5 28. Bxe5 Rxe5 29. Rxe5 Nxe5 30. Bxh7+ Kxh7 31. Qh5+ \n" +
+                "Kg8 32. Qxe5 d4 33. Nb3 d3 34. Nd2 Qd5 35. Qxd5 Bxd5 36. f4 Kf8 37. Kf2 Ke7 \n" +
+                "38. Ke3 Bc4 39. Kd4 Kd6 40. Nxc4+ bxc4 41. Kxc4 d2 42. Kc3 d1=Q 43. Kb2 Qf3 \n" +
+                "44. a4 Qxg3 45. b5 axb5 46. axb5 Qxf4 47. Kc3 Kc5 48. b6 Kxb6 49. Kd3 Qh4 \n" +
+                "50. Ke3 Qxh3+ 51. Ke4 Qe6+ 52. Kf4 Kc5 53. Kg3 Kd4 54. Kh4 Qg6 55. Kh3 Ke3 \n" +
+                "56. Kh2 Kf3 57. Kh1",false);
+        testGame.moveToEndOfGame(false);
+        Searcher searcher = new Searcher();
+        searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000000);
+    }
 }
