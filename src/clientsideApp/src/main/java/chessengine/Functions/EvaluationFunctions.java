@@ -23,13 +23,6 @@ public class EvaluationFunctions {
     public static int getStaticEvaluation(BackendChessPosition pos){
         int[][][] pieceMap = pieceMapHandler.pieceMapsCp1;
         BitBoardWrapper board = pos.board;
-        if(AdvancedChessFunctions.isAnyNotMovePossible(pos.isWhiteTurn,pos,pos.gameState)){
-            if(AdvancedChessFunctions.isChecked(pos.isWhiteTurn,board)){
-                return baseMateScore;
-            }
-            return 0;
-        }
-
         long[] whitePiecesBB = board.getWhitePiecesBB();
         long[] blackPiecesBB = board.getBlackPiecesBB();
         int whiteScore = 0;

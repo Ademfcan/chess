@@ -241,6 +241,13 @@ public class Searcher {
     }
 
     private int quiscenceSearch(int alpha,int beta){
+        if (AdvancedChessFunctions.isAnyNotMovePossible(chessPosition.isWhiteTurn, chessPosition, chessPosition.gameState)) {
+            if (AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn, chessPosition.board)) {
+                return EvaluationFunctions.baseMateScore;
+            }
+            return 0;  // Stalemate
+        }
+
         if(stop || checkStopSearch()){
             return 0;
         }
