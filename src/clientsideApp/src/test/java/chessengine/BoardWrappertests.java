@@ -64,4 +64,11 @@ public class BoardWrappertests {
         test.addPiece(GeneralChessFunctions.positionToBitIndex(4,7),ChessConstants.KINGINDEX,true);
         Assertions.assertTrue(GeneralChessFunctions.checkIfContains(GeneralChessFunctions.positionToBitIndex(4,7),test.getWhitePiecesBB()[ChessConstants.KINGINDEX]));
     }
+
+    @Test void pawnPromotionMaskTest(){
+        BitBoardWrapper test = ChessConstants.startBoardState.board.cloneBoard();
+        System.out.println(BitFunctions.isPassedPawn(4,6,false,test));
+
+
+    }
 }

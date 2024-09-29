@@ -139,7 +139,13 @@ public class Stockfish {
         }
         String[] s = out.split("\n");
         String last = s[s.length - 1];
-        return last.split("bestmove ")[1].split(" ")[0];
+        try{
+            return last.split("bestmove ")[1].split(" ")[0];
+        }
+        catch (Exception e){
+            System.out.println(last);
+            return null;
+        }
     }
 
     public MoveOutput[] getBestNMoves(String fen, boolean isWhite, BitBoardWrapper board, int timeLimitMillis, int nMoves) {

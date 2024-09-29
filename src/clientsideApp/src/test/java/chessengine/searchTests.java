@@ -53,7 +53,7 @@ public class searchTests {
         MoveGenerator generator = new MoveGenerator();
         MoveOrderer orderer = new MoveOrderer();
         ChessMove[] moves = generator.generateMoves(testPosition,false, PromotionType.ALL);
-        orderer.sortMoves(null,testPosition.board,moves,null,null);
+        orderer.sortMoves(null,testPosition.board,moves,null,null,10);
     }
 
     @Test void moveGenerationTest(){
@@ -61,7 +61,7 @@ public class searchTests {
         MoveGenerator generator = new MoveGenerator();
         MoveOrderer orderer = new MoveOrderer();
         ChessMove[] moves = generator.generateMoves(testPosition,false, PromotionType.ALL);
-        orderer.sortMoves(null,testPosition.board,moves,null,null);
+        orderer.sortMoves(null,testPosition.board,moves,null,null,10);
         System.out.println(moves[0]);
     }
 
@@ -98,6 +98,24 @@ public class searchTests {
     }
 
     @Test void checkmateAvoidanceFix(){
+        String[] pgns = {"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nxd5 6. Nxf7 Kxf7 7. Qf3+ Ke6 8. Nc3 Nce7 9. d4 c6 10. O-O Qe8 11. Re1 Ng6 12. Nxd5 cxd5 13. Qxd5+ Kf6 14. Bg5+ Kxg5 15. Rxe5+ Nxe5 16. dxe5 Bf5 17. h4+ Kh6 18. Qd2+",
+                "1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+",
+                "1. d4 d5 2. c4 e6 3. Nc3 c6 4. e4 dxe4 5. Nxe4 Bb4+ 6. Bd2 Bxd2+ 7. Qxd2 Nf6 8. Ng3 O-O 9. Nf3 Nbd7 10. Bd3 c5 11. O-O b6 12. d5 exd5 13. cxd5 Bb7 14. Rfe1 Nxd5 15. Rad1 N7f6 16. Nf5 g6 17. Qh6 gxf5 18. Bxf5 Kh8 19. Ng5"};
+
+        for(String pgn : pgns){
+            ChessGame testGame = ChessGame.createTestGame(pgn,false);
+            testGame.moveToEndOfGame(false);
+            Searcher searcher = new Searcher();
+            SearchResult out = searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000);
+            System.out.println(out.evaluation());
+            System.out.println(out.move());
+            System.out.println(out.depth());
+            System.out.println();
+        }
+
+    }
+
+    @Test void checkmateAvoidanceFix2(){
         ChessGame testGame = ChessGame.createTestGame("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 \n" +
                 "8. c3 O-O 9. h3 Na5 10. Bc2 c5 11. d4 Qc7 12. Nbd2 cxd4 13. cxd4 exd4 \n" +
                 "14. Nxd4 Re8 15. b4 Nc6 16. Nxc6 Qxc6 17. Bb2 Bb7 18. Rc1 Qb6 19. Nb3 Rac8 \n" +
@@ -106,10 +124,19 @@ public class searchTests {
                 "Kg8 32. Qxe5 d4 33. Nb3 d3 34. Nd2 Qd5 35. Qxd5 Bxd5 36. f4 Kf8 37. Kf2 Ke7 \n" +
                 "38. Ke3 Bc4 39. Kd4 Kd6 40. Nxc4+ bxc4 41. Kxc4 d2 42. Kc3 d1=Q 43. Kb2 Qf3 \n" +
                 "44. a4 Qxg3 45. b5 axb5 46. axb5 Qxf4 47. Kc3 Kc5 48. b6 Kxb6 49. Kd3 Qh4 \n" +
-                "50. Ke3 Qxh3+ 51. Ke4 Qe6+ 52. Kf4 Kc5 53. Kg3 Kd4 54. Kh4 Qg6 55. Kh3 Ke3 \n" +
-                "56. Kh2 Kf3 57. Kh1",false);
+                "50. Ke3 Qxh3+ 51. Ke4 Qe6+ 52. Kf4 Kc5 53. Kg3 Kd4 54. Kh4 Qg6 55. Kh3\n",false);
         testGame.moveToEndOfGame(false);
         Searcher searcher = new Searcher();
-        searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000000);
+//        System.out.println(searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000000));
+    }
+
+
+    @Test void pvBufferTest(){
+        PvBuffer buffer = new PvBuffer(4);
+        buffer.putResult(new SearchResult(ChessConstants.startMove,1,1, null));
+        buffer.putResult(new SearchResult(ChessConstants.startMove,2,1, null));
+        buffer.putResult(new SearchResult(ChessConstants.startMove,3,1, null));
+        System.out.println(Arrays.toString(buffer.getResults()));
+
     }
 }

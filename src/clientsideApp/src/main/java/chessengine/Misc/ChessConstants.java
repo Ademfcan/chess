@@ -6,6 +6,7 @@ import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.XYcoord;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.ComputerOutput;
+import chessengine.Computation.Searcher;
 import chessserver.*;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -45,7 +46,7 @@ public class ChessConstants {
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
     public static final double[] valueMap = {1.5, 3.25, 3.3, 5.25, 10, 100};
-    public static final int[] valueMapCentiPawn = {100, 300, 310, 500, 1000, 1000000};
+    public static final int[] valueMapCentiPawn = {100, 400, 410, 600, 1200, 1000000};
     public static final String arrowColor = "rgba(255,181,10,.8)";
     public static final String moveArrowColor = "rgba(20,181,255,.8)";
     public static final String InnerMoveCircleColor = "rgba(60,60,60, 0.40)";
@@ -81,5 +82,26 @@ public class ChessConstants {
     public static int DefaultWaitTime = 1000; // ms;
     public static int evalDepth = 5;
 
-    public static final int MAXTIMEMS = 5000;
+    public static Searcher generalSearcher = new Searcher();
+
+    private static String[] clrs = new String[]{"rgba(61, 245, 39, 0.8)","rgba(245, 241, 39, 0.8)","rgba(245, 151, 39, 0.8)","rgba(245, 65, 39, 0.8)"};
+    private static double goodChange = 0.1;
+    public static String getColorBasedOnAdvantage(boolean isWhite,double oldAdvantage,double newAdvantage){
+
+        int sign = isWhite ? 1: -1;
+        double change = newAdvantage-oldAdvantage;
+        double relativeAdvtg = change * sign;
+        if(relativeAdvtg > goodChange){
+            return clrs[0];
+        }
+        if(relativeAdvtg < -goodChange){
+            return clrs[3];
+        }
+        if(relativeAdvtg >= -goodChange/15){
+            return clrs[1];
+        }
+        return clrs[2];
+
+    }
+
 }

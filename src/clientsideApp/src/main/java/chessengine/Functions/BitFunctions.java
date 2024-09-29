@@ -323,4 +323,24 @@ public class BitFunctions {
         }
         return mask;
     }
+
+    public static boolean isPassedPawn(int x,int y,boolean isWhitePiece,BitBoardWrapper bitBoardWrapper){
+        long defaultFile = 0x8080808080808080L;
+        int shiftY = isWhitePiece ? 7-(y-1) : y+1;
+        long mask = 0L;
+        if(isWhitePiece){
+            long left = defaultFile >>> (shiftY*8) >>> (8-x);
+            long mid = defaultFile >>> (shiftY*8) >>> (7-x);
+            long right = defaultFile >>> (shiftY*8) >>> (6-x);
+            mask |= left | mid | right;
+        }
+        else{
+            long left = defaultFile << (shiftY*8) >>> (8-x);
+            long mid = defaultFile << (shiftY*8) >>> (7-x);
+            long right = defaultFile << (shiftY*8) >>> (6-x);
+            mask |= left | mid | right;
+        }
+        long enemyPawnMask = isWhitePiece ? bitBoardWrapper.getBlackPiecesBB()[ChessConstants.PAWNINDEX] : bitBoardWrapper.getWhitePiecesBB()[ChessConstants.PAWNINDEX];
+        return (mask & enemyPawnMask) == 0L;
+    }
 }

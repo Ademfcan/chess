@@ -92,10 +92,10 @@ public class GetComputerMoveTask extends Task<Void> {
 
         }
         else if(c.currentDifficulty == ComputerDifficulty.MaxDifficulty){
-            SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState,currentIsWhite),1000);
-            System.out.println(searchResult.evaluation());
-            System.out.println(searchResult.depth());
-            ChessMove bestMove = searchResult.bestMove();
+            SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState,currentIsWhite),ChessConstants.DefaultWaitTime);
+//            System.out.println(searchResult.evaluation());
+//            System.out.println(searchResult.depth());
+            ChessMove bestMove = searchResult.move();
             if(bestMove != null){
                 Platform.runLater(()->{
                     control.mainScreenController.makeComputerMove(bestMove);

@@ -58,6 +58,10 @@ public class BackendChessPosition extends ChessPosition {
         }
         return newStack;
     }
+    @Override
+    public BackendChessPosition clonePosition() {
+        return new BackendChessPosition(super.clonePosition(),gameState.cloneState(), isDraw,isWhiteTurn);
+    }
 
     private ChessPosition addMovesThatCreatedHack(ChessPosition pos, Stack<ChessMove> movesThatCreated) {
         movesThatCreated.push(pos.getMoveThatCreatedThis());

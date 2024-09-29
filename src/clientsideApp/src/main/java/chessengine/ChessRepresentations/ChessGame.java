@@ -375,6 +375,10 @@ public class ChessGame {
     public boolean isWhiteTurn() {
         return isWhiteTurn;
     }
+    public boolean isWhiteTurn(int index) {
+        int change = index-curMoveIndex;
+        return isWhiteTurn == (change % 2==0);
+    }
 
     public void setWhiteTurn(boolean whiteTurn) {
         isWhiteTurn = whiteTurn;
@@ -668,6 +672,29 @@ public class ChessGame {
         }
     }
 
+    public ChessStates getGameStateAtPos(int index){
+        int moveIndexBeforeChange = curMoveIndex;
+        int dir = index-curMoveIndex;
+        ChessStates cloned = gameState.cloneState();
+        boolean isRev = dir < 0;
+        int absDir = Math.abs(dir);
+        for (int i = 0; i < absDir; i++) {
+            if (isRev) {
+                cloned.moveBackward(getPos(moveIndexBeforeChange));
+                moveIndexBeforeChange--;
+            } else {
+                moveIndexBeforeChange++;
+                ChessPosition newPos = getPos(moveIndexBeforeChange);
+                cloned.moveForward(newPos);
+            }
+            // highlight new move index
+
+
+        }
+
+        return cloned;
+    }
+
     private void setGameStateToAbsIndex(int absIndex) {
         int dir = absIndex - gameState.getCurrentIndex();
         updateGameStates(dir, gameState.getCurrentIndex());
@@ -830,7 +857,7 @@ public class ChessGame {
             // intial board state
             return ChessConstants.startBoardState;
         } else {
-            ChessConstants.mainLogger.error("Boardwrapper get move index out of range");
+            ChessConstants.mainLogger.error("Boardwrapper get move index out of range: " + moveIndex);
             return null;
         }
 
@@ -870,6 +897,7 @@ public class ChessGame {
     public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove) {
         if (!isComputerMove) {
             // clear any entries, you are branching off
+            centralControl.clearForNewBranch(curMoveIndex+1);
             if (curMoveIndex != maxIndex) {
                 clearIndx(true);
                 if (isMainGame) {
@@ -987,7 +1015,7 @@ public class ChessGame {
             });
         } else if (isMainGame) {
             if (centralControl.mainScreenController.currentState.equals(MainScreenState.VIEWER)) {
-                centralControl.chessActionHandler.updateViewerSuggestions();
+//                centralControl.chessActionHandler.updateViewerSuggestions();
             }
 
             centralControl.mainScreenController.updateSimpleAdvantageLabels();

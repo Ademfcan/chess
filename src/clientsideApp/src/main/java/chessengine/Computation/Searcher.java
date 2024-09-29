@@ -10,19 +10,23 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Searcher {
     private final Logger logger = LogManager.getLogger(this.toString());
     long startTime;
     BackendChessPosition chessPosition;
     int maxTimeMs;
+
+    boolean hasSearchedAtLeastOne;
+    int bestEvaluation;
     ChessMove bestMove;
-    int bestEval;
     int CurrentDepth;
+    int bestEvaluationIter;
     ChessMove bestMoveIter;
-    int bestEvalIter;
-    boolean hasSearchedAtLeastOneThisIter;
+    SearchPair[] pV;
+    SearchPair[] pVIter;
     private boolean stop = false;
     private boolean isSearching = false;
 
@@ -33,6 +37,11 @@ public class Searcher {
     StopWatch stopwatch;
 
     PromotionType promotionType = PromotionType.ALL;
+    List<String> features = new ArrayList<>();
+    private int nPvs;
+
+    private final int maxSearchDepth = 256;
+
     public Searcher(){
         transpositionTable = new TranspositionTable(1000000);
         orderer = new MoveOrderer();
@@ -40,12 +49,13 @@ public class Searcher {
         moveGenerator = new MoveGenerator();
         stopwatch = new StopWatch();
         stopwatch.start();
+
     }
 
     private boolean checkStopSearch(){
         long currentTime = stopwatch.getTime();
         if(currentTime - startTime > maxTimeMs){
-            System.out.println("Stopping");
+//            System.out.println("Stopping");
             stop = true;
             isSearching = false;
             return true;
@@ -54,11 +64,15 @@ public class Searcher {
     }
 
     private void resetSearch(){
+        pV = new SearchPair[maxSearchDepth];
+        pVIter = new SearchPair[maxSearchDepth];
         startTime = stopwatch.getTime();
-        bestEvalIter = Integer.MIN_VALUE+1;
-        bestEval = Integer.MIN_VALUE+1;
-        bestMove = null;
+        orderer.clearKillers();
+        orderer.clearHistory();
         bestMoveIter = null;
+        bestMove = null;
+        bestEvaluation = Integer.MIN_VALUE+1;
+        bestEvaluationIter = Integer.MIN_VALUE+1;
         stop = false;
     }
 
@@ -66,40 +80,46 @@ public class Searcher {
     public SearchResult search(BackendChessPosition pos,int maxTimeMs){
         this.maxTimeMs = maxTimeMs;
         resetSearch();
-        chessPosition = pos;
+        chessPosition = pos.clonePosition();
         isSearching = true;
         runIterativeDeepening();
 
         if(bestMove == null){
             bestMove = moveGenerator.generateMoves(pos, false,promotionType)[0];
+            return new SearchResult(bestMove,0,-1, new SearchPair[]{new SearchPair(bestMove,0)});
         }
-        return new SearchResult(bestMove,bestEval, CurrentDepth);
+        return new SearchResult(bestMove,bestEvaluation, CurrentDepth, pV);
     }
 
     private void runIterativeDeepening(){
-        for(int searchDepth = 1;searchDepth<256;searchDepth++){
-            hasSearchedAtLeastOneThisIter = false;
+        for(int searchDepth = 1;searchDepth<maxSearchDepth;searchDepth++){
+            hasSearchedAtLeastOne = false;
             search(searchDepth,0,Integer.MIN_VALUE+1,Integer.MAX_VALUE,0);
 
+//            System.out.println("Search depth: " + searchDepth);
             if(stop || checkStopSearch()){
-                if(hasSearchedAtLeastOneThisIter && bestEvalIter > bestEval){
+                if(bestEvaluationIter > bestEvaluation){
+                    bestEvaluation = bestEvaluationIter;
                     bestMove = bestMoveIter;
-                    bestEval = bestEvalIter;
+                    pV = pVIter;
+
                 }
                 break;
             }
             else{
-                bestEval = bestEvalIter;
+                pV = pVIter;
+                bestEvaluation = bestEvaluationIter;
                 bestMove = bestMoveIter;
                 CurrentDepth = searchDepth;
 
-                if(EvaluationFunctions.isMateScore(bestEval) && EvaluationFunctions.extractDepthFromMateScore(bestEval) <= CurrentDepth){
+                if(EvaluationFunctions.isMateScore(bestEvaluation) && EvaluationFunctions.extractDepthFromMateScore(bestEvaluation) <= CurrentDepth){
                     break;
                 }
 
+                bestEvaluationIter = Integer.MIN_VALUE+1;
                 bestMoveIter = null;
-                bestEvalIter = Integer.MIN_VALUE+1;
-
+                pVIter = new SearchPair[maxSearchDepth];
+                hasSearchedAtLeastOne = false;
 
 
 
@@ -112,15 +132,14 @@ public class Searcher {
             return 0;
         }
 
-//        if(plyFromRoot > 0){
-//            alpha = Math.max(alpha, EvaluationFunctions.baseMateScore - plyFromRoot);
-//            beta = Math.min(beta, -EvaluationFunctions.baseMateScore + plyFromRoot);
-//            if (alpha <= beta)
-//            {
-//                System.out.println("break");
-//                return alpha;
-//            }
-//        }
+        if(plyFromRoot > 0){
+            alpha = Math.max(alpha, EvaluationFunctions.baseMateScore - plyFromRoot);
+            beta = Math.min(beta, -EvaluationFunctions.baseMateScore + plyFromRoot);
+            if (alpha >= beta)
+            {
+                return alpha;
+            }
+        }
 
 //        int transpositionEvaluation = transpositionTable.probeHash(chessPosition.zobristKey,currentPly,alpha,beta);
 //        if(transpositionEvaluation != ChessConstants.NONE){
@@ -151,7 +170,7 @@ public class Searcher {
 
 
         ChessMove[] moves = moveGenerator.generateMoves(chessPosition, false,promotionType);
-        orderer.sortMoves(bestMove,chessPosition.board,moves,transpositionTable.getMarkedMove1(), transpositionTable.getMarkedMove2());
+        orderer.sortMoves(bestMove,chessPosition.board,moves,transpositionTable.getMarkedMove1(), transpositionTable.getMarkedMove2(),plyFromRoot);
         boolean isChecked = AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn,chessPosition.board);
         if(moves[0] == null){
 //            System.out.println("Game over!");
@@ -206,6 +225,9 @@ public class Searcher {
                 if(!move.isEating()){ // see if this is needed
                     int fromSquare = GeneralChessFunctions.positionToBitIndex(move.getOldX(),move.getOldY());
                     int toSquare = GeneralChessFunctions.positionToBitIndex(move.getNewX(),move.getNewY());
+
+                    orderer.killers[plyFromRoot].saveKiller(move);
+
                     orderer.history[chessPosition.isWhiteTurn ? 0 :1][fromSquare][toSquare] += currentPly*currentPly;
 
                 }
@@ -218,19 +240,13 @@ public class Searcher {
                 evaluation = Flag.EXACT;
                 bestMoveSoFar = move;
                 alpha = eval;
+                pVIter[plyFromRoot] = new SearchPair(move,eval);
 
                 if(plyFromRoot == 0){
+                    bestEvaluationIter = alpha;
                     bestMoveIter = move;
-                    bestEvalIter = alpha;
-                    hasSearchedAtLeastOneThisIter = true;
+                    hasSearchedAtLeastOne = true;
                 }
-            }
-
-            if(EvaluationFunctions.isMateScore(eval)){
-                bestMoveIter = move;
-                bestEvalIter = alpha;
-                hasSearchedAtLeastOneThisIter = true;
-                break;
             }
 
 
@@ -244,13 +260,6 @@ public class Searcher {
     }
 
     private int quiscenceSearch(int alpha,int beta){
-        if (AdvancedChessFunctions.isAnyNotMovePossible(chessPosition.isWhiteTurn, chessPosition, chessPosition.gameState)) {
-            if (AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn, chessPosition.board)) {
-                return EvaluationFunctions.baseMateScore;
-            }
-            return 0;  // Stalemate
-        }
-
         if(stop || checkStopSearch()){
             return 0;
         }
@@ -267,7 +276,7 @@ public class Searcher {
         }
 
         ChessMove[] moves = moveGenerator.generateMoves(chessPosition, true,promotionType);
-        orderer.sortMoves(null,chessPosition.board,moves,null,null);
+        orderer.sortMoves(null,chessPosition.board,moves,null,null,19);
         for(ChessMove move : moves){
             if(move == null){
                 break;

@@ -520,7 +520,7 @@ public class StartScreenController implements Initializable {
 
             } else {
                 try {
-                    ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), true);
+                    ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), playAsWhite.isSelected());
                     App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, true);
 
                 } catch (Exception ex) {

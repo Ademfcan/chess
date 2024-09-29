@@ -14,6 +14,7 @@ public class MoveOrderer {
     private final int mill = 1000000;
     private final int hashMoveWeight = 100*mill;
     private final int transpositionWeight = 80*mill;
+    private final int killerWeight = 4*mill;
     private final int promotionWeight = 6*mill;
     private final int winningCaptureWeight = 10*mill;
     private final int loosingCaptureWeight = 2*mill;
@@ -21,15 +22,25 @@ public class MoveOrderer {
 
     int[][][] history;
 
+    Killer[] killers;
+
     public MoveOrderer(){
         clearHistory();
+        clearKillers();
     }
 
     public void clearHistory(){
         history = new int[2][64][64];
     }
+    private final int killerDepth = 100;
+    private final int nKillers = 3; // test this
+    public void clearKillers(){killers = new Killer[killerDepth];
+        for(int i = 0;i<killerDepth;i++){
+            killers[i] = new Killer(nKillers);
+        }
+    }
 
-    public void sortMoves(ChessMove previousBestMove, BitBoardWrapper board,ChessMove[] moves,ChessMove hashMove1,ChessMove hashMove2) {
+    public void sortMoves(ChessMove previousBestMove, BitBoardWrapper board,ChessMove[] moves,ChessMove hashMove1,ChessMove hashMove2,int plyFromRoot) {
         if(moves[0] == null){
             return;
         }
@@ -100,7 +111,11 @@ public class MoveOrderer {
             }
 
             if(!move.isEating()){
-                // killer moves todo
+                Killer killer = killers[plyFromRoot];
+                if(killer.isKiller(move)){
+                    score += killerWeight;
+                }
+
                 score += history[isWhite ? 0 : 1][fromSquareIndex][toSquareIndex];
             }
             moveScores[i] += score;

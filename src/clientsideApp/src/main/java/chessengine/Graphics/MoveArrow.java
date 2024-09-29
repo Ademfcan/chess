@@ -1,5 +1,6 @@
 package chessengine.Graphics;
 
+import chessengine.ChessRepresentations.ChessMove;
 import javafx.scene.shape.SVGPath;
 
 public class MoveArrow extends Arrow{
@@ -10,6 +11,9 @@ public class MoveArrow extends Arrow{
 
     public MoveArrow(int startX, int startY, int endX, int endY, String color) {
         super(startX, startY, endX, endY, color);
+    }
+    public MoveArrow(ChessMove m, String color) {
+        super(m.getOldX(), m.getOldY(), m.getNewX(), m.getNewY(), color);
     }
     @Override
     public SVGPath generateSvg(double containerHeight, double containerWidth) {

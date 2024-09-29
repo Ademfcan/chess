@@ -30,9 +30,14 @@ public class EvaluationFunctions {
         for(int i = 0;i<whitePiecesBB.length;i++){
             XYcoord[] coords = GeneralChessFunctions.getPieceCoordsArray(whitePiecesBB[i]);
             for(XYcoord coord : coords){
+                if(i == 0){
+                    if(BitFunctions.isPassedPawn(coord.x,coord.y,true,pos.board)){
+                        whiteScore += 100;
+                    }
+                }
                 int flippedX = 7-coord.x;
                 int flippedY = 7-coord.y;
-                whiteScore += pieceMap[i][flippedX][flippedY];
+                whiteScore += pieceMap[i][flippedX][flippedY]/2;
                 // todo
             }
             whiteScore += ChessConstants.valueMapCentiPawn[i]*coords.length;
@@ -41,15 +46,21 @@ public class EvaluationFunctions {
         for(int i = 0;i<blackPiecesBB.length;i++){
             XYcoord[] coords = GeneralChessFunctions.getPieceCoordsArray(blackPiecesBB[i]);
             for(XYcoord coord : coords){
+                if(BitFunctions.isPassedPawn(coord.x,coord.y,false,pos.board)){
+                    blackScore += 100;
+                }
                 // todo
-                blackScore += pieceMap[i][coord.x][coord.y];
+                blackScore += pieceMap[i][coord.x][coord.y]/2;
             }
             blackScore += ChessConstants.valueMapCentiPawn[i]*coords.length;
         }
         int enemyPieceCount = pos.isWhiteTurn ? pos.board.getBlackPieceCount() : pos.board.getWhitePieceCount();
         XYcoord whiteKingLocation = pos.board.getWhiteKingLocation();
         XYcoord blackKingLocation = pos.board.getBlackKingLocation();
-        int eval =  (whiteScore - blackScore) + kingDistanceScore(enemyPieceCount,whiteKingLocation,blackKingLocation);
+        int eval =  (whiteScore - blackScore);
+        eval += kingDistanceScore(enemyPieceCount,whiteKingLocation,blackKingLocation);
+        eval += kingSafetyScores(whiteKingLocation,blackKingLocation,pos.board, board.getWhitePieceCount() + board.getBlackPieceCount());
+        eval += mobilityScore(pos.board);
         int perspectiveFlip = (pos.isWhiteTurn ? 1 : -1);
         return eval * perspectiveFlip;
         // todo alot here
@@ -63,8 +74,29 @@ public class EvaluationFunctions {
         // euclidian
         double dist = Math.sqrt(dx*dx+dy*dy);
         final float maxDist = 8*1.414f; // root 2
-        int score =(int)((maxDist-dist)*10*scoreWeight);
+        int score =(int)((maxDist-dist)*12*scoreWeight);
         return score;
+    }
+    final static int squareValue = 2;
+
+    private static int kingSafetyScores(XYcoord whiteKingLocation,XYcoord blackKingLocation,BitBoardWrapper bitBoardWrapper,int numPieces){
+
+
+        float weight = (float) numPieces /ChessConstants.BOTHSIDEPIECECOUNT;
+        long whiteKingMoveMap = BitFunctions.calculateQueenAtackBitboard(GeneralChessFunctions.positionToBitIndex(whiteKingLocation.x,whiteKingLocation.y),true,false,bitBoardWrapper);
+        long blackKingMoveMap = BitFunctions.calculateQueenAtackBitboard(GeneralChessFunctions.positionToBitIndex(blackKingLocation.x,blackKingLocation.y),false,false,bitBoardWrapper);
+        int whiteScore = (32-Long.bitCount(whiteKingMoveMap));
+        int blackScore = (32-Long.bitCount(blackKingMoveMap));
+
+        return (int)((whiteScore-blackScore)*weight);
+
+
+    }
+
+    private static int mobilityScore(BitBoardWrapper bitBoardWrapper){
+        int whiteValue = Long.bitCount(bitBoardWrapper.getWhiteAttackTableCombined() & ~bitBoardWrapper.getWhitePiecesBB()[ChessConstants.KINGINDEX])*squareValue;
+        int blackValue = Long.bitCount(bitBoardWrapper.getBlackAttackTableCombined() & ~bitBoardWrapper.getBlackPiecesBB()[ChessConstants.KINGINDEX])*squareValue;
+        return whiteValue-blackValue;
     }
 }
 

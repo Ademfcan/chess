@@ -1,6 +1,9 @@
 package chessengine.CentralControlComponents;
 
 import chessengine.App;
+import chessengine.ChessRepresentations.BackendChessPosition;
+import chessengine.Enums.MainScreenState;
+import chessengine.Enums.MoveRanking;
 import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
@@ -18,8 +21,12 @@ import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
@@ -28,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ChessBoardGUIHandler {
     public final Pane chessPieceBoard;
@@ -57,8 +65,10 @@ public class ChessBoardGUIHandler {
     String currentColorType = ChessboardTheme.TRADITIONAL.toString(); // default type
 
     TextArea localInfo;
+    ChessCentralControl myControl;
 
-    public ChessBoardGUIHandler(Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
+    public ChessBoardGUIHandler(ChessCentralControl myControl,Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
+        this.myControl = myControl;
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhitesContainer = eatenWhites;
         this.eatenBlacksContainer = eatenBlacks;
@@ -122,7 +132,7 @@ public class ChessBoardGUIHandler {
     }
 
     private void redrawArrows() {
-        arrowBoard.getChildren().clear();
+        arrowBoard.getChildren().removeIf(c -> !c.getUserData().toString().equals("ranking"));
         for (Arrow a : arrows) {
             // redraw with new size
             drawArrow(a);
@@ -495,8 +505,8 @@ public class ChessBoardGUIHandler {
     }
 
     public void highlightMove(ChessMove move, boolean isWhiteOriented) {
-        // clear old highlight
         if (lastMoveHighlighted != null) {
+            // clear old highlight
             removeHiglight(lastMoveHighlighted.getOldX(), lastMoveHighlighted.getOldY());
             removeHiglight(lastMoveHighlighted.getNewX(), lastMoveHighlighted.getNewY());
         }
@@ -508,6 +518,7 @@ public class ChessBoardGUIHandler {
         }
         highlightSquare(lastMoveHighlighted.getOldX(), lastMoveHighlighted.getOldY(), false);
         highlightSquare(lastMoveHighlighted.getNewX(), lastMoveHighlighted.getNewY(), false);
+
 
     }
 
@@ -599,6 +610,11 @@ public class ChessBoardGUIHandler {
         moveBoxes[x][y].getChildren().get(0).setVisible(true);
     }
 
+    public void highlightSquare(int x, int y,String customColor) {
+        highlightPanes[x][y].setStyle("-fx-background-color: " + customColor);
+
+    }
+
     public void highlightSquare(int x, int y, boolean isPieceSelection) {
         if (isPieceSelection) {
             highlightColor = "rgba(223, 90, 37, 0.6)";
@@ -629,4 +645,37 @@ public class ChessBoardGUIHandler {
 
     }
 
+    private Circle lastMoveRank = null;
+
+    public void addMoveRanking(ChessMove moveThatCreatedThis, MoveRanking ranking, boolean isWhiteOriented) {
+
+        int rankingEndX = isWhiteOriented ? moveThatCreatedThis.getNewX() : 7-moveThatCreatedThis.getNewX();
+        int rankingEndY = isWhiteOriented ? moveThatCreatedThis.getNewY() : 7-moveThatCreatedThis.getNewY();
+        addRankingCircle(rankingEndX,rankingEndY,ranking.getColor(),ranking.getImage());
+    }
+
+    public void addRankingCircle(int rankingEndX, int rankingEndY, Paint color, Image image){
+        if(lastMoveRank != null){
+            arrowBoard.getChildren().remove(lastMoveRank);
+        }
+        Circle moveRank = new Circle();
+        moveRank.setFill(new ImagePattern(image));
+        moveRank.setStroke(color);
+        moveRank.setStrokeWidth(2);
+        moveRank.radiusProperty().bind(chessPieceBoard.widthProperty().divide(24));
+        moveRank.layoutXProperty().bind(calcMoveRankingXBinding(rankingEndX));
+        moveRank.layoutYProperty().bind(calcMoveRankingBinding(rankingEndY));
+        moveRank.setUserData("ranking");
+        lastMoveRank = moveRank;
+        arrowBoard.getChildren().add(moveRank);
+    }
+
+    // these will put in top right corner
+    public DoubleBinding calcMoveRankingXBinding(int x) {
+        return chessPieceBoard.widthProperty().divide(8).multiply(x+1);
+    }
+
+    public DoubleBinding calcMoveRankingBinding(int y) {
+        return chessPieceBoard.heightProperty().divide(8).multiply(y);
+    }
 }

@@ -28,6 +28,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -104,6 +105,8 @@ public class MainScreenController implements Initializable {
     @FXML
     Pane promotionScreen;
     @FXML
+    HBox evalOverTimeBox;
+    @FXML
     VBox evalBar;
     @FXML
     StackPane evalContainer;
@@ -131,7 +134,7 @@ public class MainScreenController implements Initializable {
     VBox promoContainer;
 
     @FXML
-    Label lineLabel; //  current game line
+    public Label lineLabel; //  current game line
 
     // moves played area
 
@@ -286,6 +289,9 @@ public class MainScreenController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
+
+
         currentGamePgn.setEditable(false);
 
 
@@ -475,6 +481,7 @@ public class MainScreenController implements Initializable {
     private void setupresetToHome(Button gameoverHomebutton) {
         gameoverHomebutton.setOnMouseClicked(e -> {
             // clearing all board related stuff
+
             ChessCentralControl.chessBoardGUIHandler.removeAllPieces();
             ChessCentralControl.chessBoardGUIHandler.resetEverything(true);
             ChessCentralControl.chessActionHandler.reset();
@@ -607,6 +614,10 @@ public class MainScreenController implements Initializable {
 
         App.bindingController.bindSmallText(lineLabel,true,"Black");
 
+//        evalOverTimeBox.prefHeightProperty().bind(localInfo.heightProperty());
+//        evalOverTimeBox.prefWidthProperty().bind(localInfo.widthProperty());
+
+
         // moves played box
         movesPlayed.setFitToHeight(true);
         movesPlayed.prefWidthProperty().bind(sidePanel.widthProperty());
@@ -726,6 +737,8 @@ public class MainScreenController implements Initializable {
      * Setup Steps that are called every game, regardless of campaign or not
      **/
     private void setUp(String extraStuff) {
+        ChessCentralControl.clearForNewGame();
+
         // side panel controls are slightly different for every mode
         setMainControls(currentState, extraStuff);
         // some modes do not want an eval bar
@@ -844,7 +857,11 @@ public class MainScreenController implements Initializable {
 
     private void checkHideEvalBar(MainScreenState currentState) {
         // hidden as these are real games
-        evalBar.setVisible(!currentState.equals(MainScreenState.ONLINE) && !currentState.equals(MainScreenState.LOCAL) && !currentState.equals(MainScreenState.CAMPAIGN));
+        evalBar.setVisible(isEvalAllowed(currentState));
+    }
+
+    public boolean isEvalAllowed(MainScreenState currentState){
+        return !currentState.equals(MainScreenState.ONLINE) && !currentState.equals(MainScreenState.LOCAL) && !currentState.equals(MainScreenState.CAMPAIGN);
     }
 
     public void setPlayerIcons(String player1Url, String player2Url, boolean isWhiteOriented) {
@@ -1022,6 +1039,7 @@ public class MainScreenController implements Initializable {
         if (isReset) {
             // resets the backend chessgame
             ChessCentralControl.gameHandler.currentGame.reset();
+            ChessCentralControl.clearForNewGame();
 
 
         } else {
@@ -1060,7 +1078,7 @@ public class MainScreenController implements Initializable {
 
     // draw the eval bar for the screen
     public void setEvalBar(double advantage, int depth, boolean gameOver) {
-        setEvalBar(whiteEval, blackEval, whiteadvantage, blackadvantage, advantage, evalDepth);
+        setEvalBar(whiteEval, blackEval, whiteadvantage, blackadvantage, advantage, evalDepth,chessPieceBoard);
         if (gameOver) {
             String title = "Draw";
             if (advantage > 100000) {
@@ -1087,40 +1105,65 @@ public class MainScreenController implements Initializable {
     }
 
 
-    private void setEvalBar(Label whiteEval, Label blackEval, Rectangle whiteBar, Rectangle blackBar, double advantage, Label evalDepth) {
+    private void setEvalBar(Label whiteEval, Label blackEval, Rectangle whiteBar, Rectangle blackBar, double advantage, Label evalDepth,Region heightReference) {
         double barModPercent = passThroughAsymptote(Math.abs(advantage)) / 5;
         DecimalFormat decimalFormat = new DecimalFormat("0.0");
         if (advantage >= 0) {
             // white advantage or equal position
-            evalDepth.setStyle("-fx-text-fill: black");
-            if (advantage < 1000000) {
-                whiteEval.setText(decimalFormat.format(advantage));
-            } else {
-                whiteEval.setText("M"+evalDepth);
-
+            if(evalDepth != null){
+                evalDepth.setStyle("-fx-text-fill: black");
             }
-            blackEval.setText("");
-            whiteBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).add(chessPieceBoard.heightProperty().divide(2).multiply(barModPercent)));
-            blackBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1 - barModPercent));
+            if(whiteEval != null && blackEval != null){
+                if (advantage < 1000000) {
+                    whiteEval.setText(decimalFormat.format(advantage));
+                } else {
+                    whiteEval.setText("M");
+
+                }
+                blackEval.setText("");
+            }
+            whiteBar.heightProperty().bind(heightReference.heightProperty().divide(2).add(heightReference.heightProperty().divide(2).multiply(barModPercent)));
+            blackBar.heightProperty().bind(heightReference.heightProperty().divide(2).multiply(1 - barModPercent));
 
         } else {
-            if (advantage < -.2) {
+            if (evalDepth != null && advantage < -.2) {
                 // change eval depth color to match the black covering it now that the black has an advantage
                 evalDepth.setStyle("-fx-text-fill: white");
             }
-            if (advantage > -1000000) {
-                blackEval.setText(decimalFormat.format(advantage));
-            } else {
-                blackEval.setText("M"+evalDepth);
+            if(blackEval != null && whiteEval != null){
+                if (advantage > -1000000) {
+                    blackEval.setText(decimalFormat.format(advantage));
+                } else {
+                    blackEval.setText("M");
 
+                }
+                whiteEval.setText("");
             }
-            whiteEval.setText("");
-            blackBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).add(chessPieceBoard.heightProperty().divide(2).multiply(barModPercent)));
-            whiteBar.heightProperty().bind(chessPieceBoard.heightProperty().divide(2).multiply(1 - barModPercent));
+            blackBar.heightProperty().bind(heightReference.heightProperty().divide(2).add(heightReference.heightProperty().divide(2).multiply(barModPercent)));
+            whiteBar.heightProperty().bind(heightReference.heightProperty().divide(2).multiply(1 - barModPercent));
 
 
         }
 
+
+    }
+
+    public void addToEvaluationOverTimeBox(double advantage){
+        DoubleBinding widthBinding = Bindings.createDoubleBinding(() -> evalOverTimeBox.getChildren().isEmpty() ? evalOverTimeBox.getWidth() : evalOverTimeBox.getWidth()/evalOverTimeBox.getChildren().size(),evalOverTimeBox.getChildren());
+        Rectangle whiteRect = new Rectangle();
+        whiteRect.setFill(Paint.valueOf("White"));
+        whiteRect.widthProperty().bind(widthBinding);
+//        HBox.setHgrow(whiteRect,Priority.ALWAYS);
+//        whiteRect.maxWidth(Double.MAX_VALUE);
+        Rectangle blackRect = new Rectangle();
+        blackRect.setFill(Paint.valueOf("Black"));
+        blackRect.widthProperty().bind(widthBinding);
+//        HBox.setHgrow(blackRect,Priority.ALWAYS);
+//        blackRect.maxWidth(Double.MAX_VALUE);
+
+
+        setEvalBar(null,null,whiteRect,blackRect,advantage,null,evalOverTimeBox);
+        evalOverTimeBox.getChildren().add(new VBox(whiteRect,blackRect));
 
     }
 
@@ -1146,7 +1189,6 @@ public class MainScreenController implements Initializable {
 
     private void setUpSquareClickEvent(VBox square) {
         square.setOnMouseClicked(event -> {
-//            switchB();
             // finding which image view was clicked and getting coordinates
             VBox pane = (VBox) event.getSource();
             String[] xy = pane.getUserData().toString().split(",");
