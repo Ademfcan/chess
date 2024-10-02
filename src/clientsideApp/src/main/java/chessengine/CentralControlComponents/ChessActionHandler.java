@@ -252,7 +252,7 @@ public class ChessActionHandler {
         App.bindingController.bindSmallText(pgnDescriptor, true, "Black");
         pgnDescriptor.setUserData(numLabels);
         int pgnLen = pgn.length();
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(240).add(8).multiply(pgnLen));
+        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(230).add(10).multiply(pgnLen));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -266,7 +266,7 @@ public class ChessActionHandler {
             // ready for a number
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(170).add(7).multiply(Math.log10(moveNum) + 1));
+            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(160).add(9).multiply(Math.log10(moveNum) + 1));
             App.bindingController.bindSmallText(numSeparator, true, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 

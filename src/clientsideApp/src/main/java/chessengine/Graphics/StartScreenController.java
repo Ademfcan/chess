@@ -418,7 +418,7 @@ public class StartScreenController implements Initializable {
 
         generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
 
-        settingSpacer.prefHeightProperty().bind(fullscreen.heightProperty().multiply(.25));
+        settingSpacer.prefHeightProperty().bind(fullscreen.heightProperty().multiply(.02));
 
         s1.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
         s2.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));

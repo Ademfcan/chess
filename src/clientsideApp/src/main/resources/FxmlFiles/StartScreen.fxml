@@ -205,7 +205,7 @@
                                        <content>
                                           <VBox fx:id="generalSettingsReference" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                              <children>
-                                                <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
+                                                <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
                                                    <children>
                                                       <HBox fx:id="settingSpacer" alignment="CENTER" layoutX="72.0" layoutY="-142.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" />
                                                       <HBox fx:id="s1" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">

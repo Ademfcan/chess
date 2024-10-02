@@ -99,8 +99,7 @@ public enum MoveRanking {
 
     public static MoveRanking getMoveRanking(int bestEvaluation, int moveEvaluation, PVEntry[] bestPv, PVEntry[] movePv){
         int delta = Math.abs(moveEvaluation-bestEvaluation);
-        System.out.println("Delta: " + delta);
-        int hasCheckmate = isPvCheckmate(bestPv);
+        int hasCheckmate = isPvCheckmate(bestPv); // todo look much more into pv, and also static evaluations. Ex reward static sacrifice ( need to include this in pv)
 
         if(delta <= goodDelta){
             // go through pv and see where you
@@ -147,7 +146,6 @@ public enum MoveRanking {
     }
     // 1 black mate, 0 no mate, -1 white mate
     private static int isPvCheckmate(PVEntry[] pv){
-        System.out.println(Arrays.toString(pv));
         for(PVEntry pair : pv){
             if(EvaluationFunctions.isMateScore(pair.pvEval())){
                 return pair.pvMove().isWhite() ? 1 : -1;
