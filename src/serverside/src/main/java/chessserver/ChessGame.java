@@ -5,6 +5,7 @@ public class ChessGame {
     BackendClient client2;
     boolean isClient1Turn;
     int gameLength;
+
     public ChessGame(BackendClient client1, BackendClient client2, boolean isClient1Turn, int gameLength) {
         this.client1 = client1;
         this.client2 = client2;

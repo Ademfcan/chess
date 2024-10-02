@@ -1,6 +1,6 @@
 package chessengine.Enums;
 
-import chessengine.Computation.SearchPair;
+import chessengine.Records.PVEntry;
 import chessengine.Functions.EvaluationFunctions;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Paint;
@@ -97,7 +97,7 @@ public enum MoveRanking {
 
     private static final int okDelta = 150;
 
-    public static MoveRanking getMoveRanking(int bestEvaluation,int moveEvaluation, SearchPair[] bestPv,SearchPair[] movePv){
+    public static MoveRanking getMoveRanking(int bestEvaluation, int moveEvaluation, PVEntry[] bestPv, PVEntry[] movePv){
         int delta = Math.abs(moveEvaluation-bestEvaluation);
         System.out.println("Delta: " + delta);
         int hasCheckmate = isPvCheckmate(bestPv);
@@ -146,9 +146,9 @@ public enum MoveRanking {
 
     }
     // 1 black mate, 0 no mate, -1 white mate
-    private static int isPvCheckmate(SearchPair[] pv){
+    private static int isPvCheckmate(PVEntry[] pv){
         System.out.println(Arrays.toString(pv));
-        for(SearchPair pair : pv){
+        for(PVEntry pair : pv){
             if(EvaluationFunctions.isMateScore(pair.pvEval())){
                 return pair.pvMove().isWhite() ? 1 : -1;
             }

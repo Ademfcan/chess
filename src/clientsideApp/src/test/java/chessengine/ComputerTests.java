@@ -1,10 +1,7 @@
 package chessengine;
 
 import chessengine.ChessRepresentations.*;
-import chessengine.Computation.Computer;
-import chessengine.Computation.ComputerHelperFunctions;
-import chessengine.Computation.EvalOutput;
-import chessengine.Computation.Stockfish;
+import chessengine.Computation.*;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.PgnFunctions;
@@ -46,7 +43,7 @@ public class ComputerTests {
         };
 
         Stockfish stockfish = new Stockfish();
-        Computer computer = new Computer();
+        Searcher computer = new Searcher();
 
         if (stockfish.startEngine()) {
             for (String pgn : pgns) {
@@ -55,7 +52,7 @@ public class ComputerTests {
                 String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameState, game.isWhiteTurn());
 
                 // Calculate evaluation with Computer
-                float computerEval = (float) computer.getFullEvalMinimax(game.currentPosition, game.gameState, 3, false).getAdvantage();
+                float computerEval = (float) computer.search(game.currentPosition.toBackend(game.gameState, game.isWhiteTurn()),1000).evaluation();
 
                 // Calculate evaluation with Stockfish
                 double stockfishEval = stockfish.getEvalScore(fen, game.isWhiteTurn(),1000).getAdvantage(); // 1000 milliseconds time limit

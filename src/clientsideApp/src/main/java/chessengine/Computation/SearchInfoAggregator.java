@@ -4,10 +4,11 @@ public class SearchInfoAggregator {
     int numBetaCutoffs;
     int uniquePositionsSearched;
     int numTranspositionUses;
-    public SearchInfoAggregator(){
+
+    public SearchInfoAggregator() {
     }
 
-    public void clear(){
+    public void clear() {
         numBetaCutoffs = 0;
         uniquePositionsSearched = 0;
         numTranspositionUses = 0;

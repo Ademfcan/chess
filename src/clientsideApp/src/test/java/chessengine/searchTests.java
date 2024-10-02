@@ -5,8 +5,11 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessStates;
 import chessengine.Computation.*;
+import chessengine.Enums.Flag;
+import chessengine.Enums.PromotionType;
 import chessengine.Functions.EvaluationFunctions;
 import chessengine.Misc.ChessConstants;
+import chessengine.Records.SearchResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -72,7 +75,7 @@ public class searchTests {
         long key3 = 1243535774;
         long key4 = 274324747;
         long key5 = 122774;
-        transpositionTable.recordHash(key1,4,60,ChessConstants.startMove,Flag.EXACT);
+        transpositionTable.recordHash(key1,4,60,ChessConstants.startMove, Flag.EXACT);
         transpositionTable.recordHash(key2,4,80,ChessConstants.startMove,Flag.EXACT);
         transpositionTable.recordHash(key3,4,-130,ChessConstants.startMove,Flag.EXACT);
         transpositionTable.recordHash(key4,4,-180,ChessConstants.startMove,Flag.EXACT);

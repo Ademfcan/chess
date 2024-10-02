@@ -5,12 +5,11 @@ import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.ChessStates;
-import chessengine.Computation.Computer;
-import chessengine.Computation.MoveOutput;
-import chessengine.Computation.SearchResult;
+import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Misc.ChessConstants;
+import chessengine.Records.SearchResult;
 import chessserver.ComputerDifficulty;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -19,8 +18,8 @@ import org.apache.logging.log4j.Logger;
 
 public class GetComputerMoveTask extends Task<Void> {
     private final ChessCentralControl control;
-    private final Computer c;
     private final Logger logger;
+    public ComputerDifficulty difficulty;
     public volatile ChessPosition currentPosition;
     public volatile ChessStates currentGameState;
     public volatile boolean currentIsWhite;
@@ -28,15 +27,16 @@ public class GetComputerMoveTask extends Task<Void> {
     private volatile boolean evaluationRequest = false;
     private boolean isCurrentlyEvaluating = false;
 
-    private Searcher searcher;
+    private final Searcher searcher;
+    private final CustomMultiSearcher multiSearcher;
 
 
-
-    public GetComputerMoveTask(Computer c, ChessCentralControl control) {
+    public GetComputerMoveTask(ComputerDifficulty difficulty, ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
-        this.c = c;
+        this.difficulty = difficulty;
         this.control = control;
         this.searcher = new Searcher();
+        this.multiSearcher = new CustomMultiSearcher();
 
     }
 
@@ -51,9 +51,7 @@ public class GetComputerMoveTask extends Task<Void> {
     }
 
     public void stop() {
-        if (c.isRunning()) {
-            c.stop.set(true);
-        }
+        isCurrentlyEvaluating = false;
     }
 
     @Override
@@ -62,7 +60,6 @@ public class GetComputerMoveTask extends Task<Void> {
 //            System.out.println("comp move");
             try {
                 if (evaluationRequest) {
-                    c.clearFlags();
                     evaluationRequest = false;
                     isCurrentlyEvaluating = true;
                     makeComputerMove();
@@ -71,7 +68,7 @@ public class GetComputerMoveTask extends Task<Void> {
                 }
                 Thread.sleep(50);
             } catch (Exception e) {
-                logger.error("Error on get comp move task",e);
+                logger.error("Error on get comp move task", e);
             }
         }
         return null;
@@ -81,37 +78,34 @@ public class GetComputerMoveTask extends Task<Void> {
 
     private void makeComputerMove() {
         logger.info("Starting a best move evaluation");
-        if(c.currentDifficulty.isStockfishBased){
+        if (difficulty.isStockfishBased) {
             logger.debug("Getting stockfish move");
-            String moveUci = App.stockfishForNmoves.getBestMove(PgnFunctions.positionToFEN(currentPosition,currentGameState,currentIsWhite), c.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
-            if(moveUci != null){
-                Platform.runLater(()->{
+            String moveUci = App.getMoveStockfish.getBestMove(PgnFunctions.positionToFEN(currentPosition, currentGameState, currentIsWhite), difficulty.stockfishElo, ChessConstants.DefaultWaitTime);
+            if (isCurrentlyEvaluating && moveUci != null) {
+                Platform.runLater(() -> {
                     control.mainScreenController.makeComputerMove(PgnFunctions.uciToChessMove(moveUci, currentIsWhite, currentPosition.board));
                 });
             }
 
-        }
-        else if(c.currentDifficulty == ComputerDifficulty.MaxDifficulty){
-            SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState,currentIsWhite),ChessConstants.DefaultWaitTime);
+        } else if (difficulty == ComputerDifficulty.MaxDifficulty) {
+            SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState, currentIsWhite), ChessConstants.DefaultWaitTime);
 //            System.out.println(searchResult.evaluation());
 //            System.out.println(searchResult.depth());
             ChessMove bestMove = searchResult.move();
-            if(bestMove != null){
-                Platform.runLater(()->{
+            if (isCurrentlyEvaluating && bestMove != null) {
+                Platform.runLater(() -> {
                     control.mainScreenController.makeComputerMove(bestMove);
                 });
             }
-        }
-        else{
-            MoveOutput bestMove =  c.getComputerMoveWithFlavors(currentIsWhite, currentPosition, currentGameState);
-            if (bestMove != null) {
-                Platform.runLater(()->{
-                    control.mainScreenController.makeComputerMove(bestMove.getMove());
+        } else {
+            ChessMove bestMove = multiSearcher.search(currentPosition.toBackend(currentGameState, currentIsWhite), ChessConstants.DefaultWaitTime, 1, difficulty).results()[0].move();
+            if (isCurrentlyEvaluating && bestMove != null) {
+                Platform.runLater(() -> {
+                    control.mainScreenController.makeComputerMove(bestMove);
                 });
             }
 
         }
-
 
 
     }

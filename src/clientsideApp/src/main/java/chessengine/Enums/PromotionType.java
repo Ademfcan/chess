@@ -1,4 +1,4 @@
-package chessengine.Computation;
+package chessengine.Enums;
 
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Misc.ChessConstants;
@@ -13,7 +13,7 @@ public enum PromotionType {
     QUEENANDBISHOP(new int[]{ChessConstants.BISHOPINDEX,ChessConstants.QUEENINDEX}),
     ROOKANDKNIGHT(new int[]{ChessConstants.KNIGHTINDEX,ChessConstants.ROOKINDEX});
 
-    int[] promotionRange;
+    public int[] promotionRange;
     private PromotionType(int[] promotionRange){
         this.promotionRange = promotionRange;
     }

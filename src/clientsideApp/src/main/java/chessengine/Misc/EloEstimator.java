@@ -1,94 +1,33 @@
 package chessengine.Misc;
 
+import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Computation.Computer;
+import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
-import chessengine.Functions.PgnFunctions;
 import chessengine.Computation.Stockfish;
+import chessengine.Functions.PgnFunctions;
+import chessengine.Records.SearchResult;
 import chessserver.ComputerDifficulty;
+import javafx.application.Platform;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EloEstimator {
-    private final int numRuns = 30;
-    private final int stockFishElo = 2000;
+    private final Logger logger = LogManager.getLogger(this.toString());
     private final int timeLimit = 1000;
 
-    public int testElo(ComputerDifficulty testDifficulty, boolean isShow) {
-        Computer testComputer = new Computer();
-        Searcher searcher = new Searcher();
-        testComputer.setCurrentDifficulty(testDifficulty);
-        Stockfish stockfish = new Stockfish();
-        int numComputerWins = 0;
-        int numStockFishWins = 0;
-        int numDraws = 0;
-        if (stockfish.startEngine()) {
-            boolean isComputerFirst = true;
-            for (int i = 0; i < numRuns; i++) {
-                ChessGame testGame = ChessGame.createTestGame("", true);
-                boolean isComputerTurn = isComputerFirst;
-                while (!testGame.gameState.isGameOver()) {
-                    boolean isWhiteTurn = isComputerTurn == isComputerFirst;
-                    if (isComputerTurn) {
-                        ChessMove move;
-                        if(testDifficulty.equals(ComputerDifficulty.MaxDifficulty)){
-                            move = searcher.search(testGame.currentPosition.toBackend(testGame.gameState,isWhiteTurn),timeLimit).move();
-                        }
-                        else{
-                            move = testComputer.getComputerMoveWithFlavors(isWhiteTurn, testGame.currentPosition, testGame.gameState).getMove();
-                        }
-                        testGame.makeNewMove(move, true, false);
-                    } else {
-                        String moveUci = stockfish.getBestMove(PgnFunctions.positionToFEN(testGame.currentPosition, testGame.gameState, isWhiteTurn),stockFishElo ,timeLimit);
-                        if(moveUci != null){
-                            ChessMove move = PgnFunctions.uciToChessMove(moveUci, isWhiteTurn, testGame.currentPosition.board);
-                            testGame.makeNewMove(move, true, false);
-                        }
-                    }
-                    isComputerTurn = !isComputerTurn;
-                }
+    private final CustomMultiSearcher multiSearcher = new CustomMultiSearcher();
 
-                if (testGame.gameState.isStaleMated()) {
-                    // draw
-                    numDraws++;
-                }
-                else{
-                    // else one side must have one,
-                    boolean isPlayer1Win = testGame.gameState.isCheckMated()[1];
-                    if (isPlayer1Win) {
-                        if (isComputerFirst) {
-                            // computer is player 1 and won (Computer win)
-                            numComputerWins++;
-                        } else {
-                            // stockfish is player 1 and won (Stockfish Win)
-                            numStockFishWins++;
-                        }
-                    } else {
-                        if (isComputerFirst) {
-                            // computer is player 1 but lost (Stockfish win)
-                            numStockFishWins++;
-                        } else {
-                            // stockfish player 1 but lost (Computer win)
-                            numStockFishWins++;
-                        }
-                    }
-                }
+    private final Searcher searcher = new Searcher();
+    private final Stockfish stockfish = new Stockfish();
 
-
-                isComputerFirst = !isComputerFirst;
-                System.out.println("Results---------------------\nCompW: " + numComputerWins + " StockF'W: " + numStockFishWins + " Draws: " + numDraws);
-            }
-
+    public EloEstimator() {
+        boolean isStart = stockfish.startEngine();
+        if (!isStart) {
+            logger.error("Failed to start stockfish engine");
         }
-        int total = numComputerWins + numStockFishWins + numDraws;
-        double p1WinProb = (double) numComputerWins / total;
-        double drawProb = (double) numDraws / total;
-        int estimatedEloDiff = estimateEloDiffOnWinProb(p1WinProb, drawProb, stockFishElo);
-        return stockFishElo - estimatedEloDiff;
     }
-
-
-
-
 
     // returns estimated elo of player 1
     public static int estimateEloDiffOnWinProb(double winProbP1, double drawProb, int player2elo) {
@@ -96,6 +35,91 @@ public class EloEstimator {
         return player2elo + (int) (400 * Math.log10(expectedScore / (1 - expectedScore)));
     }
 
+    /**
+     * Tests a specific computer difficulty against another, given that player 2's elo is somewhat accurate. Returns estimate elo for player 1
+     **/
+    public int testElo(ComputerDifficulty player1TestDifficulty, ComputerDifficulty player2TestDifficulty, int numRuns) {
+
+        int numPlayer1Wins = 0;
+        int numPlayer2Wins = 0;
+        int numDraws = 0;
+        boolean isPlayer1First = true;
+        for (int i = 0; i < numRuns; i++) {
+            ChessGame testGame = ChessGame.createTestGame("", true);
+            boolean isPlayer1Turn = isPlayer1First;
+            while (!testGame.gameState.isGameOver()) {
+                boolean isWhiteTurn = isPlayer1Turn == isPlayer1First;
+                ChessMove move = getMove(isPlayer1Turn ? player1TestDifficulty : player2TestDifficulty, testGame, isWhiteTurn);
+                if (move == null) {
+                    logger.error("Null move encountered, redoing turn");
+                    continue;
+                }
+                testGame.makeNewMove(move, true, false);
+                isPlayer1Turn = !isPlayer1Turn;
+            }
+
+            // game over
+
+            if (testGame.gameState.isStaleMated()) {
+                // draw
+                numDraws++;
+            } else {
+                // else one side must have one,
+                boolean isPlayer1Win = testGame.gameState.isCheckMated()[1];
+                if (isPlayer1Win) {
+                    if (isPlayer1First) {
+                        // computer is player 1 and won (Computer win)
+                        numPlayer1Wins++;
+                    } else {
+                        // stockfish is player 1 and won (Stockfish Win)
+                        numPlayer2Wins++;
+                    }
+                } else {
+                    if (isPlayer1First) {
+                        // computer is player 1 but lost (Stockfish win)
+                        numPlayer2Wins++;
+                    } else {
+                        // stockfish player 1 but lost (Computer win)
+                        numPlayer2Wins++;
+                    }
+                }
+            }
+
+
+            isPlayer1First = !isPlayer1First;
+            System.out.println("Results---------------------\nCompW: " + numPlayer1Wins + " StockF'W: " + numPlayer2Wins + " Draws: " + numDraws);
+        }
+
+        int total = numPlayer1Wins + numPlayer2Wins + numDraws;
+        double p1WinProb = (double) numPlayer1Wins / total;
+        double drawProb = (double) numDraws / total;
+        int estimatedEloDiff = estimateEloDiffOnWinProb(p1WinProb, drawProb, player2TestDifficulty.eloRange);
+        return player2TestDifficulty.eloRange - estimatedEloDiff;
+    }
+
+    private ChessMove getMove(ComputerDifficulty currentPlayerDifficulty, ChessGame game, boolean isWhiteTurn) {
+        if (currentPlayerDifficulty.isStockfishBased) {
+            String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, timeLimit);
+            if (moveUci != null) {
+                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.currentPosition.board);
+                Platform.runLater(() -> {
+                    game.makeNewMove(move, true, false);
+                });
+            }
+        } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
+            SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit);
+            ChessMove move = out.move();
+            if (!searcher.wasForcedStop()) {
+                return move;
+            }
+        } else {
+            ChessMove move = multiSearcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit, 1).results()[0].move();
+            if (!multiSearcher.wasForcedStop()) {
+                return move;
+            }
+        }
+        return null;
+    }
 
 
 }

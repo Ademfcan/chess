@@ -36,11 +36,13 @@ public class ChessStates {
     private int blackShortRookIndx = 1000;
     private int blackLongRookIndx = 1000;
     private int currentIndex = -1;
+
     public ChessStates() {
         this.hasher = new ZobristHasher();
         this.posMap = new HashMap<>();
         this.movesWhenResetted = new Stack<>();
     }
+
     private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, boolean isWhiteWin, boolean isStaleMated, HashMap<Long, Integer> posMap, Stack<Integer> movesWhenResetted, int movesSinceNoCheckOrNoPawn) {
         this.hasher = new ZobristHasher();
         this.whiteCastleRight = whiteCastleRight;
@@ -147,7 +149,7 @@ public class ChessStates {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-                if(movesSinceNoCheckOrNoPawn > 99){
+                if (movesSinceNoCheckOrNoPawn > 99) {
 //                    staleMateIndex = currentIndex;
 //                    isStaleMated = true;
 //                    ChessConstants.mainLogger.debug("50 move rule triggered");
@@ -230,11 +232,10 @@ public class ChessStates {
         return new boolean[]{this.isCheckMated, this.isWhiteWin};
     }
 
-    public void setCheckMated(boolean isWhiteWin,int customIndex) {
-        if(customIndex != ChessConstants.EMPTYINDEX){
+    public void setCheckMated(boolean isWhiteWin, int customIndex) {
+        if (customIndex != ChessConstants.EMPTYINDEX) {
             this.checkMateIndex = customIndex;
-        }
-        else{
+        } else {
             this.checkMateIndex = currentIndex;
         }
         this.isWhiteWin = isWhiteWin;
@@ -316,8 +317,7 @@ public class ChessStates {
                     ChessConstants.mainLogger.error("moveswhen ressetted does not have needed elements, are you moving backward before forward");
                     ChessConstants.mainLogger.error(oldPositionToRemove.getMoveThatCreatedThis().toString());
                     ChessConstants.mainLogger.error(GeneralChessFunctions.getBoardDetailedString(oldPositionToRemove.board));
-                }
-                else{
+                } else {
                     movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
                 }
             }
@@ -390,9 +390,6 @@ public class ChessStates {
 
     }
 
-    public void checkRemoveRookMoveRight(int x, int y) {
-        checkRemoveRookMoveRight(x, y, y == 7);
-    }
 
     public void checkRemoveRookMoveRight(int x, int y, boolean isWhite) {
         boolean isShort = x == 7;
@@ -430,4 +427,13 @@ public class ChessStates {
     }
 
 
+    public void updateRightsBasedOnMove(ChessMove move) {
+        if (move.isCustomMove() || move.getBoardIndex() == ChessConstants.KINGINDEX) {
+            removeCastlingRight(move.isWhite());
+        } else if (move.getBoardIndex() == ChessConstants.ROOKINDEX) {
+            checkRemoveRookMoveRight(move.getOldX(), move.getOldY(), move.isWhite());
+        } else if (move.isEating() && move.getEatingIndex() == ChessConstants.ROOKINDEX) {
+            checkRemoveRookMoveRight(move.getNewX(), move.getNewY(), !move.isWhite());
+        }
+    }
 }

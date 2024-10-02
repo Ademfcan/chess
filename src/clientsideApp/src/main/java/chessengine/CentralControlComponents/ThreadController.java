@@ -1,20 +1,19 @@
 package chessengine.CentralControlComponents;
 
-import chessengine.Async.*;
-import chessengine.Computation.Computer;
+import chessengine.Async.GeneralPurposeThread;
+import chessengine.Async.GetComputerMoveTask;
+import chessengine.Async.SimulationTask;
 import chessserver.ComputerDifficulty;
 
 public class ThreadController {
-    public Computer chessAiForBestMove;
 
-//    public EvaluationBarTask evalTask;
+    //    public EvaluationBarTask evalTask;
     public GetComputerMoveTask computerTask;
-//    public BestNMovesTask nMovesTask;
+    //    public BestNMovesTask nMovesTask;
     public SimulationTask simTask;
     public GeneralPurposeThread generalTask;
 
     public ThreadController(ChessCentralControl control) {
-        chessAiForBestMove = new Computer();
 
         simTask = new SimulationTask(control);
         new Thread((simTask)).start();
@@ -22,7 +21,7 @@ public class ThreadController {
 //        evalTask = new EvaluationBarTask(new Computer(),control);
 //        new Thread(evalTask).start();
 
-        computerTask = new GetComputerMoveTask(chessAiForBestMove, control);
+        computerTask = new GetComputerMoveTask(ComputerDifficulty.MaxDifficulty, control);
         new Thread(computerTask).start();
 
 //        nMovesTask = new BestNMovesTask(new Computer(),control);
@@ -53,13 +52,7 @@ public class ThreadController {
     }
 
     public void setComputerDifficulty(ComputerDifficulty newDiff) {
-        if (chessAiForBestMove.isRunning()) {
-            computerTask.setOnSucceeded(e -> {
-                chessAiForBestMove.setCurrentDifficulty(newDiff);
-            });
-        } else {
-            chessAiForBestMove.setCurrentDifficulty(newDiff);
-        }
+        computerTask.difficulty = newDiff;
     }
 
 

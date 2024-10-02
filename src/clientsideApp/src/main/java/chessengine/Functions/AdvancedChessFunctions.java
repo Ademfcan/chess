@@ -1,6 +1,8 @@
 package chessengine.Functions;
 
 import chessengine.ChessRepresentations.*;
+import chessengine.Computation.Searcher;
+import chessengine.Enums.Movetype;
 import chessengine.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1224,6 +1226,9 @@ public class AdvancedChessFunctions {
 
         return coord;
     }
+
+
+
 
 
 }

@@ -216,7 +216,7 @@ public class App extends Application {
     }
 
     public static Stockfish stockfishForEval;
-    public static Stockfish stockfishForNmoves;
+    public static Stockfish getMoveStockfish;
 
     public static MagicBitboardGenerator magicBitboardGenerator;
 
@@ -230,8 +230,8 @@ public class App extends Application {
             appLogger.error("Stockfish for eval start failed");
         }
 
-        stockfishForNmoves = new Stockfish();
-        if (stockfishForNmoves.startEngine()) {
+        getMoveStockfish = new Stockfish();
+        if (getMoveStockfish.startEngine()) {
             appLogger.debug("Started stockfish for nmoves succesfully");
         } else {
             appLogger.error("Stockfish for nmoves start failed");

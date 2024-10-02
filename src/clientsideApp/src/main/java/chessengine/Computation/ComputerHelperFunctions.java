@@ -1,15 +1,10 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.Functions.BitFunctions;
-import chessengine.Misc.ChessConstants;
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.XYcoord;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.*;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.BitFunctions;
 import chessengine.Functions.GeneralChessFunctions;
+import chessengine.Misc.ChessConstants;
 import chessengine.Misc.pieceMapHandler;
 import chessserver.ComputerDifficulty;
 
@@ -164,7 +159,7 @@ public class ComputerHelperFunctions {
         int xDist = Math.abs(king1.x - king2.x);
         int yDist = Math.abs(king1.y - king2.y);
         int distanceKingsvalue = 14 - (xDist + yDist);
-        double weight = (1 - ((double) piecesOnBoard / ChessConstants.ONESIDEPIECECOUNT))/2;
+        double weight = (1 - ((double) piecesOnBoard / ChessConstants.ONESIDEPIECECOUNT)) / 2;
         return (distanceKingsvalue + distFromCenterValue) * weight;
     }
 
@@ -181,7 +176,6 @@ public class ComputerHelperFunctions {
 
         return coord;
     }
-
 
 
     private static double addOpenFileValue(int x, int y, int piecetype, BitBoardWrapper board) {
@@ -204,35 +198,37 @@ public class ComputerHelperFunctions {
         return totalValue;
     }
 
-    /** 0,1 returned wether a move extension is needed to search deeper **/
-    public static int calculateMoveExtension(ChessPosition pos,boolean isWhiteTurn,boolean isChecked){
+    /**
+     * 0,1 returned wether a move extension is needed to search deeper
+     **/
+    public static int calculateMoveExtension(ChessPosition pos, boolean isWhiteTurn, boolean isChecked) {
         // todo
         ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
-        if(isChecked){
+        if (isChecked) {
 //            System.out.println("Extending check");
             return 1;
         }
-        if(moveThatCreated.isShouldRequireExtension()){
+        if (moveThatCreated.isShouldRequireExtension()) {
 //            System.out.println("Extending eating");
             return 1;
         }
-        double minAttacker = AdvancedChessFunctions.getMinAttacker(moveThatCreated.getNewX(),moveThatCreated.getNewY(),moveThatCreated.isWhite(),pos.board);
-        if(minAttacker != ChessConstants.EMPTYINDEX && minAttacker < ChessConstants.valueMap[moveThatCreated.getBoardIndex()]){
+        double minAttacker = AdvancedChessFunctions.getMinAttacker(moveThatCreated.getNewX(), moveThatCreated.getNewY(), moveThatCreated.isWhite(), pos.board);
+        if (minAttacker != ChessConstants.EMPTYINDEX && minAttacker < ChessConstants.valueMap[moveThatCreated.getBoardIndex()]) {
             return 1;
         }
-        if(moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX && AdvancedChessFunctions.isPromoPossible(moveThatCreated.getNewX(),moveThatCreated.getNewY(),moveThatCreated.isWhite(),pos.board)){
+        if (moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX && AdvancedChessFunctions.isPromoPossible(moveThatCreated.getNewX(), moveThatCreated.getNewY(), moveThatCreated.isWhite(), pos.board)) {
             return 1;
         }
         return 0;
     }
 
-    public static int getMoveValue(ChessMove m){
+    public static int getMoveValue(ChessMove m) {
         int moveValueGuess = 0;
-        if(m.isEating()){
-            moveValueGuess = 10*(m.getEatingIndex()-m.getBoardIndex());
+        if (m.isEating()) {
+            moveValueGuess = 10 * (m.getEatingIndex() - m.getBoardIndex());
         }
-        if(m.isPawnPromo()){
-            moveValueGuess+= m.getPromoIndx();
+        if (m.isPawnPromo()) {
+            moveValueGuess += m.getPromoIndx();
         }
 
         return moveValueGuess;// todo

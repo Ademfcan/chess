@@ -4,6 +4,7 @@ import chessengine.ChessRepresentations.BitBoardWrapper;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Misc.ChessConstants;
+import chessengine.Records.MoveOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,16 +16,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Stockfish {
     private static final String ENGINE_PATH = "stockfish/stockfish-windows-x86-64-avx2.exe";
     private static final Logger logger = LogManager.getLogger("Stockfish Logger");
-
+    private final int minStockfishLen = 23;
+    public volatile AtomicBoolean stop = new AtomicBoolean(false);
     private boolean isCalling = false;
+    private Process engineProcess;
+    private BufferedReader engineReader;
+    private OutputStreamWriter processWriter;
 
     public boolean isCalling() {
         return isCalling;
     }
-    public volatile AtomicBoolean stop = new AtomicBoolean(false);
-    private Process engineProcess;
-    private BufferedReader engineReader;
-    private OutputStreamWriter processWriter;
 
     public boolean startEngine() {
         try {
@@ -58,7 +59,6 @@ public class Stockfish {
         return true;
     }
 
-
     private void restartProcess() {
         clearStreams();
         if (startEngine()) {
@@ -66,7 +66,6 @@ public class Stockfish {
         }
 
     }
-
 
     private void clearStreams() {
         if (engineReader != null && processWriter != null) {
@@ -101,9 +100,9 @@ public class Stockfish {
     public String getOutput(int waitTimeMillis) {
         StringBuilder output = new StringBuilder();
         try {
-            for(int i = 0;i<waitTimeMillis;i++){
+            for (int i = 0; i < waitTimeMillis; i++) {
                 TimeUnit.MILLISECONDS.sleep(1);
-                if(stop.get()){
+                if (stop.get()) {
                     stop.set(false);
                     return null;
                 }
@@ -134,15 +133,14 @@ public class Stockfish {
         sendCommand("go movetime " + timeLimitMillis);
         String out = getOutput(timeLimitMillis);
         isCalling = false;
-        if(out == null){
+        if (out == null) {
             return null;
         }
         String[] s = out.split("\n");
         String last = s[s.length - 1];
-        try{
+        try {
             return last.split("bestmove ")[1].split(" ")[0];
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.out.println(last);
             return null;
         }
@@ -156,23 +154,23 @@ public class Stockfish {
         sendCommand("go movetime " + timeLimitMillis);
         String uciOut = getOutput(timeLimitMillis);
         isCalling = false;
-        if(uciOut == null){
+        if (uciOut == null) {
             return null;
         }
         String[] split = uciOut.split("\n");
         MoveOutput[] ret = new MoveOutput[nMoves];
         if (split.length > 5) {
             int cnt = nMoves - 1;
-            for (int i = split.length - 2; i >=0; i--) {
+            for (int i = split.length - 2; i >= 0; i--) {
                 String[] evalSplit = split[i].split(" ");
 
-                if(split.length >= minStockfishLen) {
+                if (split.length >= minStockfishLen) {
                     ChessMove move = null;
                     int evalScore = 0;
                     int depth = 0;
-                    for(int j = 0;j<evalSplit.length-1;j++ ){
+                    for (int j = 0; j < evalSplit.length - 1; j++) {
                         String entry = evalSplit[j];
-                        String next = evalSplit[j+1];
+                        String next = evalSplit[j + 1];
                         switch (entry) {
                             case "depth" -> depth = Integer.parseInt(next);
                             case "pv" -> {
@@ -190,9 +188,9 @@ public class Stockfish {
                             }
                         }
                     }
-                    ret[cnt] = new MoveOutput(move,(double)evalScore/100*(isWhite ? 1 : -1),depth);
+                    ret[cnt] = new MoveOutput(move, (double) evalScore / 100 * (isWhite ? 1 : -1), depth);
                     cnt--;
-                    if(cnt < 0){
+                    if (cnt < 0) {
                         break;
                     }
 
@@ -219,10 +217,7 @@ public class Stockfish {
         }
     }
 
-    private final int minStockfishLen = 23;
-
-
-    public EvalOutput getEvalScore(String fen,boolean isWhite, int waitTime) {
+    public EvalOutput getEvalScore(String fen, boolean isWhite, int waitTime) {
         isCalling = true;
         sendCommand("position fen " + fen);
         sendCommand("go movetime " + waitTime);
@@ -230,7 +225,7 @@ public class Stockfish {
         float evalScore = 0.0f;
         String out = getOutput(waitTime);
         isCalling = false;
-        if(out == null){
+        if (out == null) {
             return null;
         }
         String[] dump = out.split("\n");
@@ -238,23 +233,21 @@ public class Stockfish {
             if (dump[i].startsWith("info depth ")) {
                 String focus = dump[i];
                 String[] split = focus.split(" ");
-                for(int j = 0;j<split.length-1;j++ ){
+                for (int j = 0; j < split.length - 1; j++) {
                     String entry = split[j];
-                    String next = split[j+1];
-                    if(entry.equals("depth")){
+                    String next = split[j + 1];
+                    if (entry.equals("depth")) {
                         depth = Integer.parseInt(next);
-                    }
-                    else if(entry.equals("cp")){
-                        if(next.equals("move")){
+                    } else if (entry.equals("cp")) {
+                        if (next.equals("move")) {
                             int mateInfo = Integer.parseInt(split[j + 2]);
                             evalScore = mateInfo > 0 ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE;
                             depth = Math.abs(mateInfo);
-                        }
-                        else{
+                        } else {
                             evalScore = Integer.parseInt(next);
                         }
                     }
-                    if(evalScore != 0 && depth != 0){
+                    if (evalScore != 0 && depth != 0) {
                         break;
                     }
                 }
@@ -263,7 +256,6 @@ public class Stockfish {
 
         return new EvalOutput(evalScore / 100 * (isWhite ? 1 : -1), depth);
     }
-
 
 
 }

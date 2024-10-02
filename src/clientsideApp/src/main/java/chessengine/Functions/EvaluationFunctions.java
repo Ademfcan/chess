@@ -2,7 +2,6 @@ package chessengine.Functions;
 
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.XYcoord;
 import chessengine.Misc.ChessConstants;
 import chessengine.Misc.pieceMapHandler;
@@ -21,8 +20,10 @@ public class EvaluationFunctions {
 
 
     public static int getStaticEvaluation(BackendChessPosition pos){
-        int[][][] pieceMap = pieceMapHandler.pieceMapsCp1;
+        int[][][] startPieceMap = pieceMapHandler.startPieceMapsCp1;
+        int[][][] endPieceMap = pieceMapHandler.endPieceMapsCp1;
         BitBoardWrapper board = pos.board;
+        double startWeight = (board.getWhitePieceCount() + board.getBlackPieceCount())/(double) ChessConstants.BOTHSIDEPIECECOUNT;
         long[] whitePiecesBB = board.getWhitePiecesBB();
         long[] blackPiecesBB = board.getBlackPiecesBB();
         int whiteScore = 0;
@@ -37,8 +38,9 @@ public class EvaluationFunctions {
                 }
                 int flippedX = 7-coord.x;
                 int flippedY = 7-coord.y;
-                whiteScore += pieceMap[i][flippedX][flippedY]/2;
-                // todo
+                int positionalValue = (int)(startPieceMap[i][flippedX][flippedY]*startWeight + endPieceMap[i][flippedX][flippedY] * (1-startWeight));
+                // todo adjust square values
+                whiteScore += positionalValue/2;
             }
             whiteScore += ChessConstants.valueMapCentiPawn[i]*coords.length;
         }
@@ -50,7 +52,9 @@ public class EvaluationFunctions {
                     blackScore += 100;
                 }
                 // todo
-                blackScore += pieceMap[i][coord.x][coord.y]/2;
+                int positionalValue = (int)(startPieceMap[i][coord.x][coord.y]*startWeight + endPieceMap[i][coord.x][coord.y] * (1-startWeight));
+                // todo adjust square values
+                blackScore += positionalValue/2;
             }
             blackScore += ChessConstants.valueMapCentiPawn[i]*coords.length;
         }

@@ -36,7 +36,6 @@ public class ChessMove {
     private final boolean shouldRequireExtension;
 
 
-
     public ChessMove(int oldX, int oldY, int newX, int newY, int promoIndx, int boardIndex, boolean isWhite, boolean isCastleMove, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isCustomMove) {
         this.oldX = oldX;
         this.oldY = oldY;
@@ -55,7 +54,7 @@ public class ChessMove {
 
     }
 
-    private ChessMove(int oldX, int oldY, int newX, int newY, int promoIndx, int boardIndex, boolean isWhite, boolean isCastleMove, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isCustomMove,boolean shouldRequireExtension) {
+    private ChessMove(int oldX, int oldY, int newX, int newY, int promoIndx, int boardIndex, boolean isWhite, boolean isCastleMove, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isCustomMove, boolean shouldRequireExtension) {
         this.oldX = oldX;
         this.oldY = oldY;
         this.newX = newX;
@@ -82,11 +81,11 @@ public class ChessMove {
     }
 
     public ChessMove invertMove() {
-        return new ChessMove(boardSize - oldX, boardSize - oldY, boardSize - newX, boardSize - newY, promoIndx, boardIndex, !isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove,shouldRequireExtension);
+        return new ChessMove(boardSize - oldX, boardSize - oldY, boardSize - newX, boardSize - newY, promoIndx, boardIndex, !isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove, shouldRequireExtension);
     }
 
     public ChessMove reverseMove() {
-        return new ChessMove(newX, newY, oldX, oldY, promoIndx, boardIndex, isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove,shouldRequireExtension);
+        return new ChessMove(newX, newY, oldX, oldY, promoIndx, boardIndex, isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove, shouldRequireExtension);
     }
 
 
@@ -145,7 +144,7 @@ public class ChessMove {
 
     public ChessMove cloneMove() {
         // all by value
-        return new ChessMove(this.oldX, this.oldY, this.newX, this.newY, this.promoIndx, this.boardIndex, this.isWhite, this.isCastleMove, this.isEating, this.eatingIndex, this.isEnPassant, this.isCustomMove,this.shouldRequireExtension);
+        return new ChessMove(this.oldX, this.oldY, this.newX, this.newY, this.promoIndx, this.boardIndex, this.isWhite, this.isCastleMove, this.isEating, this.eatingIndex, this.isEnPassant, this.isCustomMove, this.shouldRequireExtension);
     }
 
     @Override

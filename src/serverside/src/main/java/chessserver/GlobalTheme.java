@@ -16,6 +16,7 @@ public enum GlobalTheme {
 
     public final String cssLocation;
     final Boolean isLight;
+
     GlobalTheme(String cssLocation, boolean isLight) {
         this.cssLocation = cssLocation;
         this.isLight = isLight;

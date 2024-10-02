@@ -1,10 +1,6 @@
 package chessengine.Misc;
 
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.XYcoord;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.*;
 import chessengine.Computation.ComputerOutput;
 import chessengine.Computation.Searcher;
 import chessserver.*;
@@ -38,10 +34,8 @@ public class ChessConstants {
     public static final int BLACKCHECKMATEVALUE = -1000000;
     public static final String NOEMAIL = "no-email";
     public static final String NOPASS = "no-password";
-    public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false,false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
+    public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false, false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
     public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0, "anonymous", NOEMAIL, NOPASS, ProfilePicture.DEFAULT, new CampaignProgress(123)));
-    // only used for simple evals, no minimax so depth dosent matter
-    public static final ComputerOutput emptyOutput = new ComputerOutput(new ChessMove(-10, -10, -10, -10, ChessConstants.EMPTYINDEX, ChessConstants.EMPTYINDEX, false, false, false, ChessConstants.EMPTYINDEX, false, false), 0);
     public static final double borderRadFactor = .0025;
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
@@ -76,32 +70,10 @@ public class ChessConstants {
     public static final Background defaultBg = new Background(backgroundFillDefault);
     private static final BackgroundFill backgroundFillHighlight = new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(3), null);
     public static final Background highlightBg = new Background(backgroundFillHighlight);
-    public static ChessStates NEWGAMESTATE = new ChessStates();
-
     public static int ComputerEloEstimate = 3000; // not 3000 lol todo make 3k
     public static int DefaultWaitTime = 1000; // ms;
-    public static int evalDepth = 5;
 
-    public static Searcher generalSearcher = new Searcher();
 
-    private static String[] clrs = new String[]{"rgba(61, 245, 39, 0.8)","rgba(245, 241, 39, 0.8)","rgba(245, 151, 39, 0.8)","rgba(245, 65, 39, 0.8)"};
-    private static double goodChange = 0.1;
-    public static String getColorBasedOnAdvantage(boolean isWhite,double oldAdvantage,double newAdvantage){
 
-        int sign = isWhite ? 1: -1;
-        double change = newAdvantage-oldAdvantage;
-        double relativeAdvtg = change * sign;
-        if(relativeAdvtg > goodChange){
-            return clrs[0];
-        }
-        if(relativeAdvtg < -goodChange){
-            return clrs[3];
-        }
-        if(relativeAdvtg >= -goodChange/15){
-            return clrs[1];
-        }
-        return clrs[2];
-
-    }
 
 }

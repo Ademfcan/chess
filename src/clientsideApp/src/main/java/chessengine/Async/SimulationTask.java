@@ -4,13 +4,13 @@ import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Computation.Computer;
-import chessengine.Computation.SearchResult;
+import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
+import chessengine.Enums.MainScreenState;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Misc.ChessConstants;
 import chessengine.Misc.EloEstimator;
-import chessengine.Enums.MainScreenState;
+import chessengine.Records.SearchResult;
 import chessserver.ComputerDifficulty;
 import chessserver.ProfilePicture;
 import javafx.application.Platform;
@@ -24,8 +24,7 @@ public class SimulationTask extends Task<Void> {
 
     private final int testStockfishElo = 1500; // todo make changeable in gui maybe?
 
-    private final Computer player1Computer;
-    private final Computer player2Computer;
+    private final CustomMultiSearcher multiSearcher;
     private final ChessCentralControl control;
     private final Random random;
     private final Logger logger;
@@ -83,6 +82,8 @@ public class SimulationTask extends Task<Void> {
             "1. d4 d5 2. Nf3 Nf6 3. c4", // Queen's Gambit Declined
             "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6", // Ruy Lopez, Berlin Defense
     };
+    private ComputerDifficulty player1Difficulty;
+    private ComputerDifficulty player2Difficulty;
     private volatile boolean running = true;
     private volatile boolean evaluating = false;
     private boolean isMakingMove = false;
@@ -92,14 +93,15 @@ public class SimulationTask extends Task<Void> {
     private int numStockFishWins = 0;
     private int numDraws = 0;
     private ChessGame currentSimGame = null;
-    private Searcher searcher;
+    private final Searcher searcher;
+    private volatile boolean stop = false;
+    private final int waitTime = ChessConstants.DefaultWaitTime;
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
-        this.player1Computer = new Computer();
-        this.player2Computer = new Computer();
-        this.player1Computer.setCurrentDifficulty(ComputerDifficulty.MaxDifficulty);
-        this.player2Computer.setCurrentDifficulty(ComputerDifficulty.StockfishD10); // defaults
+        this.multiSearcher = new CustomMultiSearcher();
+        this.player1Difficulty = ComputerDifficulty.MaxDifficulty;
+        this.player2Difficulty = ComputerDifficulty.StockfishD10;
         this.control = control;
 
         random = new Random();
@@ -116,10 +118,11 @@ public class SimulationTask extends Task<Void> {
     }
 
     public void setPlayer1SimulationDifficulty(ComputerDifficulty diff) {
-        player1Computer.setCurrentDifficulty(diff);
+        player1Difficulty = diff;
     }
+
     public void setPlayer2SimulationDifficulty(ComputerDifficulty diff) {
-        player2Computer.setCurrentDifficulty(diff);
+        player2Difficulty = diff;
     }
 
     public void startSimulation() {
@@ -132,17 +135,15 @@ public class SimulationTask extends Task<Void> {
 
     }
 
-    private volatile boolean stop = false;
-
     public void stopAndReset() {
         stop = true;
         logger.debug("Stopping sim");
         evaluating = false;
-        if (player1Computer.isRunning()) {
-            player1Computer.stop.set(true);
-        }
-        if(App.stockfishForNmoves.isCalling()){
-            App.stockfishForNmoves.stop.set(true);
+        searcher.stopSearch();
+        multiSearcher.stopSearch();
+
+        if (App.getMoveStockfish.isCalling()) {
+            App.getMoveStockfish.stop.set(true);
         }
         isPlayer1WhitePlayer = true;
         isPlayer1Turn = true;
@@ -187,7 +188,7 @@ public class SimulationTask extends Task<Void> {
             // start from random opening as to make the sim different
             String randomOpening = top50Openings[random.nextInt(top50Openings.length)];
             ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? "My Computer" : "Stockfish", !isPlayer1WhitePlayer ? "My Computer" : "Stockfish", isPlayer1WhitePlayer ? 9999 : testStockfishElo, !isPlayer1WhitePlayer ? 9999 : testStockfishElo, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isPlayer1WhitePlayer);
-            if(stop){
+            if (stop) {
                 return;
             }
             Platform.runLater(() -> {
@@ -216,8 +217,7 @@ public class SimulationTask extends Task<Void> {
                 if (currentSimGame.gameState.isStaleMated()) {
                     // draw
                     numDraws++;
-                }
-                else{
+                } else {
                     // else one side must have one,
                     boolean isPlayer1Win = currentSimGame.gameState.isCheckMated()[1];
                     if (isPlayer1Win) {
@@ -243,96 +243,40 @@ public class SimulationTask extends Task<Void> {
                 isPlayer1WhitePlayer = !isPlayer1WhitePlayer;
                 isPlayer1Turn = isPlayer1WhitePlayer;
                 int totalCount = numDraws + numComputerWins + numStockFishWins;
-                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins /totalCount, (double) numDraws /totalCount,player2Computer.currentDifficulty.eloRange);
-                if(estimatedElo < 0){
+                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
+                if (estimatedElo < 0) {
                     // no wins so formula breaks :(
                     estimatedElo = -1;
                 }
                 int finalEst = estimatedElo;
                 // update info
-                Platform.runLater(() -> control.mainScreenController.setSimScore(numComputerWins, numStockFishWins, numDraws,finalEst));
+                Platform.runLater(() -> control.mainScreenController.setSimScore(numComputerWins, numStockFishWins, numDraws, finalEst));
                 currentSimGame = null;
-            }
-            else {
+            } else {
                 // else just change turn as normall
                 boolean isWhiteTurn = isPlayer1Turn == isPlayer1WhitePlayer;
                 if (isPlayer1Turn) {
                     logger.debug("Player 1 turn");
-                    if(player1Computer.currentDifficulty.isStockfishBased){
-                        String moveUci = App.stockfishForNmoves.getBestMove(currentSimGame.getCurrentFen(), player1Computer.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
-                        if(moveUci != null){
-                            ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentSimGame.isWhiteTurn(),currentSimGame.currentPosition.board);
-                            Platform.runLater(()->{
-                                currentSimGame.makeNewMove(move,true,false);
-                            });
-                        }
+                    ChessMove move = getMove(player1Difficulty, currentSimGame, isWhiteTurn);
+                    if (move == null) {
+                        // stopped
+                        logger.error("Stopped sim comp output");
+                        return;
                     }
-                    else if(player1Computer.currentDifficulty == ComputerDifficulty.MaxDifficulty){
-                        SearchResult out = searcher.search(currentSimGame.currentPosition.toBackend(currentSimGame.gameState,isWhiteTurn),ChessConstants.DefaultWaitTime);
-                        ChessMove move = out.move();
-                        if(stop){
-                            return;
-                        }
-                        if(move == null){
-                            // stopped
-                            logger.error("Stopped sim comp output");
-                            return;
-                        }
-                        Platform.runLater(()->{
-                            currentSimGame.makeNewMove(move, true, false);
-                        });
-                    }
-                    else{
-                        ChessMove move = player1Computer.getComputerMoveWithFlavors(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState).getMove();
-                        if(stop){
-                            return;
-                        }
-                        if(move == null){
-                            // stopped
-                            logger.error("Stopped sim comp output");
-                            return;
-                        }
-                        Platform.runLater(()->{
-                            currentSimGame.makeNewMove(move, true, false);
-                        });
-                    }
+                    Platform.runLater(() -> {
+                        currentSimGame.makeNewMove(move, true, false);
+                    });
                 } else {
                     logger.debug("Player 2 turn");
-                    if(player2Computer.currentDifficulty.isStockfishBased){
-                        String moveUci = App.stockfishForNmoves.getBestMove(currentSimGame.getCurrentFen(), player2Computer.currentDifficulty.stockfishElo, ChessConstants.DefaultWaitTime);
-                        if(moveUci != null){
-                            ChessMove move = PgnFunctions.uciToChessMove(moveUci, currentSimGame.isWhiteTurn(),currentSimGame.currentPosition.board);
-                            Platform.runLater(()->{
-                                currentSimGame.makeNewMove(move,true,false);
-                            });
-                        }
+                    ChessMove move = getMove(player2Difficulty, currentSimGame, isWhiteTurn);
+                    if (move == null) {
+                        // stopped
+                        logger.error("Stopped sim comp output");
+                        return;
                     }
-                    else if(player2Computer.currentDifficulty == ComputerDifficulty.MaxDifficulty){
-                        ChessMove move = searcher.search(currentSimGame.currentPosition.toBackend(currentSimGame.gameState,isWhiteTurn),ChessConstants.DefaultWaitTime).move();
-                        if(stop){
-                            return;
-                        }
-                        if(move == null){
-                            // stopped
-                            logger.error("Stopped sim comp output");
-                            return;
-                        }
-                        Platform.runLater(()->{
-                            currentSimGame.makeNewMove(move, true, false);
-                        });
-                    }
-                    else{
-                        ChessMove move = player2Computer.getComputerMoveWithFlavors(isWhiteTurn, currentSimGame.currentPosition, currentSimGame.gameState).getMove();
-                        if(move == null){
-                            // stopped
-                            logger.error("Stopped sim comp output");
-                            return;
-                        }
-                        Platform.runLater(()->{
-                            currentSimGame.makeNewMove(move, true, false);
-                        });
-                    }
-
+                    Platform.runLater(() -> {
+                        currentSimGame.makeNewMove(move, true, false);
+                    });
                 }
                 isPlayer1Turn = !isPlayer1Turn;
             }
@@ -340,6 +284,36 @@ public class SimulationTask extends Task<Void> {
         }
 
 
+    }
+
+    private ChessMove getMove(ComputerDifficulty currentPlayerDifficulty, ChessGame game, boolean isWhiteTurn) {
+        if (currentPlayerDifficulty.isStockfishBased) {
+            String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, waitTime);
+            if (moveUci != null) {
+                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.currentPosition.board);
+                Platform.runLater(() -> {
+                    game.makeNewMove(move, true, false);
+                });
+            }
+        } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
+            SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), waitTime);
+            ChessMove move = out.move();
+            if (stop) {
+                return null;
+            }
+            if (!searcher.wasForcedStop()) {
+                return move;
+            }
+        } else {
+            ChessMove move = multiSearcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), waitTime, 1).results()[0].move();
+            if (stop) {
+                return null;
+            }
+            if (!multiSearcher.wasForcedStop()) {
+                return move;
+            }
+        }
+        return null;
     }
 
 

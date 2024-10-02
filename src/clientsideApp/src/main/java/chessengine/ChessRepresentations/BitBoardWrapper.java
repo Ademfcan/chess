@@ -11,30 +11,21 @@ import java.util.Objects;
 public class BitBoardWrapper {
 
 
-    private HashSet<Integer>[] whitePieces;
-    private HashSet<Integer>[] blackPieces;
+    static int a = 0;
+    private final HashSet<Integer>[] whitePieces;
+    private final HashSet<Integer>[] blackPieces;
     private long[] whitePiecesBB;
     private long[] blackPiecesBB;
-    private long[] whiteAttackTables;
-    private long[] blackAttackTables;
+    private final long[] whiteAttackTables;
+    private final long[] blackAttackTables;
     private XYcoord whiteKingLocation;
     private XYcoord blackKingLocation;
-
-    public int getWhitePieceCount() {
-        return whitePieceCount;
-    }
-
-    public int getBlackPieceCount() {
-        return blackPieceCount;
-    }
-
     private int whitePieceCount = 0;
     private int blackPieceCount = 0;
     private int tempOldIndex;
     private int tempBoardIndex;
     private int tempNewIndex;
     private boolean tempIsWhite;
-
     public BitBoardWrapper(long[] whitePiecesBB, long[] blackPiecesBB) {
         this.whitePiecesBB = whitePiecesBB;
         this.blackPiecesBB = blackPiecesBB;
@@ -45,12 +36,12 @@ public class BitBoardWrapper {
             int[] blackPieceLocations = GeneralChessFunctions.getAllPieceIndexes(blackPiecesBB[i]);
             whitePieces[i] = new HashSet<>();
             blackPieces[i] = new HashSet<>();
-            for(int index : whitePieceLocations){
+            for (int index : whitePieceLocations) {
 //                System.out.println("White index: " + index);
                 whitePieceCount++;
                 whitePieces[i].add(index);
             }
-            for(int index : blackPieceLocations){
+            for (int index : blackPieceLocations) {
 //                System.out.println("Black index: " + index);
                 blackPieceCount++;
                 blackPieces[i].add(index);
@@ -67,16 +58,9 @@ public class BitBoardWrapper {
         this.tempNewIndex = ChessConstants.EMPTYINDEX;
     }
 
-    public void updateAttackMasks(){
-        for (int i = 0; i < whiteAttackTables.length; i++) {
-            updateAttackMask(i, true);
-            updateAttackMask(i, false);
-        }
-    }
-
     public BitBoardWrapper(HashSet<Integer>[] whitePieces, HashSet<Integer>[] blackPieces, long[] whitePiecesBB,
                            long[] blackPiecesBB, long[] whiteAttackTables, long[] blackAttackTables, XYcoord whiteKingLocation,
-                           XYcoord blackKingLocation, int tempChange, int tempIndex,int tempBoardIndex, boolean tempIsWhite) {
+                           XYcoord blackKingLocation, int tempChange, int tempIndex, int tempBoardIndex, boolean tempIsWhite) {
         this.whitePieces = whitePieces;
         this.blackPieces = blackPieces;
         this.whitePiecesBB = whitePiecesBB;
@@ -89,6 +73,21 @@ public class BitBoardWrapper {
         this.tempNewIndex = tempIndex;
         this.tempIsWhite = tempIsWhite;
         this.tempBoardIndex = tempBoardIndex;
+    }
+
+    public int getWhitePieceCount() {
+        return whitePieceCount;
+    }
+
+    public int getBlackPieceCount() {
+        return blackPieceCount;
+    }
+
+    public void updateAttackMasks() {
+        for (int i = 0; i < whiteAttackTables.length; i++) {
+            updateAttackMask(i, true);
+            updateAttackMask(i, false);
+        }
     }
 
     public HashSet<Integer>[] getWhitePieces() {
@@ -115,18 +114,19 @@ public class BitBoardWrapper {
         return blackAttackTables;
     }
 
-    public long getWhiteAttackTableCombined(){
+    public long getWhiteAttackTableCombined() {
         return whiteAttackTables[0] | whiteAttackTables[1] | whiteAttackTables[2] | whiteAttackTables[3] | whiteAttackTables[4] | whiteAttackTables[5];
     }
 
-    public long getBlackAttackTableCombined(){
+    public long getBlackAttackTableCombined() {
         return blackAttackTables[0] | blackAttackTables[1] | blackAttackTables[2] | blackAttackTables[3] | blackAttackTables[4] | blackAttackTables[5];
     }
-    public long getWhiteSlidingAttackers(){
+
+    public long getWhiteSlidingAttackers() {
         return whiteAttackTables[2] | whiteAttackTables[3] | whiteAttackTables[4] | whiteAttackTables[5];
     }
 
-    public long getBlackSlidingAttackers(){
+    public long getBlackSlidingAttackers() {
         return blackAttackTables[2] | blackAttackTables[3] | blackAttackTables[4] | blackAttackTables[5];
     }
 
@@ -145,13 +145,13 @@ public class BitBoardWrapper {
                     mask |= BitFunctions.calculateKnightAttackBitBoard(index, isWhitePiece, this);
                 }
                 case ChessConstants.BISHOPINDEX -> {
-                    mask |= BitFunctions.calculateBishopAttackBitBoard(index, isWhitePiece,true, this);
+                    mask |= BitFunctions.calculateBishopAttackBitBoard(index, isWhitePiece, true, this);
                 }
                 case ChessConstants.ROOKINDEX -> {
-                    mask |= BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true,this);
+                    mask |= BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true, this);
                 }
                 case ChessConstants.QUEENINDEX -> {
-                    mask |= BitFunctions.calculateQueenAtackBitboard(index, isWhitePiece, true,this);
+                    mask |= BitFunctions.calculateQueenAtackBitboard(index, isWhitePiece, true, this);
                 }
                 case ChessConstants.KINGINDEX -> {
                     mask |= BitFunctions.calculateKingAttackBitboard(index, isWhitePiece, this);
@@ -232,7 +232,6 @@ public class BitBoardWrapper {
         return false;
     }
 
-
     /**
      * Flips each bitboard one by one then also updates king location
      **/
@@ -301,7 +300,7 @@ public class BitBoardWrapper {
                 Arrays.copyOf(this.whitePiecesBB, this.whitePiecesBB.length), Arrays.copyOf(this.blackPiecesBB, this.blackPiecesBB.length),
                 Arrays.copyOf(this.whiteAttackTables, whiteAttackTables.length), Arrays.copyOf(this.blackAttackTables, blackAttackTables.length),
                 new XYcoord(this.whiteKingLocation.x, this.whiteKingLocation.y), new XYcoord(this.blackKingLocation.x, this.blackKingLocation.y),
-                tempOldIndex, tempNewIndex,tempBoardIndex, tempIsWhite);
+                tempOldIndex, tempNewIndex, tempBoardIndex, tempIsWhite);
     }
 
     public void setKingLocation(boolean isWhite, XYcoord kingLocation) {
@@ -311,15 +310,14 @@ public class BitBoardWrapper {
             blackKingLocation = kingLocation;
         }
     }
-    static int a = 0;
 
     public void makeTempChange(int oldX, int oldY, int newX, int newY, int boardIndex, boolean isWhiteBoard) {
         if (tempNewIndex == ChessConstants.EMPTYINDEX) {
 //            System.out.println(a++);
-            int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX,oldY);
-            int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX,newY);
-            addPiece(newBitIndex,boardIndex,isWhiteBoard);
-            removePiece(oldBitIndex,boardIndex,isWhiteBoard);
+            int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX, oldY);
+            int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX, newY);
+            addPiece(newBitIndex, boardIndex, isWhiteBoard);
+            removePiece(oldBitIndex, boardIndex, isWhiteBoard);
             updateAttackMasks();
             tempNewIndex = newBitIndex;
             tempOldIndex = oldBitIndex;
@@ -336,8 +334,8 @@ public class BitBoardWrapper {
     public void popTempChange() {
         if (tempNewIndex != ChessConstants.EMPTYINDEX) {
 //            System.out.println("popping");
-            removePiece(tempNewIndex,tempBoardIndex,tempIsWhite);
-            addPiece(tempOldIndex,tempBoardIndex,tempIsWhite);
+            removePiece(tempNewIndex, tempBoardIndex, tempIsWhite);
+            addPiece(tempOldIndex, tempBoardIndex, tempIsWhite);
             updateAttackMasks();
             tempNewIndex = ChessConstants.EMPTYINDEX;
             tempOldIndex = ChessConstants.EMPTYINDEX;

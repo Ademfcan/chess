@@ -1,16 +1,14 @@
 package chessengine.CentralControlComponents;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.Enums.MainScreenState;
-import chessengine.Enums.MoveRanking;
-import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
 import chessengine.ChessRepresentations.XYcoord;
+import chessengine.Enums.MoveRanking;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Graphics.Arrow;
 import chessengine.Graphics.BindingController;
+import chessengine.Misc.ChessConstants;
 import chessserver.ChessboardTheme;
 import javafx.animation.PathTransition;
 import javafx.application.Platform;
@@ -35,7 +33,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class ChessBoardGUIHandler {
     public final Pane chessPieceBoard;
@@ -66,8 +63,9 @@ public class ChessBoardGUIHandler {
 
     TextArea localInfo;
     ChessCentralControl myControl;
+    private Circle lastMoveRank = null;
 
-    public ChessBoardGUIHandler(ChessCentralControl myControl,Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
+    public ChessBoardGUIHandler(ChessCentralControl myControl, Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
         this.myControl = myControl;
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhitesContainer = eatenWhites;
@@ -113,14 +111,14 @@ public class ChessBoardGUIHandler {
             Pane childContainer = new Pane();
             parent.getChildren().add(childContainer);
             childContainer.prefHeightProperty().bind(parent.heightProperty());
-            parent.widthProperty().addListener(e->{
-                Platform.runLater(()->{
+            parent.widthProperty().addListener(e -> {
+                Platform.runLater(() -> {
                     double newWidth = childContainer.getChildren().stream().mapToDouble(n -> (n.getBoundsInParent().getWidth() * overlapFactor)).sum() + (childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth());
                     childContainer.setPrefWidth(newWidth);
                 });
             });
-            childContainer.getChildren().addListener((ListChangeListener<? super Node>) e->{
-                Platform.runLater(()->{
+            childContainer.getChildren().addListener((ListChangeListener<? super Node>) e -> {
+                Platform.runLater(() -> {
                     double newWidth = childContainer.getChildren().stream().mapToDouble(n -> (n.getBoundsInParent().getWidth() * overlapFactor)).sum() + (childContainer.getChildren().isEmpty() ? 0 : childContainer.getChildren().get(0).getBoundsInParent().getWidth());
                     childContainer.setPrefWidth(newWidth);
                 });
@@ -156,7 +154,7 @@ public class ChessBoardGUIHandler {
     }
 
     private void drawArrow(Arrow arrow) {
-        SVGPath path = arrow.generateSvg(arrowBoard.getPrefHeight(),arrowBoard.getPrefWidth());
+        SVGPath path = arrow.generateSvg(arrowBoard.getPrefHeight(), arrowBoard.getPrefWidth());
         arrowBoard.getChildren().add(path);
         path.setUserData(arrow.toString());
 
@@ -559,7 +557,6 @@ public class ChessBoardGUIHandler {
         ChessboardTheme theme = ChessboardTheme.getCorrespondingTheme(colorType);
 
 
-
         int count = 0;
         for (Node n : chessBgBoard.getChildren()) {
             String curr = "";
@@ -610,7 +607,7 @@ public class ChessBoardGUIHandler {
         moveBoxes[x][y].getChildren().get(0).setVisible(true);
     }
 
-    public void highlightSquare(int x, int y,String customColor) {
+    public void highlightSquare(int x, int y, String customColor) {
         highlightPanes[x][y].setStyle("-fx-background-color: " + customColor);
 
     }
@@ -645,17 +642,15 @@ public class ChessBoardGUIHandler {
 
     }
 
-    private Circle lastMoveRank = null;
-
     public void addMoveRanking(ChessMove moveThatCreatedThis, MoveRanking ranking, boolean isWhiteOriented) {
 
-        int rankingEndX = isWhiteOriented ? moveThatCreatedThis.getNewX() : 7-moveThatCreatedThis.getNewX();
-        int rankingEndY = isWhiteOriented ? moveThatCreatedThis.getNewY() : 7-moveThatCreatedThis.getNewY();
-        addRankingCircle(rankingEndX,rankingEndY,ranking.getColor(),ranking.getImage());
+        int rankingEndX = isWhiteOriented ? moveThatCreatedThis.getNewX() : 7 - moveThatCreatedThis.getNewX();
+        int rankingEndY = isWhiteOriented ? moveThatCreatedThis.getNewY() : 7 - moveThatCreatedThis.getNewY();
+        addRankingCircle(rankingEndX, rankingEndY, ranking.getColor(), ranking.getImage());
     }
 
-    public void addRankingCircle(int rankingEndX, int rankingEndY, Paint color, Image image){
-        if(lastMoveRank != null){
+    public void addRankingCircle(int rankingEndX, int rankingEndY, Paint color, Image image) {
+        if (lastMoveRank != null) {
             arrowBoard.getChildren().remove(lastMoveRank);
         }
         Circle moveRank = new Circle();
@@ -672,10 +667,89 @@ public class ChessBoardGUIHandler {
 
     // these will put in top right corner
     public DoubleBinding calcMoveRankingXBinding(int x) {
-        return chessPieceBoard.widthProperty().divide(8).multiply(x+1);
+        return chessPieceBoard.widthProperty().divide(8).multiply(x + 1);
     }
 
     public DoubleBinding calcMoveRankingBinding(int y) {
         return chessPieceBoard.heightProperty().divide(8).multiply(y);
     }
+
+
+    /** Updating the chessboard **/
+    /**
+     * Updating the only a chessmove on the board
+     **/
+
+    public void makeChessMove(ChessMove move, boolean isReverse, ChessPosition currentPosition, ChessPosition newPos, boolean isWhiteOriented) {
+
+        if (move.isEating() && !isReverse) {
+            // needs to be before move
+            int eatenAddIndex = move.getEatingIndex();
+            addToEatenPieces(eatenAddIndex, !move.isWhite(), isWhiteOriented);
+            removeFromChessBoard(move.getNewX(), move.getNewY(), !move.isWhite(), isWhiteOriented);
+        }
+        if (move.isEnPassant()) {
+            if (!isReverse) {
+                int backDir = move.isWhite() ? 1 : -1;
+                int eatY = move.getNewY() + backDir;
+                int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), eatY, !move.isWhite(), currentPosition.board);
+                addToEatenPieces(eatenAddIndex, !move.isWhite(), isWhiteOriented);
+                removeFromChessBoard(move.getNewX(), eatY, !move.isWhite(), isWhiteOriented);
+            } else {
+                int backDir = move.isWhite() ? 1 : -1;
+                int eatY = move.getOldY() + backDir;
+                int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getOldX(), eatY, !move.isWhite(), newPos.board);
+                removeFromEatenPeices(eatenAddIndex, !move.isWhite() == isWhiteOriented);
+                addToChessBoard(move.getOldX(), eatY, eatenAddIndex, !move.isWhite(), isWhiteOriented);
+            }
+
+        }
+        if (move.isCastleMove()) {
+            // shortcastle is +x dir longcastle = -2x dir
+            if (isReverse) {
+                int dirFrom = move.getOldX() == 6 ? 1 : -2;
+                int dirTo = move.getOldX() == 6 ? -1 : 1;
+                // uncastle
+                movePieceOnBoard(move.getOldX() + dirTo, move.getOldY(), move.getOldX() + dirFrom, move.getNewY(), move.isWhite(), isWhiteOriented);
+            } else {
+                int dirFrom = move.getNewX() == 6 ? 1 : -2;
+                int dirTo = move.getNewX() == 6 ? -1 : 1;
+                movePieceOnBoard(move.getNewX() + dirFrom, move.getOldY(), move.getNewX() + dirTo, move.getNewY(), move.isWhite(), isWhiteOriented);
+            }
+
+        }
+        // this is where the piece actually moves
+        if (!move.isPawnPromo()) {
+            // in pawn promo we need to handle differently as the piece changes
+            movePieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isWhite(), isWhiteOriented);
+
+        }
+        // move
+        else {
+            if (isReverse) {
+                removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(), isWhiteOriented);
+                moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), ChessConstants.PAWNINDEX, move.isWhite(), isWhiteOriented);
+
+            } else {
+                removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(), isWhiteOriented);
+                moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.getPromoIndx(), move.isWhite(), isWhiteOriented);
+
+
+            }
+        }
+        if (move.isEating() && isReverse) {
+            // need to create a piece there to undo eating
+            // must be after moving
+            int pieceIndex = move.getEatingIndex();
+            addToChessBoard(move.getOldX(), move.getOldY(), pieceIndex, !move.isWhite(), isWhiteOriented);
+            removeFromEatenPeices(pieceIndex, !move.isWhite() == isWhiteOriented);
+
+        }
+        if (!isReverse) {
+            highlightMove(move, isWhiteOriented);
+        }
+
+
+    }
+
 }

@@ -12,7 +12,7 @@ public class EvalOutput {
         this.outputDepth = 1;
     }
 
-    public EvalOutput(double advantage,int outputDepth) {
+    public EvalOutput(double advantage, int outputDepth) {
         this.advantage = advantage;
         this.outputDepth = outputDepth;
     }

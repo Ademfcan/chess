@@ -5,7 +5,6 @@ import chessengine.Audio.Effect;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
-import chessengine.Functions.BitFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.PgnFunctions;
 import chessengine.Managers.WebSocketClient;
@@ -375,13 +374,14 @@ public class ChessGame {
     public boolean isWhiteTurn() {
         return isWhiteTurn;
     }
-    public boolean isWhiteTurn(int index) {
-        int change = index-curMoveIndex;
-        return isWhiteTurn == (change % 2==0);
-    }
 
     public void setWhiteTurn(boolean whiteTurn) {
         isWhiteTurn = whiteTurn;
+    }
+
+    public boolean isWhiteTurn(int index) {
+        int change = index - curMoveIndex;
+        return isWhiteTurn == (change % 2 == 0);
     }
 
     public String getGameType() {
@@ -672,9 +672,9 @@ public class ChessGame {
         }
     }
 
-    public ChessStates getGameStateAtPos(int index){
+    public ChessStates getGameStateAtPos(int index) {
         int moveIndexBeforeChange = curMoveIndex;
-        int dir = index-curMoveIndex;
+        int dir = index - curMoveIndex;
         ChessStates cloned = gameState.cloneState();
         boolean isRev = dir < 0;
         int absDir = Math.abs(dir);
@@ -724,73 +724,7 @@ public class ChessGame {
 
     private void chessBoardGuiMakeMoveFromCurrent(ChessMove move, boolean isReverse, ChessPosition currentPosition, ChessPosition newPos) {
         if (isMainGame) {
-
-            if (move.isEating() && !isReverse) {
-                // needs to be before move
-                int eatenAddIndex = move.getEatingIndex();
-                centralControl.chessBoardGUIHandler.addToEatenPieces(eatenAddIndex, !move.isWhite(), isWhiteOriented);
-                centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), move.getNewY(), !move.isWhite(), isWhiteOriented);
-            }
-            if (move.isEnPassant()) {
-                if (!isReverse) {
-                    int backDir = move.isWhite() ? 1 : -1;
-                    int eatY = move.getNewY() + backDir;
-                    int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), eatY, !move.isWhite(), currentPosition.board);
-                    centralControl.chessBoardGUIHandler.addToEatenPieces(eatenAddIndex, !move.isWhite(), isWhiteOriented);
-                    centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getNewX(), eatY, !move.isWhite(), isWhiteOriented);
-                } else {
-                    int backDir = move.isWhite() ? 1 : -1;
-                    int eatY = move.getOldY() + backDir;
-                    int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getOldX(), eatY, !move.isWhite(), newPos.board);
-                    centralControl.chessBoardGUIHandler.removeFromEatenPeices(eatenAddIndex, !move.isWhite() == isWhiteOriented);
-                    centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), eatY, eatenAddIndex, !move.isWhite(), isWhiteOriented);
-                }
-
-            }
-            if (move.isCastleMove()) {
-                // shortcastle is +x dir longcastle = -2x dir
-                if (isReverse) {
-                    int dirFrom = move.getOldX() == 6 ? 1 : -2;
-                    int dirTo = move.getOldX() == 6 ? -1 : 1;
-                    // uncastle
-                    centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX() + dirTo, move.getOldY(), move.getOldX() + dirFrom, move.getNewY(), move.isWhite(), isWhiteOriented);
-                } else {
-                    int dirFrom = move.getNewX() == 6 ? 1 : -2;
-                    int dirTo = move.getNewX() == 6 ? -1 : 1;
-                    centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getNewX() + dirFrom, move.getOldY(), move.getNewX() + dirTo, move.getNewY(), move.isWhite(), isWhiteOriented);
-                }
-
-            }
-            // this is where the piece actually moves
-            if (!move.isPawnPromo()) {
-                // in pawn promo we need to handle differently as the piece changes
-                centralControl.chessBoardGUIHandler.movePieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.isWhite(), isWhiteOriented);
-
-            }
-            // move
-            else {
-                if (isReverse) {
-                    centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(), isWhiteOriented);
-                    centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), ChessConstants.PAWNINDEX, move.isWhite(), isWhiteOriented);
-
-                } else {
-                    centralControl.chessBoardGUIHandler.removeFromChessBoard(move.getOldX(), move.getOldY(), move.isWhite(), isWhiteOriented);
-                    centralControl.chessBoardGUIHandler.moveNewPieceOnBoard(move.getOldX(), move.getOldY(), move.getNewX(), move.getNewY(), move.getPromoIndx(), move.isWhite(), isWhiteOriented);
-
-
-                }
-            }
-            if (move.isEating() && isReverse) {
-                // need to create a piece there to undo eating
-                // must be after moving
-                int pieceIndex = move.getEatingIndex();
-                centralControl.chessBoardGUIHandler.addToChessBoard(move.getOldX(), move.getOldY(), pieceIndex, !move.isWhite(), isWhiteOriented);
-                centralControl.chessBoardGUIHandler.removeFromEatenPeices(pieceIndex, !move.isWhite() == isWhiteOriented);
-
-            }
-            if (!isReverse) {
-                centralControl.chessBoardGUIHandler.highlightMove(move, isWhiteOriented);
-            }
+            centralControl.chessBoardGUIHandler.makeChessMove(move, isReverse, currentPosition, newPos, isWhiteOriented);
         } else {
             ChessConstants.mainLogger.error("Trying to change gui make move when not main game");
         }
@@ -897,7 +831,7 @@ public class ChessGame {
     public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove) {
         if (!isComputerMove) {
             // clear any entries, you are branching off
-            centralControl.clearForNewBranch(curMoveIndex+1);
+            centralControl.clearForNewBranch(curMoveIndex + 1);
             if (curMoveIndex != maxIndex) {
                 clearIndx(true);
                 if (isMainGame) {
@@ -947,7 +881,7 @@ public class ChessGame {
                 }
             } else if (AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(), newPosition, gameState)) {
                 if (AdvancedChessFunctions.isCheckmated(!move.isWhite(), newPosition, gameState)) {
-                    gameState.setCheckMated(move.isWhite(),ChessConstants.EMPTYINDEX);
+                    gameState.setCheckMated(move.isWhite(), ChessConstants.EMPTYINDEX);
                     if (isMainGame) {
                         ChessConstants.mainLogger.debug("checkmate");
                         if (isWebMove) {
@@ -1083,7 +1017,7 @@ public class ChessGame {
         if (simplefiedPgn.length() == 2) {
             // simple pawn move
             if (pgn.contains("#")) {
-                gameState.setCheckMated(isWhiteMove,gameState.getCurrentIndex()+1);
+                gameState.setCheckMated(isWhiteMove, gameState.getCurrentIndex() + 1);
             }
 
 
@@ -1109,7 +1043,7 @@ public class ChessGame {
                     // Indicates a check
                 } else if (c == '#') {
                     // Indicates a checkmate
-                    gameState.setCheckMated(isWhiteMove,gameState.getCurrentIndex()+1);
+                    gameState.setCheckMated(isWhiteMove, gameState.getCurrentIndex() + 1);
                 } else if (Character.isDigit(c)) {
                     // If the character is a digit, it denotes the destination square
                     // Update x and y coordinates accordingly
@@ -1176,13 +1110,13 @@ public class ChessGame {
 
 
             XYcoord oldCoords = AdvancedChessFunctions.findOldCoordinates(x, y, pieceType, ambgX, ambgY, isWhiteMove, isEating, currentPosition, gameState);
-            if (pieceType == ChessConstants.ROOKINDEX) {
-                gameState.checkRemoveRookMoveRight(oldCoords.x, oldCoords.y, isWhiteMove);
-            }
+
 
             int eatingIndex = GeneralChessFunctions.getBoardWithPiece(x, y, !isWhiteMove, currentPosition.board);
+            ChessMove pgnMove = new ChessMove(oldCoords.x, oldCoords.y, x, y, promoIndex, pieceType, isWhiteMove, false, isEating, eatingIndex, false, false);
+            gameState.updateRightsBasedOnMove(pgnMove);
 
-            return new ChessMove(oldCoords.x, oldCoords.y, x, y, promoIndex, pieceType, isWhiteMove, false, isEating, eatingIndex, false, false);
+            return pgnMove;
 
         }
     }

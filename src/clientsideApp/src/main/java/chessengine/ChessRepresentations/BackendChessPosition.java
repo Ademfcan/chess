@@ -1,24 +1,21 @@
 package chessengine.ChessRepresentations;
 
+import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.ZobristHasher;
 import chessengine.Misc.ChessConstants;
-import chessengine.Functions.GeneralChessFunctions;
 
 import java.util.Stack;
 
 public class BackendChessPosition extends ChessPosition {
 
-    private ZobristHasher zobristHasher = new ZobristHasher();
-
+    private final Stack<ChessMove> movesThatCreated;
     public boolean isWhiteTurn;
 
     public ChessStates gameState;
 
     public long zobristKey;
-
+    private final ZobristHasher zobristHasher = new ZobristHasher();
     private boolean isDraw;
-
-    private final Stack<ChessMove> movesThatCreated;
 
     public BackendChessPosition(BackendChessPosition pos, ChessMove newMove) {
         super(pos.addMovesThatCreatedHack(pos, pos.movesThatCreated), pos.gameState, newMove);
@@ -32,7 +29,7 @@ public class BackendChessPosition extends ChessPosition {
 
     }
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isDraw,boolean isWhiteTurn) {
+    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isDraw, boolean isWhiteTurn) {
         super(pos.board, pos.getMoveThatCreatedThis());
         this.gameState = gameState;
         this.isDraw = isDraw;
@@ -42,8 +39,8 @@ public class BackendChessPosition extends ChessPosition {
     }
 
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState,boolean isWhiteTurn, int peiceType, boolean isWhite, boolean isCastle,boolean isEating,int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
-        super(pos, gameState, peiceType, isWhite, isCastle, isEating,eatingIndex,isEnPassant, isPawnPromo, oldX, oldY, newX, newY, promoIndex, false);
+    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isWhiteTurn, int peiceType, boolean isWhite, boolean isCastle, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
+        super(pos, gameState, peiceType, isWhite, isCastle, isEating, eatingIndex, isEnPassant, isPawnPromo, oldX, oldY, newX, newY, promoIndex, false);
         this.gameState = gameState;
         isDraw = this.gameState.makeNewMoveAndCheckDraw(this);
         this.movesThatCreated = new Stack<>();
@@ -58,9 +55,10 @@ public class BackendChessPosition extends ChessPosition {
         }
         return newStack;
     }
+
     @Override
     public BackendChessPosition clonePosition() {
-        return new BackendChessPosition(super.clonePosition(),gameState.cloneState(), isDraw,isWhiteTurn);
+        return new BackendChessPosition(super.clonePosition(), gameState.cloneState(), isDraw, isWhiteTurn);
     }
 
     private ChessPosition addMovesThatCreatedHack(ChessPosition pos, Stack<ChessMove> movesThatCreated) {
@@ -78,8 +76,8 @@ public class BackendChessPosition extends ChessPosition {
         int newY = move.getNewY();
         int oldX = move.getOldX();
         int oldY = move.getOldY();
-        int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX,newY);
-        int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX,oldY);
+        int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX, newY);
+        int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX, oldY);
         boolean enemyColor = !move.isWhite();
         boolean friendlyColor = move.isWhite();
         int peiceType = move.getBoardIndex();
@@ -98,11 +96,11 @@ public class BackendChessPosition extends ChessPosition {
                     System.out.println(move);
                     System.out.println(gameState);
                 }
-                board.removePiece(newBitIndex,eatingIndex,enemyColor);
+                board.removePiece(newBitIndex, eatingIndex, enemyColor);
 
                 // check remove rook right if rook is eaten
                 if (eatingIndex == ChessConstants.ROOKINDEX) {
-                    gameState.checkRemoveRookMoveRight(newX, newY);
+                    gameState.checkRemoveRookMoveRight(newX, newY, !isWhite);
                 }
 
             }
@@ -126,7 +124,7 @@ public class BackendChessPosition extends ChessPosition {
                 System.out.println(gameState);
             }
             // remove pawn
-            board.removePiece(GeneralChessFunctions.positionToBitIndex(newX,newY+backwardsDir),ChessConstants.PAWNINDEX,enemyColor);
+            board.removePiece(GeneralChessFunctions.positionToBitIndex(newX, newY + backwardsDir), ChessConstants.PAWNINDEX, enemyColor);
 
 
         }
@@ -144,8 +142,8 @@ public class BackendChessPosition extends ChessPosition {
                     System.out.println(gameState);
                 }
 
-                board.removePiece(GeneralChessFunctions.positionToBitIndex(7,newY),ChessConstants.ROOKINDEX,friendlyColor);
-                board.addPiece(GeneralChessFunctions.positionToBitIndex(newX-1,newY),ChessConstants.ROOKINDEX,friendlyColor);
+                board.removePiece(GeneralChessFunctions.positionToBitIndex(7, newY), ChessConstants.ROOKINDEX, friendlyColor);
+                board.addPiece(GeneralChessFunctions.positionToBitIndex(newX - 1, newY), ChessConstants.ROOKINDEX, friendlyColor);
             } else {
                 if (!GeneralChessFunctions.checkIfContains(0, newY, currentBoardMod[ChessConstants.ROOKINDEX])) {
                     ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
@@ -153,24 +151,24 @@ public class BackendChessPosition extends ChessPosition {
                     System.out.println(move);
                     System.out.println(gameState);
                 }
-                board.removePiece(GeneralChessFunctions.positionToBitIndex(0,newY),ChessConstants.ROOKINDEX,friendlyColor);
-                board.addPiece(GeneralChessFunctions.positionToBitIndex(newX+1,newY),ChessConstants.ROOKINDEX,friendlyColor);
+                board.removePiece(GeneralChessFunctions.positionToBitIndex(0, newY), ChessConstants.ROOKINDEX, friendlyColor);
+                board.addPiece(GeneralChessFunctions.positionToBitIndex(newX + 1, newY), ChessConstants.ROOKINDEX, friendlyColor);
             }
             gameState.removeCastlingRight(isWhite);
         }
 
 
         // remove peice at old spot
-        board.removePiece(oldBitIndex,peiceType,friendlyColor);
+        board.removePiece(oldBitIndex, peiceType, friendlyColor);
 
         if (move.isPawnPromo()) {
             // promo with new peice at new location
             int promoIndex = move.getPromoIndx();
-            board.addPiece(newBitIndex,promoIndex,friendlyColor);
+            board.addPiece(newBitIndex, promoIndex, friendlyColor);
 //            board.updateAttackMask(promoIndex,friendlyColor);
         } else {
             // move to new place as usual
-            board.addPiece(newBitIndex,peiceType,friendlyColor);
+            board.addPiece(newBitIndex, peiceType, friendlyColor);
         }
 //        board.updateAttackMask(peiceType,friendlyColor);
 //        if(move.isCastleMove()){
@@ -208,8 +206,8 @@ public class BackendChessPosition extends ChessPosition {
         int newY = move.getNewY();
         int oldX = move.getOldX();
         int oldY = move.getOldY();
-        int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX,newY);
-        int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX,oldY);
+        int newBitIndex = GeneralChessFunctions.positionToBitIndex(newX, newY);
+        int oldBitIndex = GeneralChessFunctions.positionToBitIndex(oldX, oldY);
         boolean enemyColor = !isWhite;
         boolean friendlyColor = isWhite;
         int peiceType = move.getBoardIndex();
@@ -222,7 +220,7 @@ public class BackendChessPosition extends ChessPosition {
         if (!move.isEnPassant()) {
             if (isEating) {
                 // reverse eating enemyPeice
-                board.addPiece(newBitIndex,eatingIndex,enemyColor);
+                board.addPiece(newBitIndex, eatingIndex, enemyColor);
 
 
             }
@@ -236,7 +234,7 @@ public class BackendChessPosition extends ChessPosition {
             //undo en passant
             int backwardsDir = isWhite ? 1 : -1;
             // remove pawn
-            board.addPiece(GeneralChessFunctions.positionToBitIndex(newX,newY+backwardsDir),ChessConstants.PAWNINDEX,enemyColor);
+            board.addPiece(GeneralChessFunctions.positionToBitIndex(newX, newY + backwardsDir), ChessConstants.PAWNINDEX, enemyColor);
 
 
         }
@@ -250,25 +248,25 @@ public class BackendChessPosition extends ChessPosition {
 //            System.out.println("OldMove: " + movesThatCreated.peek().toString());
             boolean isShortCastle = newX == 6;
             if (isShortCastle) {
-                board.addPiece(GeneralChessFunctions.positionToBitIndex(7,newY),ChessConstants.ROOKINDEX,friendlyColor);
-                board.removePiece(GeneralChessFunctions.positionToBitIndex(newX-1,newY),ChessConstants.ROOKINDEX,friendlyColor);
+                board.addPiece(GeneralChessFunctions.positionToBitIndex(7, newY), ChessConstants.ROOKINDEX, friendlyColor);
+                board.removePiece(GeneralChessFunctions.positionToBitIndex(newX - 1, newY), ChessConstants.ROOKINDEX, friendlyColor);
             } else {
-                board.addPiece(GeneralChessFunctions.positionToBitIndex(0,newY),ChessConstants.ROOKINDEX,friendlyColor);
-                board.removePiece(GeneralChessFunctions.positionToBitIndex(newX+1,newY),ChessConstants.ROOKINDEX,friendlyColor);
+                board.addPiece(GeneralChessFunctions.positionToBitIndex(0, newY), ChessConstants.ROOKINDEX, friendlyColor);
+                board.removePiece(GeneralChessFunctions.positionToBitIndex(newX + 1, newY), ChessConstants.ROOKINDEX, friendlyColor);
             }
         }
 
         // add peice at old spot
-        board.addPiece(oldBitIndex,peiceType,friendlyColor);
+        board.addPiece(oldBitIndex, peiceType, friendlyColor);
 
         if (move.isPawnPromo()) {
             // remove promo with at new location
             int promoIndex = move.getPromoIndx();
-            board.removePiece(newBitIndex,promoIndex,friendlyColor);
+            board.removePiece(newBitIndex, promoIndex, friendlyColor);
 //            board.updateAttackMask(promoIndex,friendlyColor);
         } else {
             // remove new place
-            board.removePiece(newBitIndex,peiceType,friendlyColor);
+            board.removePiece(newBitIndex, peiceType, friendlyColor);
         }
 //        board.updateAttackMask(peiceType,friendlyColor);
 //        if(move.isCastleMove()){

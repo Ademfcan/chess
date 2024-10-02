@@ -1,38 +1,37 @@
 package chessengine.CentralControlComponents;
 
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Computation.*;
+import chessengine.App;
+import chessengine.Computation.MultiSearcher;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
 import chessengine.Graphics.MainScreenController;
-import chessengine.Graphics.MoveArrow;
 import chessengine.Misc.ChessConstants;
+import chessengine.Records.CachedPv;
+import chessengine.Records.MultiResult;
+import chessengine.Records.SearchResult;
 import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import org.nd4j.nativeblas.Nd4jCpu;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 
 public class ChessCentralControl {
 
+    private final MultiSearcher searcher = new MultiSearcher();
+    private final Set<Integer> currentlySearching = new HashSet<>();
+//    public ChessboardMoveMaker chessboardMoveMaker;
     public MainScreenController mainScreenController;
     public ChessBoardGUIHandler chessBoardGUIHandler;
-//    public ChessboardMoveMaker chessboardMoveMaker;
-
     public ThreadController asyncController;
     public ChessGameHandler gameHandler;
     public ChessActionHandler chessActionHandler;
-
     public HashMap<Integer, MultiResult> cachedResults;
     private boolean isInit = false;
-
-    private final MultiSearcher searcher = new MultiSearcher();
-
-    private final Set<Integer> currentlySearching = new HashSet<>();
 
     public ChessCentralControl() {
 
@@ -59,12 +58,12 @@ public class ChessCentralControl {
         cachedResults.clear();
     }
 
-    public void clearForNewBranch(int branchIndex){
+    public void clearForNewBranch(int branchIndex) {
         Iterator<Integer> keySetIterator = cachedResults.keySet().iterator();
         Integer key;
-        while (keySetIterator.hasNext()){
+        while (keySetIterator.hasNext()) {
             key = keySetIterator.next();
-            if(key >= branchIndex){
+            if (key >= branchIndex) {
                 keySetIterator.remove();
             }
         }
@@ -86,14 +85,13 @@ public class ChessCentralControl {
             currentlySearching.add(i);
             asyncController.generalTask.addTask(() -> {
                 try {
-                    MultiResult result = searcher.search(gameHandler.currentGame.getPos(i).clonePosition().toBackend(gameHandler.currentGame.getGameStateAtPos(i), gameHandler.currentGame.isWhiteTurn(i)), ChessConstants.DefaultWaitTime/2, ChessConstants.NMOVES);
+                    MultiResult result = searcher.search(gameHandler.currentGame.getPos(i).clonePosition().toBackend(gameHandler.currentGame.getGameStateAtPos(i), gameHandler.currentGame.isWhiteTurn(i)), ChessConstants.DefaultWaitTime / 2, ChessConstants.NMOVES);
                     Platform.runLater(() -> {
                         cachedResults.put(i, result);
                         currentlySearching.remove(i);
                     });
-                }
-                catch (Exception e){
-                    ChessConstants.mainLogger.error("Search request exception!: ",e);
+                } catch (Exception e) {
+                    ChessConstants.mainLogger.error("Search request exception!: ", e);
                 }
             });
 
@@ -101,16 +99,17 @@ public class ChessCentralControl {
     }
 
     public void getCentralEvaluation() {
-        int currentIndex = gameHandler.currentGame.curMoveIndex;
-        if (cachedResults.containsKey(currentIndex) && (currentIndex < 0 || cachedResults.containsKey(currentIndex - 1))) {
-            setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ?  null : cachedResults.get(currentIndex - 1));
-        }
-        else{
-            addSearchRequest(currentIndex);
-            addSearchRequest(Math.max(currentIndex-1,-1));
-            asyncController.generalTask.addTask(()->{
-                Platform.runLater(this::getCentralEvaluation);
-            });
+        if (!App.isStartScreen && gameHandler.currentGame != null) {
+            int currentIndex = gameHandler.currentGame.curMoveIndex;
+            if (cachedResults.containsKey(currentIndex) && (currentIndex < 0 || cachedResults.containsKey(currentIndex - 1))) {
+                setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ? null : cachedResults.get(currentIndex - 1));
+            } else {
+                addSearchRequest(currentIndex);
+                addSearchRequest(Math.max(currentIndex - 1, -1));
+                asyncController.generalTask.addTask(() -> {
+                    Platform.runLater(this::getCentralEvaluation);
+                });
+            }
         }
 
 
@@ -127,10 +126,10 @@ public class ChessCentralControl {
 
         if (mainScreenController.currentState.equals(MainScreenState.VIEWER)) {
             // todo
-            chessActionHandler.addBestMovesToViewer(currentResults.results());
-            if(gameHandler.currentGame.curMoveIndex >= 0){
+            chessActionHandler.addBestMovesToViewer(currentResults);
+            if (gameHandler.currentGame.curMoveIndex >= 0) {
                 CachedPv pv = previousResults.moveValues().get(gameHandler.currentGame.currentPosition.getMoveThatCreatedThis());
-                MoveRanking ranking = MoveRanking.getMoveRanking(previousResults.results()[0].evaluation(),pv.evaluation(),previousResults.results()[0].pV(),pv.pV());
+                MoveRanking ranking = MoveRanking.getMoveRanking(previousResults.results()[0].evaluation(), pv.evaluation(), previousResults.results()[0].pV(), pv.pV());
                 chessBoardGUIHandler.addMoveRanking(gameHandler.currentGame.currentPosition.getMoveThatCreatedThis(), ranking, gameHandler.currentGame.isWhiteOriented());
             }
         }
@@ -141,6 +140,11 @@ public class ChessCentralControl {
 //            }
 //            chessBoardGUIHandler.addArrow(new MoveArrow(linePv.pvMove(),"Black"));
 //        }
+    }
+
+
+    public boolean isInViewerMove() {
+        return !App.isStartScreen && mainScreenController.currentState.equals(MainScreenState.VIEWER) && gameHandler.currentGame != null;
     }
 
 

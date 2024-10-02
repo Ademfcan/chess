@@ -4,7 +4,7 @@
 //import chessengine.CentralControlComponents.ChessCentralControl;
 //import chessengine.Computation.Computer;
 //import chessengine.Computation.EvalOutput;
-//import chessengine.Computation.SearchResult;
+//import chessengine.Records.SearchResult;
 //import chessengine.Computation.Searcher;
 //import chessengine.Misc.ChessConstants;
 //import javafx.application.Platform;

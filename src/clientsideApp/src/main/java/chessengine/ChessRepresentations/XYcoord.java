@@ -5,18 +5,13 @@ import chessengine.Misc.ChessConstants;
 import java.util.Objects;
 
 public class XYcoord {
-    @Override
-    public int hashCode() {
-        return Objects.hash(isCastleMove, x, y, isPawnPromo, enPassant);
-    }
-
+    public final int direction;
     private final boolean isCastleMove;
     public int x;
     public int y;
-    public final int direction;
     public int peiceType;
     private boolean isPawnPromo;
-    private boolean enPassant;
+    private final boolean enPassant;
     public XYcoord(int x, int y, int direction) {
         this.x = x;
         this.y = y;
@@ -44,8 +39,10 @@ public class XYcoord {
         this.peiceType = ChessConstants.EMPTYINDEX;
     }
 
-
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(isCastleMove, x, y, isPawnPromo, enPassant);
+    }
 
     public void setPawnPromo(boolean pawnPromo) {
         isPawnPromo = pawnPromo;
@@ -68,7 +65,6 @@ public class XYcoord {
         return (this.x == xy.x && this.y == xy.y);
 
     }
-
 
 
     public String toString() {

@@ -178,7 +178,7 @@ public class MainScreenController implements Initializable {
     @FXML
     GridPane sandboxPieces;
     @FXML
-    TextArea localInfo;
+    TextArea campaignInfo;
     @FXML
     ImageView player1Select;
     @FXML
@@ -335,7 +335,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl = App.ChessCentralControl;
 
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
-                arrowBoard, bestMovesBox, localInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
+                arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
                 chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton, player1TurnIndicator,
                 player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
 //         small change to make sure moves play box is always focused on the very end
@@ -623,13 +623,13 @@ public class MainScreenController implements Initializable {
         movesPlayed.prefWidthProperty().bind(sidePanel.widthProperty());
 
         // all the different side panels
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, localInfo, 100, .8);
-        App.bindingController.bindSmallText(localInfo, true, "white");
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, campaignInfo, 100, .8);
+        App.bindingController.bindSmallText(campaignInfo, true, "Black");
 
-        localInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
+        campaignInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
         App.bindingController.bindSmallText(inGameInfo, true, "black");
-        inGameInfo.prefWidthProperty().bind(localInfo.widthProperty());
-        inGameInfo.prefHeightProperty().bind(localInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
+        inGameInfo.prefWidthProperty().bind(campaignInfo.widthProperty());
+        inGameInfo.prefHeightProperty().bind(campaignInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
         sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(inGameInfo.widthProperty().divide(8)));
         chatInput.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(sendMessageButton.widthProperty()).subtract(5));
         chatInput.prefHeightProperty().bind(sendMessageButton.heightProperty());
@@ -1176,7 +1176,7 @@ public class MainScreenController implements Initializable {
 
     // what actually happens when you click a square on the board
     public void makeComputerMove(ChessMove move) {
-        if (!App.isStartScreen && (currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null && !App.isStartScreen) {
+        if (!App.isStartScreen && (currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.currentGame.isVsComputer() && move != null) {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.currentGame.isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move);
             // computers move

@@ -2,47 +2,49 @@ package chessengine.Computation;
 
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.ChessRepresentations.ChessMove;
+import chessengine.Enums.Flag;
+import chessengine.Enums.Movetype;
+import chessengine.Enums.PromotionType;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.EvaluationFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
+import chessengine.Records.PVEntry;
+import chessengine.Records.SearchResult;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Searcher {
     private final Logger logger = LogManager.getLogger(this.toString());
+    private final AtomicBoolean stopSearch = new AtomicBoolean(false);
+    private final int maxSearchDepth = 256;
+    public SearchInfoAggregator searchInfo;
     long startTime;
     BackendChessPosition chessPosition;
     int maxTimeMs;
-
     boolean hasSearchedAtLeastOne;
     int bestEvaluation;
     ChessMove bestMove;
     int CurrentDepth;
     int bestEvaluationIter;
     ChessMove bestMoveIter;
-    SearchPair[] pV;
-    SearchPair[] pVIter;
-    private boolean stop = false;
-    private boolean isSearching = false;
-
+    PVEntry[] pV;
+    PVEntry[] pVIter;
     TranspositionTable transpositionTable;
     MoveOrderer orderer;
     MoveGenerator moveGenerator;
-    public SearchInfoAggregator searchInfo;
     StopWatch stopwatch;
-
     PromotionType promotionType = PromotionType.ALL;
     List<String> features = new ArrayList<>();
+    private boolean stop = false;
+    private boolean isSearching = false;
     private int nPvs;
-
-    private final int maxSearchDepth = 256;
-
-    public Searcher(){
+    public Searcher() {
         transpositionTable = new TranspositionTable(1000000);
         orderer = new MoveOrderer();
         searchInfo = new SearchInfoAggregator();
@@ -52,9 +54,17 @@ public class Searcher {
 
     }
 
-    private boolean checkStopSearch(){
+    public void stopSearch() {
+        stopSearch.set(true);
+    }
+
+    public boolean wasForcedStop() {
+        return stopSearch.get();
+    }
+
+    private boolean checkStopSearch() {
         long currentTime = stopwatch.getTime();
-        if(currentTime - startTime > maxTimeMs){
+        if (stopSearch.get() || currentTime - startTime > maxTimeMs) {
 //            System.out.println("Stopping");
             stop = true;
             isSearching = false;
@@ -63,80 +73,78 @@ public class Searcher {
         return false;
     }
 
-    private void resetSearch(){
-        pV = new SearchPair[maxSearchDepth];
-        pVIter = new SearchPair[maxSearchDepth];
+    private void resetSearch() {
+        pV = new PVEntry[maxSearchDepth];
+        pVIter = new PVEntry[maxSearchDepth];
+        stopSearch.set(false);
         startTime = stopwatch.getTime();
         orderer.clearKillers();
         orderer.clearHistory();
         bestMoveIter = null;
         bestMove = null;
-        bestEvaluation = Integer.MIN_VALUE+1;
-        bestEvaluationIter = Integer.MIN_VALUE+1;
+        bestEvaluation = Integer.MIN_VALUE + 1;
+        bestEvaluationIter = Integer.MIN_VALUE + 1;
         stop = false;
     }
 
 
-    public SearchResult search(BackendChessPosition pos,int maxTimeMs){
+    public SearchResult search(BackendChessPosition pos, int maxTimeMs) {
         this.maxTimeMs = maxTimeMs;
         resetSearch();
         chessPosition = pos.clonePosition();
         isSearching = true;
         runIterativeDeepening();
 
-        if(bestMove == null){
-            bestMove = moveGenerator.generateMoves(pos, false,promotionType)[0];
-            return new SearchResult(bestMove,0,-1, new SearchPair[]{new SearchPair(bestMove,0)});
+        if (bestMove == null) {
+            bestMove = moveGenerator.generateMoves(pos, false, promotionType)[0];
+            return new SearchResult(bestMove, 0, -1, new PVEntry[]{new PVEntry(bestMove, 0, Movetype.NONE)});
         }
-        return new SearchResult(bestMove,bestEvaluation, CurrentDepth, pV);
+        return new SearchResult(bestMove, bestEvaluation, CurrentDepth, pV);
     }
 
-    private void runIterativeDeepening(){
-        for(int searchDepth = 1;searchDepth<maxSearchDepth;searchDepth++){
+    private void runIterativeDeepening() {
+        for (int searchDepth = 1; searchDepth < maxSearchDepth; searchDepth++) {
             hasSearchedAtLeastOne = false;
-            search(searchDepth,0,Integer.MIN_VALUE+1,Integer.MAX_VALUE,0);
+            search(searchDepth, 0, Integer.MIN_VALUE + 1, Integer.MAX_VALUE, 0);
 
 //            System.out.println("Search depth: " + searchDepth);
-            if(stop || checkStopSearch()){
-                if(bestEvaluationIter > bestEvaluation){
+            if (stop || checkStopSearch()) {
+                if (bestEvaluationIter > bestEvaluation) {
                     bestEvaluation = bestEvaluationIter;
                     bestMove = bestMoveIter;
                     pV = pVIter;
 
                 }
                 break;
-            }
-            else{
+            } else {
                 pV = pVIter;
                 bestEvaluation = bestEvaluationIter;
                 bestMove = bestMoveIter;
                 CurrentDepth = searchDepth;
 
-                if(EvaluationFunctions.isMateScore(bestEvaluation) && EvaluationFunctions.extractDepthFromMateScore(bestEvaluation) <= CurrentDepth){
+                if (EvaluationFunctions.isMateScore(bestEvaluation) && EvaluationFunctions.extractDepthFromMateScore(bestEvaluation) <= CurrentDepth) {
                     break;
                 }
 
-                bestEvaluationIter = Integer.MIN_VALUE+1;
+                bestEvaluationIter = Integer.MIN_VALUE + 1;
                 bestMoveIter = null;
-                pVIter = new SearchPair[maxSearchDepth];
+                pVIter = new PVEntry[maxSearchDepth];
                 hasSearchedAtLeastOne = false;
-
 
 
             }
         }
     }
 
-    private int search(int currentPly,int plyFromRoot,int alpha,int beta,int numExtensions){
-        if(chessPosition.isDraw() || stop || checkStopSearch()){
+    private int search(int currentPly, int plyFromRoot, int alpha, int beta, int numExtensions) {
+        if (chessPosition.isDraw() || stop || checkStopSearch()) {
             return 0;
         }
 
-        if(plyFromRoot > 0){
+        if (plyFromRoot > 0) {
             alpha = Math.max(alpha, EvaluationFunctions.baseMateScore - plyFromRoot);
             beta = Math.min(beta, -EvaluationFunctions.baseMateScore + plyFromRoot);
-            if (alpha >= beta)
-            {
+            if (alpha >= beta) {
                 return alpha;
             }
         }
@@ -160,89 +168,88 @@ public class Searcher {
 //        transpositionTable.clearProbe();
         searchInfo.incrementUniquePositionsSearched();
 
-        if(currentPly <= 0){
-            int eval = quiscenceSearch(alpha,beta);
-            if(EvaluationFunctions.isMateScore(eval)){
+        if (currentPly <= 0) {
+            int eval = quiscenceSearch(alpha, beta);
+            if (EvaluationFunctions.isMateScore(eval)) {
                 eval -= plyFromRoot;
             }
             return eval;
         }
 
 
-        ChessMove[] moves = moveGenerator.generateMoves(chessPosition, false,promotionType);
-        orderer.sortMoves(bestMove,chessPosition.board,moves,transpositionTable.getMarkedMove1(), transpositionTable.getMarkedMove2(),plyFromRoot);
-        boolean isChecked = AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn,chessPosition.board);
-        if(moves[0] == null){
+        ChessMove[] moves = moveGenerator.generateMoves(chessPosition, false, promotionType);
+        orderer.sortMoves(bestMove, chessPosition.board, moves, transpositionTable.getMarkedMove1(), transpositionTable.getMarkedMove2(), plyFromRoot);
+        boolean isChecked = AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn, chessPosition.board);
+        if (moves[0] == null) {
 //            System.out.println("Game over!");
-            if(isChecked){
-                return EvaluationFunctions.baseMateScore-plyFromRoot;
+            if (isChecked) {
+                return EvaluationFunctions.baseMateScore - plyFromRoot;
             }
             return 0;
         }
 
 
-
         Flag evaluation = Flag.UPPERBOUND;
         ChessMove bestMoveSoFar = null;
-        for(int i = 0;i<moves.length;i++){
+        for (int i = 0; i < moves.length; i++) {
             ChessMove move = moves[i];
-            if(move == null){
+            if (move == null) {
                 break;
             }
             chessPosition.makeLocalPositionMove(move);
             // move extensions
             int extension = 0;
-            if(isChecked){
+            if (isChecked) {
                 extension = 1;
-            }
-            else if(move.getBoardIndex() == ChessConstants.PAWNINDEX && (move.getNewX() == 6 || move.getNewY() == 1)){
+            } else if (move.getBoardIndex() == ChessConstants.PAWNINDEX && (move.getNewX() == 6 || move.getNewY() == 1)) {
                 extension = 1;
             }
 
             // move reductions
+            Movetype movetype = Movetype.getMoveType(chessPosition);
             int eval = 0;
             boolean needsFullSearch = true;
-            if(extension == 0 && plyFromRoot > 3 && i > 3 && !move.isEating()){
+            if (extension == 0 && plyFromRoot > 3 && i > 3 && !move.isEating()) {
                 final int reducedDepth = 1;
-                eval = -search(currentPly-1-reducedDepth,plyFromRoot+1,-alpha-1,-alpha,numExtensions);
+                eval = -search(currentPly - 1 - reducedDepth, plyFromRoot + 1, -alpha - 1, -alpha, numExtensions);
                 needsFullSearch = eval > alpha;
             }
-            if(needsFullSearch){
-                eval = -search(currentPly-1+extension,plyFromRoot+1,-beta,-alpha,numExtensions+extension);
+            if (needsFullSearch) {
+                eval = -search(currentPly - 1 + extension, plyFromRoot + 1, -beta, -alpha, numExtensions + extension);
             }
             chessPosition.undoLocalPositionMove();
 
-            if(stop || checkStopSearch()){
+            if (stop || checkStopSearch()) {
                 return 0;
             }
 
 
             // fail high means its a lowerbound, opponent can avoid this move so you might have even better unsearched
-            if(eval >= beta){
-                transpositionTable.recordHash(chessPosition.zobristKey,currentPly,beta,move,Flag.LOWERBOUND);
+            if (eval >= beta) {
+                transpositionTable.recordHash(chessPosition.zobristKey, currentPly, beta, move, Flag.LOWERBOUND);
 
                 // history + killer heuristics
-                if(!move.isEating()){ // see if this is needed
-                    int fromSquare = GeneralChessFunctions.positionToBitIndex(move.getOldX(),move.getOldY());
-                    int toSquare = GeneralChessFunctions.positionToBitIndex(move.getNewX(),move.getNewY());
+                if (!move.isEating()) { // see if this is needed
+                    int fromSquare = GeneralChessFunctions.positionToBitIndex(move.getOldX(), move.getOldY());
+                    int toSquare = GeneralChessFunctions.positionToBitIndex(move.getNewX(), move.getNewY());
 
                     orderer.killers[plyFromRoot].saveKiller(move);
 
-                    orderer.history[chessPosition.isWhiteTurn ? 0 :1][fromSquare][toSquare] += currentPly*currentPly;
+                    orderer.history[chessPosition.isWhiteTurn ? 0 : 1][fromSquare][toSquare] += currentPly * currentPly;
 
                 }
                 searchInfo.incrementNumBetaCutoffs();
                 return beta;
             }
 
-            if(eval > alpha){
+            if (eval > alpha) {
 //                System.out.println("Alpha: " + alpha + " to -> " + eval);
                 evaluation = Flag.EXACT;
                 bestMoveSoFar = move;
                 alpha = eval;
-                pVIter[plyFromRoot] = new SearchPair(move,eval);
+                pVIter[plyFromRoot] = new PVEntry(move, eval, movetype);
 
-                if(plyFromRoot == 0){
+                if (plyFromRoot == 0) {
                     bestEvaluationIter = alpha;
                     bestMoveIter = move;
                     hasSearchedAtLeastOne = true;
@@ -250,47 +257,46 @@ public class Searcher {
             }
 
 
-
         }
 
-        transpositionTable.recordHash(chessPosition.zobristKey, currentPly, alpha,bestMoveSoFar,evaluation);
+        transpositionTable.recordHash(chessPosition.zobristKey, currentPly, alpha, bestMoveSoFar, evaluation);
         return alpha;
 
 
     }
 
-    private int quiscenceSearch(int alpha,int beta){
-        if(stop || checkStopSearch()){
+    private int quiscenceSearch(int alpha, int beta) {
+        if (stop || checkStopSearch()) {
             return 0;
         }
 
         int evaluation = EvaluationFunctions.getStaticEvaluation(chessPosition);
 
-        if(evaluation >= beta){
+        if (evaluation >= beta) {
             searchInfo.incrementNumBetaCutoffs();
 
             return beta;
         }
-        if(evaluation > alpha){
+        if (evaluation > alpha) {
             alpha = evaluation;
         }
 
-        ChessMove[] moves = moveGenerator.generateMoves(chessPosition, true,promotionType);
-        orderer.sortMoves(null,chessPosition.board,moves,null,null,19);
-        for(ChessMove move : moves){
-            if(move == null){
+        ChessMove[] moves = moveGenerator.generateMoves(chessPosition, true, promotionType);
+        orderer.sortMoves(null, chessPosition.board, moves, null, null, 19);
+        for (ChessMove move : moves) {
+            if (move == null) {
                 break;
             }
             chessPosition.makeLocalPositionMove(move);
-            int eval = -quiscenceSearch(-beta,-alpha);
+            int eval = -quiscenceSearch(-beta, -alpha);
             chessPosition.undoLocalPositionMove();
 
-            if(eval >= beta){
+            if (eval >= beta) {
                 searchInfo.incrementNumBetaCutoffs();
                 return beta;
             }
 
-            if(eval > alpha){
+            if (eval > alpha) {
                 alpha = eval;
             }
         }

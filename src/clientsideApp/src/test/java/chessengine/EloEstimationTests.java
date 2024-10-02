@@ -6,12 +6,11 @@ import org.junit.jupiter.api.Test;
 
 public class EloEstimationTests {
     EloEstimator est = new EloEstimator();
-    @Test
+//    @Test
     void estimateMaxDifficulty(){
-        ComputerDifficulty test = ComputerDifficulty.MaxDifficulty;
-        int estimatedElo = est.testElo(test,false);
+        int estimatedElo = est.testElo(ComputerDifficulty.MaxDifficulty,ComputerDifficulty.STOCKFISHD1,30);
         System.out.println("\n\n\n\n\n\n\n");
-        System.out.println("Estimated elo for: " + test + " is: " + estimatedElo);
+        System.out.println("Estimated elo is: " + estimatedElo);
 
     }
 }

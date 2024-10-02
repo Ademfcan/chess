@@ -1,7 +1,7 @@
 package chessengine.Audio;
 
-import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.ChessMove;
+import chessengine.Misc.ChessConstants;
 
 public class SoundPlayer {
     private final double defaultVolume = .5d;

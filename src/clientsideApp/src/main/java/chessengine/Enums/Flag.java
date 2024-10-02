@@ -1,4 +1,4 @@
-package chessengine.Computation;
+package chessengine.Enums;
 
 public enum Flag {
     EXACT,

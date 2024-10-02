@@ -8,6 +8,7 @@ public class UserInfo {
     String passwordHash;
     ProfilePicture profilePicture;
     private String profilePictureUrl;
+
     public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture, CampaignProgress userCampaignProgress) {
         this.userelo = userelo;
         this.userName = userName;
