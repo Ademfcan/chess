@@ -65,6 +65,9 @@ public class Searcher {
     private boolean checkStopSearch() {
         long currentTime = stopwatch.getTime();
         if (stopSearch.get() || currentTime - startTime > maxTimeMs) {
+            if(stopSearch.get()){
+                logger.debug("Prematurely stopped");
+            }
 //            System.out.println("Stopping");
             stop = true;
             isSearching = false;
@@ -96,6 +99,7 @@ public class Searcher {
         runIterativeDeepening();
 
         if (bestMove == null) {
+            logger.error("Not able to seach at all!!!");
             bestMove = moveGenerator.generateMoves(pos, false, promotionType)[0];
             return new SearchResult(bestMove, 0, -1, new PVEntry[]{new PVEntry(bestMove, 0, Movetype.NONE)});
         }

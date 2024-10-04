@@ -81,7 +81,7 @@ public class ChessCentralControl {
     }
 
     private void addSearchRequest(int i) {
-        if (!cachedResults.containsKey(i) && !currentlySearching.contains(i)) {
+        if (isInValidGameMove() && !cachedResults.containsKey(i) && !currentlySearching.contains(i)) {
             currentlySearching.add(i);
             asyncController.generalTask.addTask(() -> {
                 try {
@@ -99,7 +99,7 @@ public class ChessCentralControl {
     }
 
     public void getCentralEvaluation() {
-        if (!App.isStartScreen && gameHandler.currentGame != null) {
+        if (isInValidGameMove()) {
             int currentIndex = gameHandler.currentGame.curMoveIndex;
             if (cachedResults.containsKey(currentIndex) && (currentIndex < 0 || cachedResults.containsKey(currentIndex - 1))) {
                 setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ? null : cachedResults.get(currentIndex - 1));
@@ -144,7 +144,11 @@ public class ChessCentralControl {
 
 
     public boolean isInViewerMove() {
-        return !App.isStartScreen && mainScreenController.currentState.equals(MainScreenState.VIEWER) && gameHandler.currentGame != null;
+        return isInValidGameMove() && mainScreenController.currentState.equals(MainScreenState.VIEWER);
+    }
+
+    public boolean isInValidGameMove(){
+        return !App.isStartScreen && gameHandler.currentGame != null;
     }
 
 

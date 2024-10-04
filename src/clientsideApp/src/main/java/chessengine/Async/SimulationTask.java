@@ -95,7 +95,7 @@ public class SimulationTask extends Task<Void> {
     private ChessGame currentSimGame = null;
     private final Searcher searcher;
     private volatile boolean stop = false;
-    private final int waitTime = ChessConstants.DefaultWaitTime;
+    private final int waitTime = ChessConstants.DefaultWaitTime/3;
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
