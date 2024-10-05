@@ -91,10 +91,9 @@ public class GetComputerMoveTask extends Task<Void> {
             SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState, currentIsWhite), ChessConstants.DefaultWaitTime);
 //            System.out.println(searchResult.evaluation());
 //            System.out.println(searchResult.depth());
-            ChessMove bestMove = searchResult.move();
-            if (isCurrentlyEvaluating && bestMove != null) {
+            if (isCurrentlyEvaluating && searchResult != null) {
                 Platform.runLater(() -> {
-                    control.mainScreenController.makeComputerMove(bestMove);
+                    control.mainScreenController.makeComputerMove(searchResult.move());
                 });
             }
         } else {

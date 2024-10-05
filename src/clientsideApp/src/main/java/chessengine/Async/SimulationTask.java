@@ -8,7 +8,6 @@ import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.PgnFunctions;
-import chessengine.Misc.ChessConstants;
 import chessengine.Misc.EloEstimator;
 import chessengine.Records.SearchResult;
 import chessserver.ComputerDifficulty;
@@ -82,20 +81,20 @@ public class SimulationTask extends Task<Void> {
             "1. d4 d5 2. Nf3 Nf6 3. c4", // Queen's Gambit Declined
             "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6", // Ruy Lopez, Berlin Defense
     };
-    private ComputerDifficulty player1Difficulty;
-    private ComputerDifficulty player2Difficulty;
+    private volatile ComputerDifficulty player1Difficulty;
+    private volatile ComputerDifficulty player2Difficulty;
     private volatile boolean running = true;
     private volatile boolean evaluating = false;
     private boolean isMakingMove = false;
     private boolean isPlayer1WhitePlayer = true; // starts true
     private boolean isPlayer1Turn = true; // starts true
-    private int numComputerWins = 0;
-    private int numStockFishWins = 0;
+    private int numPlayer1Wins = 0;
+    private int numPlayer2Wins = 0;
     private int numDraws = 0;
     private ChessGame currentSimGame = null;
     private final Searcher searcher;
     private volatile boolean stop = false;
-    private final int waitTime = ChessConstants.DefaultWaitTime/3;
+    private final int baseWaitTime = 50;
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
@@ -119,10 +118,18 @@ public class SimulationTask extends Task<Void> {
 
     public void setPlayer1SimulationDifficulty(ComputerDifficulty diff) {
         player1Difficulty = diff;
+        updateNames();
     }
 
     public void setPlayer2SimulationDifficulty(ComputerDifficulty diff) {
         player2Difficulty = diff;
+        updateNames();
+    }
+
+    private void updateNames(){
+        if(currentSimGame != null){
+            control.mainScreenController.setPlayerLabels(isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, !isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), !isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, currentSimGame.isWhiteOriented());
+        }
     }
 
     public void startSimulation() {
@@ -148,8 +155,8 @@ public class SimulationTask extends Task<Void> {
         isPlayer1WhitePlayer = true;
         isPlayer1Turn = true;
         currentSimGame = null;
-        numComputerWins = 0;
-        numStockFishWins = 0;
+        numPlayer1Wins = 0;
+        numPlayer2Wins = 0;
         numDraws = 0;
     }
 
@@ -158,13 +165,13 @@ public class SimulationTask extends Task<Void> {
         while (running) {
 //            System.out.println("Sim");
             if (evaluating) {
-                stop = false;
-                makeNewMove();
-                isMakingMove = false;
                 try {
+                    stop = false;
+                    makeNewMove();
+                    isMakingMove = false;
                     Thread.sleep(200);
                 } catch (Exception e) {
-                    logger.error("Error when waiting", e);
+                    logger.error("Error", e);
                 }
             } else {
                 try {
@@ -187,7 +194,7 @@ public class SimulationTask extends Task<Void> {
             // start new game
             // start from random opening as to make the sim different
             String randomOpening = top50Openings[random.nextInt(top50Openings.length)];
-            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? "My Computer" : "Stockfish", !isPlayer1WhitePlayer ? "My Computer" : "Stockfish", isPlayer1WhitePlayer ? 9999 : testStockfishElo, !isPlayer1WhitePlayer ? 9999 : testStockfishElo, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isPlayer1WhitePlayer);
+            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), !isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, !isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isPlayer1WhitePlayer);
             if (stop) {
                 return;
             }
@@ -223,18 +230,18 @@ public class SimulationTask extends Task<Void> {
                     if (isPlayer1Win) {
                         if (isPlayer1WhitePlayer) {
                             // computer is player 1 and won (Computer win)
-                            numComputerWins++;
+                            numPlayer1Wins++;
                         } else {
                             // stockfish is player 1 and won (Stockfish Win)
-                            numStockFishWins++;
+                            numPlayer2Wins++;
                         }
                     } else {
                         if (isPlayer1WhitePlayer) {
                             // computer is player 1 but lost (Stockfish win)
-                            numStockFishWins++;
+                            numPlayer2Wins++;
                         } else {
                             // stockfish player 1 but lost (Computer win)
-                            numStockFishWins++;
+                            numPlayer1Wins++;
                         }
                     }
                 }
@@ -242,15 +249,15 @@ public class SimulationTask extends Task<Void> {
                 // set start for next game (flip first player)
                 isPlayer1WhitePlayer = !isPlayer1WhitePlayer;
                 isPlayer1Turn = isPlayer1WhitePlayer;
-                int totalCount = numDraws + numComputerWins + numStockFishWins;
-                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numComputerWins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
+                int totalCount = numDraws + numPlayer1Wins + numPlayer2Wins;
+                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numPlayer1Wins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
                 if (estimatedElo < 0) {
                     // no wins so formula breaks :(
                     estimatedElo = -1;
                 }
                 int finalEst = estimatedElo;
                 // update info
-                Platform.runLater(() -> control.mainScreenController.setSimScore(numComputerWins, numStockFishWins, numDraws, finalEst));
+                Platform.runLater(() -> control.mainScreenController.setSimScore(numPlayer1Wins, numPlayer2Wins, numDraws, finalEst));
                 currentSimGame = null;
             } else {
                 // else just change turn as normall
@@ -287,6 +294,7 @@ public class SimulationTask extends Task<Void> {
     }
 
     private ChessMove getMove(ComputerDifficulty currentPlayerDifficulty, ChessGame game, boolean isWhiteTurn) {
+        int waitTime = (int) (baseWaitTime * control.chessActionHandler.timeSlider.getValue());
         if (currentPlayerDifficulty.isStockfishBased) {
             String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, waitTime);
             if (moveUci != null) {
@@ -297,10 +305,10 @@ public class SimulationTask extends Task<Void> {
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
             SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), waitTime);
-            ChessMove move = out.move();
-            if (stop) {
+            if(out == null || stop){
                 return null;
             }
+            ChessMove move = out.move();
             if (!searcher.wasForcedStop()) {
                 return move;
             }

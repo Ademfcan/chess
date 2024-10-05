@@ -271,14 +271,23 @@
                                                       <Button fx:id="playPauseButton" mnemonicParsing="false" text="pause" />
                                                       <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                                          <children>
-                                                            <Label fx:id="player1SimLabel" text="Player1" />
-                                                            <ComboBox fx:id="player1SimSelector" prefWidth="150.0" />
-                                                         </children>
-                                                      </VBox>
-                                                      <VBox alignment="CENTER" layoutX="94.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0">
-                                                         <children>
-                                                            <Label fx:id="player2SimLabel" text="Player2" />
-                                                            <ComboBox fx:id="player2SimSelector" prefWidth="150.0" />
+                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                               <children>
+                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                                     <children>
+                                                                        <Label fx:id="player1SimLabel" text="Player1" />
+                                                                        <ComboBox fx:id="player1SimSelector" prefWidth="150.0" />
+                                                                     </children>
+                                                                  </VBox>
+                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                                     <children>
+                                                                        <Label fx:id="player2SimLabel" text="Player2" />
+                                                                        <ComboBox fx:id="player2SimSelector" prefWidth="150.0" />
+                                                                     </children>
+                                                                  </VBox>
+                                                               </children>
+                                                            </HBox>
+                                                            <Slider fx:id="timeSlider" />
                                                          </children>
                                                       </VBox>
                                                    </children>

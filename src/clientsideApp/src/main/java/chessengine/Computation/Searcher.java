@@ -6,6 +6,7 @@ import chessengine.Enums.Flag;
 import chessengine.Enums.Movetype;
 import chessengine.Enums.PromotionType;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.BitFunctions;
 import chessengine.Functions.EvaluationFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
@@ -28,6 +29,8 @@ public class Searcher {
     BackendChessPosition chessPosition;
     int maxTimeMs;
     boolean hasSearchedAtLeastOne;
+
+    boolean isNoMoves;
     int bestEvaluation;
     ChessMove bestMove;
     int CurrentDepth;
@@ -40,10 +43,7 @@ public class Searcher {
     MoveGenerator moveGenerator;
     StopWatch stopwatch;
     PromotionType promotionType = PromotionType.ALL;
-    List<String> features = new ArrayList<>();
     private boolean stop = false;
-    private boolean isSearching = false;
-    private int nPvs;
     public Searcher() {
         transpositionTable = new TranspositionTable(1000000);
         orderer = new MoveOrderer();
@@ -70,7 +70,6 @@ public class Searcher {
             }
 //            System.out.println("Stopping");
             stop = true;
-            isSearching = false;
             return true;
         }
         return false;
@@ -85,6 +84,7 @@ public class Searcher {
         orderer.clearHistory();
         bestMoveIter = null;
         bestMove = null;
+        isNoMoves = false;
         bestEvaluation = Integer.MIN_VALUE + 1;
         bestEvaluationIter = Integer.MIN_VALUE + 1;
         stop = false;
@@ -95,10 +95,12 @@ public class Searcher {
         this.maxTimeMs = maxTimeMs;
         resetSearch();
         chessPosition = pos.clonePosition();
-        isSearching = true;
         runIterativeDeepening();
 
         if (bestMove == null) {
+            if(isNoMoves){
+                return null;
+            }
             logger.error("Not able to seach at all!!!");
             bestMove = moveGenerator.generateMoves(pos, false, promotionType)[0];
             return new SearchResult(bestMove, 0, -1, new PVEntry[]{new PVEntry(bestMove, 0, Movetype.NONE)});
@@ -113,11 +115,10 @@ public class Searcher {
 
 //            System.out.println("Search depth: " + searchDepth);
             if (stop || checkStopSearch()) {
-                if (bestEvaluationIter > bestEvaluation) {
+                if (bestEvaluationIter >= bestEvaluation) {
                     bestEvaluation = bestEvaluationIter;
                     bestMove = bestMoveIter;
                     pV = pVIter;
-
                 }
                 break;
             } else {
@@ -185,10 +186,14 @@ public class Searcher {
         orderer.sortMoves(bestMove, chessPosition.board, moves, transpositionTable.getMarkedMove1(), transpositionTable.getMarkedMove2(), plyFromRoot);
         boolean isChecked = AdvancedChessFunctions.isChecked(chessPosition.isWhiteTurn, chessPosition.board);
         if (moves[0] == null) {
+            if(plyFromRoot == 0){
+                isNoMoves = true;
+            }
 //            System.out.println("Game over!");
             if (isChecked) {
                 return EvaluationFunctions.baseMateScore - plyFromRoot;
             }
+
             return 0;
         }
 
@@ -203,10 +208,30 @@ public class Searcher {
             chessPosition.makeLocalPositionMove(move);
             // move extensions
             int extension = 0;
-            if (isChecked) {
-                extension = 1;
-            } else if (move.getBoardIndex() == ChessConstants.PAWNINDEX && (move.getNewX() == 6 || move.getNewY() == 1)) {
-                extension = 1;
+
+            final int maxExtensions = 8;
+            if(numExtensions < maxExtensions){
+                if (isChecked) {
+                    extension = 1;
+                } else if (move.getBoardIndex() == ChessConstants.PAWNINDEX){
+                    boolean isPasser = BitFunctions.isPassedPawn(move.getNewX(),move.getNewY(),move.isWhite(),chessPosition.board);
+                    if(move.isWhite() && move.getNewY() <= 1){
+                        if(isPasser){
+                            extension = 2;
+                        }
+                        else{
+                            extension = 1;
+                        }
+                    }
+                    else if(move.getNewY() >= 6){
+                        if(isPasser){
+                            extension = 2;
+                        }
+                        else{
+                            extension = 1;
+                        }
+                    }
+                }
             }
 
             // move reductions

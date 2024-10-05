@@ -108,9 +108,11 @@ public class EloEstimator {
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
             SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit);
-            ChessMove move = out.move();
-            if (!searcher.wasForcedStop()) {
-                return move;
+            if(out != null){
+                ChessMove move = out.move();
+                if (!searcher.wasForcedStop()) {
+                    return move;
+                }
             }
         } else {
             ChessMove move = multiSearcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit, 1).results()[0].move();

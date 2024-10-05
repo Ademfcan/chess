@@ -195,9 +195,9 @@ public class BackendChessPosition extends ChessPosition {
 
     public void undoLocalPositionMove() {
 
-        ChessMove move = super.getMoveThatCreatedThis();
         gameState.moveBackward(this);
         gameState.clearIndexes(gameState.getCurrentIndex());
+        ChessMove move = super.getMoveThatCreatedThis();
 
 
         // reverse everything

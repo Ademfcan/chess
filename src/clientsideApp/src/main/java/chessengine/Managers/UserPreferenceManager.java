@@ -26,6 +26,10 @@ public class UserPreferenceManager {
 
     }
 
+    public boolean isBackgroundMusic() {
+        return userPref.isBackgroundmusic();
+    }
+
     public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<String> evalOptions, ComboBox<String> nMovesOptions, ComboBox<String> computerOptions, boolean isMainScreen) {
         if (themeSelection != null) {
             themeSelection.getItems().addAll("Light", "Dark");
@@ -267,6 +271,5 @@ public class UserPreferenceManager {
     public void init() {
         loadChanges();
     }
-
 
 }

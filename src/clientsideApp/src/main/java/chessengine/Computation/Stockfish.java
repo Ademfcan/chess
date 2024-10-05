@@ -81,6 +81,7 @@ public class Stockfish {
 
     private void checkProcess() {
         if (!engineProcess.isAlive()) {
+            engineProcess.destroy();
             logger.debug("stockfish process closed, starting up a new one");
             restartProcess();
         }

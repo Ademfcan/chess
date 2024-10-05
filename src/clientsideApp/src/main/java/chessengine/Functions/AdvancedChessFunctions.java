@@ -1,8 +1,6 @@
 package chessengine.Functions;
 
 import chessengine.ChessRepresentations.*;
-import chessengine.Computation.Searcher;
-import chessengine.Enums.Movetype;
 import chessengine.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1151,19 +1149,16 @@ public class AdvancedChessFunctions {
 
     }
 
-    public static int getColumnGivenFile(int file, int columnHint, boolean isWhite, long board) {
-        int dir = isWhite ? 1 : -1;
-        int end = isWhite ? 8 : -1;
-        int reps = 0;
-        for (int column = columnHint + dir; column != end; column += dir) {
+    public static int getPawnColumnGivenFile(int file, int rowHint, boolean isWhite, long board) {
+        int backwardsDir = isWhite ? 1 : -1;
+        int end = rowHint + 3*backwardsDir;
+        for (int column = rowHint + backwardsDir; column != end; column += backwardsDir) {
             if (GeneralChessFunctions.checkIfContains(file, column, board)) {
                 return column;
             }
-            reps++;
-            if (reps > 9) {
-                break;
-            }
         }
+        System.out.println(String.format("X %d Y%d end %d",file,rowHint,end));
+        System.out.println(BitFunctions.getBitStr(board));
         logger.error("No column found for given file");
 
         return ChessConstants.EMPTYINDEX;

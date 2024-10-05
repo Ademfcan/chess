@@ -84,6 +84,8 @@ public class ChessGame {
         game.isWebGame = false;
         game.isWhiteOriented = isWhiteOriented;
         game.setGameStateToAbsIndex(game.curMoveIndex);
+        System.out.println(game.gameState.cloneState().toString());
+
         return game;
     }
 
@@ -237,7 +239,6 @@ public class ChessGame {
         game.isWebGame = false;
         game.isWhiteOriented = isWhiteOriented;
         game.setGameStateToAbsIndex(game.curMoveIndex);
-
         return game;
 
     }
@@ -327,6 +328,7 @@ public class ChessGame {
         game.isWebGame = isWebGame;
         game.isWhiteOriented = isWhiteOriented;
         game.setGameStateToAbsIndex(game.curMoveIndex);
+
         return game;
 
     }
@@ -1027,7 +1029,7 @@ public class ChessGame {
             y = 7 - y;
 
 
-            int OldY = AdvancedChessFunctions.getColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
+            int OldY = AdvancedChessFunctions.getPawnColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
             return new ChessMove(x, OldY, x, y, ChessConstants.EMPTYINDEX, pieceType, isWhiteMove, false, false, ChessConstants.EMPTYINDEX, false, false);
 
 
@@ -1194,8 +1196,17 @@ public class ChessGame {
                 s = s.substring(dotIndex + 1);
             }
             currentState = makeNewMovePGN(s, currentState, WhiteMove);
-            gameState.makeNewMoveAndCheckDraw(currentState);
+            boolean isDraw = gameState.makeNewMoveAndCheckDraw(currentState);
             positions.add(currentState);
+            if(isDraw){
+                System.out.println("Isdraw: " + gameState.getCurrentIndex());
+                gameState.setStaleMated();
+                break;
+            }
+            if(AdvancedChessFunctions.isCheckmated(currentState,gameState)){
+                gameState.setCheckMated(WhiteMove,ChessConstants.EMPTYINDEX);
+                break;
+            }
             WhiteMove = !WhiteMove;
         }
 

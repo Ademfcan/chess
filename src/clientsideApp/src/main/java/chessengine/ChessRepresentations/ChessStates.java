@@ -1,6 +1,7 @@
 package chessengine.ChessRepresentations;
 
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.BitFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.ZobristHasher;
 import chessengine.Misc.ChessConstants;
@@ -43,7 +44,7 @@ public class ChessStates {
         this.movesWhenResetted = new Stack<>();
     }
 
-    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, boolean isWhiteWin, boolean isStaleMated, HashMap<Long, Integer> posMap, Stack<Integer> movesWhenResetted, int movesSinceNoCheckOrNoPawn) {
+    private ChessStates(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated,int checkMateIndex, boolean isWhiteWin, boolean isStaleMated,int staleMateIndex, HashMap<Long, Integer> posMap, Stack<Integer> movesWhenResetted, int movesSinceNoCheckOrNoPawn) {
         this.hasher = new ZobristHasher();
         this.whiteCastleRight = whiteCastleRight;
         this.blackCastleRight = blackCastleRight;
@@ -61,6 +62,8 @@ public class ChessStates {
         this.isCheckMated = isCheckMated;
         this.isWhiteWin = isWhiteWin;
         this.isStaleMated = isStaleMated;
+        this.staleMateIndex = staleMateIndex;
+        this.checkMateIndex = checkMateIndex;
         this.posMap = posMap;
         this.movesWhenResetted = movesWhenResetted;
         this.movesSinceNoCheckOrNoPawn = movesSinceNoCheckOrNoPawn;
@@ -89,6 +92,7 @@ public class ChessStates {
                 ", blackShortRookIndx=" + blackShortRookIndx +
                 ", blackLongRookIndx=" + blackLongRookIndx +
                 ", currentIndex=" + currentIndex +
+                ", stack for movessincecheckornoPawn=" + movesWhenResetted.toString() +
                 '}';
     }
 
@@ -149,11 +153,7 @@ public class ChessStates {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-                if (movesSinceNoCheckOrNoPawn > 99) {
-//                    staleMateIndex = currentIndex;
-//                    isStaleMated = true;
-//                    ChessConstants.mainLogger.debug("50 move rule triggered");
-                }
+//
                 return movesSinceNoCheckOrNoPawn > 99;
 
             } else {
@@ -215,7 +215,7 @@ public class ChessStates {
                 whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight,
                 blackShortRookRight, blackLongRookRight, blackCastleIndx, whiteCastleIndx,
                 whiteShortRookIndx, whiteLongRookIndx, blackShortRookIndx, blackLongRookIndx,
-                currentIndex, isCheckMated, isWhiteWin, isStaleMated, clonedPosMap, clonedMovesWhenResetted, movesSinceNoCheckOrNoPawn);
+                currentIndex, isCheckMated,checkMateIndex, isWhiteWin, isStaleMated,staleMateIndex, clonedPosMap, clonedMovesWhenResetted, movesSinceNoCheckOrNoPawn);
     }
 
     private Stack<Integer> cloneStack(Stack<Integer> oldStack) {
@@ -290,7 +290,6 @@ public class ChessStates {
 
     public void moveBackward(ChessPosition oldPositionToRemove) {
         // remove the position from posmap
-//        int key = oldPositionToRemove.board.hashCode();
         long key = hasher.computeHash(oldPositionToRemove.board);
 
         int count = posMap.getOrDefault(key, ChessConstants.EMPTYINDEX);
@@ -306,7 +305,7 @@ public class ChessStates {
         }
 
         // now handle the 50 move rule
-        if (!oldPositionToRemove.equals(ChessConstants.startBoardState)) {
+        if (!oldPositionToRemove.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
             ChessMove moveThatCreated = oldPositionToRemove.getMoveThatCreatedThis();
             if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(oldPositionToRemove.board)) {
                 // moves since check or pawn move was not reset so we just decrement
@@ -314,8 +313,12 @@ public class ChessStates {
             } else {
                 // we need to recover the movesSinceNoCheckOrNoPawn value before reset
                 if (movesWhenResetted.isEmpty()) {
+                    ChessConstants.mainLogger.error("Is checked: " + AdvancedChessFunctions.isAnyChecked(oldPositionToRemove.board));
+                    ChessConstants.mainLogger.error("Index: " + movesSinceNoCheckOrNoPawn);
+                    ChessConstants.mainLogger.error("AttackMask\n" + BitFunctions.getBitStr(oldPositionToRemove.board.getWhiteAttackTableCombined() | oldPositionToRemove.board.getBlackAttackTableCombined()));
                     ChessConstants.mainLogger.error("moveswhen ressetted does not have needed elements, are you moving backward before forward");
                     ChessConstants.mainLogger.error(oldPositionToRemove.getMoveThatCreatedThis().toString());
+                    ChessConstants.mainLogger.error(this.toString());
                     ChessConstants.mainLogger.error(GeneralChessFunctions.getBoardDetailedString(oldPositionToRemove.board));
                 } else {
                     movesSinceNoCheckOrNoPawn = movesWhenResetted.pop();
@@ -339,7 +342,7 @@ public class ChessStates {
         posMap.put(hash, posCount + 1);
 
         // next check 50 move rule
-        if (!newPositionToAdd.equals(ChessConstants.startBoardState)) {
+        if (!newPositionToAdd.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
             ChessMove moveThatCreated = newPositionToAdd.getMoveThatCreatedThis();
             // check that the move is not a pawn move or a check
             if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(newPositionToAdd.board)) {

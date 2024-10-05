@@ -7,12 +7,12 @@ public class SoundPlayer {
     private final double defaultVolume = .5d;
     private final double defaultBGVolume = .3d;
 
-    private boolean isPaused;
+    private boolean isSystemPaused;
 
     private boolean isEffectsMuted;
 
 
-    private boolean userPrefBgPaused;
+    private boolean userPrefBgPaused = true;
 
     private int songCount = 0;
 
@@ -26,7 +26,6 @@ public class SoundPlayer {
         this.currentVolumeBackground = defaultBGVolume;
         this.currentVolumeEffects = defaultVolume;
         this.currentSong = getNextSong();
-        this.isPaused = true;
 
 
     }
@@ -66,7 +65,7 @@ public class SoundPlayer {
     }
 
     private void checkStartNextSong() {
-        if (!isPaused) {
+        if (!isSystemPaused) {
             currentSong.clip.play();
         } else {
             ChessConstants.mainLogger.debug("Not starting song paused");
@@ -91,31 +90,47 @@ public class SoundPlayer {
     }
 
     public void pauseSong(boolean isCauseOfUserPref) {
-        if (isCauseOfUserPref) {
-            userPrefBgPaused = true;
-        }
-        if (!isPaused) {
+        if (!isSystemPaused && !userPrefBgPaused) {
             currentSong.clip.pause();
-            isPaused = true;
+
         } else {
             ChessConstants.mainLogger.debug("Song already paused");
         }
+
+        if (isCauseOfUserPref) {
+            userPrefBgPaused = true;
+        }
+        else{
+            isSystemPaused = true;
+        }
+
     }
 
     public void playSong(boolean isCauseOfUserPref) {
-        if (isCauseOfUserPref) {
-            userPrefBgPaused = false;
+        if (!isSystemPaused || !isCauseOfUserPref) {
+            if(isSystemPaused || userPrefBgPaused){
+                currentSong.clip.play();
+                if(isCauseOfUserPref){
+                    userPrefBgPaused = false;
+                }
+                else  {
+                    isSystemPaused = false;
+                }
+            }
+            else {
+                ChessConstants.mainLogger.debug("Song already playing");
+            }
+
         }
-        if (isPaused) {
-            currentSong.clip.play();
-            isPaused = false;
-        } else {
-            ChessConstants.mainLogger.debug("Song already playing");
-        }
+
+
     }
 
-    public boolean getPaused() {
-        return isPaused;
+    public boolean isPaused(){
+        return isSystemPaused || userPrefBgPaused;
+    }
+    public boolean getSystemPaused() {
+        return isSystemPaused;
     }
 
     public boolean isUserPrefBgPaused() {

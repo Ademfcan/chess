@@ -3,6 +3,7 @@ package chessengine.Computation;
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Enums.Movetype;
+import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Records.CachedPv;
 import chessengine.Records.MultiResult;
 import chessengine.Records.PVEntry;
@@ -44,7 +45,7 @@ public class MultiSearcher {
 
     public MultiResult search(BackendChessPosition position, int waitTimeMs, int nPvs) {
         List<BackendChessPosition> chessPositions = position.getAllChildPositions(position.isWhiteTurn, position.gameState);
-        positionsToEvaluate = new LinkedBlockingQueue<>(chessPositions);
+        positionsToEvaluate = new LinkedBlockingQueue<>(chessPositions.stream().filter(p -> !p.isDraw() && !AdvancedChessFunctions.isAnyNotMovePossible(!p.getMoveThatCreatedThis().isWhite(),p,p.gameState)).toList());
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
 //        System.out.println("Time per batch: " + timePerBatch);
@@ -57,14 +58,16 @@ public class MultiSearcher {
                             BackendChessPosition positionToEvaluate = positionsToEvaluate.poll();
                             if (positionToEvaluate != null) {
                                 SearchResult result = searcher.search(positionToEvaluate, timePerBatch);
-                                PVEntry[] pvBuffer = result.pV();
-                                // reshift everything by 1
-                                int end = getNullIndex(pvBuffer);
-                                PVEntry[] trimmedBuffer = new PVEntry[end + 2];
-                                Movetype movetype = Movetype.getMoveType(positionToEvaluate);
-                                System.arraycopy(pvBuffer, 0, trimmedBuffer, 1, end + 1);
-                                trimmedBuffer[0] = new PVEntry(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), movetype);
-                                outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), result.depth() + 1, trimmedBuffer));
+                                if(result != null){
+                                    PVEntry[] pvBuffer = result.pV();
+                                    // reshift everything by 1
+                                    int end = getRightBeforeNullIndex(pvBuffer);
+                                    PVEntry[] trimmedBuffer = new PVEntry[end + 2];
+                                    Movetype movetype = Movetype.getMoveType(positionToEvaluate);
+                                    System.arraycopy(pvBuffer, 0, trimmedBuffer, 1, end + 1);
+                                    trimmedBuffer[0] = new PVEntry(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), movetype);
+                                    outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), result.depth() + 1, trimmedBuffer));
+                                }
                             }
                         }
 
@@ -87,7 +90,7 @@ public class MultiSearcher {
 
     }
 
-    protected int getNullIndex(PVEntry[] pv) {
+    protected int getRightBeforeNullIndex(PVEntry[] pv) {
         int index = 0;
         while (index < pv.length) {
             if (pv[index] == null) {

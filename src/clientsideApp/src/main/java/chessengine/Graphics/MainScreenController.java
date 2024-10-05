@@ -147,10 +147,10 @@ public class MainScreenController implements Initializable {
     Label player2SimLabel;
 
     @FXML
-    ComboBox<String> player1SimSelector;
+    ComboBox<Integer> player1SimSelector;
 
     @FXML
-    ComboBox<String> player2SimSelector;
+    ComboBox<Integer> player2SimSelector;
 
     @FXML
     HBox movesPlayedBox;
@@ -260,6 +260,8 @@ public class MainScreenController implements Initializable {
     @FXML
     Button playPauseButton;
     @FXML
+    Slider timeSlider;
+    @FXML
     Label simulationScore;
 
     @FXML
@@ -336,7 +338,7 @@ public class MainScreenController implements Initializable {
 
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
-                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton, player1TurnIndicator,
+                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
                 player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
@@ -878,6 +880,7 @@ public class MainScreenController implements Initializable {
         p2Label.setText(blackPlayerName + " " + blackElo);
 
     }
+
 
     // toggle the pawn promotion screen
     public void showPromo(int promoX, boolean isWhite, boolean isWhiteOriented) {

@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -57,8 +58,8 @@ public class ChessActionHandler {
 
     private final Label p1moveClk;
     private final Label p2moveClk;
-    private final ComboBox<String> player1SimSelector;
-    private final ComboBox<String> player2SimSelector;
+    private final ComboBox<Integer> player1SimSelector;
+    private final ComboBox<Integer> player2SimSelector;
 
     private final Button playPauseButton;
     // [0] = x ,[1] =  y , [2] = (1 = white, -1 = black), [3] (only used for sandbox mode) = (1 = regular piece selected,-1 = additional piece selected), [4] = pieceselectedIndex;
@@ -66,6 +67,7 @@ public class ChessActionHandler {
     private final NumberFormat formatter = new DecimalFormat("#0.00");
     private final TextArea currentGamePgn;
     private final Logger logger = LogManager.getLogger(this.toString());
+    public final Slider timeSlider;
     MoveGenerator moveGenerator = new MoveGenerator();
     private StackPane lastSelected = null;
     private int numLabels = 0;
@@ -102,7 +104,7 @@ public class ChessActionHandler {
     private boolean isEatingPromo;
     private int numRedos = 0;
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Label lineLabel, Button playPauseButton, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<String> player1SimSelector, ComboBox<String> player2SimSelector, TextArea currentGamePgn) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -113,6 +115,7 @@ public class ChessActionHandler {
         this.lineLabel = lineLabel;
         this.movesPlayedBox = movesPlayedBox;
         this.playPauseButton = playPauseButton;
+        this.timeSlider = timeSlider;
         this.p1Indicator = p1Indicator;
         this.p2Indicator = p2Indicator;
         this.p1moveClk = p1moveClk;
@@ -154,25 +157,24 @@ public class ChessActionHandler {
             myControl.asyncController.toggleSimPlay();
         });
 
-        player1SimSelector.getItems().addAll("Stockfish", "My Computer");
-        player2SimSelector.getItems().addAll("Stockfish", "My Computer");
+        timeSlider.setMin(1);
+        timeSlider.setBlockIncrement(5);
+        timeSlider.setMax(50);
+        timeSlider.setValue(10);
+
+
+
+        player1SimSelector.getItems().addAll(Arrays.stream(ComputerDifficulty.values()).map(d -> d.eloRange).toList());
+        player2SimSelector.getItems().addAll(Arrays.stream(ComputerDifficulty.values()).map(d -> d.eloRange).toList());
         player1SimSelector.getSelectionModel().select(1);
         player2SimSelector.getSelectionModel().select(0);
 
         player1SimSelector.setOnAction(e -> {
-            if (player1SimSelector.getValue().equals("Stockfish")) {
-                myControl.asyncController.simTask.setPlayer1SimulationDifficulty(ComputerDifficulty.STOCKFISHMax);
-            } else {
-                myControl.asyncController.simTask.setPlayer1SimulationDifficulty(ComputerDifficulty.MaxDifficulty);
-            }
+            myControl.asyncController.simTask.setPlayer1SimulationDifficulty(ComputerDifficulty.getDifficultyOffOfElo(player1SimSelector.getValue(),false));
         });
 
         player2SimSelector.setOnAction(e -> {
-            if (player2SimSelector.getValue().equals("Stockfish")) {
-                myControl.asyncController.simTask.setPlayer2SimulationDifficulty(ComputerDifficulty.STOCKFISHMax);
-            } else {
-                myControl.asyncController.simTask.setPlayer2SimulationDifficulty(ComputerDifficulty.MaxDifficulty);
-            }
+            myControl.asyncController.simTask.setPlayer2SimulationDifficulty(ComputerDifficulty.getDifficultyOffOfElo(player2SimSelector.getValue(),false));
         });
     }
 
@@ -398,6 +400,7 @@ public class ChessActionHandler {
         String gamePgn = myControl.gameHandler.currentGame.gameToPgn(myControl.gameHandler.currentGame.curMoveIndex);
         currentGamePgn.setText(gamePgn);
 
+        bestmovesBox.getChildren().clear();
         myControl.chessBoardGUIHandler.clearArrows();
         myControl.checkCacheNewIndex();
         myControl.getCentralEvaluation();
@@ -752,10 +755,10 @@ public class ChessActionHandler {
     }
 
     public void handleSquareClick(int clickX, int clickY, boolean isHitPiece, boolean isWhiteHitPiece, MainScreenState currentState) {
+        System.out.println(myControl.gameHandler.currentGame.gameState.toString());
 //        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.currentPosition.board));
 //        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
 //        Arrays.stream(myControl.gameHandler.currentGame.currentPosition.board.getBlackAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
-        System.out.println(myControl.gameHandler.currentGame.gameState.toString());
         int backendY = myControl.gameHandler.currentGame.isWhiteOriented() ? clickY : 7 - clickY;
         int backendX = myControl.gameHandler.currentGame.isWhiteOriented() ? clickX : 7 - clickX;
         if (prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY) {

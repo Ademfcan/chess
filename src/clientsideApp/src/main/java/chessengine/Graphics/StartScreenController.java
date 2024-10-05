@@ -357,7 +357,7 @@ public class StartScreenController implements Initializable {
 
 
         backgroundAudioButton.setOnMouseClicked(e -> {
-            boolean isCurPaused = App.soundPlayer.getPaused();
+            boolean isCurPaused = !App.userPreferenceManager.isBackgroundMusic();
             if (isCurPaused) {
                 // unpause so change to playing icon
                 backgroundAudioButton.setText("🔉");
@@ -702,7 +702,7 @@ public class StartScreenController implements Initializable {
         ImageView trashIconView = new ImageView(trashIcon);
         trashIconView.fitHeightProperty().bind(gameContainer.widthProperty().divide(10));
         trashIconView.fitWidthProperty().bind(gameContainer.widthProperty().divide(10));
-//        deleteButton.setGraphic(trashIconView);
+        deleteButton.setGraphic(trashIconView);
 
 
         Button openGame = new Button();
@@ -716,7 +716,7 @@ public class StartScreenController implements Initializable {
         ImageView playerIconView = new ImageView(playerIcon);
         playerIconView.fitHeightProperty().bind(gameContainer.widthProperty().divide(10));
         playerIconView.fitWidthProperty().bind(gameContainer.widthProperty().divide(10));
-//        openGame.setGraphic(playerIconView);
+        openGame.setGraphic(playerIconView);
 
         gameContainer.getChildren().add(gameInfo);
         gameContainer.getChildren().add(openGame);

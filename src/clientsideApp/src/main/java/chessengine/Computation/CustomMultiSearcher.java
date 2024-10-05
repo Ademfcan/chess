@@ -2,6 +2,7 @@ package chessengine.Computation;
 
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.Enums.Movetype;
+import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Misc.ChessConstants;
 import chessengine.Records.MultiResult;
 import chessengine.Records.PVEntry;
@@ -30,7 +31,7 @@ public class CustomMultiSearcher extends MultiSearcher {
                 filteredPositions = filteredPositions.subList(randomOffset, randomCutoff + randomOffset);
             }
         }
-        positionsToEvaluate = new LinkedBlockingQueue<>(filteredPositions);
+        positionsToEvaluate = new LinkedBlockingQueue<>(filteredPositions.stream().filter(p -> !p.isDraw() && !AdvancedChessFunctions.isAnyNotMovePossible(!p.getMoveThatCreatedThis().isWhite(),p,p.gameState)).toList());
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
 //        System.out.println("Time per batch: " + timePerBatch);
@@ -43,22 +44,25 @@ public class CustomMultiSearcher extends MultiSearcher {
                             BackendChessPosition positionToEvaluate = positionsToEvaluate.poll();
                             if (positionToEvaluate != null) {
                                 SearchResult result = searcher.search(positionToEvaluate, timePerBatch);
-                                PVEntry[] pvBuffer = result.pV();
-                                // reshift everything by 1
-                                int end = getNullIndex(pvBuffer);
-                                PVEntry[] trimmedBuffer = new PVEntry[end + 2];
-                                System.arraycopy(pvBuffer, 0, trimmedBuffer, 1, end + 1);
-                                Movetype movetype = Movetype.getMoveType(positionToEvaluate);
-                                trimmedBuffer[0] = new PVEntry(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), movetype);
-                                int advtg = -result.evaluation();
-                                // favorite moves
-                                if (difficulty.favoritePieceIndex != ChessConstants.EMPTYINDEX) {
-                                    if (positionToEvaluate.getMoveThatCreatedThis().getBoardIndex() == difficulty.favoritePieceIndex) {
-                                        advtg += (int) (15 * difficulty.favoritePieceWeight);
+                                if(result != null){
+                                    PVEntry[] pvBuffer = result.pV();
+                                    // reshift everything by 1
+                                    int end = getRightBeforeNullIndex(pvBuffer);
+                                    PVEntry[] trimmedBuffer = new PVEntry[end + 2];
+                                    System.arraycopy(pvBuffer, 0, trimmedBuffer, 1, end + 1);
+                                    Movetype movetype = Movetype.getMoveType(positionToEvaluate);
+                                    trimmedBuffer[0] = new PVEntry(positionToEvaluate.getMoveThatCreatedThis(), -result.evaluation(), movetype);
+                                    int advtg = -result.evaluation();
+                                    // favorite moves
+                                    if (difficulty.favoritePieceIndex != ChessConstants.EMPTYINDEX) {
+                                        if (positionToEvaluate.getMoveThatCreatedThis().getBoardIndex() == difficulty.favoritePieceIndex) {
+                                            advtg += (int) (15 * difficulty.favoritePieceWeight);
+                                        }
                                     }
+
+                                    outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), advtg, result.depth() + 1, trimmedBuffer));
                                 }
 
-                                outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), advtg, result.depth() + 1, trimmedBuffer));
                             }
                         }
 
