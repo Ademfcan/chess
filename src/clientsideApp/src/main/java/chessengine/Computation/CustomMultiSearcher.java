@@ -3,6 +3,7 @@ package chessengine.Computation;
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.Enums.Movetype;
 import chessengine.Functions.AdvancedChessFunctions;
+import chessengine.Functions.EvaluationFunctions;
 import chessengine.Misc.ChessConstants;
 import chessengine.Records.MultiResult;
 import chessengine.Records.PVEntry;
@@ -31,7 +32,7 @@ public class CustomMultiSearcher extends MultiSearcher {
                 filteredPositions = filteredPositions.subList(randomOffset, randomCutoff + randomOffset);
             }
         }
-        positionsToEvaluate = new LinkedBlockingQueue<>(filteredPositions.stream().filter(p -> !p.isDraw() && !AdvancedChessFunctions.isAnyNotMovePossible(!p.getMoveThatCreatedThis().isWhite(),p,p.gameState)).toList());
+        positionsToEvaluate = new LinkedBlockingQueue<>(filteredPositions);
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
 //        System.out.println("Time per batch: " + timePerBatch);
@@ -43,6 +44,18 @@ public class CustomMultiSearcher extends MultiSearcher {
                             Thread.sleep(10);
                             BackendChessPosition positionToEvaluate = positionsToEvaluate.poll();
                             if (positionToEvaluate != null) {
+                                if(positionToEvaluate.isDraw() || AdvancedChessFunctions.isAnyNotMovePossible(positionToEvaluate.isWhiteTurn,positionToEvaluate,positionToEvaluate.gameState)){
+                                    int evaluation = 0;
+                                    if(AdvancedChessFunctions.isChecked(positionToEvaluate.isWhiteTurn,positionToEvaluate.board)){
+                                        evaluation = -EvaluationFunctions.baseMateScore;
+                                    }
+
+                                    outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), evaluation, 1, new PVEntry[]{}));
+
+                                    continue;
+
+
+                                }
                                 SearchResult result = searcher.search(positionToEvaluate, timePerBatch);
                                 if(result != null){
                                     PVEntry[] pvBuffer = result.pV();

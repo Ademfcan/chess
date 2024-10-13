@@ -18,7 +18,7 @@ import java.net.URI;
 public class WebSocketClient {
     private final Logger logger = LogManager.getLogger(this.getClass());
     //    private final URI serverUri = URI.create("wss://ademchessserver.azurewebsites.net/app/home");
-    private final URI serverUri = URI.create("ws://localhost:8080/app/home");
+    private final URI serverUri = URI.create("ws://20.157.72.110:8081/app/home");
     private final ObjectMapper objectMapper;
     private final FrontendClient client;
 

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess WebSocket Client</title>
+</head>
+<body>
+<h1>Chess WebSocket Client</h1>
+<input type="text" id="messageInput" placeholder="Type your message here">
+<button onclick="sendMessage()">Send</button>
+<div id="messages"></div>
+
+<script>
+    const socket = new WebSocket("ws://20.157.72.110:8081/app/home");
+
+    socket.onopen = function(event) {
+        console.log("Connection opened!");
+    };
+
+    socket.onmessage = function(event) {
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML += `<p>${event.data}</p>`;
+    };
+
+    socket.onclose = function(event) {
+        console.log("Connection closed!");
+    };
+
+    function sendMessage() {
+        const input = document.getElementById("messageInput");
+        socket.send(input.value);
+        input.value = ""; // Clear input after sending
+    }
+</script>
+</body>
+</html>
