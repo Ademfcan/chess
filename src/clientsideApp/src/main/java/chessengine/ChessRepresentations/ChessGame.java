@@ -820,10 +820,7 @@ public class ChessGame {
 
     // only used for web move
     public void makePgnMove(String pgn, boolean isWebMove) {
-        if (curMoveIndex != maxIndex) {
-            moveToEndOfGame(isWebMove);
-        }
-
+        moveToEndOfGame(isWebMove);
         ChessMove move = pgnToMove(pgn, getPos(curMoveIndex), isWhiteTurn);
         ChessPosition newPos = new ChessPosition(getPos(curMoveIndex), gameState, move);
         MakeMove(newPos, move, isWebMove, false);
@@ -831,6 +828,7 @@ public class ChessGame {
 
     // one called for all local moves
     public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove) {
+        System.out.println(move.toString());
         if (!isComputerMove) {
             // clear any entries, you are branching off
             centralControl.clearForNewBranch(curMoveIndex + 1);

@@ -708,14 +708,14 @@ public class ChessActionHandler {
                     boolean[] boardInfo = GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.currentGame.currentPosition.board, "boardRelease");
                     boolean isHit = boardInfo[0];
                     boolean isWhitePieceDroppedOn = boardInfo[1];
-                    int[] moveInfo = checkIfMovePossible(prevPieceMoves, oldX, oldY, newX, newY, oldDragPieceIndex, oldIsWhite);
+                    boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !oldIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
+                    int[] moveInfo = checkIfMovePossible(prevPieceMoves, oldX, oldY, newX, newY, oldDragPieceIndex, oldIsWhite,isEating);
                     boolean isMovePossible = moveInfo[0] == 1;
                     boolean isCastle = moveInfo[1] > 0;
                     boolean isEnPassant = moveInfo[1] < 0;
                     if ((oldIsWhite != isWhitePieceDroppedOn || !isHit) && isMovePossible) {
                         // enemy piece or empty square, and in possible moves
 
-                        boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !oldIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
                         placePiece(selected, newX, newY);
                         int promoSquare = oldIsWhite ? 0 : 7;
                         if (oldDragPieceIndex == ChessConstants.PAWNINDEX && newY == promoSquare) {
@@ -792,15 +792,15 @@ public class ChessActionHandler {
                         int pieceSelectedIndex = selectedPeiceInfo[4];
                         int oldX = selectedPeiceInfo[0];
                         int oldY = selectedPeiceInfo[1];
-                        int[] moveInfo = checkIfMovePossible(prevPieceMoves, oldX, oldY, clickX, clickY, pieceSelectedIndex, pieceSelectedIsWhite);
+                        int backendOldY = myControl.gameHandler.currentGame.isWhiteOriented() ? oldY : 7 - oldY;
+                        int backendOldX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7 - oldX;
+                        boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !pieceSelectedIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
+                        int[] moveInfo = checkIfMovePossible(prevPieceMoves, oldX, oldY, clickX, clickY, pieceSelectedIndex, pieceSelectedIsWhite,isEating);
                         if (moveInfo[0] == 1) {
                             // move is within prev moves
 
-                            int backendOldY = myControl.gameHandler.currentGame.isWhiteOriented() ? oldY : 7 - oldY;
-                            int backendOldX = myControl.gameHandler.currentGame.isWhiteOriented() ? oldX : 7 - oldX;
                             boolean isCastleMove = moveInfo[1] > 0;
                             boolean isEnPassant = moveInfo[1] < 0;
-                            boolean isEating = GeneralChessFunctions.checkIfContains(backendX, backendY, !pieceSelectedIsWhite, myControl.gameHandler.currentGame.currentPosition.board);
                             handleMakingMove(backendOldX, backendOldY, backendX, backendY, isEating, pieceSelectedIsWhite, isCastleMove, isEnPassant, false, false, ChessConstants.EMPTYINDEX, currentState, false);
                         } else {
                             // cannot make move
@@ -964,12 +964,11 @@ public class ChessActionHandler {
         }
     }
 
-    private int[] checkIfMovePossible(List<XYcoord> moves, int oldX, int oldY, int newX, int newY, int peiceType, boolean isWhite) {
+    private int[] checkIfMovePossible(List<XYcoord> moves, int oldX, int oldY, int newX, int newY, int peiceType, boolean isWhite,boolean isEating) {
         // todo: change this to bitboard logic
         if (moves != null) {
             for (XYcoord s : moves) {
                 boolean isCastle = peiceType == ChessConstants.KINGINDEX && Math.abs(oldX - s.x) > 1;
-                boolean isEating = GeneralChessFunctions.checkIfContains(s.x, s.y, !isWhite, myControl.gameHandler.currentGame.currentPosition.board);
                 boolean isEnPassant = peiceType == ChessConstants.PAWNINDEX && !isEating && oldX != s.x;
                 if ((s.x == newX && s.y == newY) && isCastle) {
                     return new int[]{1, 1};

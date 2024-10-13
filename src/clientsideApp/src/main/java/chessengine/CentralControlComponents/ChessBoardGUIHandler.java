@@ -356,6 +356,9 @@ public class ChessBoardGUIHandler {
 
     public void addToEatenPieces(int pieceIndex, boolean isWhite, boolean isWhiteOritented) {
         boolean isTopSide = isWhite == isWhiteOritented;
+        if(pieceIndex == ChessConstants.EMPTYINDEX){
+            logger.error("Invalid piece index provided!");
+        }
         ImageView smallPeice = createNewPiece(pieceIndex, isWhite, true);
         smallPeice.layoutYProperty().bind(eatenBlacksContainer.heightProperty().divide(2).subtract(smallPeice.fitWidthProperty().divide(2))); // all will have same height
         if (isTopSide) {
