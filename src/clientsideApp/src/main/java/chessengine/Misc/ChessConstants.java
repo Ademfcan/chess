@@ -12,6 +12,7 @@ import javafx.scene.paint.Paint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class ChessConstants {
@@ -33,9 +34,8 @@ public class ChessConstants {
     public static final int WHITECHECKMATEVALUE = 1000000;
     public static final int BLACKCHECKMATEVALUE = -1000000;
     public static final String NOEMAIL = "no-email";
-    public static final String NOPASS = "no-password";
     public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false, false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
-    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0, "anonymous", NOEMAIL, NOPASS, ProfilePicture.DEFAULT, new CampaignProgress(123)));
+    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0, "anonymous", NOEMAIL,  ProfilePicture.DEFAULT, new CampaignProgress(123),new ArrayList<>()));
     public static final double borderRadFactor = .0025;
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;

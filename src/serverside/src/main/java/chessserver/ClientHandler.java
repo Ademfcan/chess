@@ -1,28 +1,73 @@
 package chessserver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.sql.DataSource;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 public class ClientHandler {
+    private static final Logger logger = LogManager.getLogger("Client_Handler");
     private static final Map<Session, BackendClient> clientHashMap = Collections.synchronizedMap(new HashMap<>());
     private static final WaitingPool pool = new WaitingPool();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
 
-    public static void handleMessage(String message, Session session) throws IOException {
+    public static void handleMessage(String message, Session session, DataSource dataSource) throws IOException {
         try {
             InputMessage input = objectMapper.readValue(message, InputMessage.class);
             if (input.getIntent().equals(INTENT.CLOSESESS)) {
                 System.out.println("Intentionaly closing!");
                 session.close();
-            } else {
+            }
+            else if(input.getIntent().isDbRelated){
+                try (Connection conn = dataSource.getConnection()) {
+                    switch (input.getIntent()){
+                        case GETUSER -> {
+                            String[] info = input.getExtraInformation().split(",");
+                            String query = "SELECT * FROM users WHERE Username = ? AND Passwordhash = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1, info[0]); // Set username
+                            stmt.setString(2, info[1]); // Set password hash
+                            ResultSet rs = stmt.executeQuery();
+
+                            if (rs.next()) {
+                                sendMessage(session,ServerResponseType.DATARESPONSE,rs.getString("Dataentry"));
+                            }
+                            sendMessage(session,ServerResponseType.DATARESPONSE,"");
+                        }
+
+                        case PUTUSER -> {
+                            String[] info = input.getExtraInformation().split(",");
+                            String insertQuery = "INSERT INTO users (username, passwordhash, Dataentry) VALUES (?, ?, ?)";
+                            PreparedStatement pstmt = conn.prepareStatement(insertQuery);
+                            pstmt.setString(1, info[0]); // Set the username
+                            pstmt.setString(2, info[1]); // Set the password hash
+                            pstmt.setString(3, info[2]); // Set the email
+
+                            int rowsInserted = pstmt.executeUpdate(); // Execute the insert
+                            if (rowsInserted > 0) {
+                                logger.debug("A new user was inserted successfully!");
+                            }
+
+                        }
+                    }
+//
+                }
+                catch (SQLException sqlException) {
+                    sendMessage(session, ServerResponseType.SQLERROR, sqlException.getMessage());
+                }
+//
+            }
+            else {
                 BackendClient c = getClient(input.getClient(), session);
                 switch (input.getIntent()) {
                     case MAKEMOVE -> {

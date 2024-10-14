@@ -105,6 +105,9 @@ public class WebSocketClient {
                         App.userManager.updateUserElo(change);
                     });
                 }
+                case DATARESPONSE -> {
+                    System.out.println(out.getExtraInformation().isEmpty());
+                }
             }
         } catch (Exception e) {
             logger.error("Error on websocket recieve message", e);

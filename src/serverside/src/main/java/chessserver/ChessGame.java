@@ -84,6 +84,8 @@ public class ChessGame {
     }
 
     private int getKFactor(int minElo) {
+        // todo include game history
+        // eg higher k factor when less game history
         if (minElo >= 2400) {
             return 10;
         }

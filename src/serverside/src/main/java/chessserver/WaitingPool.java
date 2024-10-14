@@ -38,6 +38,7 @@ public class WaitingPool {
         } else {
             new ChessGame(newClient, bestMatch, true, wantedGametype.getLength());
             waitingClients.get(wantedGametype).remove(bestMatch);
+            waitingClients.get(wantedGametype).remove(newClient);
             return true;
         }
 

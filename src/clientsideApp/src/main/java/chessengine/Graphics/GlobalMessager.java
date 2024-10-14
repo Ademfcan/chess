@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
@@ -65,6 +66,12 @@ public class GlobalMessager {
         });
 
         isInit = true;
+    }
+
+    public void addLoadingCircle(boolean isStart){
+        ProgressIndicator indicator = new ProgressIndicator();
+        Pane ref = isStart ? startRef : mainRef;
+        ref.getChildren().add(indicator);
     }
 
     public boolean isInit() {

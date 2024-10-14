@@ -1,26 +1,36 @@
 package chessserver;
 
+import java.util.List;
+
 public class UserInfo {
     int userelo;
     CampaignProgress userCampaignProgress;
     String userName;
     String userEmail;
-    String passwordHash;
     ProfilePicture profilePicture;
-    private String profilePictureUrl;
+    String profilePictureUrl;
+    List<FriendInfo> friendUserNames;
 
-    public UserInfo(int userelo, String userName, String userEmail, String password, ProfilePicture profilePicture, CampaignProgress userCampaignProgress) {
+    public UserInfo(int userelo, String userName, String userEmail, ProfilePicture profilePicture, CampaignProgress userCampaignProgress, List<FriendInfo> friendUserNames) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
-        this.passwordHash = password;
         this.profilePicture = profilePicture;
         this.profilePictureUrl = profilePicture.urlString;
         this.userCampaignProgress = userCampaignProgress;
+        this.friendUserNames = friendUserNames;
     }
 
     public UserInfo() {
         // empty for objectmapper serialization
+    }
+
+    public List<FriendInfo> getFriendUserNames() {
+        return friendUserNames;
+    }
+
+    public void setFriendUserNames(List<FriendInfo> friendUserNames) {
+        this.friendUserNames = friendUserNames;
     }
 
     public CampaignProgress getUserCampaignProgress() {
@@ -59,13 +69,7 @@ public class UserInfo {
         this.userEmail = userEmail;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
 
     public ProfilePicture getProfilePicture() {
         return profilePicture;
