@@ -20,7 +20,7 @@ public class WebSocketClient {
     //    private final URI serverUri = URI.create("wss://ademchessserver.azurewebsites.net/app/home");
     private final URI serverUri = URI.create("ws://20.157.72.110:8081/app/home");
     private final ObjectMapper objectMapper;
-    private final FrontendClient client;
+    private FrontendClient client;
 
     private ChessGame linkedGame;
 
@@ -34,6 +34,21 @@ public class WebSocketClient {
         clientManager.connectToServer(this, serverUri);
     }
 
+    public void updateClient(FrontendClient newClient){
+        this.client = newClient;
+        synchronizeWithServer();
+    }
+
+    public void synchronizeWithServer(){
+        if(session == null){
+            logger.debug("Not connected to server!");
+            return;
+        }
+
+
+
+
+    }
     public void setLinkedGame(ChessGame chessGame) {
         this.linkedGame = chessGame;
     }
@@ -110,7 +125,7 @@ public class WebSocketClient {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error on websocket recieve message", e);
+            logger.error("Error on websocket receive message", e);
         }
     }
 

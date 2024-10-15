@@ -5,7 +5,7 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
 import chessengine.Managers.CampaignManager;
-import chessengine.Managers.PersistentSaveManager;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessserver.Gametype;
 import chessserver.INTENT;

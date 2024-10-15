@@ -1,4 +1,4 @@
-package chessengine.Managers;
+package chessengine.Crypto;
 
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Misc.ChessConstants;
@@ -7,10 +7,12 @@ import chessserver.UserInfo;
 import chessserver.UserPreferences;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 
 public class PersistentSaveManager {
     private final static String appdataPathGameSaves = System.getenv("APPDATA") + "/Chess/save.txt";

@@ -37,8 +37,12 @@ java {
 }
 
 run {
-    jvmArgs '-ea', '-Dprism.allowhidpi=false', '-Dsun.java2d.dpiaware=false'
+    jvmArgs '-ea',
+            '-Dprism.allowhidpi=false',
+            '-Dsun.java2d.dpiaware=false',
+            '-Djavafx.preloader=chessengine.SplashScreen'
 }
+
 
 application {
     mainClass = 'chessengine.Main'
@@ -54,7 +58,7 @@ jar {
         attributes(
                 'Main-Class': 'chessengine.Main',
                 'Class-Path': configurations.runtimeClasspath.asFileTree.files.collect { "lib/${it.name}" }.join(' '),
-                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false'
+                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false','-Djavafx.preloader=chessengine.SplashScreen'
         )
     }
     from {

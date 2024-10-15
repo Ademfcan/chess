@@ -5,16 +5,15 @@ import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Computation.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Enums.MainScreenState;
-import chessengine.Graphics.BindingController;
-import chessengine.Graphics.GlobalMessager;
-import chessengine.Graphics.MainScreenController;
-import chessengine.Graphics.StartScreenController;
+import chessengine.Graphics.*;
 import chessengine.Managers.*;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
+import javafx.application.Preloader;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -72,7 +71,7 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args);
+        Application.launch(args);
     }
 
     public static void changeUser(UserInfo info) {
@@ -211,9 +210,6 @@ public class App extends Application {
         }
     }
 
-    public String getGreeting() {
-        return "Hello World!";
-    }
 
     public static Stockfish stockfishForEval;
     public static Stockfish getMoveStockfish;
@@ -221,25 +217,47 @@ public class App extends Application {
     public static MagicBitboardGenerator magicBitboardGenerator;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void init() throws Exception {
+        super.init();
+        // load app
+
+        notifyPreloader(new Preloader.ProgressNotification(0.01));
+        notifyPreloader(new AppStateChangeNotification("Loading stockfish..."));
         stockfishForEval = new Stockfish();
-        magicBitboardGenerator = new MagicBitboardGenerator();
+        getMoveStockfish = new Stockfish();
+
+        notifyPreloader(new Preloader.ProgressNotification(0.03));
+        notifyPreloader(new AppStateChangeNotification("Starting stockfish..."));
         if (stockfishForEval.startEngine()) {
             appLogger.debug("Started stockfish for eval succesfully");
         } else {
             appLogger.error("Stockfish for eval start failed");
         }
 
-        getMoveStockfish = new Stockfish();
         if (getMoveStockfish.startEngine()) {
             appLogger.debug("Started stockfish for nmoves succesfully");
         } else {
             appLogger.error("Stockfish for nmoves start failed");
         }
 
+
+
+        notifyPreloader(new Preloader.ProgressNotification(0.05));
+        notifyPreloader(new AppStateChangeNotification("Loading magic bitboards..."));
+
+        magicBitboardGenerator = new MagicBitboardGenerator();
+
+
         dpi = Screen.getPrimary().getDpi();
         dpiScaleFactor = dpi / referenceDpi;
+
+        notifyPreloader(new Preloader.ProgressNotification(0.1));
+        notifyPreloader(new AppStateChangeNotification("Loading user..."));
+
         userManager = new ClientManager();
+
+        notifyPreloader(new Preloader.ProgressNotification(0.1));
+        notifyPreloader(new AppStateChangeNotification("Connecting to server..."));
 
         try {
             webclient = userManager.getClientFromUser();
@@ -249,13 +267,34 @@ public class App extends Application {
         } catch (IOException e) {
             appLogger.error("Io error on webclient creation",e);
         }
+        notifyPreloader(new Preloader.ProgressNotification(0.5));
+
+
+        if(webclient != null){
+            webclient.synchronizeWithServer();
+            notifyPreloader(new AppStateChangeNotification("Connected to server"));
+        }
+        else{
+            notifyPreloader(new AppStateChangeNotification("Server connection failed"));
+        }
+
+
+
+        notifyPreloader(new Preloader.ProgressNotification(0.5));
+        notifyPreloader(new AppStateChangeNotification("Loading managers..."));
         soundPlayer = new SoundPlayer();
 
         ChessCentralControl = new ChessCentralControl();
-        mainStage = primaryStage;
         messager = new GlobalMessager();
         userPreferenceManager = new UserPreferenceManager();
         campaignMessager = new CampaignMessageManager(ChessCentralControl);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        notifyPreloader(new Preloader.ProgressNotification(0.6));
+        notifyPreloader(new AppStateChangeNotification("Loading graphics..."));
+        mainStage = primaryStage;
 
         try {
 
@@ -272,6 +311,9 @@ public class App extends Application {
         }
         Group startMessageBoard = new Group();
         Group mainMessageBoard = new Group();
+
+        notifyPreloader(new Preloader.ProgressNotification(0.7));
+        notifyPreloader(new AppStateChangeNotification("Setting up graphics..."));
 
         messager.Init(startMessageBoard, mainMessageBoard,startScreenController.startRef,mainScreenController.mainRef);
         mainScene = new Scene(startRoot);
@@ -293,18 +335,23 @@ public class App extends Application {
         userPreferenceManager.init();
         startScreenController.setup();
         mainScreenController.oneTimeSetup();
+        notifyPreloader(new Preloader.ProgressNotification(0.8));
 
         userPreferenceManager.setDefaultSelections();
 
         ((StackPane)startRoot).getChildren().add(startMessageBoard);
         ((StackPane)mainRoot).getChildren().add(mainMessageBoard);
 
+
         primaryStage.setScene(mainScene);
         primaryStage.setHeight(540);
         primaryStage.setWidth(960);
+        notifyPreloader(new Preloader.ProgressNotification(0.9));
+        notifyPreloader(new AppStateChangeNotification("Ready"));
         primaryStage.show();
         primaryStage.setMaximized(true);
         primaryStage.getIcons().add(new Image("/appIcon/icon.png"));
+        primaryStage.requestFocus();
 
 
     }

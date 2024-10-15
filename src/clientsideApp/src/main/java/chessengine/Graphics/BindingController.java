@@ -1,10 +1,7 @@
 package chessengine.Graphics;
 
 import chessengine.App;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.DoubleExpression;
-import javafx.beans.binding.NumberBinding;
-import javafx.beans.binding.StringExpression;
+import javafx.beans.binding.*;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
@@ -55,7 +52,7 @@ public class BindingController {
         this.startScreenFullScreen = startScreenFullScreen;
     }
 
-    public static void bindRegionToStyle(Region region, DoubleExpression reference, String style, double scaleFactor, String extraStyles) {
+    public static void bindRegionToStyle(Region region, NumberExpression reference, String style, double scaleFactor, String extraStyles) {
         region.styleProperty().unbind();
         DoubleProperty b1 = new SimpleDoubleProperty();
         b1.bind(reference.multiply(scaleFactor));
@@ -64,7 +61,7 @@ public class BindingController {
 
     }
 
-    public static void bindRegionTo2Styles(Region region, DoubleExpression reference, String style1, String style2, double scaleFactor1, double scaleFactor2, String extraStyles) {
+    public static void bindRegionTo2Styles(Region region, NumberExpression reference, String style1, String style2, double scaleFactor1, double scaleFactor2, String extraStyles) {
         region.styleProperty().unbind();
         DoubleProperty b1 = new SimpleDoubleProperty();
         b1.bind(reference.multiply(scaleFactor1));
@@ -76,7 +73,7 @@ public class BindingController {
 
     }
 
-    public static StringExpression getBinding1Style(DoubleExpression reference, String style, double scaleFactor, String extraStyles) {
+    public static StringExpression getBinding1Style(NumberExpression reference, String style, double scaleFactor, String extraStyles) {
         DoubleProperty b1 = new SimpleDoubleProperty();
         b1.bind(reference.multiply(scaleFactor));
         StringExpression binding = Bindings.concat(style, b1.asString(), ";", extraStyles);
@@ -85,7 +82,7 @@ public class BindingController {
 
     }
 
-    public static StringExpression getBinding2Styles(DoubleExpression reference, String style1, String style2, double scaleFactor1, double scaleFactor2, String extraStyles) {
+    public static StringExpression getBinding2Styles(NumberExpression reference, String style1, String style2, double scaleFactor1, double scaleFactor2, String extraStyles) {
         DoubleProperty b1 = new SimpleDoubleProperty();
         b1.bind(reference.multiply(scaleFactor1));
         DoubleProperty b2 = new SimpleDoubleProperty();

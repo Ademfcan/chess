@@ -1,6 +1,7 @@
 package chessengine.Managers;
 
 import chessengine.App;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Graphics.StartScreenController;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
@@ -29,7 +30,6 @@ public class ClientManager {
     public WebSocketClient getClientFromUser() throws DeploymentException, IOException {
         return new WebSocketClient(appUser);
     }
-
     public void init(StartScreenController controller) {
         // graphical stuff
         controller.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo());

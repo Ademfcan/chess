@@ -8,7 +8,7 @@ import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Managers.PersistentSaveManager;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;

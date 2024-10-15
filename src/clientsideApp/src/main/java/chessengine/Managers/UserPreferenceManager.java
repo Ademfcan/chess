@@ -1,6 +1,7 @@
 package chessengine.Managers;
 
 import chessengine.App;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import javafx.scene.control.Button;
