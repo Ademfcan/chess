@@ -13,7 +13,7 @@ This is an ongoing project, so expect occasional errors here and there as i squi
 
 To run the chess app, use the following command:
 ```bash
-gradle :clientside:run
+gradlew :clientside:run
 ```
 
 ## Building the Application
@@ -21,7 +21,7 @@ gradle :clientside:run
 To build the chess app and create a JAR file, use the following command:
 
 ```bash
-gradle :clientside:jar
+gradlew :clientside:jar
 ```
 ##### Note: The jar file will be produced in the Build/lib directory of the project. Specifically {rootdir}/src/clientsideApp/build/libs/yourOutput.jar
 
