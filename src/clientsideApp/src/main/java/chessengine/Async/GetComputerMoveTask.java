@@ -71,6 +71,7 @@ public class GetComputerMoveTask extends Task<Void> {
                 logger.error("Error on get comp move task", e);
             }
         }
+        logger.debug("Computer task ending");
         return null;
 
     }

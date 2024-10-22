@@ -5,14 +5,20 @@ import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Computation.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
+import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
+import chessengine.Crypto.CryptoUtils;
 import chessengine.Enums.MainScreenState;
 import chessengine.Graphics.*;
-import chessengine.Managers.*;
+import chessengine.Managers.CampaignMessageManager;
+import chessengine.Managers.ClientManager;
+import chessengine.Managers.UserPreferenceManager;
+import chessengine.Managers.WebSocketClient;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.application.Preloader;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
@@ -24,8 +30,11 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nd4j.shade.jackson.core.JsonProcessingException;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.function.Consumer;
 
 public class App extends Application {
 
@@ -48,6 +57,9 @@ public class App extends Application {
     public static chessengine.CentralControlComponents.ChessCentralControl ChessCentralControl;
     public static double dpi;
     public static double dpiScaleFactor;
+    public static Stockfish stockfishForEval;
+    public static Stockfish getMoveStockfish;
+    public static MagicBitboardGenerator magicBitboardGenerator;
     private static Stage mainStage;
     private static Scene mainScene;
     private static Parent startRoot;
@@ -58,6 +70,7 @@ public class App extends Application {
         return webclient;
     }
 
+
     public static void updateTheme(GlobalTheme newTheme) {
         globalTheme = newTheme;
         mainScene.getStylesheets().clear();
@@ -66,7 +79,7 @@ public class App extends Application {
 
     }
 
-    public static boolean isWebClientNull() {
+    public static boolean isWebClientConnected() {
         return webclient == null;
     }
 
@@ -81,7 +94,7 @@ public class App extends Application {
         } catch (DeploymentException e) {
             messager.sendMessageQuick("No connection to server!", true);
         } catch (IOException e) {
-            appLogger.error("Error when changing user",e);
+            appLogger.error("Error when changing user", e);
         }
     }
 
@@ -93,7 +106,7 @@ public class App extends Application {
             ChessConstants.mainLogger.debug("Connection Failed");
             webclient = null;
         } catch (IOException e) {
-            appLogger.error("Error when attemting reconnection",e);
+            appLogger.error("Error when attemting reconnection", e);
         }
         return false;
 
@@ -142,12 +155,15 @@ public class App extends Application {
 
 
     }
-    /** play as white flag specifies wether player wants to play as white**/
+
+    /**
+     * play as white flag specifies wether player wants to play as white
+     **/
     public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isWhiteOriented, MainScreenState state, boolean playAsWhite) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupWithoutGame(isVsComputer, isWhiteOriented, gameName, userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), state,playAsWhite);
+        mainScreenController.setupWithoutGame(isVsComputer, isWhiteOriented, gameName, userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), state, playAsWhite);
         soundPlayer.pauseSong(false);
 
     }
@@ -179,54 +195,158 @@ public class App extends Application {
     }
 
     // web client stuff
-    public static void sendRequest(INTENT intent, String extraInfo) {
+    public static void sendRequest(INTENT intent, String extraInfo, Consumer<String> requestResponseAction) {
         if (webclient == null) {
             appLogger.debug("Client null trying to create new one");
             if (attemptReconnection()) {
-                webclient.sendRequest(intent, extraInfo);
+                sendRequest(intent, extraInfo, requestResponseAction);
             } else {
                 appLogger.error("Server Not Acessable!!");
 
             }
         } else {
-            webclient.sendRequest(intent, extraInfo);
+            webclient.sendRequest(intent, extraInfo, requestResponseAction);
 
         }
 
     }
 
-    public static void validateClientRequest(String text, String text1) {
+    public static void getUserRequest(String username, String password,Consumer<String> requestAction) {
         if (webclient == null) {
             appLogger.debug("Client null trying to create new one");
             if (attemptReconnection()) {
-                webclient.validateClientRequest(text, text1);
+                getUserRequest(username, password,requestAction);
             } else {
                 appLogger.error("Server Not Acessable!!");
 
             }
         } else {
-            webclient.validateClientRequest(text, text1);
+            try {
+                webclient.getUserRequest(username, CryptoUtils.sha256AndBase64(password),requestAction);
+            } catch (NoSuchAlgorithmException e) {
+                appLogger.error("Never should hit this lol", e);
+            }
 
         }
     }
 
+    public static void createAndLoginClientRequest(String username, String password, int currentUUID) {
+        try {
+            String passwordHash = CryptoUtils.sha256AndBase64(password);
 
-    public static Stockfish stockfishForEval;
-    public static Stockfish getMoveStockfish;
+            if (userManager.isLoggedIn()) {
+                logout();
+            }
 
-    public static MagicBitboardGenerator magicBitboardGenerator;
+
+            userManager.changeUserName(username, false);
+            userManager.changeUUID(currentUUID, false);
+
+            databaseRequest(INTENT.PUTUSER, userManager.getCurrentUser(), userPreferenceManager.getUserPref(), passwordHash, null);
+
+        } catch (NoSuchAlgorithmException e) {
+            appLogger.error("Never should hit this, LOL", e);
+        }
+    }
+
+    public static void logout() {
+        userManager.logout();
+        userPreferenceManager.resetToDefault();
+        startScreenController.campaignManager.reset();
+    }
+
+    public static void partialDatabaseUpdateRequest(UserInfo userInfo) {
+        databaseRequest(INTENT.UPDATEUSER, userInfo, userPreferenceManager.getUserPref(), null, null);
+    }
+
+    public static void partialDatabaseUpdateRequest(UserPreferences userPreferences) {
+        databaseRequest(INTENT.UPDATEUSER, userManager.getCurrentUser(), userPreferences, null, null);
+    }
+
+    private static void synchronizeWithServer(){
+        if(webclient == null){
+            appLogger.debug("No connection to server, cannot synchronize");
+            return;
+        }
+        if(!userManager.isLoggedIn()){
+            appLogger.debug("Not logged in, cannot synchronize");
+            return;
+        }
+        String currentPasswordHash = KeyManager.tryLoadCurrentPasswordHash();
+        getUserRequest(userManager.getUserName(),currentPasswordHash,(out) ->{
+            if(out.isEmpty()){
+                // no record of account on server, so make one
+                databaseRequest(INTENT.PUTUSER,userManager.getCurrentUser(),userPreferenceManager.getUserPref(),currentPasswordHash,null);
+            }
+            else{
+                try{
+                    DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                    long serverLastTimeStamp = newEntry.getUserInfo().getLastUpdateTimeMS();
+                    long localLastTimeStamp = userManager.getLastTimeStampMs();
+                    if(serverLastTimeStamp >= localLastTimeStamp){
+                        // go with server, so update local
+                        Platform.runLater(() ->{
+                            appLogger.debug("Updating local with server copy");
+                            App.refreshAppWithNewUser(newEntry);
+                        });
+                    }
+                    else{
+                        // go with local, so update server
+                        databaseRequest(INTENT.UPDATEUSER,userManager.getCurrentUser(),userPreferenceManager.getUserPref(),currentPasswordHash,null);
+                    }
+
+
+                } catch (JsonProcessingException jsonProcessingException) {
+                    appLogger.error("Json processing exeption when parsing validate client request output!",jsonProcessingException);
+                }
+
+                // now handle any incoming friend requests
+
+                sendRequest(INTENT.READINCOMINGFRIENDREQUESTS,userManager.getCurrentUser() + "," + currentPasswordHash,(friendRequests) ->{
+                    userManager.addMoreFriendRequests(friendRequests,true);
+                });
+            }
+        });
+    }
+
+
+    public static void databaseRequest(INTENT intent, UserInfo userInfo, UserPreferences userPreferences, String passwordHash, Consumer<String> responseAction) {
+        if (webclient == null) {
+            appLogger.debug("Client null trying to create new one");
+            if (attemptReconnection()) {
+                databaseRequest(intent, userInfo, userPreferences, passwordHash, responseAction);
+            } else {
+                appLogger.error("Server Not Acessable!!");
+            }
+        } else {
+            String realPasswordHash = passwordHash == null ? KeyManager.tryLoadCurrentPasswordHash() : passwordHash;
+            if (realPasswordHash == null) {
+                appLogger.error("Cannot make a database request, no password(hash)");
+            }
+            App.messager.sendMessageQuick("Updating database", true);
+            webclient.databaseRequest(intent, userInfo.getUserName(), realPasswordHash, userInfo.getUuid(), new DatabaseEntry(userInfo, userPreferences), responseAction);
+
+        }
+
+    }
+
+    public static void refreshAppWithNewUser(DatabaseEntry databaseEntry) {
+        App.userPreferenceManager.reloadWithUser(databaseEntry.getPreferences(), false);
+        App.userManager.reloadNewAppUser(databaseEntry.getUserInfo(), false);
+        // todo, reload games below
+    }
 
     @Override
     public void init() throws Exception {
         super.init();
         // load app
 
-        notifyPreloader(new Preloader.ProgressNotification(0.01));
+        notifyPreloader(new Preloader.ProgressNotification(0.1));
         notifyPreloader(new AppStateChangeNotification("Loading stockfish..."));
         stockfishForEval = new Stockfish();
         getMoveStockfish = new Stockfish();
 
-        notifyPreloader(new Preloader.ProgressNotification(0.03));
+        notifyPreloader(new Preloader.ProgressNotification(0.2));
         notifyPreloader(new AppStateChangeNotification("Starting stockfish..."));
         if (stockfishForEval.startEngine()) {
             appLogger.debug("Started stockfish for eval succesfully");
@@ -241,8 +361,7 @@ public class App extends Application {
         }
 
 
-
-        notifyPreloader(new Preloader.ProgressNotification(0.05));
+        notifyPreloader(new Preloader.ProgressNotification(0.3));
         notifyPreloader(new AppStateChangeNotification("Loading magic bitboards..."));
 
         magicBitboardGenerator = new MagicBitboardGenerator();
@@ -251,12 +370,12 @@ public class App extends Application {
         dpi = Screen.getPrimary().getDpi();
         dpiScaleFactor = dpi / referenceDpi;
 
-        notifyPreloader(new Preloader.ProgressNotification(0.1));
+        notifyPreloader(new Preloader.ProgressNotification(0.35));
         notifyPreloader(new AppStateChangeNotification("Loading user..."));
 
         userManager = new ClientManager();
 
-        notifyPreloader(new Preloader.ProgressNotification(0.1));
+        notifyPreloader(new Preloader.ProgressNotification(0.4));
         notifyPreloader(new AppStateChangeNotification("Connecting to server..."));
 
         try {
@@ -265,19 +384,17 @@ public class App extends Application {
             appLogger.debug("No connection to server!");
             webclient = null;
         } catch (IOException e) {
-            appLogger.error("Io error on webclient creation",e);
+            appLogger.error("Io error on webclient creation", e);
         }
         notifyPreloader(new Preloader.ProgressNotification(0.5));
 
 
-        if(webclient != null){
-            webclient.synchronizeWithServer();
+        if (webclient != null) {
+            synchronizeWithServer();
             notifyPreloader(new AppStateChangeNotification("Connected to server"));
-        }
-        else{
+        } else {
             notifyPreloader(new AppStateChangeNotification("Server connection failed"));
         }
-
 
 
         notifyPreloader(new Preloader.ProgressNotification(0.5));
@@ -307,7 +424,7 @@ public class App extends Application {
 
 
         } catch (IOException e) {
-            appLogger.error("Error on loading fxml",e);
+            appLogger.error("Error on loading fxml", e);
         }
         Group startMessageBoard = new Group();
         Group mainMessageBoard = new Group();
@@ -315,7 +432,7 @@ public class App extends Application {
         notifyPreloader(new Preloader.ProgressNotification(0.7));
         notifyPreloader(new AppStateChangeNotification("Setting up graphics..."));
 
-        messager.Init(startMessageBoard, mainMessageBoard,startScreenController.startRef,mainScreenController.mainRef);
+        messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.mainRef);
         mainScene = new Scene(startRoot);
         userManager.init(startScreenController);
         isStartScreen = true;
@@ -339,8 +456,8 @@ public class App extends Application {
 
         userPreferenceManager.setDefaultSelections();
 
-        ((StackPane)startRoot).getChildren().add(startMessageBoard);
-        ((StackPane)mainRoot).getChildren().add(mainMessageBoard);
+        ((StackPane) startRoot).getChildren().add(startMessageBoard);
+        ((StackPane) mainRoot).getChildren().add(mainMessageBoard);
 
 
         primaryStage.setScene(mainScene);
@@ -363,7 +480,8 @@ public class App extends Application {
         if (ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)) {
             if (ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {
                 // if the game is not empty add it
-                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+//                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+                App.userManager.saveUserGame(ChessCentralControl.gameHandler.currentGame);
             }
         }
     }

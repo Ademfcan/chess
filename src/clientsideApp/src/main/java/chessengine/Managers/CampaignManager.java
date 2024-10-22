@@ -156,6 +156,7 @@ public class CampaignManager {
     }
 
     public void setLevelUnlocksBasedOnProgress(CampaignProgress playerProgress) {
+        reset();
         for (int i = CampaignTier.LastTier.ordinal(); i >= 0; i--) {
             VBox[] tierVboxes = infoContainers.get(i);
             CampaignTier curTier = CampaignTier.values()[i];
@@ -200,7 +201,31 @@ public class CampaignManager {
 
         }
         // lastly highlight the current players level
+        // todo
 
+    }
+    // resets eveything back to default state
+    public void reset() {
+        for (int i = CampaignTier.LastTier.ordinal(); i >= 0; i--) {
+            VBox[] tierVboxes = infoContainers.get(i);
+            CampaignTier curTier = CampaignTier.values()[i];
+
+            for (int j = 0; j < curTier.NLevels; j++) {
+                Button playButton = (Button) tierVboxes[j].getChildren().stream().filter(r -> r.getUserData() != null && r.getUserData().toString().equals("elb")).toList().get(0);
+                playButton.setDisable(true);
+
+                // also set pawn level
+
+                HBox pawnContainter = (HBox) tierVboxes[j].getChildren().stream().filter(r -> r.getUserData() != null && r.getUserData().toString().equals("pc")).toList().get(0);
+                for (int z = 0; z < 3; z++) {
+                    ImageView pawn = (ImageView) pawnContainter.getChildren().get(z);
+                    pawn.setImage(unfilledPawn);
+                }
+            }
+
+        }
+        // lastly highlight the start players level
+        // also todo
     }
 
     public void drawLevels(ReadOnlyDoubleProperty widthProperty) {
@@ -415,21 +440,5 @@ public class CampaignManager {
         this.currentImageView = standByImageView;
     }
 
-    // todo when set up server figure out profile picture cycle system
-//    private void cycleProfilePicture(Circle clicked) {
-//        if (clicked.getUserData() == null) {
-//            clicked.setUserData("1");
-//        }
-//        int index = Integer.parseInt(clicked.getUserData().toString());
-//        System.out.println(ProfilePicture.values()[index].urlString);
-//        Image newImage = new Image(ProfilePicture.values()[index].urlString);
-//        index++;
-//        if (index >= ProfilePicture.values().length) {
-//            index = 0;
-//        }
-//        clicked.setFill(new ImagePattern(newImage));
-//        clicked.setUserData(Integer.toString(index));
-//
-//
-//    }
+
 }

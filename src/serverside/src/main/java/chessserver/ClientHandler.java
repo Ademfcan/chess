@@ -16,6 +16,7 @@ import java.util.Objects;
 public class ClientHandler {
     private static final Logger logger = LogManager.getLogger("Client_Handler");
     private static final Map<Session, BackendClient> clientHashMap = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<Integer, Session> UUIDSessionMap = Collections.synchronizedMap(new HashMap<>());
     private static final WaitingPool pool = new WaitingPool();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -24,13 +25,13 @@ public class ClientHandler {
     public static void handleMessage(String message, Session session, DataSource dataSource) throws IOException {
         try {
             InputMessage input = objectMapper.readValue(message, InputMessage.class);
+            BackendClient c = getClient(input.getClient(), session);
             if (input.getIntent().equals(INTENT.CLOSESESS)) {
                 System.out.println("Intentionaly closing!");
                 session.close();
-            }
-            else if(input.getIntent().isDbRelated){
+            } else if (input.getIntent().isDbRelated) {
                 try (Connection conn = dataSource.getConnection()) {
-                    switch (input.getIntent()){
+                    switch (input.getIntent()) {
                         case GETUSER -> {
                             String[] info = input.getExtraInformation().split(",");
                             String query = "SELECT * FROM users WHERE Username = ? AND Passwordhash = ?";
@@ -40,42 +41,187 @@ public class ClientHandler {
                             ResultSet rs = stmt.executeQuery();
 
                             if (rs.next()) {
-                                sendMessage(session,ServerResponseType.DATARESPONSE,rs.getString("Dataentry"));
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, rs.getString("Dataentry"), input.getUniqueId());
+                            } else {
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "", input.getUniqueId());
                             }
-                            sendMessage(session,ServerResponseType.DATARESPONSE,"");
                         }
 
                         case PUTUSER -> {
-                            String[] info = input.getExtraInformation().split(",");
-                            String insertQuery = "INSERT INTO users (username, passwordhash, Dataentry) VALUES (?, ?, ?)";
+                            DatabaseRequest request = objectMapper.readValue(input.getExtraInformation(), DatabaseRequest.class);
+                            String insertQuery = "INSERT INTO users (Username, Passwordhash, UUID, Dataentry,lastTimeStamp) VALUES (?, ?, ?, ?, ?)";
                             PreparedStatement pstmt = conn.prepareStatement(insertQuery);
-                            pstmt.setString(1, info[0]); // Set the username
-                            pstmt.setString(2, info[1]); // Set the password hash
-                            pstmt.setString(3, info[2]); // Set the email
+                            pstmt.setString(1, request.getUserName()); // Set the username
+                            pstmt.setString(2, request.getPasswordHash()); // Set the password hash
+                            pstmt.setString(3, Integer.toString(request.getUUID())); // username
+                            pstmt.setString(4, request.getEntry()); // Set the data
+                            pstmt.setString(5, String.valueOf(request.getRequestTimeStampMS())); // Set the data
 
                             int rowsInserted = pstmt.executeUpdate(); // Execute the insert
                             if (rowsInserted > 0) {
                                 logger.debug("A new user was inserted successfully!");
                             }
 
+                            // also increment uuid
+
+                            String query = "UPDATE UUID SET currentUUID = currentUUID + 1";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+
+                            if (stmt.executeUpdate() > 0) {
+                                sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
+                            }
+
+                        }
+
+                        case UPDATEUSER -> {
+                            DatabaseRequest request = objectMapper.readValue(input.getExtraInformation(), DatabaseRequest.class);
+                            String query = "Update users Set Dataentry = ?, lastTimeStamp = ? WHERE UUID = ? AND Passwordhash = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1, request.getEntry()); // set data
+                            stmt.setString(2, String.valueOf(request.getRequestTimeStampMS())); // set data
+                            stmt.setString(3, Integer.toString(request.getUUID())); // username
+                            stmt.setString(4, request.getPasswordHash()); // passwordhash
+                            if (stmt.executeUpdate() > 0) {
+                                sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
+                            }
+
+                        }
+
+                        case DELETEUSER -> {
+
+                            String[] info = input.getExtraInformation().split(",");
+                            String query = "DELETE from users WHERE UUID = ? AND Passwordhash = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1, info[0]); // username
+                            stmt.setString(2, info[1]); // passwordhash
+
+                            if (stmt.executeUpdate() > 0) {
+                                sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
+                            }
+
+                        }
+
+                        case CHECKUSERNAME -> {
+                            String userName = input.getExtraInformation();
+                            String query = "SELECT * from users Where Username = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1, userName); // username
+                            ResultSet rs = stmt.executeQuery();
+                            if (!rs.next()) {
+                                String uuidQuery = "SELECT * from UUID";
+                                PreparedStatement uuidStmt = conn.prepareStatement(uuidQuery);
+                                ResultSet uuidRs = uuidStmt.executeQuery();
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, uuidRs.getString("currentUUID"), input.getUniqueId());
+                            } else {
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "", input.getUniqueId());
+                            }
+                        }
+
+                        case GetCurrentUUID -> {
+                            String query = "SELECT * from UUID";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            ResultSet rs = stmt.executeQuery();
+                            sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, rs.getString("currentUUID"), input.getUniqueId());
+                        }
+
+                        case IncrementUUID -> {
+                            String query = "UPDATE UUID SET currentUUID = currentUUID + 1";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            if (stmt.executeUpdate() > 0) {
+                                sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
+                            }
+                        }
+
+                        case SENDFRIENDREQUEST -> {
+                            String incomingUserName = input.getExtraInformation();
+                            String query = "SELECT UUID from users Where Username = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1, incomingUserName); // username
+                            ResultSet rs = stmt.executeQuery();
+                            if (rs.next()) {
+                                int incomingUUID = Integer.parseInt(rs.getString("UUID"));
+                                String requesterUUID = Integer.toString(input.getClient().getInfo().getUuid());
+                                int requesterUsername = input.getClient().getInfo().getUuid();
+                                if (UUIDSessionMap.containsKey(incomingUUID)) {
+                                    // requested friend is online
+                                    sendMessage(UUIDSessionMap.get(incomingUUID), ServerResponseType.INCOMINGFRIENDREQUEST, requesterUUID, input.getUniqueId());
+                                } else {
+                                    // not online so add to sql requests
+                                    String addQuery = "Update users Set Incomingrequests = Incomingrequests + ? WHERE UUID = ?";
+                                    PreparedStatement addStmt = conn.prepareStatement(addQuery);
+                                    addStmt.setString(1, requesterUUID + ",");
+                                    addStmt.setString(2, Integer.toString(incomingUUID));
+                                }
+                                sendMessage(session,ServerResponseType.SQLSUCESS,"Friend Request Sent", input.getUniqueId());
+                            } else {
+                                sendMessage(session, ServerResponseType.SQLMESSAGE, "Friend not found in database!", input.getUniqueId());
+                            }
+
+                        }
+
+                        case READINCOMINGFRIENDREQUESTS -> {
+                            String[] split = input.getExtraInformation().split(",");
+                            String query = "Select Incomingrequests from users Where UUID = ? And Passwordhash = ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1,split[0]);
+                            stmt.setString(2,split[1]);
+                            ResultSet rs = stmt.executeQuery();
+                            if(rs.next()){
+                                sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,rs.getString("Incomingrequests"),input.getUniqueId());
+                            }
+                            else{
+                                sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"",input.getUniqueId());
+                            }
+                        }
+
+                        case GETUUIDS -> {
+                            StringBuilder uuidResponses = new StringBuilder();
+                            String[] usernames = input.getExtraInformation().split(",");
+                            for (String username : usernames) {
+                                String query = "SELECT UUID from users Where Username = ?";
+                                PreparedStatement stmt = conn.prepareStatement(query);
+                                stmt.setString(1, username); // username
+                                ResultSet rs = stmt.executeQuery();
+                                if (rs.next()) {
+                                    uuidResponses.append(rs.getString("UUID"));
+                                    uuidResponses.append(",");
+
+                                }
+                            }
+                            sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, uuidResponses.toString(), input.getUniqueId());
+
+                        }
+
+                        case GETUSERNAMES -> {
+                            StringBuilder usernameResponses = new StringBuilder();
+                            String[] uuids = input.getExtraInformation().split(",");
+                            for (String uuid : uuids) {
+                                String query = "SELECT Username from users Where UUID = ?";
+                                PreparedStatement stmt = conn.prepareStatement(query);
+                                stmt.setString(1, uuid); // username
+                                ResultSet rs = stmt.executeQuery();
+                                if (rs.next()) {
+                                    usernameResponses.append(rs.getString("UUID"));
+                                    usernameResponses.append(",");
+
+                                }
+                            }
+                            sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, usernameResponses.toString(), input.getUniqueId());
                         }
                     }
 //
-                }
-                catch (SQLException sqlException) {
-                    sendMessage(session, ServerResponseType.SQLERROR, sqlException.getMessage());
+                } catch (SQLException sqlException) {
+                    sendMessage(session, ServerResponseType.SQLERROR, sqlException.getMessage(), Integer.MAX_VALUE);
                 }
 //
-            }
-            else {
-                BackendClient c = getClient(input.getClient(), session);
+            } else {
                 switch (input.getIntent()) {
                     case MAKEMOVE -> {
                         String[] info = input.getExtraInformation().split(",");
                         if (c.isInGame()) {
                             c.getCurrentGame().makeMove(info[0], Integer.parseInt(info[1]), c);
                         } else {
-                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "not currently in game, cannot make a move");
+                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "not currently in game, cannot make a move", input.getUniqueId());
                         }
                     }
                     case SENDCHAT -> {
@@ -83,7 +229,7 @@ public class ClientHandler {
                         if (c.isInGame()) {
                             c.getCurrentGame().sendChat(input.getExtraInformation(), c);
                         } else {
-                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "not currently in game, cannot send a message");
+                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "not currently in game, cannot send a message", input.getUniqueId());
                         }
                     }
                     case CREATEGAME -> {
@@ -91,7 +237,7 @@ public class ClientHandler {
                         boolean isMatch = pool.matchClient(c, wantedType);
                         if (!isMatch) {
                             // match not found
-                            sendMessage(c.getClientSession(), ServerResponseType.INWAITINGPOOL, Integer.toString(pool.getWaitingClientsOfTypeCount(c, wantedType, 1000)));
+                            sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(pool.getWaitingClientsOfTypeCount(c, wantedType, 1000)), input.getUniqueId());
 
                         }
 
@@ -100,15 +246,15 @@ public class ClientHandler {
                         if (c.isInGame()) {
                             c.endGame(false, false, true);
                         } else {
-                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "cannot leave game as not currently in a game");
+                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "cannot leave game as not currently in a game", input.getUniqueId());
                         }
                     }
                     case GETNUMBEROFPOOLERS -> {
                         Gametype wantedType = Gametype.getType(input.getExtraInformation());
-                        sendMessage(c.getClientSession(), ServerResponseType.NUMBEROFPOOLERS, Integer.toString(pool.getWaitingClientsOfTypeCount(c, wantedType, 1000)));
+                        sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(pool.getWaitingClientsOfTypeCount(c, wantedType, 1000)), input.getUniqueId());
                     }
                     case PULLTOTALPLAYERCOUNT ->
-                            sendMessage(c.getClientSession(), ServerResponseType.TOTALPLAYERCOUNT, Integer.toString(pool.getPoolCount()));
+                            sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(pool.getPoolCount()), input.getUniqueId());
                     case GAMEFINISHED -> {
                         if (c.isInGame()) {
                             String[] split = input.getExtraInformation().split(",");
@@ -116,7 +262,7 @@ public class ClientHandler {
                             boolean isDraw = Boolean.parseBoolean(split[1]);
                             c.endGame(isClientWinner, isDraw, false);
                         } else {
-                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "cannot send checkmate as not currently in a game");
+                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "cannot send checkmate as not currently in a game", input.getUniqueId());
                         }
                     }
                 }
@@ -124,7 +270,7 @@ public class ClientHandler {
 
             }
         } catch (Exception e) {
-            sendMessage(session, ServerResponseType.INVALIDOPERATION, e.getMessage());
+            sendMessage(session, ServerResponseType.INVALIDOPERATION, e.getMessage(), Integer.MAX_VALUE);
 
         }
     }
@@ -137,13 +283,15 @@ public class ClientHandler {
             clientHashMap.put(session, bc);
 
         }
+        UUIDSessionMap.put(bc.getInfo().getUuid(), session);
+
         return bc;
     }
 
-    public static void sendMessage(Session session, ServerResponseType serverResponseType, String extraInfo) {
+    public static void sendMessage(Session session, ServerResponseType serverResponseType, String extraInfo, int uniqueId) {
         try {
             // Send the message to the client associated with this session
-            String message = objectMapper.writeValueAsString(new OutputMessage(serverResponseType, extraInfo));
+            String message = objectMapper.writeValueAsString(new OutputMessage(serverResponseType, extraInfo, uniqueId));
             session.getBasicRemote().sendText(message);
         } catch (IOException e) {
             e.printStackTrace();
@@ -160,6 +308,8 @@ public class ClientHandler {
             }
         }
         clientHashMap.remove(session);
+
+        UUIDSessionMap.remove(c.getInfo().getUuid());
 
 
     }

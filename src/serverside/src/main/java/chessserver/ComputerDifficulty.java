@@ -33,10 +33,10 @@ public enum ComputerDifficulty {
 
     // Lower intermediate levels with more randomness and less depth
     MaxDifficulty(1500, 5, 0.0, 5, 1.5, 0, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    D12(1400, 3, 0.0, 3, 1.5, 0.3, 8, 1, 0.75, 0.8, ServerConstants.QUEENINDEX, .3, true, false, false, 0),
-    D13(1300, 3, 0.0, 3, 1.5, 0.85, 10, 1, 0.3, 0.85, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    D14(1200, 3, 0.0, 3, 1.5, 0.4, 7, 0.35, 0.65, 0.6, ServerConstants.KINGINDEX, .2, true, false, false, 0),
-    D15(1100, 3, 0.0, 3, 1.5, 0.45, 7, 0.63, 0.62, 0.29, ServerConstants.PAWNINDEX, .4, true, false, false, 0),
+    D12(1400, 3, 0.0, 100, 1.5, 0.3, 8, 1, 0.75, 0.8, ServerConstants.QUEENINDEX, .3, true, false, false, 0),
+    D13(1300, 3, 0.0, 100, 1.5, 0.85, 10, 1, 0.3, 0.85, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    D14(1200, 3, 0.0, 100, 1.5, 0.4, 7, 0.35, 0.65, 0.6, ServerConstants.KINGINDEX, .2, true, false, false, 0),
+    D15(1100, 3, 0.0, 100, 1.5, 0.45, 7, 0.63, 0.62, 0.29, ServerConstants.PAWNINDEX, .4, true, false, false, 0),
 
     // Beginner levels with high randomness and little depth
     D16(1000, 3, 0.0, 2, 1.5, 0.7, 7, 0.75, 0.6, 0.8, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
@@ -46,16 +46,16 @@ public enum ComputerDifficulty {
     D20(650, 3, 0.0, 2, 1.5, 0.9, 7, 0.6, 0.6, 0.9, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
 
     // Trainer bots with more randomness and personality quirks
-    T1(600, 3, 1, 2, 1.5, 0.3, 5, .6, 0.5, 0.7, ServerConstants.KNIGHTINDEX, .5, true, false, false, 0),
-    T2(550, 2, 0.0, 2, 1.5, 0.1, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    T3(500, 2, 1, 2, 1.5, 0.85, 15, .5, .5, .5, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    T4(450, 2, 0.0, 2, 1.5, 0.6, 5, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    T5(400, 3, -10, 4, 1.5, .6, 1, .9, .6, .5, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
-    T6(350, 2, -1, 4, 1.5, .6, 8, .9, .2, .6, ServerConstants.QUEENINDEX, .7, true, false, false, 0),
-    T7(300, 2, 1, 4, 1.5, .4, 3, .5, 1, .3, ServerConstants.KINGINDEX, .7, true, false, false, 0),
-    T8(250, 3, 3, 4, 1.5, .3, 8, 1, 1, 1, ServerConstants.QUEENINDEX, 1, true, false, false, 0),
-    T9(200, 2, -3, 4, 1.5, .7, 5, 1, 1, 1, ServerConstants.KNIGHTINDEX, .3, false, false, false, 0),
-    T10(100, 2, 3, 2, 5, .9, 3, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, false, false, false, 0),
+    T1(600, 3, 1, 10, 1.5, 0.3, 5, .6, 0.5, 0.7, ServerConstants.KNIGHTINDEX, .5, true, false, false, 0),
+    T2(550, 2, 0.0, 15, 1.5, 0.1, 1, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    T3(500, 2, 1, 15, 1.5, 0.85, 15, .5, .5, .5, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    T4(450, 2, 0.0, 15, 1.5, 0.6, 5, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    T5(400, 3, -10, 2, 1.5, .6, 1, .9, .6, .5, ServerConstants.EMPTYINDEX, 0, true, false, false, 0),
+    T6(350, 2, -1, 9, 1.5, .6, 8, .9, .2, .6, ServerConstants.QUEENINDEX, .7, true, false, false, 0),
+    T7(300, 2, 1, 6, 1.5, .4, 3, .5, 1, .3, ServerConstants.KINGINDEX, .7, true, false, false, 0),
+    T8(250, 3, 3, 9, 1.5, .3, 8, 1, 1, 1, ServerConstants.QUEENINDEX, 1, true, false, false, 0),
+    T9(200, 2, -3, 8, 1.5, .7, 5, 1, 1, 1, ServerConstants.KNIGHTINDEX, .3, false, false, false, 0),
+    T10(100, 2, 3, 5, 5, .9, 3, 1, 1, 1, ServerConstants.EMPTYINDEX, 0, false, false, false, 0),
     /**
      * Custom Bots, these bots have custom personalities and can be thought of as special events
      **/
@@ -64,7 +64,7 @@ public enum ComputerDifficulty {
     public final int eloRange;
     public final int depth;
     public final double drawConst;
-    public final int depthThreshold;
+    public final int maxRandomChoices;
     public final double advantageThreshold;
     public final double randomnessFactor;
 
@@ -82,11 +82,11 @@ public enum ComputerDifficulty {
     public final int stockfishElo;
 
 
-    ComputerDifficulty(int eloRange, int depth, double drawConst, int depthThreshold, double advantageThreshold, double randomnessFactor, int minRandomChoices, double maxAgressiveness, double maxDefensiveness, double maxRisk, int favoritePieceIndex, double favoritePieceWeight, boolean canWin, boolean isCustomBot, boolean isStockfishBased, int stockfishElo) {
+    ComputerDifficulty(int eloRange, int depth, double drawConst, int maxRandomChoices, double advantageThreshold, double randomnessFactor, int minRandomChoices, double maxAgressiveness, double maxDefensiveness, double maxRisk, int favoritePieceIndex, double favoritePieceWeight, boolean canWin, boolean isCustomBot, boolean isStockfishBased, int stockfishElo) {
         this.eloRange = eloRange;
         this.depth = depth;
         this.drawConst = drawConst;
-        this.depthThreshold = depthThreshold;
+        this.maxRandomChoices = maxRandomChoices;
         this.advantageThreshold = advantageThreshold;
         this.randomnessFactor = randomnessFactor;
         this.minRandomChoices = minRandomChoices;

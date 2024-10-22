@@ -12,13 +12,15 @@ import chessengine.Misc.ChessConstants;
 import chessserver.INTENT;
 import chessserver.ProfilePicture;
 import javafx.application.Platform;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ChessGame {
-
+    private static final Logger logger = LogManager.getLogger("Chess_Game_Logger");
 
     private final boolean firstTurnDefault = true; // true means player 1 goes first by default
     // castling etc
@@ -404,7 +406,7 @@ public class ChessGame {
 
     public void leaveWebGame() {
         if (isWebGame) {
-            App.sendRequest(INTENT.LEAVEGAME, "");
+            App.sendRequest(INTENT.LEAVEGAME, "",null);
         } else {
             ChessConstants.mainLogger.error("trying to access webgame, without being one");
         }
@@ -442,7 +444,10 @@ public class ChessGame {
         if (!isWebGameInitialized && isWebGame && centralControl.mainScreenController.currentState.equals(MainScreenState.ONLINE)) {
             // since we dont have any info on the second player, we only do a basic setup of the UI
             // also send request for online match here
-            client.sendRequest(INTENT.CREATEGAME, gameType);
+            App.sendRequest(INTENT.CREATEGAME, gameType,(out) ->{
+                sendMessageToInfo("Waiting in queue");
+                logger.debug("Added to wait pool with " + out + " users.");
+            });
             centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, ProfilePicture.DEFAULT.urlString, isWhiteOriented);
             centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, "Loading...", 0, isWhiteOriented);
 
@@ -961,7 +966,7 @@ public class ChessGame {
         }
         if (isWebGame && !isWebMove) {
             // todo with other things: add time
-            client.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, gameState) + ",10");
+            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, gameState) + ",10",null);
 
         }
     }

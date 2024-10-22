@@ -3,52 +3,48 @@ package chessengine.Managers;
 import chessengine.App;
 import chessengine.Audio.Effect;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import jakarta.websocket.*;
 import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.tyrus.client.ClientManager;
+import org.nd4j.shade.jackson.core.JsonProcessingException;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 @ClientEndpoint
 public class WebSocketClient {
     private final Logger logger = LogManager.getLogger(this.getClass());
     //    private final URI serverUri = URI.create("wss://ademchessserver.azurewebsites.net/app/home");
     private final URI serverUri = URI.create("ws://20.157.72.110:8081/app/home");
-    private final ObjectMapper objectMapper;
     private FrontendClient client;
 
     private ChessGame linkedGame;
 
     private Session session;
 
+    private Map<Integer, Consumer<String>> responseMap;
+
     public WebSocketClient(FrontendClient client) throws DeploymentException, IOException {
         this.linkedGame = null;
-        this.objectMapper = new ObjectMapper();
         this.client = client;
+        this.responseMap = Collections.synchronizedMap(new HashMap<>());
         ClientManager clientManager = ClientManager.createClient();
         clientManager.connectToServer(this, serverUri);
     }
 
     public void updateClient(FrontendClient newClient){
         this.client = newClient;
-        synchronizeWithServer();
     }
 
-    public void synchronizeWithServer(){
-        if(session == null){
-            logger.debug("Not connected to server!");
-            return;
-        }
-
-
-
-
-    }
     public void setLinkedGame(ChessGame chessGame) {
         this.linkedGame = chessGame;
     }
@@ -62,21 +58,23 @@ public class WebSocketClient {
     @OnMessage
     public void onMessage(String message) {
         try {
-            OutputMessage out = objectMapper.readValue(message, OutputMessage.class);
+            OutputMessage out = ChessConstants.objectMapper.readValue(message, OutputMessage.class);
+            if(responseMap.containsKey(out.getUniqueId())){
+                responseMap.get(out.getUniqueId()).accept(out.getExtraInformation());
+                responseMap.remove(out.getUniqueId());
+                return;
+            }
             switch (out.getServerResponseType()) {
+                case SERVERRESPONSEACTIONREQUEST -> {
+                    logger.error("------------Critical-ERROR--------------\nThe server has reponded with an action request, and no action is provided!");
+
+                }
                 case CLIENTVAIDATIONSUCESS -> {
                     // sucessfuly accesed acount on
-                    UserInfo info = objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
+                    UserInfo info = ChessConstants.objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
                     App.changeUser(info);
                 }
-                case CLIENTVALIDATIONFAIL -> {
-                    // username password did not match
-                    App.messager.sendMessageQuick("Validation Failed", true);
-                }
-                case INWAITINGPOOL -> {
-                    linkedGame.sendMessageToInfo("Waiting in queue");
-                    logger.debug("Added to wait pool");
-                }
+
                 case GAMECLOSED -> {
                     logger.debug("Game closed");
                     linkedGame.sendMessageToInfo(out.getExtraInformation());
@@ -91,24 +89,14 @@ public class WebSocketClient {
                     linkedGame.initWebGame(opponentName, opponentElo, pfpUrl, isWhiteOriented);
                     linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                 }
-                case LEFTGAMESUCESS -> {
-                    logger.debug("Left game");
-                }
                 case INVALIDOPERATION -> {
-                    logger.error("Invalid operation");
+                    logger.error("Invalid operation: \n" + out.getExtraInformation());
                 }
-                case NUMBEROFPOOLERS -> {
-                    //logger.debug("Number in specific pool is: " + out.getExtraInformation());
-                    Platform.runLater(() -> {
-                        App.startScreenController.poolCount.setText("number of players in pool: " + out.getExtraInformation());
-                    });
-                }
-                case TOTALPLAYERCOUNT -> {
-                    // todo integrate this
-                    logger.debug("Total in pool is: " + out.getExtraInformation());
+                case SQLERROR -> {
+                    logger.error("Sql error: \n" + out.getExtraInformation());
                 }
                 case CHATFROMOPPONENT -> {
-                    linkedGame.sendMessageToInfo("(" + linkedGame.getBlackPlayerName() + ")" + out.getExtraInformation());
+                    linkedGame.sendMessageToInfo("(" + linkedGame.getBlackPlayerName() + ") " + out.getExtraInformation());
                     App.soundPlayer.playEffect(Effect.MESSAGE);
                 }
                 case GAMEMOVEFROMOPPONENT -> {
@@ -120,8 +108,12 @@ public class WebSocketClient {
                         App.userManager.updateUserElo(change);
                     });
                 }
-                case DATARESPONSE -> {
-                    System.out.println(out.getExtraInformation().isEmpty());
+                case SQLSUCESS -> {
+                    logger.debug("Sql update sucess");
+                }
+                case SQLMESSAGE ->{
+                    App.messager.sendMessageQuick(out.getExtraInformation(),true);
+                    App.messager.sendMessageQuick(out.getExtraInformation(),false);
                 }
             }
         } catch (Exception e) {
@@ -139,21 +131,42 @@ public class WebSocketClient {
         App.attemptReconnection();
     }
 
-    public void sendRequest(INTENT intent, String extraInfo) {
+    public void sendRequest(INTENT intent, String extraInfo,Consumer<String> runOnResponse) {
 //        logger.debug("Sending request with Intent: " + intent.toString() + " exInfo: " + extraInfo);
         try {
-            String message = objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
+            InputMessage inputMessage = new InputMessage(this.client, intent, extraInfo);
+            String message = ChessConstants.objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
+            if(runOnResponse != null){
+                responseMap.put(inputMessage.getUniqueId(),runOnResponse);
+            }
             session.getBasicRemote().sendText(message);
         } catch (Exception e) {
             logger.error("Error on sending request", e);
         }
     }
 
-    public void validateClientRequest(String userName, String userPassword) {
+    public void getUserRequest(String userName, String userPassword,Consumer<String> requestAction) {
         // todo: encrypt!!
-        sendRequest(INTENT.GETUSER, userName + "," + userPassword);
+        sendRequest(INTENT.GETUSER, userName + "," + userPassword,requestAction);
 
     }
+
+    public void databaseRequest(INTENT intent,String userName, String passwordHash,int UUID,DatabaseEntry entry,Consumer<String> responseAction){
+        if(entry == null){
+            sendRequest(intent, userName + "," + passwordHash,responseAction);
+        }
+        else{
+            try {
+                DatabaseRequest request  = new DatabaseRequest(ChessConstants.objectMapper.writeValueAsString(entry),userName,passwordHash,UUID,entry.getUserInfo().getLastUpdateTimeMS());
+                sendRequest(intent,ChessConstants.objectMapper.writeValueAsString(request),responseAction);
+            }
+            catch (org.nd4j.shade.jackson.core.JsonProcessingException e){
+                logger.error("objctmapper json eception for database request",e);
+            }
+        }
+    }
+
+
 
     public void close() throws IOException {
         session.close();

@@ -27,7 +27,7 @@ public class CustomMultiSearcher extends MultiSearcher {
             double randProb = Math.random();
             // now introduce some entropy
             if (randProb < difficulty.randomnessFactor && filteredPositions.size() > difficulty.minRandomChoices) {
-                int randomCutoff = ChessConstants.generalRandom.nextInt(difficulty.minRandomChoices, filteredPositions.size() + 1);
+                int randomCutoff = ChessConstants.generalRandom.nextInt(difficulty.minRandomChoices, Math.min(filteredPositions.size() + 1,difficulty.maxRandomChoices));
                 int randomOffset = ChessConstants.generalRandom.nextInt(0, filteredPositions.size() - randomCutoff + 1);
                 filteredPositions = filteredPositions.subList(randomOffset, randomCutoff + randomOffset);
             }

@@ -8,13 +8,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 
 public class UserPreferenceManager {
 
-
+    private static final Logger logger = LogManager.getLogger("User_Preference_Manager");
     private UserPreferences userPref;
 
     public UserPreferenceManager() {
@@ -25,10 +28,6 @@ public class UserPreferenceManager {
         }
 
 
-    }
-
-    public boolean isBackgroundMusic() {
-        return userPref.isBackgroundmusic();
     }
 
     public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<String> evalOptions, ComboBox<String> nMovesOptions, ComboBox<String> computerOptions, boolean isMainScreen) {
@@ -156,6 +155,14 @@ public class UserPreferenceManager {
 
     }
 
+    public UserPreferences getUserPref() {
+        return userPref;
+    }
+
+    public boolean isBackgroundMusic() {
+        return userPref.isBackgroundmusic();
+    }
+
     public void setDefaultSelections() {
         App.startScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
         App.startScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
@@ -258,8 +265,21 @@ public class UserPreferenceManager {
         loadChanges();
     }
 
+    public void reloadWithUser(UserPreferences newUserPreferences, boolean updateDatabase) {
+        userPref = newUserPreferences;
+        loadChanges();
+        if (updateDatabase) {
+            pushChangesToDatabase();
+        }
+    }
+
     private void pushChangesToDatabase() {
-        // todo
+        if(App.userManager.isLoggedIn()){
+            App.partialDatabaseUpdateRequest(userPref);
+        }
+        else{
+            logger.debug("Not pushing to database, not signed in");
+        }
     }
 
     private void loadChanges() {

@@ -52,7 +52,10 @@ public class SplashScreen extends Preloader {
 
     @Override
     public void handleProgressNotification(ProgressNotification pn) {
-        progressBar.setProgress(pn.getProgress());
+        // avoid weird 1.0 call not coming from me
+        if(pn.getProgress() < 1){
+            progressBar.setProgress(pn.getProgress());
+        }
     }
 
     @Override

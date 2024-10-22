@@ -2,14 +2,17 @@ package chessengine.Graphics;
 
 import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
 import chessengine.Managers.CampaignManager;
-import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Managers.UserPreferenceManager;
+import chessengine.Misc.ChessConstants;
+import chessserver.DatabaseEntry;
 import chessserver.Gametype;
 import chessserver.INTENT;
 import chessserver.ProfilePicture;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -17,6 +20,9 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nd4j.shade.jackson.core.JsonProcessingException;
 
 import java.net.URL;
 import java.util.Arrays;
@@ -25,6 +31,7 @@ import java.util.ResourceBundle;
 
 public class StartScreenController implements Initializable {
 
+    private final Logger logger = LogManager.getLogger("Start_Screen_Controller");
     private final int maxNewGameButtonSize = 100;
     private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
     private final Image computerIcon = new Image("/StartScreenIcons/robot.png");
@@ -177,7 +184,12 @@ public class StartScreenController implements Initializable {
     Label nMovesLabel;
     @FXML
     Label computerLabel;
+
+
     // login page
+
+    @FXML
+    VBox loginPage;
     @FXML
     Label loginTitle;
     @FXML
@@ -188,6 +200,31 @@ public class StartScreenController implements Initializable {
     Label eloLabel;
     @FXML
     TextField passwordInput;
+    @FXML
+    Hyperlink signUpInsteadButton;
+    @FXML
+    Hyperlink backToUserInfo;
+
+    // sign up page
+
+    @FXML
+    VBox accountCreationPage;
+    @FXML
+    Label createUsernameLabel;
+    @FXML
+    TextField createUsername;
+    @FXML
+    Label createPasswordLabel;
+    @FXML
+    TextField createPassword;
+    @FXML
+    Button createAccountButton;
+    @FXML
+    Hyperlink loginInsteadButton;
+    @FXML
+    Hyperlink backToUserInfo1;
+
+
     // profile
     @FXML
     ImageView profileButton;
@@ -197,6 +234,22 @@ public class StartScreenController implements Initializable {
     Label eloProfileLabel;
     @FXML
     Button saveUserOptions;
+
+    @FXML
+    VBox userInfoPage;
+    @FXML
+    ImageView userInfoPfp;
+    @FXML
+    Label userInfoUserName;
+    @FXML
+    Label userInfoUUID;
+    @FXML
+    Label userInfoUserElo;
+    @FXML
+    Hyperlink SignUpPage;
+    @FXML
+    Hyperlink LoginPage;
+
 
     @FXML
     HBox settingSpacer;
@@ -235,7 +288,6 @@ public class StartScreenController implements Initializable {
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
 
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -267,10 +319,15 @@ public class StartScreenController implements Initializable {
         setupOldGamesBox(oldGames);
     }
 
-    public void setProfileInfo(ProfilePicture picture, String name, int elo) {
+    public void setProfileInfo(ProfilePicture picture, String name, int elo,int uuid) {
         profileButton.setImage(new Image(picture.urlString));
         nameProfileLabel.setText(name);
         eloProfileLabel.setText(Integer.toString(elo));
+
+        userInfoPfp.setImage(new Image(picture.urlString));
+        userInfoUserName.setText(name);
+        userInfoUserElo.setText(Integer.toString(elo));
+        userInfoUUID.setText(Integer.toString(uuid));
     }
 
     private void setUpCampaignScreen() {
@@ -389,13 +446,113 @@ public class StartScreenController implements Initializable {
             if (passwordInput.getText().isEmpty()) {
                 passwordInput.setPromptText("please enter a password");
             } else {
-                App.validateClientRequest(nameInput.getText(), passwordInput.getText());
+                App.getUserRequest(nameInput.getText(), passwordInput.getText(),(out) ->{
+                    if(out.isEmpty()){
+                        Platform.runLater(() -> {
+                            App.messager.sendMessageQuick("Invalid account!",true);
+                        });
+                    }
+                    else{
+                        try{
+                            DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                            Platform.runLater(() ->{
+                                System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
+                                App.refreshAppWithNewUser(newEntry);
 
+                            });
+
+                        } catch (JsonProcessingException jsonProcessingException) {
+                            logger.error("Json processing exeption when parsing validate client request output!",jsonProcessingException);
+                        }
+                    }}
+                );
+                nameInput.clear();
+                passwordInput.clear();
 
             }
 
         });
 
+        createAccountButton.setOnMouseClicked(e -> {
+            if (createUsername.getText().isEmpty()) {
+                createUsername.setPromptText("please enter a name");
+                return;
+            }
+            if (createPassword.getText().isEmpty()) {
+                createPassword.setPromptText("please enter a password");
+                return;
+            }
+
+            String lastUsername = createUsername.getText();
+            String lastPassword = createPassword.getText();
+
+            App.sendRequest(INTENT.CHECKUSERNAME, lastUsername,(out ->{
+                int uuid;
+                boolean isUsernamePresent;
+                if(!out.isEmpty()){
+                    uuid = Integer.parseInt(out);
+                    isUsernamePresent = false;
+                } else {
+                    uuid = -1;
+                    isUsernamePresent = true;
+                }
+                Platform.runLater(() ->{
+                    usernamePresentResponse(isUsernamePresent,uuid,lastUsername,lastPassword);
+                });
+            }));
+
+        });
+
+        signUpInsteadButton.setOnMouseClicked(e -> {
+            setUserOptions(2);
+        });
+
+        loginInsteadButton.setOnMouseClicked(e -> {
+            setUserOptions(1);
+        });
+
+        SignUpPage.setOnMouseClicked(e -> {
+            setUserOptions(2);
+        });
+
+        LoginPage.setOnMouseClicked(e -> {
+            setUserOptions(1);
+        });
+
+        backToUserInfo.setOnMouseClicked(e -> {
+            setUserOptions(0);
+        });
+
+        backToUserInfo1.setOnMouseClicked(e -> {
+            setUserOptions(0);
+        });
+        // default is user info screen
+        setUserOptions(0);
+
+        userInfoPfp.setOnMouseClicked(e ->{
+            ProfilePicture nextPicture = getNextPfp(App.userManager.getUserPfp());
+            userInfoPfp.setImage(new Image(nextPicture.urlString));
+            App.userManager.updateUserPfp(nextPicture);
+        });
+
+    }
+
+    // todo when set up server figure out profile picture cycle system
+    private ProfilePicture getNextPfp(ProfilePicture current) {
+        int next = (current.ordinal() + 1) % ProfilePicture.values().length;
+        return ProfilePicture.values()[next];
+
+
+    }
+
+    // 0 = user info 1 = login 2 = sign up
+    private void setUserOptions(int i) {
+        accountCreationPage.setVisible(i == 2);
+        accountCreationPage.setMouseTransparent(i != 2);
+        loginPage.setVisible(i == 1);
+        loginPage.setMouseTransparent(i != 1);
+        userInfoPage.setVisible(i == 0);
+        userInfoPage.setMouseTransparent(i != 0);
     }
 
     private void setUpGeneralSettings() {
@@ -447,7 +604,11 @@ public class StartScreenController implements Initializable {
 
         gameTypes.getItems().addAll(Arrays.stream(Gametype.values()).map(Gametype::getStrVersion).toList());
         gameTypes.setOnAction(e -> {
-            App.sendRequest(INTENT.GETNUMBEROFPOOLERS, gameTypes.getValue());
+            App.sendRequest(INTENT.GETNUMBEROFPOOLERS, gameTypes.getValue(),(out) ->{
+                Platform.runLater(() -> {
+                    App.startScreenController.poolCount.setText("number of players in pool: " + out);
+                });
+            } );
         });
         multiplayerStart.setOnMouseClicked(e -> {
             if (!gameTypes.getSelectionModel().isEmpty()) {
@@ -457,7 +618,7 @@ public class StartScreenController implements Initializable {
 
         });
         // handle no internet connection
-        if (App.isWebClientNull()) {
+        if (App.isWebClientConnected()) {
             disableMultioptions();
         } else {
             enableMultioptions(false);
@@ -552,7 +713,6 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpBindings() {
-
 
 
         // top left profile info
@@ -731,13 +891,15 @@ public class StartScreenController implements Initializable {
     }
 
     private void removeFromOldGames(String hashCode) {
-        PersistentSaveManager.removeGameFromData(hashCode);
+//        PersistentSaveManager.removeGameFromData(hashCode);
+        App.userManager.removeGameFromSave(hashCode);
         oldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
     }
 
     private List<ChessGame> loadGamesFromSave() {
 
-        return PersistentSaveManager.readGamesFromAppData();
+//        return PersistentSaveManager.readGamesFromAppData();
+        return App.userManager.readSavedGames();
     }
 
     private void setupOldGamesBox(List<ChessGame> gamesToLoad) {
@@ -747,4 +909,19 @@ public class StartScreenController implements Initializable {
         }
     }
 
+    public void usernamePresentResponse(boolean isUsernamePresent,int currentUUID,String lastUsername,String lastPassword) {
+        if (lastUsername != null && lastPassword != null && lastUsername.equals(createUsername.getText()) && lastPassword.equals(createPassword.getText())) {
+            if (isUsernamePresent) {
+                createUsername.clear();
+                createUsername.setPromptText("This username is already taken!");
+            } else {
+                createUsername.clear();
+                createPassword.clear();
+                App.messager.sendMessageQuick("Creating account", true);
+                App.createAndLoginClientRequest(lastUsername, lastPassword,currentUUID);
+            }
+        } else {
+            logger.error("Getting username present response without correct last values!");
+        }
+    }
 }

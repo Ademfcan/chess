@@ -1,35 +1,32 @@
 package chessserver;
 
 public class FriendInfo {
-    String userName;
+    int UUID;
     int elo;
     int numWins;
     int numLosses;
     int numDraws;
-    String profilePictureUrl;
-    ProfilePicture profilePicture;
 
-    public FriendInfo(String userName, int elo, int numWins, int numLosses, int numDraws, String profilePictureUrl, ProfilePicture profilePicture) {
-        this.userName = userName;
+    public FriendInfo(String userName, int UUID, int elo, int numWins, int numLosses, int numDraws, String profilePictureUrl, ProfilePicture profilePicture) {
+        this.UUID = UUID;
         this.elo = elo;
         this.numWins = numWins;
         this.numLosses = numLosses;
         this.numDraws = numDraws;
-        this.profilePictureUrl = profilePictureUrl;
-        this.profilePicture = profilePicture;
     }
 
     public FriendInfo() {
 
     }
 
-    public String getUserName() {
-        return userName;
+    public int getUUID() {
+        return UUID;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUUID(int UUID) {
+        this.UUID = UUID;
     }
+
 
     public int getElo() {
         return elo;
@@ -63,20 +60,6 @@ public class FriendInfo {
         this.numDraws = numDraws;
     }
 
-    public String getProfilePictureUrl() {
-        return profilePictureUrl;
-    }
 
-    public void setProfilePictureUrl(String profilePictureUrl) {
-        this.profilePictureUrl = profilePictureUrl;
-    }
-
-    public ProfilePicture getProfilePicture() {
-        return profilePicture;
-    }
-
-    public void setProfilePicture(ProfilePicture profilePicture) {
-        this.profilePicture = profilePicture;
-    }
 
 }

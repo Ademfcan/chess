@@ -1,8 +1,6 @@
 package chessengine.Misc;
 
 import chessengine.ChessRepresentations.*;
-import chessengine.Computation.ComputerOutput;
-import chessengine.Computation.Searcher;
 import chessserver.*;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -11,6 +9,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nd4j.shade.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -33,9 +32,10 @@ public class ChessConstants {
     public static final int BOTHSIDEPIECECOUNT = 32;
     public static final int WHITECHECKMATEVALUE = 1000000;
     public static final int BLACKCHECKMATEVALUE = -1000000;
-    public static final String NOEMAIL = "no-email";
+    public static final String DEFAULTEMAIL = "no-email";
+    public static final String DEFAULTUSERNAME = "anonymous";
     public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false, false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
-    public static final FrontendClient defaultUser = new FrontendClient(new UserInfo(0, "anonymous", NOEMAIL,  ProfilePicture.DEFAULT, new CampaignProgress(123),new ArrayList<>()));
+    public static final FrontendClient defaultClient = new FrontendClient(new UserInfo(0, DEFAULTUSERNAME, DEFAULTEMAIL,Integer.MAX_VALUE, new CampaignProgress(123),ProfilePicture.DEFAULT,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>()));
     public static final double borderRadFactor = .0025;
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
@@ -72,6 +72,8 @@ public class ChessConstants {
     public static final Background highlightBg = new Background(backgroundFillHighlight);
     public static int ComputerEloEstimate = 3000; // not 3000 lol todo make 3k
     public static int DefaultWaitTime = 1000; // ms;
+    public static final ObjectMapper objectMapper = new ObjectMapper();
+
 
 
 

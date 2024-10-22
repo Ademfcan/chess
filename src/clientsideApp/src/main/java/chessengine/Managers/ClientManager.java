@@ -1,24 +1,43 @@
 package chessengine.Managers;
 
 import chessengine.App;
+import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Graphics.StartScreenController;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ClientManager {
+    private static final Logger logger = LogManager.getLogger("Client_Manager");
     private FrontendClient appUser;
 
     public ClientManager() {
         appUser = PersistentSaveManager.readUserInfoFromAppData();
 
         if (Objects.isNull(appUser)) {
-            appUser = ChessConstants.defaultUser;
+            appUser = ChessConstants.defaultClient;
         }
+    }
+
+    public boolean isLoggedIn() {
+        return !appUser.getInfo().getUserEmail().equals(ChessConstants.DEFAULTEMAIL);
+    }
+
+    public UserInfo getCurrentUser() {
+        return appUser.getInfo();
+    }
+
+    public long getLastTimeStampMs() {
+        return appUser.getInfo().getLastUpdateTimeMS();
     }
 
     public void changeAppUser(UserInfo newInfo) {
@@ -30,9 +49,10 @@ public class ClientManager {
     public WebSocketClient getClientFromUser() throws DeploymentException, IOException {
         return new WebSocketClient(appUser);
     }
+
     public void init(StartScreenController controller) {
         // graphical stuff
-        controller.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo());
+        controller.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(), appUser.getInfo().getUuid());
     }
 
     public String getUserName() {
@@ -47,6 +67,21 @@ public class ClientManager {
         return appUser.getInfo().getProfilePicture().urlString;
     }
 
+    public ProfilePicture getUserPfp() {
+        return appUser.getInfo().getProfilePicture();
+    }
+
+    public void updateUserPfp(ProfilePicture newPicture) {
+        if (!appUser.getInfo().getProfilePicture().equals(newPicture)) {
+            appUser.getInfo().setProfilePicture(newPicture);
+            loadChanges();
+            pushChangesToDatabase();
+        } else {
+            ChessConstants.mainLogger.debug("Already have same pfp");
+        }
+
+    }
+
     public void updateUserElo(int change) {
         if (change != 0) {
             appUser.getInfo().adjustElo(change);
@@ -58,14 +93,33 @@ public class ClientManager {
 
     }
 
-    public void changeUserName(String newName) {
+    public void changeUserName(String newName, boolean updateDatabase) {
         if (!appUser.getInfo().getUserName().equals(newName)) {
             appUser.getInfo().setUserName(newName);
             loadChanges();
-            pushChangesToDatabase();
+            if (updateDatabase) {
+                pushChangesToDatabase();
+            }
         } else {
             ChessConstants.mainLogger.debug("New name is same as current name");
         }
+    }
+
+
+    public void changeUUID(int newUUID, boolean updateDatabase) {
+        if (appUser.getInfo().getUuid() != newUUID) {
+            appUser.getInfo().setUuid(newUUID);
+            loadChanges();
+            if (updateDatabase) {
+                pushChangesToDatabase();
+            }
+        } else {
+            ChessConstants.mainLogger.debug("New uuid is same as current uuid");
+        }
+    }
+
+    public int getUUID() {
+        return appUser.getInfo().getUuid();
     }
 
     public void changeUserEmail(String newEmail) {
@@ -77,16 +131,6 @@ public class ClientManager {
             ChessConstants.mainLogger.debug("New user email is same as current email");
         }
 
-    }
-
-    public void changeProfilePicture(ProfilePicture newPicture) {
-        if (!appUser.getInfo().getProfilePicture().equals(newPicture)) {
-            appUser.getInfo().setProfilePicture(newPicture);
-            loadChanges();
-            pushChangesToDatabase();
-        } else {
-            ChessConstants.mainLogger.debug("New pfp is same as current pfp");
-        }
     }
 
     public int getCurrentCampaignLevel() {
@@ -122,12 +166,64 @@ public class ClientManager {
     }
 
     private void loadChanges() {
-        App.startScreenController.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo());
+        App.startScreenController.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(), appUser.getInfo().getUuid());
         App.startScreenController.campaignManager.setLevelUnlocksBasedOnProgress(appUser.getInfo().getUserCampaignProgress());
         PersistentSaveManager.writeUserToAppData(appUser.getInfo());
     }
 
     private void pushChangesToDatabase() {
+        if (isLoggedIn()) {
+            App.partialDatabaseUpdateRequest(appUser.getInfo());
+        } else {
+            logger.debug("Not pushing to database, not signed in");
+        }
+    }
 
+    public void reloadNewAppUser(UserInfo newAppUser, boolean updateDatabase) {
+        appUser = new FrontendClient(newAppUser);
+        if (App.isWebClientConnected()) {
+            App.getWebclient().updateClient(appUser);
+        }
+        loadChanges();
+        if (updateDatabase) {
+            pushChangesToDatabase();
+        }
+    }
+
+    public void logout() {
+        reloadNewAppUser(ChessConstants.defaultClient.getInfo(), false);
+    }
+
+    public void addMoreFriendRequests(String out,boolean updateDatabase) {
+        for(String s : out.split(",")){
+            appUser.getInfo().getIncomingRequests().add(Integer.parseInt(s));
+        }
+        loadChanges();
+        if(updateDatabase){
+            pushChangesToDatabase();
+        }
+    }
+
+    public void saveUserGame(ChessGame game) {
+        appUser.getInfo().addGameUncompressed(game.getGameHash(),CryptoUtils.chessGameToSaveString(game));
+        loadChanges();
+        pushChangesToDatabase();
+    }
+
+    public void removeGameFromSave(String hashCode) {
+        appUser.getInfo().removeGameUncompressed(hashCode);
+        loadChanges();
+        pushChangesToDatabase();
+    }
+
+    public List<ChessGame> readSavedGames() {
+        List<ChessGame> out = new ArrayList<>();
+        String[] saves = appUser.getInfo().getUncompressedSaveStrings();
+        for(String save : saves){
+            String savePart = save.split(",")[1];
+            out.add(CryptoUtils.gameFromSaveString(savePart));
+        }
+
+        return out;
     }
 }

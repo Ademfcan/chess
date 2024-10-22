@@ -11,8 +11,8 @@ public class ChessGame {
         this.client2 = client2;
         this.isClient1Turn = isClient1Turn;
         this.gameLength = gameLength;
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() + "," + client1.getInfo().getProfilePictureUrl() + "," + isClient1Turn);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() + "," + client2.getInfo().getProfilePictureUrl() + "," + !isClient1Turn);
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() + "," + client1.getInfo().getProfilePictureUrl() + "," + isClient1Turn,Integer.MAX_VALUE);
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() + "," + client2.getInfo().getProfilePictureUrl() + "," + !isClient1Turn,Integer.MAX_VALUE);
         client1.setCurrentGame(this);
         client2.setCurrentGame(this);
 
@@ -25,9 +25,9 @@ public class ChessGame {
             BackendClient send = isClient1Turn ? client2 : client1;
             isClient1Turn = !isClient1Turn;
             gameLength -= timeElapsed;
-            ClientHandler.sendMessage(send.getClientSession(), ServerResponseType.GAMEMOVEFROMOPPONENT, pgn);
+            ClientHandler.sendMessage(send.getClientSession(), ServerResponseType.GAMEMOVEFROMOPPONENT, pgn,Integer.MAX_VALUE);
         } else {
-            ClientHandler.sendMessage(player.getClientSession(), ServerResponseType.INVALIDOPERATION, "not your turn!");
+            ClientHandler.sendMessage(player.getClientSession(), ServerResponseType.INVALIDOPERATION, "not your turn!",Integer.MAX_VALUE);
         }
 
 
@@ -35,7 +35,7 @@ public class ChessGame {
 
     public void sendChat(String message, BackendClient sender) {
         BackendClient receiever = sender.equals(client1) ? client2 : client1;
-        ClientHandler.sendMessage(receiever.getClientSession(), ServerResponseType.CHATFROMOPPONENT, message);
+        ClientHandler.sendMessage(receiever.getClientSession(), ServerResponseType.CHATFROMOPPONENT, message,Integer.MAX_VALUE);
     }
 
     public void closeGame(BackendClient player, boolean isClient1Winner, boolean isDraw, boolean isEarlyExit) {
@@ -54,12 +54,12 @@ public class ChessGame {
         String extraInfo = isEarlyExit ? requester + " closed the game early" : winner + " won the game";
 
         // update clients about game closing
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo);
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo,Integer.MAX_VALUE);
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo,Integer.MAX_VALUE);
 
         // update clients about how much elo they won/lost
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[0]));
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[1]));
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[0]),Integer.MAX_VALUE);
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[1]),Integer.MAX_VALUE);
 
 
     }

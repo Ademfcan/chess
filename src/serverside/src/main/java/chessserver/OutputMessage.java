@@ -3,14 +3,24 @@ package chessserver;
 public class OutputMessage {
     ServerResponseType serverResponseType;
     String extraInformation;
+    int uniqueId;
 
     public OutputMessage() {
         // for json serialize
     }
 
-    public OutputMessage(ServerResponseType serverResponseType, String extraInformation) {
+    public OutputMessage(ServerResponseType serverResponseType, String extraInformation, int uniqueId) {
         this.serverResponseType = serverResponseType;
         this.extraInformation = extraInformation;
+        this.uniqueId = uniqueId;
+    }
+
+    public int getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(int uniqueId) {
+        this.uniqueId = uniqueId;
     }
 
     public ServerResponseType getServerResponseType() {

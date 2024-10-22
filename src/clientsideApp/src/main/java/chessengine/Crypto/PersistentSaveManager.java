@@ -7,10 +7,8 @@ import chessserver.UserInfo;
 import chessserver.UserPreferences;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
-import javax.crypto.SecretKey;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -126,10 +124,7 @@ public class PersistentSaveManager {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Check if the line contains the data to remove
-                String[] split = line.split(",");
-                Arrays.stream(split).forEach(s -> s = s.trim());
-                // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer 10  = isWhiteOriented
-                games.add(ChessGame.createGameFromSaveLoad(split[8], split[1], split[2], split[3], Integer.parseInt(split[4]), Integer.parseInt(split[5]), split[6], split[7], Boolean.parseBoolean(split[9]), Boolean.parseBoolean(split[10]), split[0]));
+                games.add(CryptoUtils.gameFromSaveString(line));
             }
             reader.close();
         } catch (FileNotFoundException e) {
@@ -183,7 +178,7 @@ public class PersistentSaveManager {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, isAppend));
             for (ChessGame game : content) {
-                writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getWhitePlayerName() + "," + game.getBlackPlayerName() + "," + game.getWhiteElo() + "," + game.getBlackElo() + "," + game.getWhitePlayerPfpUrl() + "," + game.getBlackPlayerPfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "," + game.isWhiteOriented() + "\n");
+                writer.write(CryptoUtils.chessGameToSaveString(game));
             }
             // Write content to the file
 
@@ -200,7 +195,7 @@ public class PersistentSaveManager {
         try {
             // Open the file in append mode
             BufferedWriter writer = new BufferedWriter(new FileWriter(appdataPathGameSaves, true));
-            writer.write(game.hashCode() + "," + game.getGameName() + "," + game.getWhitePlayerName() + "," + game.getBlackPlayerName() + "," + game.getWhiteElo() + "," + game.getBlackElo() + "," + game.getWhitePlayerPfpUrl() + "," + game.getBlackPlayerPfpUrl() + "," + game.gameToPgn() + "," + game.isVsComputer() + "," + game.isWhiteOriented() + "\n");
+            writer.write(CryptoUtils.chessGameToSaveString(game) + "\n");
             // Write content to the file
 
             // Close the writer
