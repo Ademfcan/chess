@@ -34,7 +34,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3' // Use the latest version
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21'
 
-
+    implementation 'com.zaxxer:HikariCP:5.0.1' // Or the latest version
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

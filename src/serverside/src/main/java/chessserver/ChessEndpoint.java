@@ -1,5 +1,8 @@
 package chessserver;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
@@ -17,11 +20,23 @@ public class ChessEndpoint {
         this.session = session;
         try {
             // Lookup DataSource using JNDI
-            InitialContext ctx = new InitialContext();
-            dataSource = (DataSource) ctx.lookup("java:comp/env/jdbc/chessDB");
+            dataSource = initDbConnection();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private HikariDataSource initDbConnection(){
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mysql://localhost:3306/chessDB");
+        config.setUsername("admin");
+        config.setPassword("chess");
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("autoReconnect", "true");
+
+        return new HikariDataSource(config);
     }
 
     @OnMessage
