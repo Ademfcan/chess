@@ -261,7 +261,7 @@ public class UserPreferenceManager {
 
     public void resetToDefault() {
         userPref = ChessConstants.defaultPreferences;
-        pushChangesToDatabase();
+//        pushChangesToDatabase();
         loadChanges();
     }
 

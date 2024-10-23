@@ -1,7 +1,7 @@
 package chessserver;
 
-import java.util.Base64;
-import java.util.Iterator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 public class UserInfo {
@@ -16,7 +16,7 @@ public class UserInfo {
     List<Integer> incomingRequests;
     List<String> outgoingRequests;
     long lastUpdateTimeMS;
-    List<String> compressedGames;
+    List<String> savedGames;
 
     public UserInfo(int userelo, String userName, String userEmail, int uuid, CampaignProgress userCampaignProgress, ProfilePicture profilePicture, List<FriendInfo> friendUserNames, List<Integer> incomingRequests, List<String> outgoingRequests, List<String> compressedGames) {
         this.userelo = userelo;
@@ -29,7 +29,7 @@ public class UserInfo {
         this.friendUserNames = friendUserNames;
         this.incomingRequests = incomingRequests;
         this.outgoingRequests = outgoingRequests;
-        this.compressedGames = compressedGames;
+        this.savedGames = compressedGames;
         updateLastTimeStamp();
     }
 
@@ -51,31 +51,31 @@ public class UserInfo {
         lastUpdateTimeMS = System.currentTimeMillis();
     }
 
-    public List<String> getCompressedGames() {
-        return compressedGames;
+    public List<String> getSavedGames() {
+        return savedGames;
     }
 
-    public void setCompressedGames(List<String> compressedGames) {
-        this.compressedGames = compressedGames;
+    public void setSavedGames(List<String> savedGames) {
+        this.savedGames = savedGames;
         updateLastTimeStamp();
     }
 
-    public void addGameUncompressed(String gameHash,String saveStringUncompresssed) {
-        compressedGames.add(gameHash + "," + Base64.getEncoder().encodeToString(saveStringUncompresssed.getBytes()));
+    public void addSaveGame(String saveStringUncompresssed) {
+        savedGames.add(saveStringUncompresssed);
         updateLastTimeStamp();
     }
 
-    public void removeGameUncompressed(String gameHash){
-        compressedGames.removeIf(game -> game.split(",")[0].equals(gameHash));
+    public void removeSaveGame(String gameHash){
+        savedGames.removeIf(game -> game.split(",")[0].equals(gameHash));
         updateLastTimeStamp();
     }
-
-    public String[] getUncompressedSaveStrings() {
-        String[] uncompressedSaveStrings = new String[compressedGames.size()];
-        for (int i = 0; i < compressedGames.size(); i++) {
-            uncompressedSaveStrings[i] = new String(Base64.getDecoder().decode(compressedGames.get(i)));
+    @JsonIgnore
+    public String[] aquireSaveStrings() {
+        String[] saveStrings = new String[savedGames.size()];
+        for (int i = 0; i < savedGames.size(); i++) {
+            saveStrings[i] = savedGames.get(i);
         }
-        return uncompressedSaveStrings;
+        return saveStrings;
     }
 
     public List<Integer> getIncomingRequests() {

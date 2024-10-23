@@ -3,6 +3,7 @@ package chessengine.Managers;
 import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
+import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Graphics.StartScreenController;
 import chessengine.Misc.ChessConstants;
@@ -29,7 +30,7 @@ public class ClientManager {
     }
 
     public boolean isLoggedIn() {
-        return !appUser.getInfo().getUserEmail().equals(ChessConstants.DEFAULTEMAIL);
+        return KeyManager.tryLoadCurrentPasswordHash() != null;
     }
 
     public UserInfo getCurrentUser() {
@@ -168,6 +169,7 @@ public class ClientManager {
     private void loadChanges() {
         App.startScreenController.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(), appUser.getInfo().getUuid());
         App.startScreenController.campaignManager.setLevelUnlocksBasedOnProgress(appUser.getInfo().getUserCampaignProgress());
+        App.startScreenController.setupOldGamesBox(readSavedGames());
         PersistentSaveManager.writeUserToAppData(appUser.getInfo());
     }
 
@@ -205,23 +207,22 @@ public class ClientManager {
     }
 
     public void saveUserGame(ChessGame game) {
-        appUser.getInfo().addGameUncompressed(game.getGameHash(),CryptoUtils.chessGameToSaveString(game));
+        appUser.getInfo().addSaveGame(CryptoUtils.chessGameToSaveString(game));
         loadChanges();
         pushChangesToDatabase();
     }
 
     public void removeGameFromSave(String hashCode) {
-        appUser.getInfo().removeGameUncompressed(hashCode);
+        appUser.getInfo().removeSaveGame(hashCode);
         loadChanges();
         pushChangesToDatabase();
     }
 
     public List<ChessGame> readSavedGames() {
         List<ChessGame> out = new ArrayList<>();
-        String[] saves = appUser.getInfo().getUncompressedSaveStrings();
+        String[] saves = appUser.getInfo().aquireSaveStrings();
         for(String save : saves){
-            String savePart = save.split(",")[1];
-            out.add(CryptoUtils.gameFromSaveString(savePart));
+            out.add(CryptoUtils.gameFromSaveString(save));
         }
 
         return out;

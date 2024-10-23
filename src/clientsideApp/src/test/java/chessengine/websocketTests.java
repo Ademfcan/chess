@@ -31,8 +31,23 @@ public class websocketTests {
         }
     }
 
-//    @Test void makePgnMoveTest(){
-//        ChessGame testGame = ChessGame.createTestGame()
-//    }
+    @Test void consumerTest(){
+        try {
+            WebSocketClient c1 = new WebSocketClient(new FrontendClient(ChessConstants.defaultClient.getInfo()));
+            c1.sendRequest(INTENT.GETNUMBEROFPOOLERS,"reg10", (out) ->{
+                System.out.println("Recieved message: \n" + out);
+            });
+            Thread.sleep(2000);
+
+        }
+        catch (DeploymentException | IOException e){
+            System.out.println(e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
 
 }

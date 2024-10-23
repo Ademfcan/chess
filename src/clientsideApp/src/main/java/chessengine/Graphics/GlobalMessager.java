@@ -46,6 +46,13 @@ public class GlobalMessager {
     public GlobalMessager() {
         isInit = false;
     }
+    public void addLoadingCircle(boolean isStart){
+        ProgressIndicator indicator = new ProgressIndicator();
+        indicator.setUserData("l_c");
+        Pane ref = isStart ? startRef : mainRef;
+        ref.getChildren().add(indicator);
+    }
+
     public void Init(Group startMessager, Group mainMessager, Pane startRef, Pane mainRef) {
         this.startMessager = startMessager;
         this.mainMessager = mainMessager;
@@ -66,12 +73,6 @@ public class GlobalMessager {
         });
 
         isInit = true;
-    }
-
-    public void addLoadingCircle(boolean isStart){
-        ProgressIndicator indicator = new ProgressIndicator();
-        Pane ref = isStart ? startRef : mainRef;
-        ref.getChildren().add(indicator);
     }
 
     public boolean isInit() {
@@ -344,6 +345,12 @@ public class GlobalMessager {
 
         ref.getChildren().addAll(focusMaskTop,focusMaskBottom,focusMaskLeft,focusMaskRight);
 
+
+    }
+
+    public void removeLoadingCircles(boolean isStart) {
+        Pane ref = isStart ? startRef : mainRef;
+        ref.getChildren().removeIf(c -> c.getUserData() != null && c.getUserData().equals("l_c"));
 
     }
 

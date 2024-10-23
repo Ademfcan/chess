@@ -111,7 +111,12 @@ public class ClientHandler {
                                 String uuidQuery = "SELECT * from UUID";
                                 PreparedStatement uuidStmt = conn.prepareStatement(uuidQuery);
                                 ResultSet uuidRs = uuidStmt.executeQuery();
-                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, uuidRs.getString("currentUUID"), input.getUniqueId());
+                                if(uuidRs.next()){
+                                    sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, uuidRs.getString("currentUUID"), input.getUniqueId());
+                                }
+                                else{
+                                    sendMessage(session,ServerResponseType.INVALIDOPERATION,"Major error! UUID should never be null", Integer.MAX_VALUE);
+                                }
                             } else {
                                 sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "", input.getUniqueId());
                             }
@@ -121,7 +126,12 @@ public class ClientHandler {
                             String query = "SELECT * from UUID";
                             PreparedStatement stmt = conn.prepareStatement(query);
                             ResultSet rs = stmt.executeQuery();
-                            sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, rs.getString("currentUUID"), input.getUniqueId());
+                            if(rs.next()){
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, rs.getString("currentUUID"), input.getUniqueId());
+                            }
+                            else{
+                                sendMessage(session,ServerResponseType.INVALIDOPERATION,"Major error! UUID should never be null", Integer.MAX_VALUE);
+                            }
                         }
 
                         case IncrementUUID -> {
@@ -152,9 +162,9 @@ public class ClientHandler {
                                     addStmt.setString(1, requesterUUID + ",");
                                     addStmt.setString(2, Integer.toString(incomingUUID));
                                 }
-                                sendMessage(session,ServerResponseType.SQLSUCESS,"Friend Request Sent", input.getUniqueId());
+                                sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"true", input.getUniqueId());
                             } else {
-                                sendMessage(session, ServerResponseType.SQLMESSAGE, "Friend not found in database!", input.getUniqueId());
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "false", input.getUniqueId());
                             }
 
                         }
@@ -168,10 +178,26 @@ public class ClientHandler {
                             ResultSet rs = stmt.executeQuery();
                             if(rs.next()){
                                 sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,rs.getString("Incomingrequests"),input.getUniqueId());
+
+                                // now also clear the requests
+
+                                String clearQuery = "Update users Set Incomingrequests = '' Where UUID = ? And Passwordhash = ?";
+                                PreparedStatement clearStmt = conn.prepareStatement(clearQuery);
+
+                                if(clearStmt.executeUpdate() > 0){
+                                    sendMessage(session,ServerResponseType.SQLSUCESS,"cleared requests",Integer.MAX_VALUE);
+                                }
+                                else{
+                                    sendMessage(session,ServerResponseType.SQLERROR,"failed to clear requests",Integer.MAX_VALUE);
+                                }
+
+
                             }
                             else{
                                 sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"",input.getUniqueId());
                             }
+
+
                         }
 
                         case GETUUIDS -> {

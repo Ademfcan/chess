@@ -36,7 +36,7 @@ public enum INTENT {
     GetCurrentUUID(true),
     /** does not require a response action**/
     IncrementUUID(true),
-    /** does not require a response action**/
+    /** requires a response action**/
     SENDFRIENDREQUEST(true),
     /** requires a response action**/
     GETUUIDS(true),

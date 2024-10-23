@@ -135,7 +135,7 @@ public class WebSocketClient {
 //        logger.debug("Sending request with Intent: " + intent.toString() + " exInfo: " + extraInfo);
         try {
             InputMessage inputMessage = new InputMessage(this.client, intent, extraInfo);
-            String message = ChessConstants.objectMapper.writeValueAsString(new InputMessage(this.client, intent, extraInfo));
+            String message = ChessConstants.objectMapper.writeValueAsString(inputMessage);
             if(runOnResponse != null){
                 responseMap.put(inputMessage.getUniqueId(),runOnResponse);
             }

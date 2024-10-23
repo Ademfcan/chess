@@ -34,6 +34,7 @@ import org.nd4j.shade.jackson.core.JsonProcessingException;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class App extends Application {
@@ -100,7 +101,13 @@ public class App extends Application {
 
     public static boolean attemptReconnection() {
         try {
+            messager.sendMessageQuick("Disconnected from server, reconnecting...",true);
+            messager.sendMessageQuick("Disconnected from server, reconnecting...",false);
+            messager.addLoadingCircle(true);
+            messager.addLoadingCircle(false);
             webclient = userManager.getClientFromUser();
+            messager.removeLoadingCircles(true);
+            messager.removeLoadingCircles(false);
             return true;
         } catch (DeploymentException e) {
             ChessConstants.mainLogger.debug("Connection Failed");
@@ -236,11 +243,13 @@ public class App extends Application {
 
             if (userManager.isLoggedIn()) {
                 logout();
+                System.out.println("----------------------------------------------------------");
             }
 
 
             userManager.changeUserName(username, false);
             userManager.changeUUID(currentUUID, false);
+            KeyManager.saveNewPassword(passwordHash,false);
 
             databaseRequest(INTENT.PUTUSER, userManager.getCurrentUser(), userPreferenceManager.getUserPref(), passwordHash, null);
 
@@ -252,6 +261,7 @@ public class App extends Application {
     public static void logout() {
         userManager.logout();
         userPreferenceManager.resetToDefault();
+        startScreenController.setupOldGamesBox(new ArrayList<>());
         startScreenController.campaignManager.reset();
     }
 
@@ -333,7 +343,6 @@ public class App extends Application {
     public static void refreshAppWithNewUser(DatabaseEntry databaseEntry) {
         App.userPreferenceManager.reloadWithUser(databaseEntry.getPreferences(), false);
         App.userManager.reloadNewAppUser(databaseEntry.getUserInfo(), false);
-        // todo, reload games below
     }
 
     @Override
@@ -389,12 +398,7 @@ public class App extends Application {
         notifyPreloader(new Preloader.ProgressNotification(0.5));
 
 
-        if (webclient != null) {
-            synchronizeWithServer();
-            notifyPreloader(new AppStateChangeNotification("Connected to server"));
-        } else {
-            notifyPreloader(new AppStateChangeNotification("Server connection failed"));
-        }
+
 
 
         notifyPreloader(new Preloader.ProgressNotification(0.5));
@@ -405,6 +409,13 @@ public class App extends Application {
         messager = new GlobalMessager();
         userPreferenceManager = new UserPreferenceManager();
         campaignMessager = new CampaignMessageManager(ChessCentralControl);
+
+        if (webclient != null) {
+            synchronizeWithServer();
+            notifyPreloader(new AppStateChangeNotification("Connected to server"));
+        } else {
+            notifyPreloader(new AppStateChangeNotification("Server connection failed"));
+        }
     }
 
     @Override

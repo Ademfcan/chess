@@ -2,6 +2,8 @@ package chessengine.Graphics;
 
 import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
+import chessengine.Crypto.CryptoUtils;
+import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
@@ -25,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.nd4j.shade.jackson.core.JsonProcessingException;
 
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -435,6 +438,7 @@ public class StartScreenController implements Initializable {
             if (currentState.equals(StartScreenState.USERSETTINGS)) {
                 setSelection(lastStateBeforeUserSettings);
             } else {
+                setUserOptions(0);
                 setSelection(StartScreenState.USERSETTINGS);
             }
         });
@@ -454,6 +458,7 @@ public class StartScreenController implements Initializable {
                     }
                     else{
                         try{
+                            KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
                             DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
                             Platform.runLater(() ->{
                                 System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
@@ -462,7 +467,10 @@ public class StartScreenController implements Initializable {
                             });
 
                         } catch (JsonProcessingException jsonProcessingException) {
-                            logger.error("Json processing exeption when parsing validate client request output!",jsonProcessingException);
+                            logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
+                        }
+                        catch (NoSuchAlgorithmException noSuchAlgorithmException){
+                            logger.error("Should never hit this \n", noSuchAlgorithmException);
                         }
                     }}
                 );
@@ -545,7 +553,7 @@ public class StartScreenController implements Initializable {
 
     }
 
-    // 0 = user info 1 = login 2 = sign up
+    /** 0 = user info 1 = login 2 = sign up **/
     private void setUserOptions(int i) {
         accountCreationPage.setVisible(i == 2);
         accountCreationPage.setMouseTransparent(i != 2);
@@ -902,7 +910,7 @@ public class StartScreenController implements Initializable {
         return App.userManager.readSavedGames();
     }
 
-    private void setupOldGamesBox(List<ChessGame> gamesToLoad) {
+    public void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g);
