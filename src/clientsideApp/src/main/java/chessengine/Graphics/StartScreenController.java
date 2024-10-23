@@ -189,6 +189,11 @@ public class StartScreenController implements Initializable {
     Label computerLabel;
 
 
+
+    @FXML
+    StackPane userSettingsStack;
+    @FXML
+    HBox topUserInfoBox;
     // login page
 
     @FXML
@@ -249,9 +254,35 @@ public class StartScreenController implements Initializable {
     @FXML
     Label userInfoUserElo;
     @FXML
+    Label userInfoRank;
+    @FXML
     Hyperlink SignUpPage;
     @FXML
     Hyperlink LoginPage;
+    @FXML
+    Label profileOldGamesLabel;
+    @FXML
+    ScrollPane profileOldGamesPanel;
+    @FXML
+    VBox profileOldGamesPanelContent;
+    @FXML
+    Button FriendsButton;
+    @FXML
+    Button RequestsButton;
+    @FXML
+    Button SuggestedFriendsButton;
+    @FXML
+    ScrollPane FriendsPanel;
+    @FXML
+    StackPane FriendsStackpane;
+    @FXML
+    VBox YourFriends;
+    @FXML
+    VBox YourFriendRequests;
+    @FXML
+    VBox YourSuggestedFriends;
+
+
 
 
     @FXML
@@ -328,9 +359,9 @@ public class StartScreenController implements Initializable {
         eloProfileLabel.setText(Integer.toString(elo));
 
         userInfoPfp.setImage(new Image(picture.urlString));
-        userInfoUserName.setText(name);
-        userInfoUserElo.setText(Integer.toString(elo));
-        userInfoUUID.setText(Integer.toString(uuid));
+        userInfoUserName.setText("Name: " + name);
+        userInfoUserElo.setText("ELO: " + elo);
+        userInfoUUID.setText("ID: " + uuid);
     }
 
     private void setUpCampaignScreen() {
@@ -436,7 +467,12 @@ public class StartScreenController implements Initializable {
     private void setUpUserSettings() {
         profileButton.setOnMouseClicked(e -> {
             if (currentState.equals(StartScreenState.USERSETTINGS)) {
-                setSelection(lastStateBeforeUserSettings);
+                if(userInfoPage.isVisible()){
+                    setSelection(lastStateBeforeUserSettings);
+                }
+                else{
+                    setUserOptions(0);
+                }
             } else {
                 setUserOptions(0);
                 setSelection(StartScreenState.USERSETTINGS);
@@ -543,9 +579,30 @@ public class StartScreenController implements Initializable {
             App.userManager.updateUserPfp(nextPicture);
         });
 
+        // bindings
+        App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
+        App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
+
+        userSettingsStack.prefWidthProperty().bind(userSettingScreen.widthProperty());
+        userSettingsStack.prefHeightProperty().bind(userSettingScreen.heightProperty());
+
+        App.bindingController.bindCustom(userSettingsStack.widthProperty(),userInfoPfp.fitWidthProperty(),150,.3);
+        App.bindingController.bindCustom(userSettingsStack.heightProperty(),userInfoPfp.fitHeightProperty(),150,.3);
+
+        App.bindingController.bindLargeText(userInfoUserName,false,"Black");
+        App.bindingController.bindLargeText(userInfoUUID,false,"Black");
+        App.bindingController.bindSmallText(SignUpPage,false,"Black");
+        App.bindingController.bindSmallText(LoginPage,false,"Black");
+        App.bindingController.bindSmallText(LoginPage,false,"Black");
+        App.bindingController.bindSmallText(profileOldGamesLabel,false,"Black");
+        App.bindingController.bindSmallText(FriendsButton,false,"Black");
+        App.bindingController.bindSmallText(RequestsButton,false,"Black");
+        App.bindingController.bindSmallText(SuggestedFriendsButton,false,"Black");
+
+        profileOldGamesPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        profileOldGamesPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(profileOldGamesLabel.heightProperty()));
     }
 
-    // todo when set up server figure out profile picture cycle system
     private ProfilePicture getNextPfp(ProfilePicture current) {
         int next = (current.ordinal() + 1) % ProfilePicture.values().length;
         return ProfilePicture.values()[next];

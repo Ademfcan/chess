@@ -234,6 +234,13 @@ public class ClientHandler {
                             }
                             sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, usernameResponses.toString(), input.getUniqueId());
                         }
+
+//                        case GETRANK ->{
+//                            String UUID = input.getExtraInformation();
+//
+//
+//                        }
+                        // todo but need database elo param
                     }
 //
                 } catch (SQLException sqlException) {

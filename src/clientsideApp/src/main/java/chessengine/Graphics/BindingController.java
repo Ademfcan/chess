@@ -3,8 +3,10 @@ package chessengine.Graphics;
 import chessengine.App;
 import javafx.beans.binding.*;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 
 
@@ -277,6 +279,16 @@ public class BindingController {
         return Bindings.min(parent.heightProperty().multiply(percentExpectedSize), maxSize);
 
     }
+
+    private NumberBinding getMaxSizeBindingCustom(ReadOnlyDoubleProperty parent, double maxSize, double percentExpectedSize) {
+        return Bindings.min(parent.multiply(percentExpectedSize), maxSize);
+    }
+
+    public void bindCustom(ReadOnlyDoubleProperty parent, DoubleProperty child, double maxSize, double percentExpectedSize){
+        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize,percentExpectedSize);
+        child.bind(sizeBinding);
+    }
+
 
 
 }

@@ -43,7 +43,9 @@ public enum INTENT {
     /** requires a response action**/
     GETUSERNAMES(true),
     /** requires a response action**/
-    READINCOMINGFRIENDREQUESTS(true);
+    READINCOMINGFRIENDREQUESTS(true),
+    /** requires a response action**/
+    GETRANK(true);
 
     boolean isDbRelated;
     private INTENT(boolean isDbRelated){
