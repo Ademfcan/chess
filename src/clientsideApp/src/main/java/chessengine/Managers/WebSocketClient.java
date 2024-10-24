@@ -145,9 +145,9 @@ public class WebSocketClient {
         }
     }
 
-    public void getUserRequest(String userName, String userPassword,Consumer<String> requestAction) {
+    public void getUserRequest(String userName, String userPasswordHash,Consumer<String> requestAction) {
         // todo: encrypt!!
-        sendRequest(INTENT.GETUSER, userName + "," + userPassword,requestAction);
+        sendRequest(INTENT.GETUSER, userName + "," + userPasswordHash,requestAction);
 
     }
 

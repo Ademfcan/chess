@@ -14,7 +14,7 @@ public class CryptoUtils {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
         // Compute the hash of the input string
-        byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+        byte[] hash = digest.digest(input.trim().getBytes(StandardCharsets.UTF_8));
 
         // Encode the byte array into a Base64 string
         return Base64.getEncoder().encodeToString(hash);

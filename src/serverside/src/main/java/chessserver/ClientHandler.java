@@ -8,10 +8,7 @@ import javax.sql.DataSource;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.sql.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class ClientHandler {
     private static final Logger logger = LogManager.getLogger("Client_Handler");
@@ -45,6 +42,8 @@ public class ClientHandler {
                             } else {
                                 sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "", input.getUniqueId());
                             }
+                            rs.close();
+                            stmt.close();
                         }
 
                         case PUTUSER -> {
@@ -61,6 +60,7 @@ public class ClientHandler {
                             if (rowsInserted > 0) {
                                 logger.debug("A new user was inserted successfully!");
                             }
+                            pstmt.close();
 
                             // also increment uuid
 
@@ -70,6 +70,7 @@ public class ClientHandler {
                             if (stmt.executeUpdate() > 0) {
                                 sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
                             }
+                            stmt.close();
 
                         }
 
@@ -84,6 +85,7 @@ public class ClientHandler {
                             if (stmt.executeUpdate() > 0) {
                                 sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
                             }
+                            stmt.close();
 
                         }
 
@@ -98,6 +100,7 @@ public class ClientHandler {
                             if (stmt.executeUpdate() > 0) {
                                 sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
                             }
+                            stmt.close();
 
                         }
 
@@ -117,9 +120,13 @@ public class ClientHandler {
                                 else{
                                     sendMessage(session,ServerResponseType.INVALIDOPERATION,"Major error! UUID should never be null", Integer.MAX_VALUE);
                                 }
+                                uuidRs.close();
+                                uuidStmt.close();
                             } else {
                                 sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "", input.getUniqueId());
                             }
+                            rs.close();
+                            stmt.close();
                         }
 
                         case GetCurrentUUID -> {
@@ -132,6 +139,8 @@ public class ClientHandler {
                             else{
                                 sendMessage(session,ServerResponseType.INVALIDOPERATION,"Major error! UUID should never be null", Integer.MAX_VALUE);
                             }
+                            stmt.close();
+                            rs.close();
                         }
 
                         case IncrementUUID -> {
@@ -140,6 +149,7 @@ public class ClientHandler {
                             if (stmt.executeUpdate() > 0) {
                                 sendMessage(session, ServerResponseType.SQLSUCESS, "", input.getUniqueId());
                             }
+                            stmt.close();
                         }
 
                         case SENDFRIENDREQUEST -> {
@@ -151,7 +161,6 @@ public class ClientHandler {
                             if (rs.next()) {
                                 int incomingUUID = Integer.parseInt(rs.getString("UUID"));
                                 String requesterUUID = Integer.toString(input.getClient().getInfo().getUuid());
-                                int requesterUsername = input.getClient().getInfo().getUuid();
                                 if (UUIDSessionMap.containsKey(incomingUUID)) {
                                     // requested friend is online
                                     sendMessage(UUIDSessionMap.get(incomingUUID), ServerResponseType.INCOMINGFRIENDREQUEST, requesterUUID, input.getUniqueId());
@@ -161,11 +170,16 @@ public class ClientHandler {
                                     PreparedStatement addStmt = conn.prepareStatement(addQuery);
                                     addStmt.setString(1, requesterUUID + ",");
                                     addStmt.setString(2, Integer.toString(incomingUUID));
+                                    addStmt.executeUpdate();
+                                    addStmt.close();
                                 }
                                 sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"true", input.getUniqueId());
                             } else {
                                 sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, "false", input.getUniqueId());
                             }
+
+                            rs.close();
+                            stmt.close();
 
                         }
 
@@ -197,6 +211,9 @@ public class ClientHandler {
                                 sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"",input.getUniqueId());
                             }
 
+                            rs.close();
+                            stmt.close();
+
 
                         }
 
@@ -213,8 +230,11 @@ public class ClientHandler {
                                     uuidResponses.append(",");
 
                                 }
+                                stmt.close();
+                                rs.close();
                             }
                             sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, uuidResponses.toString(), input.getUniqueId());
+
 
                         }
 
@@ -231,16 +251,39 @@ public class ClientHandler {
                                     usernameResponses.append(",");
 
                                 }
+                                rs.close();
+                                stmt.close();
                             }
                             sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, usernameResponses.toString(), input.getUniqueId());
                         }
 
+                        // todo but need database elo param
 //                        case GETRANK ->{
 //                            String UUID = input.getExtraInformation();
 //
 //
 //                        }
-                        // todo but need database elo param
+
+                        case MATCHALLUSERNAMES -> {
+                            String usernameSnippet = input.getExtraInformation();
+                            String query = "SELECT Username from users where Username like ?";
+                            PreparedStatement stmt = conn.prepareStatement(query);
+                            stmt.setString(1,"%" + usernameSnippet + "%");
+                            ResultSet rs = stmt.executeQuery();
+                            if(rs.next()){
+                                StringBuilder output = new StringBuilder(rs.getString("Username"));
+                                while (rs.next()){
+                                    output.append(",");
+                                    output.append(rs.getString("Username"));
+                                }
+                                sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, output.toString(), input.getUniqueId());
+                            }
+                            else{
+                                sendMessage(session,ServerResponseType.SERVERRESPONSEACTIONREQUEST,"", input.getUniqueId());
+                            }
+                            rs.close();
+                            stmt.close();
+                        }
                     }
 //
                 } catch (SQLException sqlException) {

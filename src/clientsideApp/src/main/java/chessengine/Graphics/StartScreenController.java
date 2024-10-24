@@ -4,7 +4,6 @@ import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
-import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
 import chessengine.Managers.CampaignManager;
@@ -194,6 +193,9 @@ public class StartScreenController implements Initializable {
     StackPane userSettingsStack;
     @FXML
     HBox topUserInfoBox;
+
+    @FXML
+    HBox bottomUserInfoBox;
     // login page
 
     @FXML
@@ -241,7 +243,7 @@ public class StartScreenController implements Initializable {
     @FXML
     Label eloProfileLabel;
     @FXML
-    Button saveUserOptions;
+    Button loginButton;
 
     @FXML
     VBox userInfoPage;
@@ -478,38 +480,45 @@ public class StartScreenController implements Initializable {
                 setSelection(StartScreenState.USERSETTINGS);
             }
         });
-        saveUserOptions.setOnMouseClicked(e -> {
-
+        loginButton.setOnMouseClicked(e -> {
+            nameInput.setPromptText("");
+            passwordInput.setPromptText("");
             if (nameInput.getText().isEmpty()) {
                 nameInput.setPromptText("please enter a name");
             }
             if (passwordInput.getText().isEmpty()) {
                 passwordInput.setPromptText("please enter a password");
             } else {
-                App.getUserRequest(nameInput.getText(), passwordInput.getText(),(out) ->{
-                    if(out.isEmpty()){
-                        Platform.runLater(() -> {
-                            App.messager.sendMessageQuick("Invalid account!",true);
-                        });
-                    }
-                    else{
-                        try{
-                            KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
-                            DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
-                            Platform.runLater(() ->{
-                                System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
-                                App.refreshAppWithNewUser(newEntry);
-
+                try{
+                    String passwordHash = CryptoUtils.sha256AndBase64(passwordInput.getText());
+                    App.getUserRequest(nameInput.getText(),passwordHash,(out) ->{
+                        if(out.isEmpty()){
+                            Platform.runLater(() -> {
+                                App.messager.sendMessageQuick("Invalid account!",true);
                             });
+                        }
+                        else{
+                            try{
+                                KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
+                                DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                                Platform.runLater(() ->{
+                                    System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
+                                    App.refreshAppWithNewUser(newEntry);
 
-                        } catch (JsonProcessingException jsonProcessingException) {
-                            logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
-                        }
-                        catch (NoSuchAlgorithmException noSuchAlgorithmException){
-                            logger.error("Should never hit this \n", noSuchAlgorithmException);
-                        }
-                    }}
-                );
+                                });
+
+                            } catch (JsonProcessingException jsonProcessingException) {
+                                logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
+                            }
+                            catch (NoSuchAlgorithmException noSuchAlgorithmException){
+                                logger.error("Should never hit this \n", noSuchAlgorithmException);
+                            }
+                        }}
+                    );
+                }
+                catch (NoSuchAlgorithmException noSuchAlgorithmException){
+                    logger.error("Never gonna hit this lol",noSuchAlgorithmException);
+                }
                 nameInput.clear();
                 passwordInput.clear();
 
@@ -585,6 +594,14 @@ public class StartScreenController implements Initializable {
 
         userSettingsStack.prefWidthProperty().bind(userSettingScreen.widthProperty());
         userSettingsStack.prefHeightProperty().bind(userSettingScreen.heightProperty());
+        userInfoPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
+        userInfoPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
+
+        accountCreationPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
+        accountCreationPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
+
+        loginPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
+        loginPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
 
         App.bindingController.bindCustom(userSettingsStack.widthProperty(),userInfoPfp.fitWidthProperty(),150,.3);
         App.bindingController.bindCustom(userSettingsStack.heightProperty(),userInfoPfp.fitHeightProperty(),150,.3);
@@ -599,8 +616,17 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindSmallText(RequestsButton,false,"Black");
         App.bindingController.bindSmallText(SuggestedFriendsButton,false,"Black");
 
-        profileOldGamesPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        profileOldGamesPanel.setFitToWidth(true);
+        profileOldGamesPanel.setFitToHeight(true);
+
+//        profileOldGamesPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        profileOldGamesPanel.setPrefWidth(600);
+//        profileOldGamesPanelContent.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        profileOldGamesPanelContent.setPrefWidth(600);
         profileOldGamesPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(profileOldGamesLabel.heightProperty()));
+        FriendsPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().multiply(.4));
+        FriendsPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(FriendsButton.heightProperty()));
+
     }
 
     private ProfilePicture getNextPfp(ProfilePicture current) {
@@ -893,7 +919,7 @@ public class StartScreenController implements Initializable {
 
     }
 
-    public void AddNewGameToSaveGui(ChessGame newGame) {
+    public void AddNewGameToSaveGui(ChessGame newGame, VBox gamesContainer) {
         HBox gameContainer = new HBox();
 
         gameContainer.setAlignment(Pos.CENTER);
@@ -947,18 +973,19 @@ public class StartScreenController implements Initializable {
         gameContainer.getChildren().add(openGame);
         gameContainer.getChildren().add(deleteButton);
 
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(oldGamesPanel, gameContainer, 75, .15);
-        gameContainer.prefWidthProperty().bind(oldGamesPanel.widthProperty());
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(gamesContainer, gameContainer, 75, .15);
+        gameContainer.prefWidthProperty().bind(gameContainer.widthProperty());
         gameContainer.setStyle("-fx-background-color: darkgrey");
         gameContainer.setUserData(String.valueOf(newGame.getGameHash()));
 
-        oldGamesPanelContent.getChildren().add(0, gameContainer);
+        gamesContainer.getChildren().add(0, gameContainer);
     }
 
     private void removeFromOldGames(String hashCode) {
 //        PersistentSaveManager.removeGameFromData(hashCode);
         App.userManager.removeGameFromSave(hashCode);
         oldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
+        profileOldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
     }
 
     private List<ChessGame> loadGamesFromSave() {
@@ -969,8 +996,10 @@ public class StartScreenController implements Initializable {
 
     public void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
+        profileOldGamesPanelContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
-            AddNewGameToSaveGui(g);
+            AddNewGameToSaveGui(g,oldGamesPanelContent);
+            AddNewGameToSaveGui(g,profileOldGamesPanelContent);
         }
     }
 

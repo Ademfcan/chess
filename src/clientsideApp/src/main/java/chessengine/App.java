@@ -218,21 +218,18 @@ public class App extends Application {
 
     }
 
-    public static void getUserRequest(String username, String password,Consumer<String> requestAction) {
+    public static void getUserRequest(String username, String passwordHash,Consumer<String> requestAction) {
         if (webclient == null) {
             appLogger.debug("Client null trying to create new one");
             if (attemptReconnection()) {
-                getUserRequest(username, password,requestAction);
+                getUserRequest(username, passwordHash,requestAction);
             } else {
                 appLogger.error("Server Not Acessable!!");
 
             }
         } else {
-            try {
-                webclient.getUserRequest(username, CryptoUtils.sha256AndBase64(password),requestAction);
-            } catch (NoSuchAlgorithmException e) {
-                appLogger.error("Never should hit this lol", e);
-            }
+            webclient.getUserRequest(username, passwordHash,requestAction);
+
 
         }
     }
@@ -249,7 +246,7 @@ public class App extends Application {
 
             userManager.changeUserName(username, false);
             userManager.changeUUID(currentUUID, false);
-            KeyManager.saveNewPassword(passwordHash,false);
+            KeyManager.saveNewPassword(passwordHash);
 
             databaseRequest(INTENT.PUTUSER, userManager.getCurrentUser(), userPreferenceManager.getUserPref(), passwordHash, null);
 
@@ -286,6 +283,7 @@ public class App extends Application {
         getUserRequest(userManager.getUserName(),currentPasswordHash,(out) ->{
             if(out.isEmpty()){
                 // no record of account on server, so make one
+                appLogger.warn("No user in the database, storing local copy");
                 databaseRequest(INTENT.PUTUSER,userManager.getCurrentUser(),userPreferenceManager.getUserPref(),currentPasswordHash,null);
             }
             else{
@@ -293,6 +291,7 @@ public class App extends Application {
                     DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
                     long serverLastTimeStamp = newEntry.getUserInfo().getLastUpdateTimeMS();
                     long localLastTimeStamp = userManager.getLastTimeStampMs();
+                    System.out.println("Server timestamp: " + serverLastTimeStamp + " local timestamp: " + localLastTimeStamp);
                     if(serverLastTimeStamp >= localLastTimeStamp){
                         // go with server, so update local
                         Platform.runLater(() ->{
@@ -313,7 +312,9 @@ public class App extends Application {
                 // now handle any incoming friend requests
 
                 sendRequest(INTENT.READINCOMINGFRIENDREQUESTS,userManager.getCurrentUser() + "," + currentPasswordHash,(friendRequests) ->{
-                    userManager.addMoreFriendRequests(friendRequests,true);
+                    if(!friendRequests.isEmpty()){
+                        userManager.addMoreFriendRequests(friendRequests,true);
+                    }
                 });
             }
         });

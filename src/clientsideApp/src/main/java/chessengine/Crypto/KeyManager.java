@@ -98,7 +98,7 @@ public class KeyManager {
         saveNewPassword(password, false);
     }
 
-    public static void saveNewPassword(String password, boolean makeNew) {
+    private static void saveNewPassword(String password, boolean makeNew) {
         try {
             KeyStore keyStore = KeyStore.getInstance("JCEKS");
 
