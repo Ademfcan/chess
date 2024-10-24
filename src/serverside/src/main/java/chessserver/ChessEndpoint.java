@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import javax.naming.InitialContext;
 
@@ -35,6 +36,10 @@ public class ChessEndpoint {
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         config.addDataSourceProperty("autoReconnect", "true");
+        config.setConnectionTimeout(10000);
+        config.setIdleTimeout(30000);
+        config.setMaxLifetime(TimeUnit.HOURS.toMillis(1));
+        config.setMaximumPoolSize(30);
 
         return new HikariDataSource(config);
     }
