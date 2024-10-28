@@ -24,7 +24,7 @@ public class ChessGame {
 
     private final boolean firstTurnDefault = true; // true means player 1 goes first by default
     // castling etc
-    public ChessStates gameState;
+    public ChessGameState gameState;
     public ChessPosition currentPosition;
     public int curMoveIndex = -1;
     public int maxIndex = -1;
@@ -61,7 +61,7 @@ public class ChessGame {
      **/
     public static ChessGame createGameFromSaveLoad(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented, String gameHash) {
         ChessGame game = new ChessGame();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         if (pgn.trim().isEmpty()) {
             game.moves = new ArrayList<>();
         } else {
@@ -108,7 +108,7 @@ public class ChessGame {
         game.blackPlayerName = "";
         game.blackElo = 0;
         game.isWebGame = true;
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         game.gameType = gameType;
         game.currentPosition = game.getPos(game.curMoveIndex);
         game.isWhiteOriented = isWhiteOriented;
@@ -123,7 +123,7 @@ public class ChessGame {
     public static ChessGame createSimpleGameWithName(String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         game.curMoveIndex = -1;
         game.maxIndex = -1;
         game.currentPosition = game.getPos(game.curMoveIndex);
@@ -152,7 +152,7 @@ public class ChessGame {
     public static ChessGame createSimpleGame(String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         game.curMoveIndex = -1;
         game.maxIndex = -1;
         game.currentPosition = game.getPos(game.curMoveIndex);
@@ -180,7 +180,7 @@ public class ChessGame {
 
     public static ChessGame createSimpleGameWithNameAndPgn(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpurl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         if (pgn.trim().isEmpty()) {
             game.moves = new ArrayList<>();
         } else {
@@ -216,7 +216,7 @@ public class ChessGame {
      **/
     public static ChessGame gameFromPgnLimitedInfo(String pgn, String gameName, String whitePlayerName, int whiteElo, String whitePfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         if (pgn.trim().isEmpty()) {
             game.moves = new ArrayList<>();
         } else {
@@ -250,7 +250,7 @@ public class ChessGame {
      **/
     public static ChessGame createTestGame(String pgn, boolean isVsComputer) {
         ChessGame game = new ChessGame();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         if (pgn.trim().isEmpty()) {
             game.moves = new ArrayList<>();
         } else {
@@ -285,7 +285,7 @@ public class ChessGame {
 
     public static ChessGame createEmptyExplorer() {
         ChessGame game = new ChessGame();
-        game.gameState = new ChessStates();
+        game.gameState = new ChessGameState();
         game.moves = new ArrayList<>();
         game.curMoveIndex = -1;
         game.maxIndex = -1;
@@ -309,7 +309,7 @@ public class ChessGame {
     /**
      * Method used exclusively for cloning chessgame instances Note: The game created is set to the start of the game
      **/
-    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessStates gameStates, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWebGame, boolean isWhiteOriented, int maxIndex) {
+    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessGameState gameStates, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWebGame, boolean isWhiteOriented, int maxIndex) {
         ChessGame game = new ChessGame();
         game.moves = moves;
         game.gameState = gameStates;
@@ -408,7 +408,7 @@ public class ChessGame {
         if (isWebGame) {
             App.sendRequest(INTENT.LEAVEGAME, "",null);
         } else {
-            ChessConstants.mainLogger.error("trying to access webgame, without being one");
+            logger.error("trying to access webgame, without being one");
         }
     }
 
@@ -464,7 +464,6 @@ public class ChessGame {
                     centralControl.chessActionHandler.addToMovesPlayed(movePgn);
                 }
             }
-
         }
     }
 
@@ -483,7 +482,7 @@ public class ChessGame {
                 centralControl.chessActionHandler.appendNewMessageToChat(message);
             }
         } else {
-            ChessConstants.mainLogger.error("Trying to write message when not main game");
+            logger.error("Trying to write message when not main game");
         }
     }
 
@@ -491,7 +490,7 @@ public class ChessGame {
         if (maxIndex != curMoveIndex) {
             changeToDifferentMove(maxIndex - curMoveIndex, isNotAppThread, true);
         } else {
-            ChessConstants.mainLogger.debug("Already at end of game");
+            logger.debug("Already at end of game");
         }
     }
 
@@ -515,7 +514,7 @@ public class ChessGame {
                 changeToDifferentMove(absIndex - curMoveIndex, isNotAppThread, true);
             }
         } else {
-            ChessConstants.mainLogger.error("absolute index provided out of bounds!");
+            logger.error("absolute index provided out of bounds!");
         }
     }
 
@@ -547,7 +546,7 @@ public class ChessGame {
                 }
 
             }
-            ChessConstants.mainLogger.debug("New curIndex: " + curMoveIndex);
+            logger.debug("New curIndex: " + curMoveIndex);
             ChessPosition newPos = getPos(curMoveIndex);
 
             if (Math.abs(dir) > 1 || (isMainGame && centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)) || noAnimate) {
@@ -655,7 +654,7 @@ public class ChessGame {
 
         } else {
             // wait for transition
-            ChessConstants.mainLogger.error("Dir zero or no transition, so did not move to new index");
+            logger.error("Dir zero or no transition, so did not move to new index");
 //            App.messager.sendMessageQuick("Wait",false);
         }
     }
@@ -679,10 +678,10 @@ public class ChessGame {
         }
     }
 
-    public ChessStates getGameStateAtPos(int index) {
+    public ChessGameState getGameStateAtPos(int index) {
         int moveIndexBeforeChange = curMoveIndex;
         int dir = index - curMoveIndex;
-        ChessStates cloned = gameState.cloneState();
+        ChessGameState cloned = gameState.cloneState();
         boolean isRev = dir < 0;
         int absDir = Math.abs(dir);
         for (int i = 0; i < absDir; i++) {
@@ -733,7 +732,7 @@ public class ChessGame {
         if (isMainGame) {
             centralControl.chessBoardGUIHandler.makeChessMove(move, isReverse, currentPosition, newPos, isWhiteOriented);
         } else {
-            ChessConstants.mainLogger.error("Trying to change gui make move when not main game");
+            logger.error("Trying to change gui make move when not main game");
         }
 
 
@@ -781,7 +780,7 @@ public class ChessGame {
 
             }
         } else {
-            ChessConstants.mainLogger.error("change move called on a chessgame that is not main");
+            logger.error("change move called on a chessgame that is not main");
         }
 
 
@@ -791,14 +790,14 @@ public class ChessGame {
         if (moveIndex >= 0 && moveIndex < moves.size()) {
             ChessPosition newPos = moves.get(moveIndex);
             if (newPos == null) {
-                ChessConstants.mainLogger.error("NewPosNull");
+                logger.error("NewPosNull");
             }
             return newPos;
         } else if (moveIndex == -1) {
             // intial board state
             return ChessConstants.startBoardState;
         } else {
-            ChessConstants.mainLogger.error("Boardwrapper get move index out of range: " + moveIndex);
+            logger.error("Boardwrapper get move index out of range: " + moveIndex);
             return null;
         }
 
@@ -809,7 +808,7 @@ public class ChessGame {
         maxIndex = curMoveIndex;
         int to = moves.size();
         if (to > curMoveIndex + 1) {
-            ChessConstants.mainLogger.debug(String.format("Clearing board entries from %d", curMoveIndex + 1));
+            logger.debug(String.format("Clearing board entries from %d", curMoveIndex + 1));
 
             moves.subList(curMoveIndex + 1, to).clear();
         }
@@ -872,7 +871,7 @@ public class ChessGame {
             if (isDraw) {
                 gameState.setStaleMated();
                 if (isMainGame) {
-                    ChessConstants.mainLogger.debug("stalemate");
+                    logger.debug("stalemate");
                     if (isWebMove) {
                         Platform.runLater(() -> {
                             centralControl.mainScreenController.setEvalBar(0, -1, true);
@@ -888,7 +887,7 @@ public class ChessGame {
                 if (AdvancedChessFunctions.isCheckmated(!move.isWhite(), newPosition, gameState)) {
                     gameState.setCheckMated(move.isWhite(), ChessConstants.EMPTYINDEX);
                     if (isMainGame) {
-                        ChessConstants.mainLogger.debug("checkmate");
+                        logger.debug("checkmate");
                         if (isWebMove) {
                             Platform.runLater(() -> {
                                 centralControl.mainScreenController.setEvalBar(move.isWhite() ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE, -1, true);
@@ -902,7 +901,7 @@ public class ChessGame {
                 } else {
                     gameState.setStaleMated();
                     if (isMainGame) {
-                        ChessConstants.mainLogger.debug("stalemate");
+                        logger.debug("stalemate");
                         if (isWebMove) {
                             Platform.runLater(() -> {
                                 centralControl.mainScreenController.setEvalBar(0, -1, true);

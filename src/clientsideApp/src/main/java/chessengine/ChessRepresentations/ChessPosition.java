@@ -4,6 +4,8 @@ import chessengine.Computation.ComputerHelperFunctions;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class ChessPosition {
+    private static final Logger logger = LogManager.getLogger("Chess_Position_Logger");
     public BitBoardWrapper board;
     private ChessMove moveThatCreatedThis;
 
@@ -20,13 +23,13 @@ public class ChessPosition {
         this.moveThatCreatedThis = moveThatCreatedThis;
     }
 
-    public ChessPosition(ChessPosition curPos, ChessStates gameState, ChessMove newMove) {
+    public ChessPosition(ChessPosition curPos, ChessGameState gameState, ChessMove newMove) {
         this(curPos.clonePosition(), gameState, newMove.getBoardIndex(), newMove.isWhite(), newMove.isCastleMove(), newMove.isEating(), newMove.getEatingIndex(), newMove.isEnPassant(), newMove.isPawnPromo(), newMove.getOldX(), newMove.getOldY(), newMove.getNewX(), newMove.getNewY(), newMove.getPromoIndx(), newMove.isCustomMove());
 
     }
 
 
-    public ChessPosition(ChessPosition curPos, ChessStates curGamestate, int pieceType, boolean isWhite, boolean isCastle, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex, boolean isCustomMove) {
+    public ChessPosition(ChessPosition curPos, ChessGameState curGamestate, int pieceType, boolean isWhite, boolean isCastle, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex, boolean isCustomMove) {
         BitBoardWrapper board = curPos.board;
         long[] whitePieces = board.getWhitePiecesBB();
         long[] blackPieces = board.getBlackPiecesBB();
@@ -41,7 +44,7 @@ public class ChessPosition {
             if (isEating) {
                 // eating enemyPeice
                 if (!GeneralChessFunctions.checkIfContains(newX, newY, enemyBoardMod[eatingIndex])) {
-                    ChessConstants.mainLogger.error("Eating with no piece there!!");
+                    logger.error("Eating with no piece there!!");
                     GeneralChessFunctions.printBoardDetailed(board);
                 }
                 board.removePiece(newBitIndex, eatingIndex, enemyColor);
@@ -65,7 +68,7 @@ public class ChessPosition {
             // en passant
             int backwardsDir = isWhite ? 1 : -1;
             if (!GeneralChessFunctions.checkIfContains(newX, newY + backwardsDir, enemyBoardMod[ChessConstants.PAWNINDEX])) {
-                ChessConstants.mainLogger.error("En passant when no piece behind!!");
+                logger.error("En passant when no piece behind!!");
                 GeneralChessFunctions.printBoardDetailed(board);
             }
             // remove pawn
@@ -85,7 +88,7 @@ public class ChessPosition {
                 boolean isShortCastle = newX == 6;
                 if (isShortCastle) {
                     if (!GeneralChessFunctions.checkIfContains(7, newY, currentBoardMod[ChessConstants.ROOKINDEX])) {
-                        ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                        logger.error("New chess position trying to castle when not possible!!!");
                         GeneralChessFunctions.printBoardDetailed(board);
                     }
                     board.removePiece(GeneralChessFunctions.positionToBitIndex(7, newY), ChessConstants.ROOKINDEX, friendlyColor);
@@ -94,7 +97,7 @@ public class ChessPosition {
 
                 } else {
                     if (!GeneralChessFunctions.checkIfContains(0, newY, currentBoardMod[ChessConstants.ROOKINDEX])) {
-                        ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                        logger.error("New chess position trying to castle when not possible!!!");
                         GeneralChessFunctions.printBoardDetailed(board);
                     }
                     board.removePiece(GeneralChessFunctions.positionToBitIndex(0, newY), ChessConstants.ROOKINDEX, friendlyColor);
@@ -132,7 +135,7 @@ public class ChessPosition {
         this.moveThatCreatedThis = moveThatCreatedThis;
     }
 
-    public BackendChessPosition toBackend(ChessStates gameState, boolean isWhiteTurn) {
+    public BackendChessPosition toBackend(ChessGameState gameState, boolean isWhiteTurn) {
         return new BackendChessPosition(this, gameState, gameState.isStaleMated(), isWhiteTurn);
     }
 
@@ -140,13 +143,13 @@ public class ChessPosition {
         return new ChessPosition(board.cloneBoard(), moveThatCreatedThis.cloneMove());
     }
 
-    public List<BackendChessPosition> getAllChildPositions(boolean isWhite, ChessStates gameState) {
+    public List<BackendChessPosition> getAllChildPositions(boolean isWhite, ChessGameState gameState) {
         List<BackendChessPosition> childPositionsPriority1 = new ArrayList<>();
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePiecesBB() : board.getBlackPiecesBB());
         for (XYcoord coord : peices) {
             List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState, coord.peiceType, false);
             if (Objects.isNull(piecePossibleMoves)) {
-                ChessConstants.mainLogger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
+                logger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
                 return null;
             }
             int peiceType = coord.peiceType;
@@ -185,13 +188,13 @@ public class ChessPosition {
     }
 
 
-    public List<ChessMove> getAllChildMoves(boolean isWhite, ChessStates gameState) {
+    public List<ChessMove> getAllChildMoves(boolean isWhite, ChessGameState gameState) {
         List<ChessMove> childPositionsPriority1 = new ArrayList<>();
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? board.getWhitePiecesBB() : board.getBlackPiecesBB());
         for (XYcoord coord : peices) {
             List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, isWhite, this, gameState, coord.peiceType, false);
             if (Objects.isNull(piecePossibleMoves)) {
-                ChessConstants.mainLogger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
+                logger.debug("Index of child positions error: " + GeneralChessFunctions.getPieceType(coord.peiceType));
                 return null;
             }
             for (XYcoord move : piecePossibleMoves) {

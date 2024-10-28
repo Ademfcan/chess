@@ -289,6 +289,7 @@ public class ClientHandler {
                 } catch (SQLException sqlException) {
                     sendMessage(session, ServerResponseType.SQLERROR, sqlException.getMessage(), Integer.MAX_VALUE);
                 }
+
 //
             } else {
                 switch (input.getIntent()) {

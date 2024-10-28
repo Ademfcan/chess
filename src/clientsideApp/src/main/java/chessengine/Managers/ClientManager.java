@@ -78,7 +78,7 @@ public class ClientManager {
             loadChanges();
             pushChangesToDatabase();
         } else {
-            ChessConstants.mainLogger.debug("Already have same pfp");
+            logger.debug("Already have same pfp");
         }
 
     }
@@ -89,7 +89,7 @@ public class ClientManager {
             loadChanges();
             pushChangesToDatabase();
         } else {
-            ChessConstants.mainLogger.debug("Elo change is 0 so no change needed");
+            logger.debug("Elo change is 0 so no change needed");
         }
 
     }
@@ -102,7 +102,7 @@ public class ClientManager {
                 pushChangesToDatabase();
             }
         } else {
-            ChessConstants.mainLogger.debug("New name is same as current name");
+            logger.debug("New name is same as current name");
         }
     }
 
@@ -115,7 +115,7 @@ public class ClientManager {
                 pushChangesToDatabase();
             }
         } else {
-            ChessConstants.mainLogger.debug("New uuid is same as current uuid");
+            logger.debug("New uuid is same as current uuid");
         }
     }
 
@@ -129,7 +129,7 @@ public class ClientManager {
             loadChanges();
             pushChangesToDatabase();
         } else {
-            ChessConstants.mainLogger.debug("New user email is same as current email");
+            logger.debug("New user email is same as current email");
         }
 
     }

@@ -704,7 +704,7 @@ public class StartScreenController implements Initializable {
         multiplayerStart.setOnMouseClicked(e -> {
             if (!gameTypes.getSelectionModel().isEmpty()) {
                 // todo this is not correct!
-                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(), true)); // isWhiteOriented will change when match is found
+                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(), true)); // isPlayer1White will change when match is found
             }
 
         });

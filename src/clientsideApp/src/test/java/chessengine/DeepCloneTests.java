@@ -2,15 +2,15 @@ package chessengine;
 
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.ChessGameState;
 import chessengine.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class DeepCloneTests {
     @Test void deepCloneChessState(){
-        ChessStates a = new ChessStates();
-        ChessStates b = a.cloneState();
+        ChessGameState a = new ChessGameState();
+        ChessGameState b = a.cloneState();
 
         a.removeCastlingRight(true);
         Assertions.assertTrue(b.isWhiteCastleRight());

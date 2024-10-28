@@ -8,7 +8,6 @@ import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.AdvancedChessFunctions;
 import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Misc.ChessConstants;
 import chessserver.*;
@@ -284,7 +283,7 @@ public class MainScreenController implements Initializable {
 
     public void endAsync() {
         if (this.ChessCentralControl != null) {
-            ChessConstants.mainLogger.debug("Killing threads");
+            logger.debug("Killing threads");
             ChessCentralControl.asyncController.killAll();
         }
     }
@@ -338,7 +337,7 @@ public class MainScreenController implements Initializable {
 
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
-                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
+                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
                 player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
@@ -767,7 +766,7 @@ public class MainScreenController implements Initializable {
 
 
         setMoveLabels(ChessCentralControl.gameHandler.currentGame.curMoveIndex, ChessCentralControl.gameHandler.currentGame.maxIndex);
-
+        ChessCentralControl.chessActionHandler.highlightMovesPlayedLine(ChessCentralControl.gameHandler.currentGame.curMoveIndex);
 
     }
 
@@ -803,24 +802,24 @@ public class MainScreenController implements Initializable {
         setUp((levelTier.ordinal() + 1) + "," + levelOfTier + "," + campainDiffAsStr);
     }
 
-    public void setupWithoutGame(boolean isVsComputer, boolean isWhiteOriented, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
+    public void setupWithoutGame(boolean isVsComputer, boolean isPlayer1White, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
         this.currentState = currentState;
 
         // ternary shit show
         String whitePlayerName = playAsWhite ? player1Name : isVsComputer ? "Computer" : "Player 2";
         String blackPlayerName = !playAsWhite ? player1Name : isVsComputer ? "Computer" : "Player 2";
 
-        int whiteElo = playAsWhite ? player1Elo : isVsComputer ? ChessConstants.ComputerEloEstimate : player1Elo;
-        int blackElo = !playAsWhite ? player1Elo : isVsComputer ? ChessConstants.ComputerEloEstimate : player1Elo;
+        int whiteElo = playAsWhite ? player1Elo : isVsComputer ? App.userPreferenceManager.getPrefDifficulty().eloRange : player1Elo;
+        int blackElo = !playAsWhite ? player1Elo : isVsComputer ? App.userPreferenceManager.getPrefDifficulty().eloRange : player1Elo;
 
         String whitePfpUrl = playAsWhite ? player1PfpUrl : isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
         String blackPfpUrl = !playAsWhite ? player1PfpUrl : isVsComputer ? ProfilePicture.ROBOT.urlString : player1PfpUrl;
 
 
         if (gameName.isEmpty()) {
-            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
+            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
         } else {
-            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
+            ChessCentralControl.gameHandler.switchToNewGame(chessengine.ChessRepresentations.ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
         }
         String extraInfo = "";
         if (currentState.equals(MainScreenState.LOCAL)) {
@@ -868,16 +867,16 @@ public class MainScreenController implements Initializable {
         return !currentState.equals(MainScreenState.ONLINE) && !currentState.equals(MainScreenState.LOCAL) && !currentState.equals(MainScreenState.CAMPAIGN);
     }
 
-    public void setPlayerIcons(String player1Url, String player2Url, boolean isWhiteOriented) {
-        ImageView player1 = isWhiteOriented ? player1Select : player2Select;
-        ImageView player2 = isWhiteOriented ? player2Select : player1Select;
+    public void setPlayerIcons(String player1Url, String player2Url, boolean isPlayer1White) {
+        ImageView player1 = isPlayer1White ? player1Select : player2Select;
+        ImageView player2 = isPlayer1White ? player2Select : player1Select;
         player1.setImage(new Image(player1Url));
         player2.setImage(new Image(player2Url));
     }
 
-    public void setPlayerLabels(String whitePlayerName, int whiteElo, String blackPlayerName, int blackElo,boolean isWhiteOriented) {
-        Label p1Label = isWhiteOriented ? player1Label : player2Label;
-        Label p2Label = isWhiteOriented ? player2Label : player1Label;
+    public void setPlayerLabels(String whitePlayerName, int whiteElo, String blackPlayerName, int blackElo,boolean isPlayer1White) {
+        Label p1Label = isPlayer1White ? player1Label : player2Label;
+        Label p2Label = isPlayer1White ? player2Label : player1Label;
         p1Label.setText(whitePlayerName + " " + whiteElo);
         p2Label.setText(blackPlayerName + " " + blackElo);
 
@@ -885,16 +884,16 @@ public class MainScreenController implements Initializable {
 
 
     // toggle the pawn promotion screen
-    public void showPromo(int promoX, boolean isWhite, boolean isWhiteOriented) {
+    public void showPromo(int promoX, boolean isWhite, boolean isPlayer1White) {
         // reusing piece calculation as you can use it for the promo screen too.
         logger.debug("Showing promo");
         setPromoPeices(isWhite);
-        if(!isWhiteOriented){
+        if(!isPlayer1White){
             promoX = 7-promoX; // invert
         }
         DoubleBinding x = ChessCentralControl.chessBoardGUIHandler.calcLayoutXBinding(promoX, promoContainer.widthProperty());
         promoContainer.layoutXProperty().bind(x);
-        if (!isWhite == isWhiteOriented) {
+        if (!isWhite == isPlayer1White) {
             promoContainer.layoutYProperty().bind(chessBoardContainer.widthProperty().divide(2));
         } else {
             promoContainer.layoutYProperty().bind(new SimpleDoubleProperty(0));
@@ -1065,9 +1064,9 @@ public class MainScreenController implements Initializable {
     }
 
     public void updateSimpleAdvantageLabels() {
-        boolean isWhiteOriented = ChessCentralControl.gameHandler.currentGame.isWhiteOriented();
-        Label whiteLabel = isWhiteOriented ? WhiteNumericalAdv : BlackNumericalAdv;
-        Label blackLabel = !isWhiteOriented ? WhiteNumericalAdv : BlackNumericalAdv;
+        boolean isPlayer1White = ChessCentralControl.gameHandler.currentGame.isWhiteOriented();
+        Label whiteLabel = isPlayer1White ? WhiteNumericalAdv : BlackNumericalAdv;
+        Label blackLabel = !isPlayer1White ? WhiteNumericalAdv : BlackNumericalAdv;
         clearSimpleAdvantageLabels();
         int simpleAdvantage = AdvancedChessFunctions.getSimpleAdvantage(ChessCentralControl.gameHandler.currentGame.currentPosition.board);
         if (simpleAdvantage > 0) {

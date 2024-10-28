@@ -110,7 +110,7 @@ public class GlobalMessager {
             pTrans.play();
 
         } else {
-            ChessConstants.mainLogger.error("Trying to send a global message before it is init");
+            logger.error("Trying to send a global message before it is init");
 
         }
 

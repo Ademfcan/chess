@@ -36,6 +36,7 @@ public class CustomMultiSearcher extends MultiSearcher {
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
 //        System.out.println("Time per batch: " + timePerBatch);
+        long startTimeMs = System.currentTimeMillis();
         try (ExecutorService executorService = Executors.newFixedThreadPool(numThreads)) {
             for (Searcher searcher : searchers) {
                 executorService.submit(() -> {
@@ -56,7 +57,7 @@ public class CustomMultiSearcher extends MultiSearcher {
 
 
                                 }
-                                SearchResult result = searcher.search(positionToEvaluate, timePerBatch);
+                                SearchResult result = searcher.search(positionToEvaluate, timePerBatch,difficulty.depth);
                                 if(result != null){
                                     PVEntry[] pvBuffer = result.pV();
                                     // reshift everything by 1
@@ -93,7 +94,7 @@ public class CustomMultiSearcher extends MultiSearcher {
         }
 
 
-        return processOutput(outputs, nPvs);
+        return processOutput(outputs, nPvs,startTimeMs,waitTimeMs);
 
 
     }

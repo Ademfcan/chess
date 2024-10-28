@@ -27,7 +27,7 @@ public class CryptoUtils {
     public static ChessGame gameFromSaveString(String saveString){
         String[] split = saveString.split(",");
         Arrays.stream(split).forEach(s -> s = s.trim());
-        // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer 10  = isWhiteOriented
+        // index 0 = hashcode 1 = name 2 = player1 name 3 = player2 name 4 = player1 elo 5 = player2 elo 6 = player1pfp, 7 = player2pfp, 8 = game pgn 9 = isvsComputer 10  = isPlayer1White
         return ChessGame.createGameFromSaveLoad(split[8], split[1], split[2], split[3], Integer.parseInt(split[4]), Integer.parseInt(split[5]), split[6], split[7], Boolean.parseBoolean(split[9]), Boolean.parseBoolean(split[10]), split[0]);
     }
 }

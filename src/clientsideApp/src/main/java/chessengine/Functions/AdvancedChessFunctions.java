@@ -13,14 +13,14 @@ public class AdvancedChessFunctions {
     private static final int[] pieceValues = new int[]{1, 3, 3, 5, 9};
     private static final Logger logger = LogManager.getLogger("Advanced_Chess_Functions");
 
-    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessStates gameState) {
+    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessGameState gameState) {
         int indx = GeneralChessFunctions.getBoardWithPiece(x, y, isWhite, pos.board);
         //System.out.println("Getting moves for peice at " + x + " " + y);
         return getPossibleMoves(x, y, isWhite, pos, gameState, indx, false);
 
     }
 
-    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessStates gameState, int boardIndex, boolean capturesOnly) {
+    public static List<XYcoord> getPossibleMoves(int x, int y, boolean isWhite, ChessPosition pos, ChessGameState gameState, int boardIndex, boolean capturesOnly) {
         //System.out.println("Getting moves for peice at " + x + " " + y);
         long possibleMoves = getPossibleMoveBoard(x, y, isWhite, boardIndex, pos, gameState);
         if (boardIndex != ChessConstants.KINGINDEX && isChecked(isWhite, pos.board)) {
@@ -35,7 +35,7 @@ public class AdvancedChessFunctions {
 
     }
 
-    private static long getPossibleMoveBoard(int x, int y, boolean isWhite, int indx, ChessPosition pos, ChessStates gameState) {
+    private static long getPossibleMoveBoard(int x, int y, boolean isWhite, int indx, ChessPosition pos, ChessGameState gameState) {
         if (!GeneralChessFunctions.isValidIndex(indx)) {
             logger.error("Invalid index passed into get move of type");
         }
@@ -518,7 +518,7 @@ public class AdvancedChessFunctions {
         return moves;
     }
 
-    private static long calculateKingMoves(int x, int y, boolean isWhite, BitBoardWrapper board, ChessStates gameState) {
+    private static long calculateKingMoves(int x, int y, boolean isWhite, BitBoardWrapper board, ChessGameState gameState) {
         long possibleMoves = 0L;
 //        ArrayList<XYcoord> moves = new ArrayList<>();
         boolean canCastle = isWhite ? gameState.isWhiteCastleRight() : gameState.isBlackCastleRight();
@@ -630,7 +630,7 @@ public class AdvancedChessFunctions {
 
 
 
-    public static boolean isAnyNotMovePossible(boolean isWhite, ChessPosition pos, ChessStates gameState) {
+    public static boolean isAnyNotMovePossible(boolean isWhite, ChessPosition pos, ChessGameState gameState) {
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(isWhite ? pos.board.getWhitePiecesBB() : pos.board.getBlackPiecesBB());
         for (XYcoord pcoord : peices) {
             List<XYcoord> piecePossibleMoves = getPossibleMoves(pcoord.x, pcoord.y, isWhite, pos, gameState, pcoord.peiceType, false);
@@ -904,11 +904,11 @@ public class AdvancedChessFunctions {
         }
     }
 
-    public static boolean isCheckmated(boolean isWhite, ChessPosition pos, ChessStates gameState) {
+    public static boolean isCheckmated(boolean isWhite, ChessPosition pos, ChessGameState gameState) {
         return isChecked(isWhite, pos.board) && isAnyNotMovePossible(isWhite, pos, gameState);
     }
 
-    public static boolean isCheckmated(ChessPosition pos, ChessStates gameState) {
+    public static boolean isCheckmated(ChessPosition pos, ChessGameState gameState) {
         return (isChecked(false, pos.board) && isAnyNotMovePossible(false, pos, gameState)) || (isChecked(true, pos.board) && isAnyNotMovePossible(true, pos, gameState));
     }
 
@@ -1065,7 +1065,7 @@ public class AdvancedChessFunctions {
 
     }
 
-    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType, int ambgX, int ambgY, boolean isWhite, boolean isEating, ChessPosition pos, ChessStates gameState) {
+    public static XYcoord findOldCoordinates(int newX, int newY, int pieceType, int ambgX, int ambgY, boolean isWhite, boolean isEating, ChessPosition pos, ChessGameState gameState) {
         // either will be no ambiguity, or it will both, or either x/y ambiguity
         boolean noAmbg = ambgX == ChessConstants.EMPTYINDEX && ambgY == ChessConstants.EMPTYINDEX;
         boolean bothAmbg = ambgX != ChessConstants.EMPTYINDEX && ambgY != ChessConstants.EMPTYINDEX;

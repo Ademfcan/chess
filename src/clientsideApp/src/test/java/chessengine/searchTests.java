@@ -3,7 +3,7 @@ package chessengine;
 import chessengine.ChessRepresentations.BackendChessPosition;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.ChessGameState;
 import chessengine.Computation.*;
 import chessengine.Enums.Flag;
 import chessengine.Enums.PromotionType;
@@ -19,7 +19,7 @@ public class searchTests {
 
     @Test void searchTest(){
         Searcher searcher = new Searcher();
-        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessStates(),true);
+        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessGameState(),true);
         System.out.println(searcher.search(testPosition,1000));
         System.out.println(searcher.searchInfo.getNumTranspositionUses());
         System.out.println(searcher.searchInfo.getUniquePositionsSearched());
@@ -52,7 +52,7 @@ public class searchTests {
     }
 
     @Test void moveOrderingTest(){
-        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessStates(),true);
+        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessGameState(),true);
         MoveGenerator generator = new MoveGenerator();
         MoveOrderer orderer = new MoveOrderer();
         ChessMove[] moves = generator.generateMoves(testPosition,false, PromotionType.ALL);
@@ -60,7 +60,7 @@ public class searchTests {
     }
 
     @Test void moveGenerationTest(){
-        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessStates(),true);
+        BackendChessPosition testPosition = ChessConstants.startBoardState.toBackend(new ChessGameState(),true);
         MoveGenerator generator = new MoveGenerator();
         MoveOrderer orderer = new MoveOrderer();
         ChessMove[] moves = generator.generateMoves(testPosition,false, PromotionType.ALL);

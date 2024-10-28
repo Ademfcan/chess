@@ -4,7 +4,7 @@ import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.ChessGameState;
 import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Functions.PgnFunctions;
@@ -21,7 +21,7 @@ public class GetComputerMoveTask extends Task<Void> {
     private final Logger logger;
     public ComputerDifficulty difficulty;
     public volatile ChessPosition currentPosition;
-    public volatile ChessStates currentGameState;
+    public volatile ChessGameState currentGameState;
     public volatile boolean currentIsWhite;
     private boolean running = true;
     private volatile boolean evaluationRequest = false;

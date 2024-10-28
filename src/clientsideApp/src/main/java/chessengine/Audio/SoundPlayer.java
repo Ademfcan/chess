@@ -2,8 +2,11 @@ package chessengine.Audio;
 
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.Misc.ChessConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class SoundPlayer {
+    private final static Logger logger = LogManager.getLogger("Sound_Player");
     private final double defaultVolume = .5d;
     private final double defaultBGVolume = .3d;
 
@@ -59,7 +62,7 @@ public class SoundPlayer {
         if (!isEffectsMuted) {
             effect.playClip(currentVolumeEffects);
         } else {
-            ChessConstants.mainLogger.debug("Not playing effect, effects are muted");
+            logger.debug("Not playing effect, effects are muted");
         }
 
     }
@@ -68,7 +71,7 @@ public class SoundPlayer {
         if (!isSystemPaused) {
             currentSong.clip.play();
         } else {
-            ChessConstants.mainLogger.debug("Not starting song paused");
+            logger.debug("Not starting song paused");
         }
 
 
@@ -94,7 +97,7 @@ public class SoundPlayer {
             currentSong.clip.pause();
 
         } else {
-            ChessConstants.mainLogger.debug("Song already paused");
+            logger.debug("Song already paused");
         }
 
         if (isCauseOfUserPref) {
@@ -118,7 +121,7 @@ public class SoundPlayer {
                 }
             }
             else {
-                ChessConstants.mainLogger.debug("Song already playing");
+                logger.debug("Song already playing");
             }
 
         }

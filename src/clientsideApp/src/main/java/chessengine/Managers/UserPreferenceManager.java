@@ -23,7 +23,7 @@ public class UserPreferenceManager {
     public UserPreferenceManager() {
         userPref = PersistentSaveManager.readUserprefFromSave();
         if (Objects.isNull(userPref)) {
-            ChessConstants.mainLogger.debug("Loading default");
+            logger.debug("Loading default");
             userPref = ChessConstants.defaultPreferences;
         }
 

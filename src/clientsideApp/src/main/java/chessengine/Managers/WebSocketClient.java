@@ -84,9 +84,9 @@ public class WebSocketClient {
                     String opponentName = info[0];
                     int opponentElo = Integer.parseInt(info[1]);
                     String pfpUrl = info[2];
-                    boolean isWhiteOriented = Boolean.parseBoolean(info[3]);
+                    boolean isPlayer1White = Boolean.parseBoolean(info[3]);
                     linkedGame.setWebGameInitialized(true);
-                    linkedGame.initWebGame(opponentName, opponentElo, pfpUrl, isWhiteOriented);
+                    linkedGame.initWebGame(opponentName, opponentElo, pfpUrl, isPlayer1White);
                     linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                 }
                 case INVALIDOPERATION -> {

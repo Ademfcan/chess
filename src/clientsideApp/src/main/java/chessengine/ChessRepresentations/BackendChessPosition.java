@@ -3,15 +3,17 @@ package chessengine.ChessRepresentations;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Functions.ZobristHasher;
 import chessengine.Misc.ChessConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Stack;
 
 public class BackendChessPosition extends ChessPosition {
-
+    private final static Logger logger = LogManager.getLogger("Chess_Position_Logger");
     private final Stack<ChessMove> movesThatCreated;
     public boolean isWhiteTurn;
 
-    public ChessStates gameState;
+    public ChessGameState gameState;
 
     public long zobristKey;
     private final ZobristHasher zobristHasher = new ZobristHasher();
@@ -29,7 +31,7 @@ public class BackendChessPosition extends ChessPosition {
 
     }
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isDraw, boolean isWhiteTurn) {
+    public BackendChessPosition(ChessPosition pos, ChessGameState gameState, boolean isDraw, boolean isWhiteTurn) {
         super(pos.board, pos.getMoveThatCreatedThis());
         this.gameState = gameState;
         this.isDraw = isDraw;
@@ -39,7 +41,7 @@ public class BackendChessPosition extends ChessPosition {
     }
 
 
-    public BackendChessPosition(ChessPosition pos, ChessStates gameState, boolean isWhiteTurn, int peiceType, boolean isWhite, boolean isCastle, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
+    public BackendChessPosition(ChessPosition pos, ChessGameState gameState, boolean isWhiteTurn, int peiceType, boolean isWhite, boolean isCastle, boolean isEating, int eatingIndex, boolean isEnPassant, boolean isPawnPromo, int oldX, int oldY, int newX, int newY, int promoIndex) {
         super(pos, gameState, peiceType, isWhite, isCastle, isEating, eatingIndex, isEnPassant, isPawnPromo, oldX, oldY, newX, newY, promoIndex, false);
         this.gameState = gameState;
         isDraw = this.gameState.makeNewMoveAndCheckDraw(this);
@@ -91,7 +93,7 @@ public class BackendChessPosition extends ChessPosition {
             if (isEating) {
                 // eating enemyPeice
                 if (!GeneralChessFunctions.checkIfContains(newX, newY, enemyBoardMod[eatingIndex])) {
-                    ChessConstants.mainLogger.error("Eating with no piece there!!");
+                    logger.error("Eating with no piece there!!");
                     GeneralChessFunctions.printBoardDetailed(board);
                     System.out.println(move);
                     System.out.println(gameState);
@@ -118,7 +120,7 @@ public class BackendChessPosition extends ChessPosition {
             // en passant
             int backwardsDir = isWhite ? 1 : -1;
             if (!GeneralChessFunctions.checkIfContains(newX, newY + backwardsDir, enemyBoardMod[ChessConstants.PAWNINDEX])) {
-                ChessConstants.mainLogger.error("En passant when no piece behind!!");
+                logger.error("En passant when no piece behind!!");
                 GeneralChessFunctions.printBoardDetailed(board);
                 System.out.println(move);
                 System.out.println(gameState);
@@ -136,7 +138,7 @@ public class BackendChessPosition extends ChessPosition {
             boolean isShortCastle = newX == 6;
             if (isShortCastle) {
                 if (!GeneralChessFunctions.checkIfContains(7, newY, currentBoardMod[ChessConstants.ROOKINDEX])) {
-                    ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                    logger.error("New chess position trying to castle when not possible!!!");
                     GeneralChessFunctions.printBoardDetailed(board);
                     System.out.println(move);
                     System.out.println(gameState);
@@ -146,7 +148,7 @@ public class BackendChessPosition extends ChessPosition {
                 board.addPiece(GeneralChessFunctions.positionToBitIndex(newX - 1, newY), ChessConstants.ROOKINDEX, friendlyColor);
             } else {
                 if (!GeneralChessFunctions.checkIfContains(0, newY, currentBoardMod[ChessConstants.ROOKINDEX])) {
-                    ChessConstants.mainLogger.error("New chess position trying to castle when not possible!!!");
+                    logger.error("New chess position trying to castle when not possible!!!");
                     GeneralChessFunctions.printBoardDetailed(board);
                     System.out.println(move);
                     System.out.println(gameState);

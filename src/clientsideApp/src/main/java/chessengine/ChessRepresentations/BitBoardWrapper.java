@@ -3,15 +3,15 @@ package chessengine.ChessRepresentations;
 import chessengine.Functions.BitFunctions;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 
 public class BitBoardWrapper {
-
-
-    static int a = 0;
+    private final static Logger logger = LogManager.getLogger("BitboardWrapper_Logger"); 
     private final HashSet<Integer>[] whitePieces;
     private final HashSet<Integer>[] blackPieces;
     private long[] whitePiecesBB;
@@ -245,7 +245,7 @@ public class BitBoardWrapper {
             blackKingLocation = new XYcoord(7 - blackKingLocation.x, 7 - blackKingLocation.y);
 
         } else {
-            ChessConstants.mainLogger.error("cannot flip board you are in a temp change!");
+            logger.error("cannot flip board you are in a temp change!");
         }
     }
 
@@ -324,7 +324,7 @@ public class BitBoardWrapper {
             tempBoardIndex = boardIndex;
             tempIsWhite = isWhiteBoard;
         } else {
-            ChessConstants.mainLogger.error("Cannot make another temp change, one is already present");
+            logger.error("Cannot make another temp change, one is already present");
         }
 
 
@@ -340,7 +340,7 @@ public class BitBoardWrapper {
             tempNewIndex = ChessConstants.EMPTYINDEX;
             tempOldIndex = ChessConstants.EMPTYINDEX;
         } else {
-            ChessConstants.mainLogger.error("Trying to pop temp change when not active!");
+            logger.error("Trying to pop temp change when not active!");
         }
 
 

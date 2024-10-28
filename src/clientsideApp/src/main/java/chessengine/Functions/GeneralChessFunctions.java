@@ -249,9 +249,9 @@ public class GeneralChessFunctions {
         File file = new File(fileName);
         try (PrintWriter writer = new PrintWriter(file)) {
             writer.write(content);
-            ChessConstants.mainLogger.debug("saving to file named: " + fileName);
+            logger.debug("saving to file named: " + fileName);
         } catch (IOException e) {
-            ChessConstants.mainLogger.error(Arrays.toString(e.getStackTrace()));
+            logger.error(Arrays.toString(e.getStackTrace()));
         }
     }
 

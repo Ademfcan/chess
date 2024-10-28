@@ -96,7 +96,7 @@ public class ComputerTests {
 //        System.out.println("Total unique positions created: " + totalUniquePositionCount/2);
 //    }
     // creating lots of new positions and checking for hash collisons
-    private void miniMaxForHashTest(BackendChessPosition position, ChessStates gameState, int depth, boolean isWhiteTurn){
+    private void miniMaxForHashTest(BackendChessPosition position, ChessGameState gameState, int depth, boolean isWhiteTurn){
         // all recursive stop cases
 //        System.out.println(cnt++);
 

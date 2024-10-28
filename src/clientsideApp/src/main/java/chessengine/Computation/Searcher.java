@@ -23,7 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Searcher {
     private final Logger logger = LogManager.getLogger(this.toString());
     private final AtomicBoolean stopSearch = new AtomicBoolean(false);
-    private final int maxSearchDepth = 256;
+    private final int defaultMaxDepth = 25;
+    private int maxSearchDepth = defaultMaxDepth;
     public SearchInfoAggregator searchInfo;
     long startTime;
     BackendChessPosition chessPosition;
@@ -93,6 +94,25 @@ public class Searcher {
 
     public SearchResult search(BackendChessPosition pos, int maxTimeMs) {
         this.maxTimeMs = maxTimeMs;
+        this.maxSearchDepth = defaultMaxDepth;
+        resetSearch();
+        chessPosition = pos.clonePosition();
+        runIterativeDeepening();
+
+        if (bestMove == null) {
+            if(isNoMoves){
+                return null;
+            }
+            logger.error("Not able to seach at all!!!");
+            bestMove = moveGenerator.generateMoves(pos, false, promotionType)[0];
+            return new SearchResult(bestMove, 0, -1, new PVEntry[]{new PVEntry(bestMove, 0, Movetype.NONE)});
+        }
+        return new SearchResult(bestMove, bestEvaluation, CurrentDepth, pV);
+    }
+
+    public SearchResult search(BackendChessPosition pos, int maxTimeMs,int maxSearchDepth) {
+        this.maxTimeMs = maxTimeMs;
+        this.maxSearchDepth = maxSearchDepth;
         resetSearch();
         chessPosition = pos.clonePosition();
         runIterativeDeepening();

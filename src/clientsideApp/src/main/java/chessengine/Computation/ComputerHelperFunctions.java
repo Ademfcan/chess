@@ -81,7 +81,7 @@ public class ComputerHelperFunctions {
 
     }
 
-    public static double getFullEval(ChessPosition pos, ChessStates gameState, boolean isWhiteTurn, boolean isCheckmateKnown) {
+    public static double getFullEval(ChessPosition pos, ChessGameState gameState, boolean isWhiteTurn, boolean isCheckmateKnown) {
         // todo: test against known positions
         long[] whiteP = pos.board.getWhitePiecesBB();
         long[] blackP = pos.board.getBlackPiecesBB();

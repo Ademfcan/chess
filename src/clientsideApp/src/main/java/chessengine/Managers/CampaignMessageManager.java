@@ -5,11 +5,13 @@ import chessengine.Enums.MainScreenState;
 import chessengine.Functions.GeneralChessFunctions;
 import chessengine.Misc.ChessConstants;
 import chessserver.CampaignTier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
 
 public class CampaignMessageManager {
-
+    private static final Logger logger = LogManager.getLogger("Campaign_Message_Manager");
     private final ChessCentralControl centralControl;
     private final Random random = new Random(1784673287);
 
@@ -186,54 +188,50 @@ public class CampaignMessageManager {
         return String.format("%s %s%s", start, name, end);
     }
 
-    public String getIntroductionMessage() {
-        return randomlyFormatIntro(getName());
-    }
-
     private String getName() {
         if (centralControl.gameHandler.currentGame != null && centralControl.mainScreenController.currentState.equals(MainScreenState.CAMPAIGN)) {
             CampaignTier currentTier = centralControl.gameHandler.getCampaignTier();
             int currentTierLevel = centralControl.gameHandler.getLevelOfCampaignTier();
             return currentTier.levelNames[currentTierLevel];
         } else {
-            ChessConstants.mainLogger.error("Not in a campaign game, cannot create message");
+            logger.error("Not in a campaign game, cannot create message");
             return "";
         }
     }
 
-    private String getRandom(String[] options) {
+    private <T> T getRandom(T[] options) {
         return options[random.nextInt(options.length)];
     }
 
     // Use linked random for compatible starts and ends
     private String getLinkedRandomMessage(String[] starts, String[] ends) {
-        int index = random.nextInt(starts.length);
-        return starts[index] + ends[index];
+        int sharedIndex = random.nextInt(Math.min(starts.length,ends.length));
+        return starts[sharedIndex] + ends[sharedIndex];
     }
 
     private String formatNameMessage(String name, String message) {
         return "(" + name + "): " + message;
     }
 
-    public String getIntroductionMessage(boolean isWhiteMove) {
+    public String getIntroductionMessage() {
         return randomlyFormatIntro(getName());
     }
 
-    public String getCheckMessage(boolean isWhiteCheck) {
+    public String getCheckMessage(boolean isWhiteCheck,boolean isPlayerWhite) {
         String name = getName();
-        if (isWhiteCheck) {
-            return formatNameMessage(name, getLinkedRandomMessage(checkMessageStartsComputer, checkMessageEnds));
-        } else {
+        if (isWhiteCheck == isPlayerWhite) {
             return formatNameMessage(name, getLinkedRandomMessage(checkMessageStartsPlayer, checkMessageEnds));
+        } else {
+            return formatNameMessage(name, getLinkedRandomMessage(checkMessageStartsComputer, checkMessageEnds));
         }
     }
 
-    public String getCheckmateMessage(boolean isWhiteCheckMate) {
+    public String getCheckmateMessage(boolean isWhiteCheckMate,boolean isPlayerWhite) {
         String name = getName();
-        if (isWhiteCheckMate) {
-            return formatNameMessage(name, getLinkedRandomMessage(checkmateMessageStartsComputer, checkmateMessageEnds));
-        } else {
+        if (isWhiteCheckMate == isPlayerWhite) {
             return formatNameMessage(name, getLinkedRandomMessage(checkmateMessageStartsPlayer, checkmateMessageEnds));
+        } else {
+            return formatNameMessage(name, getLinkedRandomMessage(checkmateMessageStartsComputer, checkmateMessageEnds));
         }
     }
 
@@ -242,40 +240,40 @@ public class CampaignMessageManager {
         return formatNameMessage(name, getLinkedRandomMessage(stalemateMessageStartsComputer, stalemateMessageEnds));
     }
 
-    public String getEatingMessage(int eatenPieceIndex, boolean isWhiteMove) {
+    public String getEatingMessage(int eatenPieceIndex, boolean isWhiteMove,boolean isPlayerWhite) {
         String name = getName();
         String piece = GeneralChessFunctions.getPieceType(eatenPieceIndex);
-        if (isWhiteMove) {
+        if (isWhiteMove == isPlayerWhite) {
             return formatNameMessage(name, getRandom(eatingMessageStartsPlayer) + " " + piece + getRandom(eatingMessageEnds));
         } else {
             return formatNameMessage(name, getRandom(eatingMessageStartsComputer) + " " + piece + getRandom(eatingMessageEnds));
         }
     }
 
-    public String getPromoMessage(int promoIndex, boolean isWhiteMove) {
+    public String getPromoMessage(int promoIndex, boolean isWhiteMove,boolean isPlayerWhite) {
         String name = getName();
         String newPiece = GeneralChessFunctions.getPieceType(promoIndex);
-        if (isWhiteMove) {
+        if (isWhiteMove == isPlayerWhite) {
             return formatNameMessage(name, getRandom(promoMessageStartsPlayer) + " " + newPiece + getRandom(promoMessageEnds));
         } else {
             return formatNameMessage(name, getRandom(promoMessageStartsComputer) + " " + newPiece + getRandom(promoMessageEnds));
         }
     }
 
-    public String getCastleMessage(boolean isWhiteMove) {
+    public String getCastleMessage(boolean isWhiteMove,boolean isPlayerWhite) {
         String name = getName();
-        if (isWhiteMove) {
+        if (isWhiteMove == isPlayerWhite) {
             return formatNameMessage(name, getLinkedRandomMessage(castleMessageStartsPlayer, castleMessageEnds));
         } else {
             return formatNameMessage(name, getLinkedRandomMessage(castleMessageStartsComputer, castleMessageEnds));
         }
     }
 
-    public String getMoveMessage(int simpleEval, boolean isWhiteMove) {
+    public String getMoveMessage(int simpleEval, boolean isWhiteMove,boolean isPlayerWhite) {
         // todo asjust message based on eval
         String name = getName();
-        if (isWhiteMove) {
-            return getRandom(moveMessageStartsPlayer) + getRandom(moveMessageEndsPlayer);
+        if (isWhiteMove == isPlayerWhite) {
+            return formatNameMessage(name, getRandom(moveMessageStartsPlayer) + getRandom(moveMessageEndsPlayer));
         } else {
             return formatNameMessage(name, getRandom(moveMessageStartsComputer) + getRandom(moveMessageEndsComputer));
         }

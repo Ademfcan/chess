@@ -8,7 +8,6 @@ import chessengine.Misc.pieceMapHandler;
 
 public class EvaluationFunctions {
     public static  final int baseMateScore = -1000000;
-    public static  final int maxDepthPossible = 256;
 
     public static boolean isMateScore(int currentScore){
         return Math.abs(currentScore) >= -(baseMateScore);

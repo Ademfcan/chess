@@ -36,8 +36,8 @@ public class ChessEndpoint {
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         config.addDataSourceProperty("autoReconnect", "true");
-        config.setConnectionTimeout(10000);
-        config.setIdleTimeout(30000);
+        config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(10));
+        config.setIdleTimeout(TimeUnit.SECONDS.toMillis(30));
         config.setMaxLifetime(TimeUnit.HOURS.toMillis(1));
         config.setMaximumPoolSize(30);
 

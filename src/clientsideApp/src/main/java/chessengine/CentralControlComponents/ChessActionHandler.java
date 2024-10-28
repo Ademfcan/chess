@@ -17,6 +17,7 @@ import chessengine.Records.MultiResult;
 import chessengine.Records.PVEntry;
 import chessengine.Records.SearchResult;
 import chessserver.ComputerDifficulty;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -41,6 +42,7 @@ public class ChessActionHandler {
 
     private final Label lineLabel;
     private final HBox movesPlayedBox;
+    private final ScrollPane movesPlayedScrollpane;
     private final ChessCentralControl myControl;
     // viewer controls
     private final VBox bestmovesBox;
@@ -104,7 +106,7 @@ public class ChessActionHandler {
     private boolean isEatingPromo;
     private int numRedos = 0;
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -114,6 +116,7 @@ public class ChessActionHandler {
         this.sendMessageButton = sendMessageButton;
         this.lineLabel = lineLabel;
         this.movesPlayedBox = movesPlayedBox;
+        this.movesPlayedScrollpane = movesPlayedScrollpane;
         this.playPauseButton = playPauseButton;
         this.timeSlider = timeSlider;
         this.p1Indicator = p1Indicator;
@@ -243,18 +246,13 @@ public class ChessActionHandler {
 
     public void addToMovesPlayed(String pgn) {
         Label pgnDescriptor = new Label(pgn);
+        pgnDescriptor.setBackground(ChessConstants.defaultBg);
 
-        if (lastHighlight != null) {
-            lastHighlight.setBackground(ChessConstants.defaultBg);
-        }
-        lastHighlight = pgnDescriptor;
-        pgnDescriptor.setBackground(ChessConstants.highlightBg);
-
-        pgnDescriptor.setPadding(new Insets(2, 10, 2, 10));
         App.bindingController.bindSmallText(pgnDescriptor, true, "Black");
         pgnDescriptor.setUserData(numLabels);
+        pgnDescriptor.setAlignment(Pos.CENTER);
         int pgnLen = pgn.length();
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(230).add(10).multiply(pgnLen));
+        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(245).add(10).multiply(pgnLen+.2));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -268,7 +266,7 @@ public class ChessActionHandler {
             // ready for a number
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(160).add(9).multiply(Math.log10(moveNum) + 1));
+            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(160).add(12).multiply(Math.log10(moveNum) + .5));
             App.bindingController.bindSmallText(numSeparator, true, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 
@@ -321,6 +319,10 @@ public class ChessActionHandler {
                 }
                 lastHighlight = (Label) movesPlayedBox.getChildren().get(tot);
                 lastHighlight.setBackground(ChessConstants.highlightBg);
+                Bounds contentBounds = lastHighlight.localToParent(lastHighlight.getBoundsInLocal());
+                double scrollPosition = (Math.max(contentBounds.getMinX()-contentBounds.getWidth()/2,0)) /
+                        (movesPlayedScrollpane.getContent().getBoundsInLocal().getWidth() - movesPlayedScrollpane.getViewportBounds().getWidth());
+                movesPlayedScrollpane.setHvalue(scrollPosition);
             } else {
                 logger.error("Should not be here, highlight index past total size h: " + highlightIndex);
             }
@@ -333,6 +335,7 @@ public class ChessActionHandler {
     public void clearMovesPlayedHighlight() {
         if (lastHighlight != null) {
             lastHighlight.setBackground(ChessConstants.defaultBg);
+            lastHighlight = null;
         }
     }
 
@@ -362,12 +365,12 @@ public class ChessActionHandler {
         App.soundPlayer.playEffect(Effect.MESSAGE);
     }
 
-    private void updateTurnIndicators(boolean isWhiteTurn, boolean isWhiteOriented, boolean updateTimeLabels) {
+    private void updateTurnIndicators(boolean isWhiteTurn, boolean isPlayer1White, boolean updateTimeLabels) {
         // todo figure out timers and diplay and centralized pulse etc
-        VBox whiteIndicator = isWhiteOriented ? p1Indicator : p2Indicator;
-        VBox blackIndicator = isWhiteOriented ? p2Indicator : p1Indicator;
-        Label whiteLabel = isWhiteOriented ? p1moveClk : p2moveClk;
-        Label blackLabel = isWhiteOriented ? p2moveClk : p1moveClk;
+        VBox whiteIndicator = isPlayer1White ? p1Indicator : p2Indicator;
+        VBox blackIndicator = isPlayer1White ? p2Indicator : p1Indicator;
+        Label whiteLabel = isPlayer1White ? p1moveClk : p2moveClk;
+        Label blackLabel = isPlayer1White ? p2moveClk : p1moveClk;
         // white on bottom(so p1)
         if (isWhiteTurn) {
             whiteIndicator.setBackground(ChessConstants.whiteTurnActive);
@@ -473,7 +476,7 @@ public class ChessActionHandler {
 
                     ChessMove move = myControl.gameHandler.currentGame.currentPosition.getMoveThatCreatedThis();
                     if (myControl.gameHandler.currentGame.gameState.isCheckMated()[0]) {
-                        String message = App.campaignMessager.getCheckmateMessage(myControl.gameHandler.currentGame.gameState.isCheckMated()[1]);
+                        String message = App.campaignMessager.getCheckmateMessage(myControl.gameHandler.currentGame.gameState.isCheckMated()[1],myControl.gameHandler.currentGame.isWhiteOriented());
                         addCampaignMessage(message);
 
                     } else if (myControl.gameHandler.currentGame.gameState.isStaleMated()) {
@@ -484,23 +487,23 @@ public class ChessActionHandler {
                         if (rand > 70) {
                             // 30% of the time send some message
                             if (AdvancedChessFunctions.isAnyChecked(myControl.gameHandler.currentGame.currentPosition.board)) {
-                                String message = App.campaignMessager.getCheckMessage(move.isWhite());
+                                String message = App.campaignMessager.getCheckMessage(move.isWhite(),myControl.gameHandler.currentGame.isWhiteOriented());
                                 addCampaignMessage(message);
                             } else {
                                 if (!move.equals(ChessConstants.startMove)) {
                                     if (move.isEating()) {
                                         int curIndex = myControl.gameHandler.currentGame.curMoveIndex;
                                         int eatenAddIndex = GeneralChessFunctions.getBoardWithPiece(move.getNewX(), move.getNewY(), !move.isWhite(), myControl.gameHandler.currentGame.getPos(curIndex - 1).board);
-                                        String message = App.campaignMessager.getEatingMessage(eatenAddIndex, move.isWhite());
+                                        String message = App.campaignMessager.getEatingMessage(eatenAddIndex, move.isWhite(),myControl.gameHandler.currentGame.isWhiteOriented());
                                         addCampaignMessage(message);
                                     } else if (move.isPawnPromo()) {
-                                        String message = App.campaignMessager.getPromoMessage(move.getPromoIndx(), move.isWhite());
+                                        String message = App.campaignMessager.getPromoMessage(move.getPromoIndx(), move.isWhite(),myControl.gameHandler.currentGame.isWhiteOriented());
                                         addCampaignMessage(message);
                                     } else if (move.isCastleMove()) {
-                                        String message = App.campaignMessager.getCastleMessage(move.isWhite());
+                                        String message = App.campaignMessager.getCastleMessage(move.isWhite(),myControl.gameHandler.currentGame.isWhiteOriented());
                                         addCampaignMessage(message);
                                     } else {
-                                        String message = App.campaignMessager.getMoveMessage(AdvancedChessFunctions.getSimpleAdvantage(myControl.gameHandler.currentGame.currentPosition.board), move.isWhite());
+                                        String message = App.campaignMessager.getMoveMessage(AdvancedChessFunctions.getSimpleAdvantage(myControl.gameHandler.currentGame.currentPosition.board), move.isWhite(),myControl.gameHandler.currentGame.isWhiteOriented());
                                         addCampaignMessage(message);
                                     }
                                 }
@@ -513,7 +516,7 @@ public class ChessActionHandler {
 
 
                 } else if (isInit) {
-                    String message = App.campaignMessager.getIntroductionMessage(true);
+                    String message = App.campaignMessager.getIntroductionMessage();
                     addCampaignMessage(message);
                 }
             }
@@ -533,12 +536,12 @@ public class ChessActionHandler {
     }
 
     private void setPrevPieceMoves(int x, int y, boolean pieceIsWhite) {
-        boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
-        int backendY = isWhiteOriented ? y : 7 - y;
-        int backendX = isWhiteOriented ? x : 7 - x;
+        boolean isPlayer1White = myControl.gameHandler.currentGame.isWhiteOriented();
+        int backendY = isPlayer1White ? y : 7 - y;
+        int backendX = isPlayer1White ? x : 7 - x;
         prevPieceMoves = AdvancedChessFunctions.getPossibleMoves(backendX, backendY, pieceIsWhite, myControl.gameHandler.currentGame.currentPosition, myControl.gameHandler.currentGame.gameState);
 
-        if (!isWhiteOriented) {
+        if (!isPlayer1White) {
             // invert y.s
             prevPieceMoves.forEach(c -> {
                 c.y = 7 - c.y;
@@ -1003,8 +1006,8 @@ public class ChessActionHandler {
 //                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(best, testPos, testState));
 //
 //                // add arrow showing move
-//                boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
-//                Arrow moveArrow = new MoveArrow(isWhiteOriented ? best.getOldX() : 7 - best.getOldX(), isWhiteOriented ? best.getOldY() : 7 - best.getOldY(), isWhiteOriented ? best.getNewX() : 7 - best.getNewX(), isWhiteOriented ? best.getNewY() : 7 - best.getNewY(), ChessConstants.getColorBasedOnAdvantage(best.isWhite(),adv,currentEval));
+//                boolean isPlayer1White = myControl.gameHandler.currentGame.isWhiteOriented();
+//                Arrow moveArrow = new MoveArrow(isPlayer1White ? best.getOldX() : 7 - best.getOldX(), isPlayer1White ? best.getOldY() : 7 - best.getOldY(), isPlayer1White ? best.getNewX() : 7 - best.getNewX(), isPlayer1White ? best.getNewY() : 7 - best.getNewY(), ChessConstants.getColorBasedOnAdvantage(best.isWhite(),adv,currentEval));
 //                myControl.chessBoardGUIHandler.addArrow(moveArrow);
 //                String advStr = formatter.format(adv);
 //                Label expectedAdvantage = new Label(advStr);
@@ -1044,14 +1047,14 @@ public class ChessActionHandler {
                 moveGui.setSpacing(5);
                 Label moveNumber = new Label("#" + (++cnt));
                 // for pgn generation
-                ChessStates testState = myControl.gameHandler.currentGame.gameState.cloneState();
+                ChessGameState testState = myControl.gameHandler.currentGame.gameState.cloneState();
                 ChessPosition testPos = new ChessPosition(myControl.gameHandler.currentGame.currentPosition.clonePosition(), testState, move);
                 Label moveAsPgn = new Label(PgnFunctions.moveToPgn(move, testPos, testState));
 
                 // add arrow showing move
-                boolean isWhiteOriented = myControl.gameHandler.currentGame.isWhiteOriented();
+                boolean isPlayer1White = myControl.gameHandler.currentGame.isWhiteOriented();
                 MoveRanking currentMoveRanking = MoveRanking.getMoveRanking(primeEvaluation, results.moveValues().get(move).evaluation(), bestPV, result.pV());
-                Arrow moveArrow = new MoveArrow(isWhiteOriented ? move.getOldX() : 7 - move.getOldX(), isWhiteOriented ? move.getOldY() : 7 - move.getOldY(), isWhiteOriented ? move.getNewX() : 7 - move.getNewX(), isWhiteOriented ? move.getNewY() : 7 - move.getNewY(), currentMoveRanking.getColor().toString());
+                Arrow moveArrow = new MoveArrow(isPlayer1White ? move.getOldX() : 7 - move.getOldX(), isPlayer1White ? move.getOldY() : 7 - move.getOldY(), isPlayer1White ? move.getNewX() : 7 - move.getNewX(), isPlayer1White ? move.getNewY() : 7 - move.getNewY(), currentMoveRanking.getColor().toString());
                 myControl.chessBoardGUIHandler.addArrow(moveArrow);
                 String advStr = formatter.format(adv);
                 Label expectedAdvantage = new Label(advStr);

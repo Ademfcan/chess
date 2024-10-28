@@ -70,7 +70,7 @@ public class ChessConstants {
     public static final Background defaultBg = new Background(backgroundFillDefault);
     private static final BackgroundFill backgroundFillHighlight = new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(3), null);
     public static final Background highlightBg = new Background(backgroundFillHighlight);
-    public static int ComputerEloEstimate = 3000; // not 3000 lol todo make 3k
+    public static int ComputerEloEstimate = 2400;
     public static int DefaultWaitTime = 1000; // ms;
     public static final ObjectMapper objectMapper = new ObjectMapper();
 

@@ -4,7 +4,7 @@ import chessengine.Misc.ChessConstants;
 import chessengine.ChessRepresentations.BitBoardWrapper;
 import chessengine.ChessRepresentations.ChessMove;
 import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.ChessStates;
+import chessengine.ChessRepresentations.ChessGameState;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -43,7 +43,7 @@ public class PgnFunctions {
     }
 
     // pgn examples: 1. e4 e5 2. Nf3 Nc6 3. Bb5...
-    public static String moveToPgn(ChessMove move, ChessPosition pos, ChessStates gameStates) {
+    public static String moveToPgn(ChessMove move, ChessPosition pos, ChessGameState gameStates) {
         StringBuilder sb1 = new StringBuilder();
         if (move.isCastleMove()) {
             int xDiff = move.getNewX() - move.getOldX();
@@ -76,7 +76,7 @@ public class PgnFunctions {
 
     }
 
-    public static String moveToPgn(ChessPosition p, ChessStates gameStates) {
+    public static String moveToPgn(ChessPosition p, ChessGameState gameStates) {
         return moveToPgn(p.getMoveThatCreatedThis(), p, gameStates);
 
     }
@@ -153,7 +153,7 @@ public class PgnFunctions {
     }
 
     //
-    public static String positionToFEN(ChessPosition pos, ChessStates gameStateForPos, boolean isWhiteTurn) {
+    public static String positionToFEN(ChessPosition pos, ChessGameState gameStateForPos, boolean isWhiteTurn) {
         // example FEN: 8/5k2/3p4/1p1Pp2p/pP2Pp1P/P4P1K/8/8 b - - 99 50
         // go through each file in each row
         int numHalfMovesSinceCheckOrPawnMove = gameStateForPos.getMovesSinceNoCheckOrNoPawn();

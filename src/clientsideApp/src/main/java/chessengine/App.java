@@ -6,7 +6,6 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Computation.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
 import chessengine.Crypto.KeyManager;
-import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Enums.MainScreenState;
 import chessengine.Graphics.*;
@@ -106,14 +105,16 @@ public class App extends Application {
             messager.addLoadingCircle(true);
             messager.addLoadingCircle(false);
             webclient = userManager.getClientFromUser();
-            messager.removeLoadingCircles(true);
-            messager.removeLoadingCircles(false);
             return true;
         } catch (DeploymentException e) {
-            ChessConstants.mainLogger.debug("Connection Failed");
+            appLogger.debug("Connection Failed");
             webclient = null;
         } catch (IOException e) {
             appLogger.error("Error when attemting reconnection", e);
+        }
+        finally {
+            messager.removeLoadingCircles(true);
+            messager.removeLoadingCircles(false);
         }
         return false;
 
@@ -141,7 +142,7 @@ public class App extends Application {
 //            centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
 //            centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
             centralControl.asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
-            boolean isWhiteOriented = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
+            boolean isPlayer1White = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
             centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
             // todo pieces theme
 
@@ -166,11 +167,11 @@ public class App extends Application {
     /**
      * play as white flag specifies wether player wants to play as white
      **/
-    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isWhiteOriented, MainScreenState state, boolean playAsWhite) {
+    public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isPlayer1White, MainScreenState state, boolean playAsWhite) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupWithoutGame(isVsComputer, isWhiteOriented, gameName, userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), state, playAsWhite);
+        mainScreenController.setupWithoutGame(isVsComputer, isPlayer1White, gameName, userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), state, playAsWhite);
         soundPlayer.pauseSong(false);
 
     }

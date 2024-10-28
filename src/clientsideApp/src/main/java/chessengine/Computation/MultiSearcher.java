@@ -50,6 +50,7 @@ public class MultiSearcher {
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
 //        System.out.println("Time per batch: " + timePerBatch);
+        long startTimeMs = System.currentTimeMillis();
         try (ExecutorService executorService = Executors.newFixedThreadPool(numThreads)) {
             for (Searcher searcher : searchers) {
                 executorService.submit(() -> {
@@ -98,8 +99,8 @@ public class MultiSearcher {
             logger.error(e);
         }
 
-
-        return processOutput(outputs, nPvs);
+        // will not run into lower bound issue as multisearcher does not have the possibility of being depth limited. Thus no need for the threadwaiting processoutput does
+        return processOutput(outputs, nPvs,0,0);
 
 
     }
@@ -119,7 +120,7 @@ public class MultiSearcher {
         return (int) (waitTimeMs * (numThreads / (double) nPositions));
     }
 
-    protected MultiResult processOutput(ConcurrentLinkedQueue<SearchResult> results, int nPvs) {
+    protected MultiResult processOutput(ConcurrentLinkedQueue<SearchResult> results, int nPvs,long startTimeMs,long waitTimeMs) {
         HashMap<ChessMove, CachedPv> moveEvals = new HashMap<>(results.size());
 //        PriorityQueue<Integer> minBound = new PriorityQueue<>(nPvs+1);
 //        minBound.add(Integer.MIN_VALUE+1);
@@ -145,6 +146,19 @@ public class MultiSearcher {
                 out[--cnt] = result;
             }
         }
+
+        // it is very important to keep a consistent wait time, going too fast is also bad
+        long endTimeMS = System.currentTimeMillis();
+        long delta = endTimeMS-startTimeMs;
+        if(delta < waitTimeMs){
+            try {
+                Thread.sleep(waitTimeMs-delta);
+            }
+            catch (InterruptedException e){
+                logger.error("Interrupted thread sleep",e);
+            }
+        }
+
         return new MultiResult(out, moveEvals);
 
 
