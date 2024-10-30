@@ -4,20 +4,23 @@ import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
+import chessengine.Enums.FriendEntry;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
 import chessengine.Managers.CampaignManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Misc.ChessConstants;
-import chessserver.DatabaseEntry;
-import chessserver.Gametype;
-import chessserver.INTENT;
-import chessserver.ProfilePicture;
+import chessserver.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -28,6 +31,7 @@ import org.nd4j.shade.jackson.core.JsonProcessingException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -36,8 +40,8 @@ public class StartScreenController implements Initializable {
     private final Logger logger = LogManager.getLogger("Start_Screen_Controller");
     private final int maxNewGameButtonSize = 100;
     private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
-    private final Image computerIcon = new Image("/StartScreenIcons/robot.png");
-    private final Image playerIcon = new Image("/StartScreenIcons/player.png");
+    private final Image computerIconUrl = new Image("/StartScreenIcons/robot.png");
+    private final Image openIcon = new Image("/StartScreenIcons/openGame.png");
     public CampaignManager campaignManager;
     @FXML
     public GridPane content;
@@ -262,11 +266,11 @@ public class StartScreenController implements Initializable {
     @FXML
     Hyperlink LoginPage;
     @FXML
-    Label profileOldGamesLabel;
+    TextField friendsLookupInput;
     @FXML
-    ScrollPane profileOldGamesPanel;
+    ScrollPane friendsLookup;
     @FXML
-    VBox profileOldGamesPanelContent;
+    VBox friendsLookupContent;
     @FXML
     Button FriendsButton;
     @FXML
@@ -323,13 +327,14 @@ public class StartScreenController implements Initializable {
     boolean isRed = false;
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
+    private HashMap<String,String> lookupCache;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         startRef.setMouseTransparent(true);
         oldGamesPanelContent.setStyle("-fx-background-color: lightgray");
-
+        lookupCache = new HashMap<>();
 
     }
 
@@ -466,8 +471,36 @@ public class StartScreenController implements Initializable {
 
     }
 
+
+    private boolean handleAnInvalid(TextField inputBox, String identifier){
+        // clear any existing "errors"
+        inputBox.setPromptText("");
+        inputBox.setStyle("");
+
+        String input = inputBox.getText();
+        if (input.isEmpty()) {
+            inputBox.setPromptText("please enter a " + identifier);
+            inputBox.setStyle("-fx-border-color: red");
+            return true;
+        }
+        else if(input.contains(",")){
+            inputBox.clear();
+            inputBox.setPromptText(identifier + " may not contain a comma");
+            inputBox.setStyle("-fx-border-color: red");
+            return true;
+        }
+        else if(input.length() >= 255){
+            inputBox.clear();
+            inputBox.setPromptText(identifier + " too long");
+            inputBox.setStyle("-fx-border-color: red");
+            return true;
+        }
+        return false;
+    }
+
     private void setUpUserSettings() {
         profileButton.setOnMouseClicked(e -> {
+            App.synchronizeFriendNames();
             if (currentState.equals(StartScreenState.USERSETTINGS)) {
                 if(userInfoPage.isVisible()){
                     setSelection(lastStateBeforeUserSettings);
@@ -481,65 +514,61 @@ public class StartScreenController implements Initializable {
             }
         });
         loginButton.setOnMouseClicked(e -> {
-            nameInput.setPromptText("");
-            passwordInput.setPromptText("");
-            if (nameInput.getText().isEmpty()) {
-                nameInput.setPromptText("please enter a name");
+            boolean isInvalid = handleAnInvalid(nameInput,"Username") || handleAnInvalid(passwordInput,"Password");
+            if(isInvalid){
+                return;
             }
-            if (passwordInput.getText().isEmpty()) {
-                passwordInput.setPromptText("please enter a password");
-            } else {
-                try{
-                    String passwordHash = CryptoUtils.sha256AndBase64(passwordInput.getText());
-                    App.getUserRequest(nameInput.getText(),passwordHash,(out) ->{
-                        if(out.isEmpty()){
-                            Platform.runLater(() -> {
-                                App.messager.sendMessageQuick("Invalid account!",true);
+            try{
+                String passwordHash = CryptoUtils.sha256AndBase64(passwordInput.getText());
+                App.getUserRequest(nameInput.getText(),passwordHash,(out) ->{
+                    if(out.isEmpty()){
+                        Platform.runLater(() -> {
+                            App.messager.sendMessageQuick("Invalid account!",true);
+                        });
+                    }
+                    else{
+                        try{
+                            KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
+                            DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                            Platform.runLater(() ->{
+                                System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
+                                App.refreshAppWithNewUser(newEntry);
+
                             });
+
+                        } catch (JsonProcessingException jsonProcessingException) {
+                            logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
                         }
-                        else{
-                            try{
-                                KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
-                                DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
-                                Platform.runLater(() ->{
-                                    System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
-                                    App.refreshAppWithNewUser(newEntry);
-
-                                });
-
-                            } catch (JsonProcessingException jsonProcessingException) {
-                                logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
-                            }
-                            catch (NoSuchAlgorithmException noSuchAlgorithmException){
-                                logger.error("Should never hit this \n", noSuchAlgorithmException);
-                            }
-                        }}
-                    );
-                }
-                catch (NoSuchAlgorithmException noSuchAlgorithmException){
-                    logger.error("Never gonna hit this lol",noSuchAlgorithmException);
-                }
-                nameInput.clear();
-                passwordInput.clear();
-
+                        catch (NoSuchAlgorithmException noSuchAlgorithmException){
+                            logger.error("Should never hit this \n", noSuchAlgorithmException);
+                        }
+                    }}
+                );
             }
+            catch (NoSuchAlgorithmException noSuchAlgorithmException){
+                logger.error("Never gonna hit this lol",noSuchAlgorithmException);
+            }
+            nameInput.clear();
+            passwordInput.clear();
+
+
 
         });
 
+
         createAccountButton.setOnMouseClicked(e -> {
-            if (createUsername.getText().isEmpty()) {
-                createUsername.setPromptText("please enter a name");
-                return;
-            }
-            if (createPassword.getText().isEmpty()) {
-                createPassword.setPromptText("please enter a password");
+            String usernameText = createUsername.getText();
+            String passwordText = createPassword.getText();
+            boolean isInvalid = handleAnInvalid(createUsername,"Username") || handleAnInvalid(createPassword,"Password");
+            if(isInvalid){
                 return;
             }
 
-            String lastUsername = createUsername.getText();
-            String lastPassword = createPassword.getText();
 
-            App.sendRequest(INTENT.CHECKUSERNAME, lastUsername,(out ->{
+
+
+
+            App.sendRequest(INTENT.CHECKUSERNAME, usernameText,(out ->{
                 int uuid;
                 boolean isUsernamePresent;
                 if(!out.isEmpty()){
@@ -550,9 +579,9 @@ public class StartScreenController implements Initializable {
                     isUsernamePresent = true;
                 }
                 Platform.runLater(() ->{
-                    usernamePresentResponse(isUsernamePresent,uuid,lastUsername,lastPassword);
+                    usernamePresentResponse(isUsernamePresent,uuid,usernameText,passwordText);
                 });
-            }));
+            }),true);
 
         });
 
@@ -588,6 +617,19 @@ public class StartScreenController implements Initializable {
             App.userManager.updateUserPfp(nextPicture);
         });
 
+        friendsLookupInput.setOnAction(e ->{
+            String inputText = friendsLookupInput.getText().trim();
+            if(lookupCache.containsKey(inputText)){
+                updateFriendsLookup(lookupCache.get(inputText));
+            }
+            else{
+                App.sendRequest(INTENT.MATCHALLUSERNAMES,inputText,(out) ->{
+                    lookupCache.put(inputText,out);
+                    updateFriendsLookup(out);
+                },true);
+            }
+        });
+
         // bindings
         App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
         App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
@@ -611,23 +653,92 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindSmallText(SignUpPage,false,"Black");
         App.bindingController.bindSmallText(LoginPage,false,"Black");
         App.bindingController.bindSmallText(LoginPage,false,"Black");
-        App.bindingController.bindSmallText(profileOldGamesLabel,false,"Black");
+        App.bindingController.bindSmallText(friendsLookupInput,false,"Black");
         App.bindingController.bindSmallText(FriendsButton,false,"Black");
         App.bindingController.bindSmallText(RequestsButton,false,"Black");
         App.bindingController.bindSmallText(SuggestedFriendsButton,false,"Black");
 
-        profileOldGamesPanel.setFitToWidth(true);
-        profileOldGamesPanel.setFitToHeight(true);
+        friendsLookup.setFitToWidth(true);
+        friendsLookup.setFitToHeight(true);
 
-//        profileOldGamesPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
-        profileOldGamesPanel.setPrefWidth(600);
-//        profileOldGamesPanelContent.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
-        profileOldGamesPanelContent.setPrefWidth(600);
-        profileOldGamesPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(profileOldGamesLabel.heightProperty()));
+        VBox.setVgrow(friendsLookup,Priority.ALWAYS);
+        VBox.setVgrow(FriendsPanel,Priority.ALWAYS);
+        friendsLookup.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        friendsLookupContent.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
+        friendsLookup.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(friendsLookupInput.heightProperty()));
         FriendsPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().multiply(.4));
         FriendsPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(FriendsButton.heightProperty()));
 
     }
+
+    private void updateFriendsLookup(String lookupResults){
+        friendsLookupContent.getChildren().clear();
+        if(lookupResults.isEmpty()){
+            return;
+        }
+        for(String lookupName : lookupResults.split(",")){
+            int type = App.userManager.doesFriendExist(lookupName,true);
+            FriendEntry entryType = FriendEntry.getEntryTypeFromInt(type);
+            addFriendEntry(friendsLookupContent,lookupName,entryType);
+        }
+    }
+
+    private void addFriendEntry(VBox container, String friendName, FriendEntry entryType){
+        HBox lookupEntry = new HBox();
+        lookupEntry.setSpacing(10);
+        lookupEntry.setAlignment(Pos.CENTER);
+        lookupEntry.prefWidthProperty().bind(container.widthProperty());
+        App.bindingController.bindCustom(lookupEntry.widthProperty(),lookupEntry.prefHeightProperty(),70,.20);
+
+        Label name = new Label(friendName);
+        App.bindingController.bindSmallText(name,false,"black");
+        lookupEntry.getChildren().add(name);
+
+        if(entryType.equals(FriendEntry.UNCONNECTED)){
+            Button sendFriendRequest = new Button();
+            sendFriendRequest.setOnMouseClicked(e-> {
+                App.sendFriendRequest(friendName);
+            });
+
+            sendFriendRequest.prefWidthProperty().bind(lookupEntry.widthProperty().divide(4));
+            sendFriendRequest.prefHeightProperty().bind(lookupEntry.heightProperty().divide(1.1));
+            ImageView sendRequestGraphic = new ImageView(entryType.urlString);
+            sendRequestGraphic.fitHeightProperty().bind(sendFriendRequest.heightProperty());
+            sendRequestGraphic.fitWidthProperty().bind(sendFriendRequest.widthProperty());
+            sendFriendRequest.setGraphic(sendRequestGraphic);
+            lookupEntry.getChildren().add(sendFriendRequest);
+        }
+        else{
+            ImageView graphic = new ImageView(entryType.urlString);
+            graphic.fitWidthProperty().bind(lookupEntry.widthProperty().divide(4));
+            graphic.fitHeightProperty().bind(lookupEntry.heightProperty().divide(1.1));
+            lookupEntry.getChildren().add(graphic);
+        }
+
+        container.getChildren().add(lookupEntry);
+    }
+
+
+    public void reloadFriends(){
+        YourFriends.getChildren().clear();
+        for(FriendInfo info : App.userManager.getFriends()){
+            addFriendEntry(YourFriends,info.getCurrentUsername(),FriendEntry.CONNECTED);
+        }
+    }
+
+    public void reloadIncomingRequests(){
+        YourFriendRequests.getChildren().clear();
+        for(Friend friend : App.userManager.getIncomingFriendRequests()){
+            addFriendEntry(YourFriendRequests,friend.getCurrentUsername(),FriendEntry.INCOMINGREQUESTED);
+        }
+    }
+    // todo
+//    public void reloadSuggestedFriends(){
+//        YourSuggestedFriends.getChildren().clear();
+//        for(Friend friend : App.userManager.getFriendSuggestions())
+//    }
+
+
 
     private ProfilePicture getNextPfp(ProfilePicture current) {
         int next = (current.ordinal() + 1) % ProfilePicture.values().length;
@@ -699,7 +810,7 @@ public class StartScreenController implements Initializable {
                 Platform.runLater(() -> {
                     App.startScreenController.poolCount.setText("number of players in pool: " + out);
                 });
-            } );
+            } ,true);
         });
         multiplayerStart.setOnMouseClicked(e -> {
             if (!gameTypes.getSelectionModel().isEmpty()) {
@@ -947,12 +1058,12 @@ public class StartScreenController implements Initializable {
         deleteButton.setOnMouseClicked(e -> {
             removeFromOldGames(String.valueOf(newGame.getGameHash()));
         });
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer, deleteButton, 30, .3);
+        App.bindingController.bindCustom(gameContainer.widthProperty(), deleteButton.prefWidthProperty(), 30, .3);
         deleteButton.prefHeightProperty().bind(deleteButton.widthProperty());
 //        deleteButton.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
         ImageView trashIconView = new ImageView(trashIcon);
-        trashIconView.fitHeightProperty().bind(gameContainer.widthProperty().divide(10));
-        trashIconView.fitWidthProperty().bind(gameContainer.widthProperty().divide(10));
+        trashIconView.fitHeightProperty().bind(deleteButton.widthProperty());
+        trashIconView.fitWidthProperty().bind(deleteButton.widthProperty());
         deleteButton.setGraphic(trashIconView);
 
 
@@ -961,20 +1072,20 @@ public class StartScreenController implements Initializable {
             App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER, false);
 
         });
-        App.bindingController.bindChildWidthToParentHeightWithMaxSize(gameContainer, openGame, 30, .3);
+        App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .3);
         openGame.prefHeightProperty().bind(openGame.widthProperty());
 //        openGame.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
-        ImageView playerIconView = new ImageView(playerIcon);
-        playerIconView.fitHeightProperty().bind(gameContainer.widthProperty().divide(10));
-        playerIconView.fitWidthProperty().bind(gameContainer.widthProperty().divide(10));
+        ImageView playerIconView = new ImageView(openIcon);
+        playerIconView.fitHeightProperty().bind(openGame.widthProperty());
+        playerIconView.fitWidthProperty().bind(openGame.heightProperty());
         openGame.setGraphic(playerIconView);
 
         gameContainer.getChildren().add(gameInfo);
         gameContainer.getChildren().add(openGame);
         gameContainer.getChildren().add(deleteButton);
 
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(gamesContainer, gameContainer, 75, .15);
-        gameContainer.prefWidthProperty().bind(gameContainer.widthProperty());
+        App.bindingController.bindCustom(gamesContainer.widthProperty(), gameContainer.prefHeightProperty(), 75, .30);
+        gameContainer.prefWidthProperty().bind(gamesContainer.widthProperty());
         gameContainer.setStyle("-fx-background-color: darkgrey");
         gameContainer.setUserData(String.valueOf(newGame.getGameHash()));
 
@@ -985,7 +1096,6 @@ public class StartScreenController implements Initializable {
 //        PersistentSaveManager.removeGameFromData(hashCode);
         App.userManager.removeGameFromSave(hashCode);
         oldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
-        profileOldGamesPanelContent.getChildren().removeIf(e -> e.getUserData().equals(hashCode));
     }
 
     private List<ChessGame> loadGamesFromSave() {
@@ -996,18 +1106,17 @@ public class StartScreenController implements Initializable {
 
     public void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
-        profileOldGamesPanelContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g,oldGamesPanelContent);
-            AddNewGameToSaveGui(g,profileOldGamesPanelContent);
         }
     }
 
     public void usernamePresentResponse(boolean isUsernamePresent,int currentUUID,String lastUsername,String lastPassword) {
-        if (lastUsername != null && lastPassword != null && lastUsername.equals(createUsername.getText()) && lastPassword.equals(createPassword.getText())) {
+        if (lastUsername != null && lastPassword != null) {
             if (isUsernamePresent) {
                 createUsername.clear();
                 createUsername.setPromptText("This username is already taken!");
+                createUsername.setStyle("-fx-border-color: red");
             } else {
                 createUsername.clear();
                 createPassword.clear();

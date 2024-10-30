@@ -495,7 +495,6 @@ public class MainScreenController implements Initializable {
             if (ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && !currentState.equals(MainScreenState.SIMULATION) && ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
                 App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame,App.startScreenController.oldGamesPanelContent);
-                App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame,App.startScreenController.profileOldGamesPanelContent);
                 App.userManager.saveUserGame(ChessCentralControl.gameHandler.currentGame);
             }
             // need to leave online game if applicable
@@ -552,7 +551,7 @@ public class MainScreenController implements Initializable {
         App.soundPlayer.playEffect(Effect.MESSAGE);
         ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + ChessCentralControl.gameHandler.currentGame.getWhitePlayerName() + ") " + chatInput.getText());
         if (ChessCentralControl.gameHandler.currentGame.isWebGame() && ChessCentralControl.gameHandler.currentGame.isWebGameInitialized()) {
-            App.sendRequest(INTENT.SENDCHAT, chatInput.getText(),null);
+            App.sendRequest(INTENT.SENDCHAT, chatInput.getText(),null,true);
         }
         chatInput.clear();
     }

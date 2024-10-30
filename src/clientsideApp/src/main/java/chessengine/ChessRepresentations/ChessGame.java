@@ -406,7 +406,7 @@ public class ChessGame {
 
     public void leaveWebGame() {
         if (isWebGame) {
-            App.sendRequest(INTENT.LEAVEGAME, "",null);
+            App.sendRequest(INTENT.LEAVEGAME, "",null,true);
         } else {
             logger.error("trying to access webgame, without being one");
         }
@@ -447,7 +447,7 @@ public class ChessGame {
             App.sendRequest(INTENT.CREATEGAME, gameType,(out) ->{
                 sendMessageToInfo("Waiting in queue");
                 logger.debug("Added to wait pool with " + out + " users.");
-            });
+            },true);
             centralControl.mainScreenController.setPlayerIcons(whitePlayerPfpUrl, ProfilePicture.DEFAULT.urlString, isWhiteOriented);
             centralControl.mainScreenController.setPlayerLabels(whitePlayerName, whiteElo, "Loading...", 0, isWhiteOriented);
 
@@ -965,7 +965,7 @@ public class ChessGame {
         }
         if (isWebGame && !isWebMove) {
             // todo with other things: add time
-            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, gameState) + ",10",null);
+            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, gameState) + ",10",null,true);
 
         }
     }

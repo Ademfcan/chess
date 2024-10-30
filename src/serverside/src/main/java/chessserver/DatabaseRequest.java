@@ -3,20 +3,31 @@ package chessserver;
 public class DatabaseRequest {
     String entryAsString;
     String userName;
+    String passwordHash;
     int UUID;
     long requestTimeStampMS;
-    String passwordHash;
+    int currentElo;
 
-    public DatabaseRequest(String entryAsString, String userName, String passwordHash, int UUID, long requestTimeStamp) {
+    public DatabaseRequest(String entryAsString, String userName, String passwordHash, int UUID, long requestTimeStampMS, int currentElo) {
         this.entryAsString = entryAsString;
         this.userName = userName;
         this.UUID = UUID;
-        this.requestTimeStampMS = requestTimeStamp;
+        this.requestTimeStampMS = requestTimeStampMS;
         this.passwordHash = passwordHash;
+        this.currentElo = currentElo;
     }
+
 
     public DatabaseRequest() {
 
+    }
+
+    public int getCurrentElo() {
+        return currentElo;
+    }
+
+    public void setCurrentElo(int currentElo) {
+        this.currentElo = currentElo;
     }
 
     public String getEntryAsString() {

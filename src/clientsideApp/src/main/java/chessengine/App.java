@@ -34,6 +34,7 @@ import org.nd4j.shade.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class App extends Application {
@@ -203,12 +204,16 @@ public class App extends Application {
     }
 
     // web client stuff
-    public static void sendRequest(INTENT intent, String extraInfo, Consumer<String> requestResponseAction) {
+    public static void sendRequest(INTENT intent, String extraInfo, Consumer<String> requestResponseAction,boolean isUserSent) {
         if (webclient == null) {
             appLogger.debug("Client null trying to create new one");
             if (attemptReconnection()) {
-                sendRequest(intent, extraInfo, requestResponseAction);
+                sendRequest(intent, extraInfo, requestResponseAction,isUserSent);
             } else {
+                if(isUserSent){
+                    messager.sendMessageQuick("No server connection!",true);
+                    messager.sendMessageQuick("No server connection!",false );
+                }
                 appLogger.error("Server Not Acessable!!");
 
             }
@@ -316,9 +321,18 @@ public class App extends Application {
                     if(!friendRequests.isEmpty()){
                         userManager.addMoreFriendRequests(friendRequests,true);
                     }
-                });
+                },false);
+
+                // now handle any accepted friend requests
+
+                sendRequest(INTENT.READACCEPTEDFRIENDREQUESTS,userManager.getCurrentUser() + "," + currentPasswordHash,(friendRequests) ->{
+                    if(!friendRequests.isEmpty()){
+                        userManager.addAcceptedFriendRequests(friendRequests,true);
+                    }
+                },false);
             }
         });
+        synchronizeFriendNames();
     }
 
 
@@ -507,6 +521,64 @@ public class App extends Application {
     private StartScreenController setStartScreenController() {
         startScreenController = new StartScreenController();
         return startScreenController;
+    }
+
+    public static void sendFriendRequest(String userName) {
+        int existence = userManager.doesFriendExist(userName, true);
+        if (existence > 0) {
+            switch (existence) {
+                case 1:
+                    messager.sendMessageQuick("Already your friend!", true);
+                    break;
+                case 2:
+                    messager.sendMessageQuick("You have already sent a friend request", true);
+                    break;
+                case 3:
+                    messager.sendMessageQuick("This person has already sent you a friend request", true);
+                    break;
+            }
+            return;
+        }
+
+
+        sendRequest(INTENT.SENDFRIENDREQUEST, userName, (out) -> {
+            if (Boolean.parseBoolean(out)) {
+                messager.sendMessageQuick("Request Sent", true);
+            } else {
+                messager.sendMessageQuick("Failed to send request", true);
+            }
+        }, false);
+    }
+
+    private static long lastFriendSynchroMS = -1;
+    private static final long MaxTimeDeltaBetweenSynchrosMS = TimeUnit.MINUTES.toMillis(1); // 1m
+
+    public static void synchronizeFriendNames(){
+        long currentTime = System.currentTimeMillis();
+        if(currentTime-lastFriendSynchroMS < MaxTimeDeltaBetweenSynchrosMS){
+            appLogger.debug("Not synchronizing, too soon!");
+            return;
+        }
+        lastFriendSynchroMS = currentTime;
+        // batched update calls
+        String incomingUUIDS = userManager.getIncomingRequestUUIDStr();
+        if(!incomingUUIDS.isEmpty()) {
+            sendRequest(INTENT.GETUSERNAMES, incomingUUIDS, (out) -> {
+                userManager.updateIncomingRequestUsernames(out);
+            }, false);
+        }
+        String outgoingUUIDS = userManager.getOutgoingRequestUUIDStr();
+        if(!outgoingUUIDS.isEmpty()) {
+            sendRequest(INTENT.GETUSERNAMES, outgoingUUIDS, (out) -> {
+                userManager.updateOutgoingRequestUsernames(out);
+            }, false);
+        }
+        String friendUUIDS = userManager.getFriendUUIDStr();
+        if(!friendUUIDS.isEmpty()) {
+            sendRequest(INTENT.GETUSERNAMES, friendUUIDS, (out) -> {
+                userManager.updateFriendUsernames(out);
+            }, false);
+        }
     }
 
 

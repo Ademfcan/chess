@@ -47,7 +47,11 @@ public enum INTENT {
     /** requires a response action**/
     GETRANK(true),
     /** requires a response action**/
-    MATCHALLUSERNAMES(true);
+    MATCHALLUSERNAMES(true),
+    /** does not require a response action**/
+    SENDACCEPTEDFRIENDREQUEST(true),
+    /** requires a response action**/
+    READACCEPTEDFRIENDREQUESTS(true);
     boolean isDbRelated;
     private INTENT(boolean isDbRelated){
         this.isDbRelated = isDbRelated;

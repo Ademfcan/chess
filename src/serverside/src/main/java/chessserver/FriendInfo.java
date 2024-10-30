@@ -1,40 +1,28 @@
 package chessserver;
 
-public class FriendInfo {
-    int UUID;
-    int elo;
+public class FriendInfo extends Friend {
     int numWins;
     int numLosses;
     int numDraws;
 
-    public FriendInfo(String userName, int UUID, int elo, int numWins, int numLosses, int numDraws, String profilePictureUrl, ProfilePicture profilePicture) {
-        this.UUID = UUID;
-        this.elo = elo;
+    public FriendInfo(int UUID, String currentUsername, int numWins, int numLosses, int numDraws) {
+        super(currentUsername, UUID);
         this.numWins = numWins;
         this.numLosses = numLosses;
         this.numDraws = numDraws;
+    }
+    public FriendInfo(String currentUsername,int UUID) {
+        super(currentUsername, UUID);
+        this.numWins = 0;
+        this.numLosses = 0;
+        this.numDraws = 0;
     }
 
     public FriendInfo() {
 
     }
 
-    public int getUUID() {
-        return UUID;
-    }
 
-    public void setUUID(int UUID) {
-        this.UUID = UUID;
-    }
-
-
-    public int getElo() {
-        return elo;
-    }
-
-    public void setElo(int elo) {
-        this.elo = elo;
-    }
 
     public int getNumWins() {
         return numWins;
@@ -59,7 +47,6 @@ public class FriendInfo {
     public void setNumDraws(int numDraws) {
         this.numDraws = numDraws;
     }
-
 
 
 }

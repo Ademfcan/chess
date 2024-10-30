@@ -159,7 +159,7 @@
                                                       <TextField fx:id="createPassword" />
                                                    </children>
                                                 </HBox>
-                                                <Button fx:id="createAccountButton" mnemonicParsing="false" text="Login" />
+                                                <Button fx:id="createAccountButton" mnemonicParsing="false" text="Create Account" />
                                                 <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                                                    <children>
                                                       <Hyperlink fx:id="loginInsteadButton" text="Login" />
@@ -228,10 +228,10 @@
                                                    <children>
                                                       <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                                          <children>
-                                                            <Label fx:id="profileOldGamesLabel" text="Past Games" />
-                                                            <ScrollPane fx:id="profileOldGamesPanel" hbarPolicy="NEVER" prefHeight="301.0" prefWidth="120.0" styleClass="oldGamesBar" vbarPolicy="ALWAYS">
+                                                            <TextField fx:id="friendsLookupInput" />
+                                                            <ScrollPane fx:id="friendsLookup" hbarPolicy="NEVER" prefHeight="301.0" prefWidth="120.0" styleClass="oldGamesBar" vbarPolicy="ALWAYS">
                                                                <content>
-                                                                  <VBox fx:id="profileOldGamesPanelContent" />
+                                                                  <VBox fx:id="friendsLookupContent" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
                                                                </content>
                                                             </ScrollPane>
                                                          </children>
@@ -249,9 +249,9 @@
                                                                <content>
                                                                   <StackPane fx:id="FriendsStackpane" prefHeight="150.0" prefWidth="200.0">
                                                                      <children>
-                                                                        <VBox fx:id="YourFriends" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                                                                        <VBox fx:id="YourFriendRequests" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                                                                        <VBox fx:id="YourSuggestedFriends" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
+                                                                        <VBox fx:id="YourFriends" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
+                                                                        <VBox fx:id="YourFriendRequests" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
+                                                                        <VBox fx:id="YourSuggestedFriends" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
                                                                      </children>
                                                                   </StackPane>
                                                                </content>

@@ -115,6 +115,18 @@ public class WebSocketClient {
                     App.messager.sendMessageQuick(out.getExtraInformation(),true);
                     App.messager.sendMessageQuick(out.getExtraInformation(),false);
                 }
+                case INCOMINGFRIENDREQUEST -> {
+                    String[] in = out.getExtraInformation().split(",");
+                    Friend request = new Friend(in[0],Integer.parseInt(in[1]));
+                    App.userManager.addNewFriendRequest(request,true);
+
+                }
+                case ACCEPTEDFRIENDREQUEST -> {
+                    String[] in = out.getExtraInformation().split(",");
+                    FriendInfo newFriend = new FriendInfo(in[0],Integer.parseInt(in[1]));
+                    App.userManager.addNewFriend(newFriend,true);
+
+                }
             }
         } catch (Exception e) {
             logger.error("Error on websocket receive message", e);
@@ -157,7 +169,7 @@ public class WebSocketClient {
         }
         else{
             try {
-                DatabaseRequest request  = new DatabaseRequest(ChessConstants.objectMapper.writeValueAsString(entry),userName,passwordHash,UUID,entry.getUserInfo().getLastUpdateTimeMS());
+                DatabaseRequest request  = new DatabaseRequest(ChessConstants.objectMapper.writeValueAsString(entry),userName,passwordHash,UUID,entry.getUserInfo().getLastUpdateTimeMS(),entry.getUserInfo().getUserelo());
                 sendRequest(intent,ChessConstants.objectMapper.writeValueAsString(request),responseAction);
             }
             catch (org.nd4j.shade.jackson.core.JsonProcessingException e){

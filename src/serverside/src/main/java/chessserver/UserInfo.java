@@ -1,10 +1,14 @@
 package chessserver;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class UserInfo {
+    private static final Logger logger = LogManager.getLogger("User_Info_Logger");
     int userelo;
     String userName;
     String userEmail;
@@ -12,13 +16,13 @@ public class UserInfo {
     CampaignProgress userCampaignProgress;
     ProfilePicture profilePicture;
     String profilePictureUrl;
-    List<FriendInfo> friendUserNames;
-    List<Integer> incomingRequests;
-    List<String> outgoingRequests;
+    List<FriendInfo> friends;
+    List<Friend> incomingRequests;
+    List<Friend> outgoingRequests;
     long lastUpdateTimeMS;
     List<String> savedGames;
 
-    public UserInfo(int userelo, String userName, String userEmail, int uuid, CampaignProgress userCampaignProgress, ProfilePicture profilePicture, List<FriendInfo> friendUserNames, List<Integer> incomingRequests, List<String> outgoingRequests, List<String> compressedGames) {
+    public UserInfo(int userelo, String userName, String userEmail, int uuid, CampaignProgress userCampaignProgress, ProfilePicture profilePicture, List<FriendInfo> friends, List<Friend> incomingRequests, List<Friend> outgoingRequests, List<String> compressedGames) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
@@ -26,7 +30,7 @@ public class UserInfo {
         this.userCampaignProgress = userCampaignProgress;
         this.profilePicture = profilePicture;
         this.profilePictureUrl = profilePicture.urlString;
-        this.friendUserNames = friendUserNames;
+        this.friends = friends;
         this.incomingRequests = incomingRequests;
         this.outgoingRequests = outgoingRequests;
         this.savedGames = compressedGames;
@@ -78,20 +82,34 @@ public class UserInfo {
         return saveStrings;
     }
 
-    public List<Integer> getIncomingRequests() {
+    public List<Friend> getIncomingRequests() {
         return incomingRequests;
     }
 
-    public void setIncomingRequests(List<Integer> incomingRequests) {
+    public String getIncomingRequestUUIDSAsStr(){
+        return getUUIDSAsStr(incomingRequests);
+    }
+
+    public void updateIncomingRequestUsernames(String serverResponse){
+        updateUsernames(incomingRequests,serverResponse);
+    }
+
+    public void setIncomingRequests(List<Friend> incomingRequests) {
         this.incomingRequests = incomingRequests;
         updateLastTimeStamp();
     }
 
-    public List<String> getOutgoingRequests() {
+    public List<Friend> getOutgoingRequests() {
         return outgoingRequests;
     }
+    public String getOutgoingRequestUUIDSAsStr(){
+        return getUUIDSAsStr(outgoingRequests);
+    }
 
-    public void setOutgoingRequests(List<String> outgoingRequests) {
+    public void updateOutgoingRequestUsernames(String serverResponse){
+        updateUsernames(outgoingRequests,serverResponse);
+    }
+    public void setOutgoingRequests(List<Friend> outgoingRequests) {
         this.outgoingRequests = outgoingRequests;
         updateLastTimeStamp();
     }
@@ -106,12 +124,33 @@ public class UserInfo {
     }
 
 
-    public List<FriendInfo> getFriendUserNames() {
-        return friendUserNames;
+    public List<FriendInfo> getFriends() {
+        return friends;
+    }
+    public String getFriendUUIDSAsStr(){
+        return getUUIDSAsStr(friends.stream().map(p -> (Friend) p).toList());
     }
 
-    public void setFriendUserNames(List<FriendInfo> friendUserNames) {
-        this.friendUserNames = friendUserNames;
+    public void updateFriendUsernames(String serverResponse){
+        String[] responseSplit = serverResponse.split(",");
+        if(responseSplit.length != friends.size()){
+            logger.error("Size mismatch between username update response and list size!\nResponse: " + serverResponse);
+            return;
+        }
+        Iterator<FriendInfo> listIterator = friends.listIterator();
+        for(String username : responseSplit){
+            if (username.isEmpty()) {
+                // account no longer exists, no match was found
+                listIterator.remove();
+            } else {
+                listIterator.next().setCurrentUsername(username);
+            }
+        }
+
+    }
+
+    public void setFriends(List<FriendInfo> friends) {
+        this.friends = friends;
         updateLastTimeStamp();
     }
 
@@ -173,6 +212,31 @@ public class UserInfo {
     public void setProfilePictureUrl(String profilePictureUrl) {
         this.profilePictureUrl = profilePictureUrl;
         updateLastTimeStamp();
+    }
+
+    private String getUUIDSAsStr(List<Friend> list){
+        StringBuilder sb = new StringBuilder();
+        for(Friend f : list){
+            sb.append(f.getUUID()).append(",");
+        }
+        return sb.toString();
+    }
+
+    private void updateUsernames(List<Friend> list, String usernameUpdateResponse){
+        String[] responseSplit = usernameUpdateResponse.split(",");
+        if(responseSplit.length != list.size()){
+            logger.error("Size mismatch between username update response and list size!\nResponse: " + usernameUpdateResponse);
+            return;
+        }
+        Iterator<Friend> listIterator = list.listIterator();
+        for(String username : responseSplit){
+            if (username.isEmpty()) {
+                // account no longer exists, no match was found
+                listIterator.remove();
+            } else {
+                listIterator.next().setCurrentUsername(username);
+            }
+        }
     }
 
 
