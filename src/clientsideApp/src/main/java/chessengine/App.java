@@ -9,7 +9,10 @@ import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.UserHelperFunctions;
-import chessengine.Graphics.*;
+import chessengine.Graphics.AppStateChangeNotification;
+import chessengine.Graphics.BindingController;
+import chessengine.Graphics.GlobalMessager;
+import chessengine.Graphics.MainScreenController;
 import chessengine.Managers.CampaignMessageManager;
 import chessengine.Managers.ClientManager;
 import chessengine.Managers.UserPreferenceManager;
@@ -289,7 +292,7 @@ public class App extends Application {
         }
         if (!isWebClientConnected()) {
             appLogger.debug("No connection to server, trying to reconnect");
-            if(attemptReconnection()){
+            if (attemptReconnection()) {
                 synchronizeWithServer();
             }
             return;
@@ -372,7 +375,8 @@ public class App extends Application {
 
     public static void refreshAppWithNewUser(DatabaseEntry databaseEntry) {
         userPreferenceManager.reloadWithUser(databaseEntry.getPreferences(), false);
-        userManager.reloadNewAppUser(databaseEntry.getUserInfo(),true, false);
+        userManager.reloadNewAppUser(databaseEntry.getUserInfo(), true, false);
+        startScreenController.resetUserInfo();
         resyncFriends(true);
     }
 
@@ -438,7 +442,7 @@ public class App extends Application {
 
     public static void resyncFriends(boolean forceResync) {
         long currentTime = System.currentTimeMillis();
-        if(!forceResync){
+        if (!forceResync) {
             if (currentTime - lastFriendSynchroMS < MaxTimeDeltaBetweenSynchrosMS) {
                 appLogger.debug("Not synchronizing, too soon!");
                 return;
@@ -449,7 +453,9 @@ public class App extends Application {
 
         String incomingUUIDS = userManager.getIncomingRequestUUIDStr();
         if (!incomingUUIDS.isEmpty()) {
-//            userManager.setCurrentIncomingRequestsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getIncomingFriendRequests()));
+            if (!isWebClientConnected()) {
+                userManager.setCurrentIncomingRequestsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getIncomingFriendRequests()));
+            }
             sendRequest(INTENT.GETFRIENDDATA, incomingUUIDS, (out) -> {
                 FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
@@ -461,7 +467,9 @@ public class App extends Application {
         }
         String suggestedUUIDS = userManager.getSuggestedFriendUUIDStr();
         if (!suggestedUUIDS.isEmpty()) {
-            userManager.setCurrentSuggestedFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriendSuggestions()));
+            if (!isWebClientConnected()) {
+                userManager.setCurrentSuggestedFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriendSuggestions()));
+            }
             sendRequest(INTENT.GETFRIENDDATA, suggestedUUIDS, (out) -> {
                 FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
@@ -473,7 +481,9 @@ public class App extends Application {
         }
         String friendUUIDS = userManager.getFriendUUIDStr();
         if (!friendUUIDS.isEmpty()) {
-            userManager.setCurrentFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriends()));
+            if (!isWebClientConnected()) {
+                userManager.setCurrentFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriends()));
+            }
             sendRequest(INTENT.GETFRIENDDATA, friendUUIDS, (out) -> {
                 FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
@@ -481,7 +491,9 @@ public class App extends Application {
                         userManager.setCurrentFriendsFromServer(response);
                     });
                 }
+
             }, false);
+
         }
 
     }

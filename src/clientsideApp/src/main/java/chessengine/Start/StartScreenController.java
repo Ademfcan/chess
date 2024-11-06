@@ -386,13 +386,16 @@ public class StartScreenController implements Initializable {
         campaignManager.setLevelUnlocksBasedOnProgress(App.userManager.getCampaignProgress());
         oldGames = loadGamesFromSave();
         setupOldGamesBox(oldGames);
+        setupUserOldGamesBox(oldGames);
     }
 
     public void setProfileInfo(ProfilePicture picture, String name, int elo,int uuid) {
         profileButton.setImage(new Image(picture.urlString));
         nameProfileLabel.setText(name);
         eloProfileLabel.setText(Integer.toString(elo));
+    }
 
+    public void setUserProfileInfo(ProfilePicture picture, String name, int elo,int uuid) {
         userInfoPfp.setImage(new Image(picture.urlString));
         userInfoUserName.setText("Name: " + name);
         userInfoUserElo.setText("ELO: " + elo);
@@ -529,9 +532,6 @@ public class StartScreenController implements Initializable {
     private void setUpUserSettings() {
         userInfoManager = new UserInfoManager(this,App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
         profileButton.setOnMouseClicked(e -> {
-            App.resyncFriends(false);
-            resetUserInfo();
-            userInfoManager.showFriends();
             if (currentState.equals(StartScreenState.USERSETTINGS)) {
                 if(userInfoPage.isVisible()){
                     setSelection(lastStateBeforeUserSettings);
@@ -540,6 +540,9 @@ public class StartScreenController implements Initializable {
                     setUserOptions(0);
                 }
             } else {
+                App.resyncFriends(false);
+                resetUserInfo();
+                userInfoManager.showFriends();
                 setUserOptions(0);
                 setSelection(StartScreenState.USERSETTINGS);
             }
@@ -785,10 +788,11 @@ public class StartScreenController implements Initializable {
         setUserInfoNav(0);
     }
 
-    private void resetUserInfo(){
+    public void resetUserInfo(){
         setUserOptions(0);
+        userInfoManager.clearAllUserPanels();
         userInfoManager.changeUserInfoState(App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
-        userInfoManager.reloadUserPanel(App.userManager.getCurrentUser(),false);
+        userInfoManager.reloadUserPanel(App.userManager.getCurrentUser(),false,false);
     }
 
 
@@ -1138,7 +1142,7 @@ public class StartScreenController implements Initializable {
         ImageView trashIconView = new ImageView(trashIcon);
         trashIconView.fitHeightProperty().bind(deleteButton.widthProperty());
         trashIconView.fitWidthProperty().bind(deleteButton.widthProperty());
-        deleteButton.setGraphic(trashIconView);
+//        deleteButton.setGraphic(trashIconView);
 
 
         Button openGame = new Button();
@@ -1152,7 +1156,7 @@ public class StartScreenController implements Initializable {
         ImageView playerIconView = new ImageView(openIcon);
         playerIconView.fitHeightProperty().bind(openGame.widthProperty());
         playerIconView.fitWidthProperty().bind(openGame.heightProperty());
-        openGame.setGraphic(playerIconView);
+//        openGame.setGraphic(playerIconView);
 
         gameContainer.getChildren().add(gameInfo);
         gameContainer.getChildren().add(openGame);
@@ -1180,9 +1184,13 @@ public class StartScreenController implements Initializable {
 
     public void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
-        userOldGamesContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g,oldGamesPanelContent);
+        }
+    }
+    public void setupUserOldGamesBox(List<ChessGame> gamesToLoad) {
+        userOldGamesContent.getChildren().clear();
+        for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g,userOldGamesContent);
         }
     }

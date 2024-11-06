@@ -307,6 +307,7 @@ public class ClientHandler {
                             FriendDataResponse dataResponse = new FriendDataResponse(new ArrayList<>());
                             String[] uuids = input.getExtraInformation().split(",");
                             for (String uuid : uuids) {
+                                int UUID = Integer.parseInt(uuid);
                                 String query = "SELECT Dataentry from users Where UUID = ?";
                                 PreparedStatement stmt = conn.prepareStatement(query);
                                 openedStatements.add(stmt);
@@ -314,10 +315,11 @@ public class ClientHandler {
                                 ResultSet rs = stmt.executeQuery();
                                 openedResultSets.add(rs);
                                 if (rs.next()) {
-                                    dataResponse.getDataResponse().add(new FriendDataPair(Integer.parseInt(uuid),rs.getString("Dataentry")));
+                                    boolean isOnline = UUIDSessionMap.containsKey(UUID);
+                                    dataResponse.getDataResponse().add(new FriendDataPair(UUID,rs.getString("Dataentry"),isOnline));
                                 }
                                 else{
-                                    dataResponse.getDataResponse().add(new FriendDataPair(Integer.parseInt(uuid),""));
+                                    dataResponse.getDataResponse().add(new FriendDataPair(UUID,"",false));
                                 }
                                 rs.close();
                                 stmt.close();
@@ -355,7 +357,8 @@ public class ClientHandler {
                                 while (rs.next()){
                                     int UUID = Integer.parseInt(rs.getString("UUID"));
                                     String dataEntryAsString = rs.getString("Dataentry");
-                                    dataResponse.getDataResponse().add(new FriendDataPair(UUID,dataEntryAsString));
+                                    boolean isOnline = UUIDSessionMap.containsKey(UUID);
+                                    dataResponse.getDataResponse().add(new FriendDataPair(UUID,dataEntryAsString,isOnline));
                                 }
                                 sendMessage(session, ServerResponseType.SERVERRESPONSEACTIONREQUEST, objectMapper.writeValueAsString(dataResponse), input.getUniqueId());
                             }

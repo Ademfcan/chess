@@ -6,6 +6,7 @@ import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Functions.UserHelperFunctions;
+import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Start.StartScreenController;
 import chessengine.Misc.ChessConstants;
 import chessengine.Misc.ClientsideFriendDataResponse;
@@ -47,7 +48,7 @@ public class ClientManager {
                 appUser.getInfo().getFriends().removeIf(f -> f.getUUID() == dataPair.getUUID());
             }
             else{
-                currentFriendsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+                currentFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(),DatabaseEntry.class)));
             }
         }
     }
@@ -68,7 +69,7 @@ public class ClientManager {
                 appUser.getInfo().getIncomingRequests().removeIf(f -> f.getUUID() == dataPair.getUUID());
             }
             else{
-                currentIncomingRequestsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+                currentIncomingRequestsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
             }
         }
     }
@@ -90,7 +91,7 @@ public class ClientManager {
                 // todo
             }
             else{
-                currentSuggestedFriendsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+                currentSuggestedFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
             }
         }
     }
@@ -123,7 +124,7 @@ public class ClientManager {
 
     public void init(StartScreenController controller) {
         // graphical stuff
-        controller.userInfoManager.reloadUserPanel(appUser.getInfo(),true);
+        controller.userInfoManager.reloadUserPanel(appUser.getInfo(),true,false);
     }
 
     public String getUserName() {
@@ -237,10 +238,9 @@ public class ClientManager {
     }
 
     private void loadChanges() {
-        App.startScreenController.userInfoManager.reloadUserPanel(appUser.getInfo(),true);
+        App.startScreenController.userInfoManager.reloadUserPanel(appUser.getInfo(),true,false);
         App.startScreenController.campaignManager.setLevelUnlocksBasedOnProgress(appUser.getInfo().getUserCampaignProgress());
-        App.startScreenController.setupOldGamesBox(readSavedGames());
-
+        App.startScreenController.userInfoManager.showCurrentFriendsPanel();
         PersistentSaveManager.writeUserToAppData(appUser.getInfo());
     }
 

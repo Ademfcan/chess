@@ -1,23 +1,28 @@
 package chessengine.Start;
 
 import chessengine.App;
+import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Enums.FriendEntry;
 import chessengine.Enums.UserInfoState;
 import chessengine.Functions.UserHelperFunctions;
+import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Misc.ClientsideFriendDataResponse;
 import chessserver.DatabaseEntry;
 import chessserver.Friend;
 import chessserver.FriendInfo;
 import chessserver.UserInfo;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Circle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 public class UserInfoManager {
     private static final Logger logger = LogManager.getLogger("User_Info_Manager");
@@ -47,10 +52,15 @@ public class UserInfoManager {
         }
     }
 
-    public void reloadUserPanel(UserInfo user,boolean forceReload){
+    public void reloadUserPanel(UserInfo user,boolean forceReload,boolean isPreviewLoad){
         if(forceReload || currentUserShown != user){
-            controller.setProfileInfo(user.getProfilePicture(),user.getUserName(),user.getUserelo(),user.getUuid());
-            controller.setupOldGamesBox(UserHelperFunctions.readSavedGames(user.getSavedGames()));
+            if(!isPreviewLoad){
+                controller.setProfileInfo(user.getProfilePicture(),user.getUserName(),user.getUserelo(),user.getUuid());
+                controller.setupOldGamesBox(UserHelperFunctions.readSavedGames(user.getSavedGames()));
+            }
+            controller.setUserProfileInfo(user.getProfilePicture(),user.getUserName(),user.getUserelo(),user.getUuid());
+            controller.setupUserOldGamesBox(UserHelperFunctions.readSavedGames(user.getSavedGames()));
+
             if(currentUserInfoState == UserInfoState.LOGGEDIN){
                 App.resyncFriends(true);
                 showFriends();
@@ -71,8 +81,8 @@ public class UserInfoManager {
         if(clientsideFriendDataResponse.readDatabaseEntries().isEmpty()){
             return;
         }
-        for(DatabaseEntry entry : clientsideFriendDataResponse.readDatabaseEntries()){
-            String lookupName = entry.getUserInfo().getUserName();
+        for(ClientsideDataEntry entry : clientsideFriendDataResponse.readDatabaseEntries()){
+            String lookupName = entry.getDatabaseEntry().getUserInfo().getUserName();
             if(lookupName.equals(App.userManager.getUserName())){
                 continue;
             }
@@ -98,7 +108,8 @@ public class UserInfoManager {
         }
     }
 
-    private void addFriendEntry(VBox container, Region Reference, DatabaseEntry entry, FriendEntry entryType){
+    private void addFriendEntry(VBox container, Region Reference, ClientsideDataEntry entry, FriendEntry entryType){
+        DatabaseEntry databaseEntry = entry.getDatabaseEntry();
         HBox lookupEntry = new HBox();
         lookupEntry.setStyle("-fx-background-color: gray; -fx-border-color: black");
         App.bindingController.bindCustom(Reference.widthProperty(),lookupEntry.spacingProperty(),20,.4);
@@ -108,24 +119,45 @@ public class UserInfoManager {
         App.bindingController.bindCustom(Reference.heightProperty(),lookupEntry.prefHeightProperty(),60,.1);
 
         // profile picture / preview button
-        ImageView profilePicture = new ImageView(entry.getUserInfo().getProfilePictureUrl());
-        profilePicture.fitHeightProperty().bind(lookupEntry.heightProperty().subtract(5));
-        profilePicture.fitWidthProperty().bind(profilePicture.fitHeightProperty());
-        profilePicture.setOnMouseClicked(e ->{
+        Pane profileGroup = new Pane();
+        profileGroup.prefHeightProperty().bind(lookupEntry.heightProperty());
+        profileGroup.prefWidthProperty().bind(profileGroup.heightProperty());
+        profileGroup.setOnMouseClicked(e ->{
             changeUserInfoState(UserInfoState.PREVIEW);
-            reloadUserPanel(entry.getUserInfo(),false);
+            reloadUserPanel(databaseEntry.getUserInfo(),false,true);
             controller.setUserInfoNav(1);
 
         });
+        profileGroup.setStyle("-fx-border-radius: 25;-fx-border-color: black;-fx-border-width: 2");
 
-        lookupEntry.getChildren().add(profilePicture);
+        ImageView profilePicture = new ImageView(databaseEntry.getUserInfo().getProfilePictureUrl());
+        profilePicture.fitHeightProperty().bind(lookupEntry.heightProperty().subtract(5));
+        profilePicture.fitWidthProperty().bind(profilePicture.fitHeightProperty());
+        profilePicture.layoutXProperty().bind(profileGroup.widthProperty().subtract(profilePicture.fitWidthProperty()).divide(2));
+        profilePicture.layoutYProperty().bind(profileGroup.heightProperty().subtract(profilePicture.fitHeightProperty()).divide(2));
+
+        Circle activityIndicator = new Circle();
+        activityIndicator.setStroke(Paint.valueOf("White"));
+        if(entry.isCurrentlyOnline()){
+            activityIndicator.setFill(Paint.valueOf("Green"));
+        }
+        else{
+            activityIndicator.setFill(Paint.valueOf("Gray"));
+        }
+        activityIndicator.radiusProperty().bind(profilePicture.fitHeightProperty().divide(16));
+        activityIndicator.layoutXProperty().bind(profileGroup.widthProperty().subtract(activityIndicator.radiusProperty().divide(2).subtract(1)));
+        activityIndicator.layoutYProperty().bind(profileGroup.heightProperty().subtract(activityIndicator.radiusProperty().divide(2).subtract(2)));
+        profileGroup.getChildren().addAll(activityIndicator,profilePicture);
+
+
+        lookupEntry.getChildren().add(profileGroup);
 
 
 
 
         // name
-        String friendName = entry.getUserInfo().getUserName();
-        int friendUUID = entry.getUserInfo().getUuid();
+        String friendName = databaseEntry.getUserInfo().getUserName();
+        int friendUUID = databaseEntry.getUserInfo().getUuid();
         Label name = new Label(friendName);
         App.bindingController.bindSmallText(name,false,"black");
         lookupEntry.getChildren().add(name);
@@ -186,45 +218,50 @@ public class UserInfoManager {
         container.getChildren().add(label);
     }
 
+    /** 0 = friends panel, 1 = incoming requests, 2 = suggested friends**/
+    private int currentFriendState = 0;
 
     public void showFriends(){
+        currentFriendState = 0;
         controller.friendsContent.getChildren().clear();
         if(App.userManager.getCurrentFriendsFromServer().readDatabaseEntries().isEmpty()){
             addEmptyEntry(controller.friendsContent,"No friends");
         }
         else{
-            for(DatabaseEntry friend : App.userManager.getCurrentFriendsFromServer().readDatabaseEntries()){
+            for(ClientsideDataEntry friend : App.userManager.getCurrentFriendsFromServer().readDatabaseEntries()){
                 addFriendEntry(controller.friendsContent,controller.FriendsPanel,friend,FriendEntry.CONNECTED);
             }
         }
     }
 
     public void showIncomingRequests(){
+        currentFriendState = 1;
         controller.friendsContent.getChildren().clear();
         if(App.userManager.getCurrentIncomingRequestsFromServer().readDatabaseEntries().isEmpty()){
             addEmptyEntry(controller.friendsContent,"No current requests");
         }
         else{
-            for(DatabaseEntry friend : App.userManager.getCurrentIncomingRequestsFromServer().readDatabaseEntries()){
+            for(ClientsideDataEntry friend : App.userManager.getCurrentIncomingRequestsFromServer().readDatabaseEntries()){
                 addFriendEntry(controller.friendsContent,controller.FriendsPanel,friend,FriendEntry.INCOMINGREQUESTED);
             }
         }
     }
     public void showSuggestedFriends(){
+        currentFriendState = 2;
         controller.friendsContent.getChildren().clear();
         if(App.userManager.getCurrentSuggestedFriendsFromServer().readDatabaseEntries().isEmpty()){
             addEmptyEntry(controller.friendsContent,"No current suggestions");
             addEmptyEntry(controller.friendsContent,"Try playing some online games");
         }
         else{
-            for(DatabaseEntry friend : App.userManager.getCurrentSuggestedFriendsFromServer().readDatabaseEntries()){
+            for(ClientsideDataEntry friend : App.userManager.getCurrentSuggestedFriendsFromServer().readDatabaseEntries()){
                 addFriendEntry(controller.friendsContent,controller.FriendsPanel,friend,FriendEntry.UNCONNECTED);
             }
 
         }
     }
 
-    private void clearAllUserPanels(){
+    void clearAllUserPanels(){
         controller.friendsLookup.getChildren().clear();
         controller.friendsLookupInput.clear();
         controller.friendsContent.getChildren().clear();
@@ -248,4 +285,19 @@ public class UserInfoManager {
         controller.friendsLookupInput.setDisable(false);
         controller.friendsLookupButton.setDisable(false);
     }
+
+    public void showCurrentFriendsPanel() {
+        switch (currentFriendState){
+            case 0:
+                showFriends();
+                break;
+            case 1:
+                showIncomingRequests();
+                break;
+            case 2:
+                showSuggestedFriends();
+                break;
+        }
+    }
+
 }

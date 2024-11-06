@@ -3,6 +3,7 @@ package chessengine.Functions;
 import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Misc.ChessConstants;
+import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Misc.ClientsideFriendDataResponse;
 import chessserver.*;
 
@@ -28,7 +29,7 @@ public class UserHelperFunctions {
             if(friendDataPair.getFriendDatabaseEntryAsString().isEmpty()){
                 continue;
             }
-            clientsideFriendDataResponse.addDatabaseEntry(ChessConstants.readFromObjectMapper(friendDataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+            clientsideFriendDataResponse.addDatabaseEntry(new ClientsideDataEntry(friendDataPair.isOnline(),ChessConstants.readFromObjectMapper(friendDataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
         }
 
         return clientsideFriendDataResponse;
@@ -41,7 +42,7 @@ public class UserHelperFunctions {
             UserPreferences pref = ChessConstants.defaultPreferences;
             UserInfo info = UserInfo.getPartiallyDefaultUserInfo(f.getCurrentUsername(),f.getUUID());
             DatabaseEntry newEntry = new DatabaseEntry(info,pref);
-            response.addDatabaseEntry(newEntry);
+            response.addDatabaseEntry(new ClientsideDataEntry(false,newEntry));
         }
         return response;
     }
