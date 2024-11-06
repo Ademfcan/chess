@@ -1,8 +1,8 @@
 package chessserver;
 
 public class DatabaseEntry {
-    public UserInfo userInfo;
-    public UserPreferences preferences;
+    private UserInfo userInfo;
+    private UserPreferences preferences;
 
     public DatabaseEntry(UserInfo userInfo, UserPreferences preferences) {
         this.userInfo = userInfo;

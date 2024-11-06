@@ -280,11 +280,11 @@ public class BindingController {
 
     }
 
-    private NumberBinding getMaxSizeBindingCustom(ReadOnlyDoubleProperty parent, double maxSize, double percentExpectedSize) {
+    private NumberBinding getMaxSizeBindingCustom(DoubleExpression parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(parent.multiply(percentExpectedSize), maxSize);
     }
 
-    public void bindCustom(ReadOnlyDoubleProperty parent, DoubleProperty child, double maxSize, double percentExpectedSize){
+    public void bindCustom(DoubleExpression parent, DoubleProperty child, double maxSize, double percentExpectedSize){
         NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize,percentExpectedSize);
         child.bind(sizeBinding);
     }

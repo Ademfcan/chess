@@ -1,9 +1,9 @@
 package chessserver;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,13 +16,32 @@ public class UserInfo {
     CampaignProgress userCampaignProgress;
     ProfilePicture profilePicture;
     String profilePictureUrl;
+
+    @Override
+    public String toString() {
+        return "UserInfo{" +
+                "userelo=" + userelo +
+                ", userName='" + userName + '\'' +
+                ", userEmail='" + userEmail + '\'' +
+                ", uuid=" + uuid +
+                ", userCampaignProgress=" + userCampaignProgress +
+                ", profilePicture=" + profilePicture +
+                ", profilePictureUrl='" + profilePictureUrl + '\'' +
+                ", friends=" + friends +
+                ", incomingRequests=" + incomingRequests +
+                ", outgoingRequests=" + outgoingRequests +
+                ", lastUpdateTimeMS=" + lastUpdateTimeMS +
+                ", savedGames=" + savedGames +
+                '}';
+    }
+
     List<FriendInfo> friends;
     List<Friend> incomingRequests;
     List<Friend> outgoingRequests;
     long lastUpdateTimeMS;
     List<String> savedGames;
 
-    public UserInfo(int userelo, String userName, String userEmail, int uuid, CampaignProgress userCampaignProgress, ProfilePicture profilePicture, List<FriendInfo> friends, List<Friend> incomingRequests, List<Friend> outgoingRequests, List<String> compressedGames) {
+    public UserInfo(String userName, int userelo, String userEmail, int uuid, CampaignProgress userCampaignProgress, ProfilePicture profilePicture, List<FriendInfo> friends, List<Friend> incomingRequests, List<Friend> outgoingRequests, List<String> compressedGames) {
         this.userelo = userelo;
         this.userName = userName;
         this.userEmail = userEmail;
@@ -35,6 +54,10 @@ public class UserInfo {
         this.outgoingRequests = outgoingRequests;
         this.savedGames = compressedGames;
         updateLastTimeStamp();
+    }
+
+    public static UserInfo getPartiallyDefaultUserInfo(String userName,int UUID){
+        return new UserInfo(userName,0,"",UUID,new CampaignProgress(),ProfilePicture.DEFAULT,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>());
     }
 
     public UserInfo() {
@@ -59,6 +82,8 @@ public class UserInfo {
         return savedGames;
     }
 
+
+
     public void setSavedGames(List<String> savedGames) {
         this.savedGames = savedGames;
         updateLastTimeStamp();
@@ -73,21 +98,12 @@ public class UserInfo {
         savedGames.removeIf(game -> game.split(",")[0].equals(gameHash));
         updateLastTimeStamp();
     }
-    @JsonIgnore
-    public String[] aquireSaveStrings() {
-        String[] saveStrings = new String[savedGames.size()];
-        for (int i = 0; i < savedGames.size(); i++) {
-            saveStrings[i] = savedGames.get(i);
-        }
-        return saveStrings;
-    }
-
     public List<Friend> getIncomingRequests() {
         return incomingRequests;
     }
 
-    public String getIncomingRequestUUIDSAsStr(){
-        return getUUIDSAsStr(incomingRequests);
+    public String aquireIncomingRequestUUIDSAsStr(){
+        return aquireUUIDSAsStr(incomingRequests);
     }
 
     public void updateIncomingRequestUsernames(String serverResponse){
@@ -102,8 +118,8 @@ public class UserInfo {
     public List<Friend> getOutgoingRequests() {
         return outgoingRequests;
     }
-    public String getOutgoingRequestUUIDSAsStr(){
-        return getUUIDSAsStr(outgoingRequests);
+    public String aquireOutgoingRequestUUIDSAsStr(){
+        return aquireUUIDSAsStr(outgoingRequests);
     }
 
     public void updateOutgoingRequestUsernames(String serverResponse){
@@ -127,8 +143,8 @@ public class UserInfo {
     public List<FriendInfo> getFriends() {
         return friends;
     }
-    public String getFriendUUIDSAsStr(){
-        return getUUIDSAsStr(friends.stream().map(p -> (Friend) p).toList());
+    public String aquireFriendUUIDSAsStr(){
+        return aquireUUIDSAsStr(friends);
     }
 
     public void updateFriendUsernames(String serverResponse){
@@ -214,7 +230,7 @@ public class UserInfo {
         updateLastTimeStamp();
     }
 
-    private String getUUIDSAsStr(List<Friend> list){
+    private String aquireUUIDSAsStr(List<? extends Friend> list){
         StringBuilder sb = new StringBuilder();
         for(Friend f : list){
             sb.append(f.getUUID()).append(",");

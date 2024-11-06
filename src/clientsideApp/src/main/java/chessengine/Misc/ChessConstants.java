@@ -35,7 +35,7 @@ public class ChessConstants {
     public static final String DEFAULTEMAIL = "no-email";
     public static final String DEFAULTUSERNAME = "anonymous";
     public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false, false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
-    public static final FrontendClient defaultClient = new FrontendClient(new UserInfo(0, DEFAULTUSERNAME, DEFAULTEMAIL,Integer.MAX_VALUE, new CampaignProgress(123),ProfilePicture.DEFAULT,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>()));
+    public static final FrontendClient defaultClient = new FrontendClient(new UserInfo(DEFAULTUSERNAME, 0, DEFAULTEMAIL,Integer.MAX_VALUE, new CampaignProgress(123),ProfilePicture.DEFAULT,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>()));
     public static final double borderRadFactor = .0025;
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
@@ -73,6 +73,16 @@ public class ChessConstants {
     public static int ComputerEloEstimate = 2400;
     public static int DefaultWaitTime = 1000; // ms;
     public static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static <T> T readFromObjectMapper(String object, Class<T> objectClass){
+        try {
+            return objectMapper.readValue(object,objectClass);
+        }
+        catch (Exception e){
+            mainLogger.error("Objectmapper error when reading value!",e);
+        }
+        return null;
+    }
 
 
 

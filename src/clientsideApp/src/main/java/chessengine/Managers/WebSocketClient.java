@@ -112,20 +112,27 @@ public class WebSocketClient {
                     logger.debug("Sql update sucess");
                 }
                 case SQLMESSAGE ->{
-                    App.messager.sendMessageQuick(out.getExtraInformation(),true);
-                    App.messager.sendMessageQuick(out.getExtraInformation(),false);
+                    Platform.runLater(() ->{
+                        App.messager.sendMessageQuick(out.getExtraInformation(),true);
+                        App.messager.sendMessageQuick(out.getExtraInformation(),false);
+                    });
                 }
                 case INCOMINGFRIENDREQUEST -> {
                     String[] in = out.getExtraInformation().split(",");
                     Friend request = new Friend(in[0],Integer.parseInt(in[1]));
-                    App.userManager.addNewFriendRequest(request,true);
-
+                    Platform.runLater(() -> {
+                        App.userManager.addNewFriendRequest(request, true);
+                    });
                 }
                 case ACCEPTEDFRIENDREQUEST -> {
                     String[] in = out.getExtraInformation().split(",");
-                    FriendInfo newFriend = new FriendInfo(in[0],Integer.parseInt(in[1]));
-                    App.userManager.addNewFriend(newFriend,true);
+                    Platform.runLater(() ->{
+                        App.userManager.addNewFriend(in[0],Integer.parseInt(in[1]),true);
+                    });
 
+                }
+                case CLOSEDSUCESS -> {
+                    logger.debug("Session closed sucessfully");
                 }
             }
         } catch (Exception e) {
@@ -140,7 +147,7 @@ public class WebSocketClient {
 
     @OnClose
     public void onClose(Session session) {
-        App.attemptReconnection();
+//        App.attemptReconnection();
     }
 
     public void sendRequest(INTENT intent, String extraInfo,Consumer<String> runOnResponse) {
@@ -181,6 +188,11 @@ public class WebSocketClient {
 
 
     public void close() throws IOException {
+        logger.debug("Closing session");
         session.close();
+    }
+
+    public boolean isOpen() {
+        return session.isOpen();
     }
 }

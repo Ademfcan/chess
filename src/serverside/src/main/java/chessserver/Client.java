@@ -3,6 +3,13 @@ package chessserver;
 public class Client implements Comparable<Client> {
 
 
+    @Override
+    public String toString() {
+        return "Client{" +
+                "info=" + info +
+                '}';
+    }
+
     UserInfo info;
 
 

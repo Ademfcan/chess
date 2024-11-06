@@ -71,7 +71,13 @@ public class ChessEndpoint {
 
     @OnClose
     public void onClose(Session session) {
-        ClientHandler.handleClosure(session);
+        try {
+            ClientHandler.handleClosure(session);
+        }
+        catch (Exception e){
+            ClientHandler.sendMessage(session,ServerResponseType.INVALIDOPERATION,"Invalid request!",Integer.MAX_VALUE);
+            logger.error(e);
+        }
     }
 
     @OnError

@@ -24,7 +24,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="fullscreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.StartScreenController">
+<StackPane fx:id="fullscreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Start.StartScreenController">
    <children>
       <GridPane fx:id="content" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
          <columnConstraints>
@@ -191,67 +191,67 @@
                                                 </HBox>
                                              </children>
                                           </VBox>
-                                          <VBox fx:id="userInfoPage" prefHeight="200.0" prefWidth="100.0">
+                                          <VBox fx:id="userInfoPage" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
                                              <children>
-                                                <HBox fx:id="topUserInfoBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                <HBox fx:id="topUserInfoBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
                                                    <children>
-                                                      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                      <VBox fx:id="topUserInfoLeftBox" alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0">
                                                          <children>
-                                                            <ImageView fx:id="userInfoPfp" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                                                                <children>
-                                                                  <Hyperlink fx:id="SignUpPage" text="Sign Up" />
-                                                                  <Hyperlink fx:id="LoginPage" text="Login" />
+                                                                  <ImageView fx:id="userInfoPfp" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                                                                  <VBox fx:id="topUserInfoRightBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0">
+                                                                     <children>
+                                                                        <Label fx:id="userInfoUUID" text="Label" />
+                                                                        <Label fx:id="userInfoUserElo" text="Elo: _" />
+                                                                        <Label fx:id="userInfoRank" text="Rank: _" />
+                                                                     </children>
+                                                                  </VBox>
                                                                </children>
                                                             </HBox>
-                                                         </children>
-                                                      </VBox>
-                                                      <VBox prefHeight="200.0" prefWidth="100.0">
-                                                         <children>
-                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                                                                <children>
+                                                                  <VBox fx:id="userInfoUsernameSpacer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
                                                                   <Label fx:id="userInfoUserName" text="Label" />
-                                                                  <Label fx:id="userInfoUUID" text="Label" />
-                                                               </children>
-                                                            </HBox>
-                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                               <children>
-                                                                  <Label fx:id="userInfoUserElo" text="Label" />
-                                                                  <Label fx:id="userInfoRank" layoutX="10.0" layoutY="85.0" text="Label" />
                                                                </children>
                                                             </HBox>
                                                          </children>
                                                       </VBox>
                                                    </children>
                                                 </HBox>
-                                                <HBox fx:id="bottomUserInfoBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                <HBox fx:id="bottomUserInfoBox" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="2.0">
                                                    <children>
-                                                      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                      <VBox fx:id="userOldGamesContainer" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
                                                          <children>
-                                                            <TextField fx:id="friendsLookupInput" />
-                                                            <ScrollPane fx:id="friendsLookup" hbarPolicy="NEVER" prefHeight="301.0" prefWidth="120.0" styleClass="oldGamesBar" vbarPolicy="ALWAYS">
+                                                            <Label fx:id="userOldGamesLabel" text="Past Games:" />
+                                                            <ScrollPane fx:id="userOldGamesScrollpane" prefHeight="200.0" prefWidth="200.0">
                                                                <content>
-                                                                  <VBox fx:id="friendsLookupContent" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
+                                                                  <VBox fx:id="userOldGamesContent" alignment="TOP_CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
                                                                </content>
                                                             </ScrollPane>
                                                          </children>
                                                       </VBox>
-                                                      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                      <VBox alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0">
                                                          <children>
                                                             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                                                                <children>
                                                                   <Button fx:id="FriendsButton" mnemonicParsing="false" text="Friends" />
                                                                   <Button fx:id="RequestsButton" mnemonicParsing="false" text="Requests" />
                                                                   <Button fx:id="SuggestedFriendsButton" mnemonicParsing="false" text="Suggested" />
+                                                                  <Button fx:id="friendsLookupButton" mnemonicParsing="false" text="Search" />
                                                                </children>
                                                             </HBox>
-                                                            <ScrollPane fx:id="FriendsPanel" prefHeight="200.0" prefWidth="200.0">
+                                                            <ScrollPane fx:id="FriendsPanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0">
                                                                <content>
-                                                                  <StackPane fx:id="FriendsStackpane" prefHeight="150.0" prefWidth="200.0">
+                                                                  <StackPane fx:id="FriendsStackpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="200.0">
                                                                      <children>
-                                                                        <VBox fx:id="YourFriends" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
-                                                                        <VBox fx:id="YourFriendRequests" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
-                                                                        <VBox fx:id="YourSuggestedFriends" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
+                                                                        <VBox fx:id="friendsContent" alignment="TOP_CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="2.0" />
+                                                                        <VBox fx:id="friendsLookup" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                                           <children>
+                                                                              <TextField fx:id="friendsLookupInput" promptText="Search Here" />
+                                                                              <VBox fx:id="friendsLookupContent" alignment="TOP_CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="2.0" />
+                                                                           </children>
+                                                                        </VBox>
                                                                      </children>
                                                                   </StackPane>
                                                                </content>
@@ -260,6 +260,21 @@
                                                       </VBox>
                                                    </children>
                                                 </HBox>
+                                                <StackPane fx:id="bottomInfoNav" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="200.0">
+                                                   <children>
+                                                      <HBox fx:id="hyperlinkBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
+                                                         <children>
+                                                            <Hyperlink fx:id="SignUpPage" text="Sign Up" />
+                                                            <Hyperlink fx:id="LoginPage" text="Login" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox fx:id="backButtonBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
+                                                         <children>
+                                                            <Hyperlink fx:id="userInfoBackButton" text="Back" />
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                </StackPane>
                                              </children>
                                           </VBox>
                                        </children>
@@ -290,6 +305,11 @@
                                              </font>
                                           </Button>
                                           <Button fx:id="enterExplorerButton" mnemonicParsing="false" styleClass="title-2" text="Enter Explorer">
+                                             <font>
+                                                <Font size="23.0" />
+                                             </font>
+                                          </Button>
+                                          <Button fx:id="enterPuzzleButton" layoutX="116.0" layoutY="159.0" mnemonicParsing="false" styleClass="title-2" text="Play Puzzles">
                                              <font>
                                                 <Font size="23.0" />
                                              </font>

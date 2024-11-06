@@ -5,11 +5,12 @@ import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
-import chessengine.Graphics.StartScreenController;
+import chessengine.Functions.UserHelperFunctions;
+import chessengine.Start.StartScreenController;
 import chessengine.Misc.ChessConstants;
+import chessengine.Misc.ClientsideFriendDataResponse;
 import chessserver.*;
 import jakarta.websocket.DeploymentException;
-import jdk.jfr.Frequency;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,6 +21,9 @@ import java.util.Objects;
 
 public class ClientManager {
     private static final Logger logger = LogManager.getLogger("Client_Manager");
+    private ClientsideFriendDataResponse currentFriendsFromServer = new ClientsideFriendDataResponse();
+    private ClientsideFriendDataResponse currentIncomingRequestsFromServer = new ClientsideFriendDataResponse();
+    private ClientsideFriendDataResponse currentSuggestedFriendsFromServer = new ClientsideFriendDataResponse();
     private FrontendClient appUser;
 
     public ClientManager() {
@@ -28,6 +32,71 @@ public class ClientManager {
         if (Objects.isNull(appUser)) {
             appUser = ChessConstants.defaultClient;
         }
+    }
+
+    public ClientsideFriendDataResponse getCurrentFriendsFromServer() {
+        return currentFriendsFromServer;
+    }
+
+    public void setCurrentFriendsFromServer(FriendDataResponse friendsFromServer) {
+        this.currentFriendsFromServer = new ClientsideFriendDataResponse();
+        for(FriendDataPair dataPair: friendsFromServer.getDataResponse()){
+
+            if(dataPair.getFriendDatabaseEntryAsString().isEmpty()){
+                // no longer exists on server
+                appUser.getInfo().getFriends().removeIf(f -> f.getUUID() == dataPair.getUUID());
+            }
+            else{
+                currentFriendsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+            }
+        }
+    }
+
+    public void setCurrentFriendsFromServer(ClientsideFriendDataResponse friendsFromServerProcessed){
+        this.currentFriendsFromServer = friendsFromServerProcessed;
+    }
+
+    public ClientsideFriendDataResponse getCurrentIncomingRequestsFromServer() {
+        return currentIncomingRequestsFromServer;
+    }
+
+    public void setCurrentIncomingRequestsFromServer(FriendDataResponse incomingRequestsFromServer) {
+        this.currentIncomingRequestsFromServer = new ClientsideFriendDataResponse();
+        for(FriendDataPair dataPair: incomingRequestsFromServer.getDataResponse()){
+            if(dataPair.getFriendDatabaseEntryAsString().isEmpty()){
+                // no longer exists on server
+                appUser.getInfo().getIncomingRequests().removeIf(f -> f.getUUID() == dataPair.getUUID());
+            }
+            else{
+                currentIncomingRequestsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+            }
+        }
+    }
+
+    public void setCurrentIncomingRequestsFromServer(ClientsideFriendDataResponse incomingRequestsFromServerProcessed){
+        this.currentIncomingRequestsFromServer = incomingRequestsFromServerProcessed;
+    }
+
+    public ClientsideFriendDataResponse getCurrentSuggestedFriendsFromServer() {
+        return currentSuggestedFriendsFromServer;
+    }
+
+    public void setCurrentSuggestedFriendsFromServer(FriendDataResponse suggestedFriendsFromServer) {
+        this.currentSuggestedFriendsFromServer = new ClientsideFriendDataResponse();
+        for(FriendDataPair dataPair: suggestedFriendsFromServer.getDataResponse()){
+
+            if(dataPair.getFriendDatabaseEntryAsString().isEmpty()){
+                // no longer exists on server
+                // todo
+            }
+            else{
+                currentSuggestedFriendsFromServer.addDatabaseEntry(ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class));
+            }
+        }
+    }
+
+    public void setCurrentSuggestedFriendsFromServer(ClientsideFriendDataResponse suggestedFriendsFromServerProcessed){
+        this.currentSuggestedFriendsFromServer = suggestedFriendsFromServerProcessed;
     }
 
     public boolean isLoggedIn() {
@@ -54,7 +123,7 @@ public class ClientManager {
 
     public void init(StartScreenController controller) {
         // graphical stuff
-        controller.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(), appUser.getInfo().getUuid());
+        controller.userInfoManager.reloadUserPanel(appUser.getInfo(),true);
     }
 
     public String getUserName() {
@@ -168,11 +237,9 @@ public class ClientManager {
     }
 
     private void loadChanges() {
-        App.startScreenController.setProfileInfo(appUser.getInfo().getProfilePicture(), appUser.getInfo().getUserName(), appUser.getInfo().getUserelo(), appUser.getInfo().getUuid());
+        App.startScreenController.userInfoManager.reloadUserPanel(appUser.getInfo(),true);
         App.startScreenController.campaignManager.setLevelUnlocksBasedOnProgress(appUser.getInfo().getUserCampaignProgress());
         App.startScreenController.setupOldGamesBox(readSavedGames());
-        App.startScreenController.reloadFriends();
-        App.startScreenController.reloadIncomingRequests();
 
         PersistentSaveManager.writeUserToAppData(appUser.getInfo());
     }
@@ -185,10 +252,31 @@ public class ClientManager {
         }
     }
 
-    public void reloadNewAppUser(UserInfo newAppUser, boolean updateDatabase) {
+    public void clearTempValues(){
+        currentIncomingRequestsFromServer = new ClientsideFriendDataResponse();
+        currentSuggestedFriendsFromServer = new ClientsideFriendDataResponse();
+        currentFriendsFromServer = new ClientsideFriendDataResponse();
+        cachedGames = null;
+    }
+
+    public void reloadAppUser() {
+        clearTempValues();
+        loadChanges();
+    }
+
+    public void reloadNewAppUser(UserInfo newAppUser,boolean serverReconnect, boolean updateDatabase) {
+        clearTempValues();
         appUser = new FrontendClient(newAppUser);
-        if (App.isWebClientConnected()) {
-            App.getWebclient().updateClient(appUser);
+        if(serverReconnect){
+            if (App.isWebClientConnected()) {
+                try {
+                    App.getWebclient().close();
+                }
+                catch (IOException e){
+                    logger.error("Websocket close error",e);
+                }
+            }
+            App.attemptReconnection();
         }
         loadChanges();
         if (updateDatabase) {
@@ -197,28 +285,33 @@ public class ClientManager {
     }
 
     public void logout() {
-        reloadNewAppUser(ChessConstants.defaultClient.getInfo(), false);
+
+        reloadNewAppUser(ChessConstants.defaultClient.getInfo(),true, false);
     }
 
-    public void addMoreFriendRequests(String out,boolean updateDatabase) {
-        for(String entry : out.split(";")){
+    public void addMoreFriendRequests(String out, boolean updateDatabase) {
+        for (String entry : out.split(";")) {
             String[] split = entry.split(",");
-            Friend friend = new Friend(split[0],Integer.parseInt(split[1]));
+            Friend friend = new Friend(split[0], Integer.parseInt(split[1]));
             appUser.getInfo().getIncomingRequests().add(friend);
         }
         loadChanges();
-        if(updateDatabase){
+        if (updateDatabase) {
             pushChangesToDatabase();
         }
     }
-    public void addAcceptedFriendRequests(String out,boolean updateDatabase) {
-        for(String entry : out.split(";")){
+
+    public void addAcceptedFriendRequests(String out, boolean updateDatabase) {
+        for (String entry : out.split(";")) {
             String[] split = entry.split(",");
-            FriendInfo friend = new FriendInfo(split[0],Integer.parseInt(split[1]));
+            String userName = split[0];
+            int UUID = Integer.parseInt(split[1]);
+            FriendInfo friend = new FriendInfo(userName, UUID);
             appUser.getInfo().getFriends().add(friend);
+            appUser.getInfo().getOutgoingRequests().removeIf(f -> f.getUUID() == UUID);
         }
         loadChanges();
-        if(updateDatabase){
+        if (updateDatabase) {
             pushChangesToDatabase();
         }
     }
@@ -235,61 +328,66 @@ public class ClientManager {
         pushChangesToDatabase();
     }
 
+    private List<ChessGame> cachedGames;
     public List<ChessGame> readSavedGames() {
-        List<ChessGame> out = new ArrayList<>();
-        String[] saves = appUser.getInfo().aquireSaveStrings();
-        for(String save : saves){
-            out.add(CryptoUtils.gameFromSaveString(save));
-        }
-
-        return out;
+       if(cachedGames == null){
+           cachedGames = UserHelperFunctions.readSavedGames(appUser.getInfo().getSavedGames());
+       }
+       return cachedGames;
     }
 
-    public String getOutgoingRequestUUIDStr(){
-        return appUser.getInfo().getOutgoingRequestUUIDSAsStr();
+    public String getOutgoingRequestUUIDStr() {
+        return appUser.getInfo().aquireOutgoingRequestUUIDSAsStr();
     }
 
-    public String getIncomingRequestUUIDStr(){
-        return appUser.getInfo().getIncomingRequestUUIDSAsStr();
+    public String getIncomingRequestUUIDStr() {
+        return appUser.getInfo().aquireIncomingRequestUUIDSAsStr();
     }
 
-    public String getFriendUUIDStr(){
-        return appUser.getInfo().getFriendUUIDSAsStr();
+    public String getSuggestedFriendUUIDStr() {
+        // todo;
+        return "";
     }
 
-    public void updateOutgoingRequestUsernames(String serverResponse){
+    public String getFriendUUIDStr() {
+        return appUser.getInfo().aquireFriendUUIDSAsStr();
+    }
+
+    public void updateOutgoingRequestUsernames(String serverResponse) {
         appUser.getInfo().updateOutgoingRequestUsernames(serverResponse);
         loadChanges();
         pushChangesToDatabase();
     }
 
-    public void updateIncomingRequestUsernames(String serverResponse){
+    public void updateIncomingRequestUsernames(String serverResponse) {
         appUser.getInfo().updateIncomingRequestUsernames(serverResponse);
         loadChanges();
         pushChangesToDatabase();
     }
-    public void updateFriendUsernames(String serverResponse){
+
+    public void updateFriendUsernames(String serverResponse) {
         appUser.getInfo().updateFriendUsernames(serverResponse);
         loadChanges();
         pushChangesToDatabase();
     }
 
 
-
-    /** O = No existence, 1 = Friend, 2 = Sent outgoing request, 3 = have incoming request <p> All of these are mutually exclusive (should be*) </p>**/
-    public int doesFriendExist(String userName,boolean includeFriendRequests){
+    /**
+     * O = No existence, 1 = Friend, 2 = Sent outgoing request, 3 = have incoming request <p> All of these are mutually exclusive (should be*) </p>
+     **/
+    public int doesFriendExist(String userName, boolean includeFriendRequests) {
         boolean isFriend = appUser.getInfo().getFriends().stream().anyMatch(f -> f.getCurrentUsername().equals(userName));
-        if(isFriend){
+        if (isFriend) {
             return 1;
         }
 
-        if(includeFriendRequests){
+        if (includeFriendRequests) {
             boolean isInOutgoing = appUser.getInfo().getOutgoingRequests().stream().anyMatch(f -> f.getCurrentUsername().equals(userName));
-            if(isInOutgoing){
+            if (isInOutgoing) {
                 return 2;
             }
             boolean isInIncoming = appUser.getInfo().getOutgoingRequests().stream().anyMatch(f -> f.getCurrentUsername().equals(userName));
-            if(isInIncoming){
+            if (isInIncoming) {
                 return 3;
             }
         }
@@ -297,35 +395,76 @@ public class ClientManager {
         return 0;
     }
 
+    public Friend matchIncomingRequests(String userName) {
+        List<Friend> match = appUser.getInfo().getIncomingRequests().stream().filter(f -> f.getCurrentUsername().equals(userName)).toList();
+        return !match.isEmpty() ? match.get(0) : null;
+    }
+
+    public Friend matchOutgoingRequests(String userName) {
+        List<Friend> match = appUser.getInfo().getOutgoingRequests().stream().filter(f -> f.getCurrentUsername().equals(userName)).toList();
+        return !match.isEmpty() ? match.get(0) : null;
+    }
+
+    public FriendInfo matchExistingFriends(String userName) {
+        List<FriendInfo> match = appUser.getInfo().getFriends().stream().filter(f -> f.getCurrentUsername().equals(userName)).toList();
+        return !match.isEmpty() ? match.get(0) : null;
+    }
+
+
     public List<FriendInfo> getFriends() {
         return appUser.getInfo().getFriends();
     }
 
-    public List<Friend> getIncomingFriendRequests(){
+    public List<Friend> getIncomingFriendRequests() {
         return appUser.getInfo().getIncomingRequests();
     }
 
-    public List<Friend> getOutgoingFriendRequests(){
+    public List<Friend> getOutgoingFriendRequests() {
         return appUser.getInfo().getOutgoingRequests();
     }
 
-    public void addNewFriend(FriendInfo newFriend,boolean updateDatabase) {
+    public void addNewFriend(String userName, int UUID, boolean updateDatabase) {
+        FriendInfo newFriend = new FriendInfo(userName, UUID);
         appUser.getInfo().getFriends().add(newFriend);
+        // remove from requests, if exists
+        appUser.getInfo().getIncomingRequests().removeIf(f -> f.getUUID() == UUID);
+
+        appUser.getInfo().getOutgoingRequests().removeIf(f -> f.getUUID() == UUID);
+
+
         loadChanges();
-        if(updateDatabase){
+        if (updateDatabase) {
             pushChangesToDatabase();
         }
     }
 
-    public void addNewFriendRequest(Friend request,boolean updateDatabase) {
+    public void addNewFriendRequest(Friend request, boolean updateDatabase) {
         appUser.getInfo().getIncomingRequests().add(request);
         loadChanges();
-        if(updateDatabase){
+        if (updateDatabase) {
             pushChangesToDatabase();
         }
     }
-    // todo
-//    public List<String> getFriendSuggestions() {
-//        appUser.getInfo().getSavedGames()
-//    }
+
+    public void addOutgoingRequest(String userName, int UUID, boolean updateDatabase) {
+        appUser.getInfo().getOutgoingRequests().add(new Friend(userName, UUID));
+        loadChanges();
+        if (updateDatabase) {
+            pushChangesToDatabase();
+        }
+    }
+
+    public void removeOldIncomingRequest(int UUID, boolean updateDatabase) {
+        appUser.getInfo().getIncomingRequests().removeIf(f -> f.getUUID() == UUID);
+        loadChanges();
+        if (updateDatabase) {
+            pushChangesToDatabase();
+        }
+    }
+
+    public List<Friend> getFriendSuggestions() {
+        // todo
+        return new ArrayList<>();
+    }
+
 }

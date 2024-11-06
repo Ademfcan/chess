@@ -48,5 +48,4 @@ public class FriendInfo extends Friend {
         this.numDraws = numDraws;
     }
 
-
 }

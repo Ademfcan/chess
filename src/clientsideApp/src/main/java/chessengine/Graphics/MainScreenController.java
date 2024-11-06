@@ -495,6 +495,7 @@ public class MainScreenController implements Initializable {
             if (ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && !currentState.equals(MainScreenState.SIMULATION) && ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
                 App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame,App.startScreenController.oldGamesPanelContent);
+                App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.currentGame,App.startScreenController.userOldGamesContent);
                 App.userManager.saveUserGame(ChessCentralControl.gameHandler.currentGame);
             }
             // need to leave online game if applicable

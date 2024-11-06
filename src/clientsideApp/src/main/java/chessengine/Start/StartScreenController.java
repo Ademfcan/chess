@@ -1,4 +1,4 @@
-package chessengine.Graphics;
+package chessengine.Start;
 
 import chessengine.App;
 import chessengine.ChessRepresentations.ChessGame;
@@ -7,11 +7,15 @@ import chessengine.Crypto.KeyManager;
 import chessengine.Enums.FriendEntry;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
+import chessengine.Enums.UserInfoState;
+import chessengine.Functions.UserHelperFunctions;
 import chessengine.Managers.CampaignManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Misc.ChessConstants;
+import chessengine.Misc.ClientsideFriendDataResponse;
 import chessserver.*;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -136,7 +140,7 @@ public class StartScreenController implements Initializable {
     @FXML
     ScrollPane oldGamesPanel;
     @FXML
-    VBox oldGamesPanelContent;
+    public VBox oldGamesPanelContent;
     @FXML
     VBox mainAreaTopSpacer;
     @FXML
@@ -197,10 +201,20 @@ public class StartScreenController implements Initializable {
     StackPane userSettingsStack;
     @FXML
     HBox topUserInfoBox;
+    @FXML
+    VBox topUserInfoLeftBox;
+    @FXML
+    VBox topUserInfoRightBox;
 
     @FXML
     HBox bottomUserInfoBox;
+    @FXML
+    StackPane bottomInfoNav;
     // login page
+    @FXML
+    HBox backButtonBox;
+    @FXML
+    Hyperlink userInfoBackButton;
 
     @FXML
     VBox loginPage;
@@ -214,6 +228,8 @@ public class StartScreenController implements Initializable {
     Label eloLabel;
     @FXML
     TextField passwordInput;
+    @FXML
+    HBox hyperlinkBox;
     @FXML
     Hyperlink signUpInsteadButton;
     @FXML
@@ -256,6 +272,8 @@ public class StartScreenController implements Initializable {
     @FXML
     Label userInfoUserName;
     @FXML
+    VBox userInfoUsernameSpacer;
+    @FXML
     Label userInfoUUID;
     @FXML
     Label userInfoUserElo;
@@ -265,12 +283,23 @@ public class StartScreenController implements Initializable {
     Hyperlink SignUpPage;
     @FXML
     Hyperlink LoginPage;
+
+
+    @FXML
+    VBox userOldGamesContainer;
+    @FXML
+    ScrollPane userOldGamesScrollpane;
+    @FXML
+    Label userOldGamesLabel;
+    @FXML
+    public VBox userOldGamesContent;
+
     @FXML
     TextField friendsLookupInput;
     @FXML
-    ScrollPane friendsLookup;
+    VBox friendsLookup;
     @FXML
-    VBox friendsLookupContent;
+    public VBox friendsLookupContent;
     @FXML
     Button FriendsButton;
     @FXML
@@ -278,15 +307,14 @@ public class StartScreenController implements Initializable {
     @FXML
     Button SuggestedFriendsButton;
     @FXML
+    Button friendsLookupButton;
+    @FXML
     ScrollPane FriendsPanel;
     @FXML
     StackPane FriendsStackpane;
+
     @FXML
-    VBox YourFriends;
-    @FXML
-    VBox YourFriendRequests;
-    @FXML
-    VBox YourSuggestedFriends;
+    VBox friendsContent;
 
 
 
@@ -327,8 +355,8 @@ public class StartScreenController implements Initializable {
     boolean isRed = false;
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
-    private HashMap<String,String> lookupCache;
-
+    private HashMap<String,ClientsideFriendDataResponse> lookupCache;
+    public UserInfoManager userInfoManager;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -499,8 +527,11 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpUserSettings() {
+        userInfoManager = new UserInfoManager(this,App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
         profileButton.setOnMouseClicked(e -> {
-            App.synchronizeFriendNames();
+            App.resyncFriends(false);
+            resetUserInfo();
+            userInfoManager.showFriends();
             if (currentState.equals(StartScreenState.USERSETTINGS)) {
                 if(userInfoPage.isVisible()){
                     setSelection(lastStateBeforeUserSettings);
@@ -528,19 +559,17 @@ public class StartScreenController implements Initializable {
                     }
                     else{
                         try{
-                            KeyManager.saveNewPassword(CryptoUtils.sha256AndBase64(passwordInput.getText()));
+                            KeyManager.saveNewPassword(passwordHash);
                             DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
                             Platform.runLater(() ->{
                                 System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
                                 App.refreshAppWithNewUser(newEntry);
+                                App.updateServerTempValues(passwordHash);
 
                             });
 
                         } catch (JsonProcessingException jsonProcessingException) {
                             logger.error("Json processing exeption when parsing validate client request output!\n",jsonProcessingException);
-                        }
-                        catch (NoSuchAlgorithmException noSuchAlgorithmException){
-                            logger.error("Should never hit this \n", noSuchAlgorithmException);
                         }
                     }}
                 );
@@ -602,11 +631,15 @@ public class StartScreenController implements Initializable {
         });
 
         backToUserInfo.setOnMouseClicked(e -> {
-            setUserOptions(0);
+            resetUserInfo();
         });
 
         backToUserInfo1.setOnMouseClicked(e -> {
-            setUserOptions(0);
+            resetUserInfo();
+        });
+
+        userInfoBackButton.setOnMouseClicked(e ->{
+            resetUserInfo();
         });
         // default is user info screen
         setUserOptions(0);
@@ -617,25 +650,63 @@ public class StartScreenController implements Initializable {
             App.userManager.updateUserPfp(nextPicture);
         });
 
-        friendsLookupInput.setOnAction(e ->{
-            String inputText = friendsLookupInput.getText().trim();
-            if(lookupCache.containsKey(inputText)){
-                updateFriendsLookup(lookupCache.get(inputText));
+        friendsLookupInput.textProperty().addListener((observable, oldValue, newValue) ->{
+
+            friendsLookupContent.getChildren().clear();
+            Label noResultsLabel = new Label("No Results");
+            App.bindingController.bindSmallText(noResultsLabel,false,"Black");
+            friendsLookupContent.getChildren().add(noResultsLabel);
+
+            if(!newValue.isEmpty()){
+                String inputText = newValue.trim();
+                if(lookupCache.containsKey(inputText)){
+                    userInfoManager.updateFriendsLookup(lookupCache.get(inputText));
+                }
+                else{
+                    App.sendRequest(INTENT.MATCHALLUSERNAMES,inputText,(out) ->{
+                        ClientsideFriendDataResponse response = UserHelperFunctions.readFriendDataResponse(ChessConstants.readFromObjectMapper(out,FriendDataResponse.class));
+                        lookupCache.put(inputText,response);
+                        Platform.runLater(() ->{
+                            userInfoManager.updateFriendsLookup(response);
+                        });
+                    },true);
+                }
             }
-            else{
-                App.sendRequest(INTENT.MATCHALLUSERNAMES,inputText,(out) ->{
-                    lookupCache.put(inputText,out);
-                    updateFriendsLookup(out);
-                },true);
-            }
+
+        });
+
+        // default panel is your friends panel
+        setFriendsPanel(0);
+
+        FriendsButton.setOnMouseClicked(e ->{
+            setFriendsPanel(0);
+            userInfoManager.showFriends();
+        });
+
+        RequestsButton.setOnMouseClicked(e ->{
+            setFriendsPanel(0);
+            userInfoManager.showIncomingRequests();
+        });
+
+        SuggestedFriendsButton.setOnMouseClicked(e ->{
+            setFriendsPanel(0);
+            userInfoManager.showSuggestedFriends();
+        });
+
+        friendsLookupButton.setOnMouseClicked(e ->{
+            setFriendsPanel(1);
         });
 
         // bindings
         App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
         App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
 
+        userSettingScreen.prefWidthProperty().bind(mainArea.widthProperty());
+        userSettingScreen.prefHeightProperty().bind(mainArea.heightProperty());
+
         userSettingsStack.prefWidthProperty().bind(userSettingScreen.widthProperty());
         userSettingsStack.prefHeightProperty().bind(userSettingScreen.heightProperty());
+
         userInfoPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
         userInfoPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
 
@@ -648,95 +719,79 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindCustom(userSettingsStack.widthProperty(),userInfoPfp.fitWidthProperty(),150,.3);
         App.bindingController.bindCustom(userSettingsStack.heightProperty(),userInfoPfp.fitHeightProperty(),150,.3);
 
-        App.bindingController.bindLargeText(userInfoUserName,false,"Black");
-        App.bindingController.bindLargeText(userInfoUUID,false,"Black");
-        App.bindingController.bindSmallText(SignUpPage,false,"Black");
-        App.bindingController.bindSmallText(LoginPage,false,"Black");
-        App.bindingController.bindSmallText(LoginPage,false,"Black");
         App.bindingController.bindSmallText(friendsLookupInput,false,"Black");
         App.bindingController.bindSmallText(FriendsButton,false,"Black");
         App.bindingController.bindSmallText(RequestsButton,false,"Black");
         App.bindingController.bindSmallText(SuggestedFriendsButton,false,"Black");
+        App.bindingController.bindSmallText(friendsLookupButton,false,"Black");
 
-        friendsLookup.setFitToWidth(true);
-        friendsLookup.setFitToHeight(true);
 
-        VBox.setVgrow(friendsLookup,Priority.ALWAYS);
-        VBox.setVgrow(FriendsPanel,Priority.ALWAYS);
-        friendsLookup.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
-        friendsLookupContent.prefWidthProperty().bind(userSettingsStack.widthProperty().subtract(FriendsPanel.widthProperty()));
-        friendsLookup.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(friendsLookupInput.heightProperty()));
-        FriendsPanel.prefWidthProperty().bind(userSettingsStack.widthProperty().multiply(.4));
-        FriendsPanel.prefHeightProperty().bind(userSettingsStack.heightProperty().subtract(topUserInfoBox.heightProperty()).subtract(FriendsButton.heightProperty()));
 
+        // user info page
+
+        // top box
+        App.bindingController.bindMediumText(userInfoUserName,false,"Black");
+        App.bindingController.bindSmallText(userInfoUUID,false,"Black");
+        App.bindingController.bindSmallText(userInfoUserElo,false,"Black");
+        App.bindingController.bindSmallText(userInfoRank,false,"Black");
+
+        App.bindingController.bindCustom(userSettingScreen.prefHeightProperty(),topUserInfoBox.prefHeightProperty(),400,.3);
+        topUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
+        userInfoPfp.fitHeightProperty().bind(topUserInfoBox.heightProperty().subtract(userInfoUserName.heightProperty()));
+        userInfoPfp.fitWidthProperty().bind(userInfoPfp.fitHeightProperty());
+        userInfoUsernameSpacer.prefWidthProperty().bind(userInfoPfp.fitWidthProperty().divide(2).subtract(userInfoUserName.widthProperty().divide(2)));
+        topUserInfoRightBox.prefWidthProperty().bind(topUserInfoBox.prefWidthProperty().subtract(userInfoPfp.fitWidthProperty()));
+        topUserInfoRightBox.prefHeightProperty().bind(userInfoPfp.fitHeightProperty());
+
+        // bottom box
+        App.bindingController.bindSmallText(userOldGamesLabel,false,"Black");
+        bottomUserInfoBox.prefHeightProperty().bind(userSettingScreen.prefHeightProperty().subtract(topUserInfoBox.heightProperty()).subtract(bottomInfoNav.heightProperty()));
+        bottomUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
+
+        userOldGamesContainer.prefHeightProperty().bind(bottomUserInfoBox.heightProperty());
+        userOldGamesContainer.prefWidthProperty().bind(userSettingScreen.widthProperty().subtract(FriendsPanel.widthProperty()));
+
+        App.bindingController.bindCustom(bottomUserInfoBox.heightProperty().subtract(FriendsButton.heightProperty()),FriendsPanel.prefHeightProperty(),600,1);
+        FriendsPanel.prefWidthProperty().bind(userSettingScreen.prefWidthProperty().multiply(.6));
+
+        App.bindingController.bindCustom(userOldGamesContainer.heightProperty().subtract(userOldGamesLabel.heightProperty()),userOldGamesScrollpane.prefHeightProperty(),600,1);
+        userOldGamesScrollpane.prefWidthProperty().bind(userOldGamesContainer.widthProperty());
+        userOldGamesContent.prefWidthProperty().bind(userOldGamesScrollpane.widthProperty());
+        userOldGamesContent.minHeightProperty().bind(userOldGamesScrollpane.heightProperty());
+        userOldGamesContent.setStyle("-fx-background-color: gray");
+
+        FriendsStackpane.prefWidthProperty().bind(FriendsPanel.widthProperty());
+        FriendsStackpane.prefHeightProperty().bind(Bindings.max(friendsLookup.heightProperty(), friendsContent.heightProperty()));
+
+        friendsLookup.prefWidthProperty().bind(FriendsStackpane.widthProperty());
+        friendsLookup.setStyle("-fx-background-color: gray");
+        friendsLookup.minHeightProperty().bind(FriendsPanel.heightProperty());
+        friendsLookupContent.prefWidthProperty().bind(friendsLookup.prefWidthProperty());
+
+        friendsContent.prefWidthProperty().bind(FriendsStackpane.widthProperty());
+        friendsContent.setStyle("-fx-background-color: gray");
+        friendsContent.minHeightProperty().bind(FriendsPanel.heightProperty());
+        // hyperlink box
+//        bottomInfoNav.prefHeightProperty().bind(LoginPage.heightProperty());
+//        bottomInfoNav.prefWidthProperty().bind(userSettingScreen.widthProperty());
+//        hyperlinkBox.prefHeightProperty().bind(bottomInfoNav.heightProperty());
+//        hyperlinkBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
+//        backButtonBox.prefHeightProperty().bind(bottomInfoNav.heightProperty());
+//        backButtonBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
+        App.bindingController.bindSmallText(LoginPage,false,"Black");
+        App.bindingController.bindSmallText(SignUpPage,false,"Black");
+        App.bindingController.bindSmallText(userInfoBackButton,false,"Black");
+
+        setUserInfoNav(0);
     }
 
-    private void updateFriendsLookup(String lookupResults){
-        friendsLookupContent.getChildren().clear();
-        if(lookupResults.isEmpty()){
-            return;
-        }
-        for(String lookupName : lookupResults.split(",")){
-            int type = App.userManager.doesFriendExist(lookupName,true);
-            FriendEntry entryType = FriendEntry.getEntryTypeFromInt(type);
-            addFriendEntry(friendsLookupContent,lookupName,entryType);
-        }
-    }
-
-    private void addFriendEntry(VBox container, String friendName, FriendEntry entryType){
-        HBox lookupEntry = new HBox();
-        lookupEntry.setSpacing(10);
-        lookupEntry.setAlignment(Pos.CENTER);
-        lookupEntry.prefWidthProperty().bind(container.widthProperty());
-        App.bindingController.bindCustom(lookupEntry.widthProperty(),lookupEntry.prefHeightProperty(),70,.20);
-
-        Label name = new Label(friendName);
-        App.bindingController.bindSmallText(name,false,"black");
-        lookupEntry.getChildren().add(name);
-
-        if(entryType.equals(FriendEntry.UNCONNECTED)){
-            Button sendFriendRequest = new Button();
-            sendFriendRequest.setOnMouseClicked(e-> {
-                App.sendFriendRequest(friendName);
-            });
-
-            sendFriendRequest.prefWidthProperty().bind(lookupEntry.widthProperty().divide(4));
-            sendFriendRequest.prefHeightProperty().bind(lookupEntry.heightProperty().divide(1.1));
-            ImageView sendRequestGraphic = new ImageView(entryType.urlString);
-            sendRequestGraphic.fitHeightProperty().bind(sendFriendRequest.heightProperty());
-            sendRequestGraphic.fitWidthProperty().bind(sendFriendRequest.widthProperty());
-            sendFriendRequest.setGraphic(sendRequestGraphic);
-            lookupEntry.getChildren().add(sendFriendRequest);
-        }
-        else{
-            ImageView graphic = new ImageView(entryType.urlString);
-            graphic.fitWidthProperty().bind(lookupEntry.widthProperty().divide(4));
-            graphic.fitHeightProperty().bind(lookupEntry.heightProperty().divide(1.1));
-            lookupEntry.getChildren().add(graphic);
-        }
-
-        container.getChildren().add(lookupEntry);
+    private void resetUserInfo(){
+        setUserOptions(0);
+        userInfoManager.changeUserInfoState(App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
+        userInfoManager.reloadUserPanel(App.userManager.getCurrentUser(),false);
     }
 
 
-    public void reloadFriends(){
-        YourFriends.getChildren().clear();
-        for(FriendInfo info : App.userManager.getFriends()){
-            addFriendEntry(YourFriends,info.getCurrentUsername(),FriendEntry.CONNECTED);
-        }
-    }
-
-    public void reloadIncomingRequests(){
-        YourFriendRequests.getChildren().clear();
-        for(Friend friend : App.userManager.getIncomingFriendRequests()){
-            addFriendEntry(YourFriendRequests,friend.getCurrentUsername(),FriendEntry.INCOMINGREQUESTED);
-        }
-    }
-    // todo
-//    public void reloadSuggestedFriends(){
-//        YourSuggestedFriends.getChildren().clear();
-//        for(Friend friend : App.userManager.getFriendSuggestions())
-//    }
 
 
 
@@ -749,12 +804,31 @@ public class StartScreenController implements Initializable {
 
     /** 0 = user info 1 = login 2 = sign up **/
     private void setUserOptions(int i) {
+        setUserInfoNav(i == 0 ? 0 : 1);
         accountCreationPage.setVisible(i == 2);
         accountCreationPage.setMouseTransparent(i != 2);
         loginPage.setVisible(i == 1);
         loginPage.setMouseTransparent(i != 1);
         userInfoPage.setVisible(i == 0);
         userInfoPage.setMouseTransparent(i != 0);
+    }
+    /** 0 = your friends,  1 = friends lookup**/
+    private void setFriendsPanel(int i){
+        friendsContent.setVisible(i == 0);
+        friendsContent.setMouseTransparent(i != 0);
+
+
+        friendsLookup.setVisible(i == 1);
+        friendsLookup.setMouseTransparent(i != 1);
+
+    }
+    /** 0 = regular nav, 1 = back button only**/
+    void setUserInfoNav(int i){
+        hyperlinkBox.setVisible(i == 0);
+        hyperlinkBox.setMouseTransparent(i != 0);
+
+        backButtonBox.setVisible(i == 1);
+        backButtonBox.setMouseTransparent(i != 1);
     }
 
     private void setUpGeneralSettings() {
@@ -820,7 +894,7 @@ public class StartScreenController implements Initializable {
 
         });
         // handle no internet connection
-        if (App.isWebClientConnected()) {
+        if (!App.isWebClientConnected()) {
             disableMultioptions();
         } else {
             enableMultioptions(false);
@@ -1106,8 +1180,10 @@ public class StartScreenController implements Initializable {
 
     public void setupOldGamesBox(List<ChessGame> gamesToLoad) {
         oldGamesPanelContent.getChildren().clear();
+        userOldGamesContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g,oldGamesPanelContent);
+            AddNewGameToSaveGui(g,userOldGamesContent);
         }
     }
 
