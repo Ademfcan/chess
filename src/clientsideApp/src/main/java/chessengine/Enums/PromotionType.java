@@ -1,7 +1,6 @@
 package chessengine.Enums;
 
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 
 public enum PromotionType {
     ALL(new int[]{ChessConstants.KNIGHTINDEX,ChessConstants.BISHOPINDEX,ChessConstants.ROOKINDEX,ChessConstants.QUEENINDEX}),

@@ -1,6 +1,6 @@
 package chessengine.Graphics;
 
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessMove;
 import javafx.scene.shape.SVGPath;
 
 public class MoveArrow extends Arrow{

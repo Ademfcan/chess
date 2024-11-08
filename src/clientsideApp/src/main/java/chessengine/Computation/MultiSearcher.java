@@ -1,9 +1,9 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.BackendChessPosition;
+import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Enums.Movetype;
-import chessengine.Functions.AdvancedChessFunctions;
+import chessserver.Functions.AdvancedChessFunctions;
 import chessengine.Functions.EvaluationFunctions;
 import chessengine.Records.CachedPv;
 import chessengine.Records.MultiResult;
@@ -45,7 +45,7 @@ public class MultiSearcher {
     }
 
     public MultiResult search(BackendChessPosition position, int waitTimeMs, int nPvs) {
-        List<BackendChessPosition> chessPositions = position.getAllChildPositions(position.isWhiteTurn, position.gameState);
+        List<BackendChessPosition> chessPositions = position.getAllChildPositions(position.isWhiteTurn, position.getGameState());
         positionsToEvaluate = new LinkedBlockingQueue<>(chessPositions);
         ConcurrentLinkedQueue<SearchResult> outputs = new ConcurrentLinkedQueue<>();
         int timePerBatch = calculateTimePerBatch(chessPositions.size(), waitTimeMs);
@@ -59,7 +59,7 @@ public class MultiSearcher {
                             Thread.sleep(10);
                             BackendChessPosition positionToEvaluate = positionsToEvaluate.poll();
                             if (positionToEvaluate != null) {
-                                if(positionToEvaluate.isDraw() || AdvancedChessFunctions.isAnyNotMovePossible(positionToEvaluate.isWhiteTurn,positionToEvaluate,positionToEvaluate.gameState)){
+                                if(positionToEvaluate.isDraw() || AdvancedChessFunctions.isAnyNotMovePossible(positionToEvaluate.isWhiteTurn,positionToEvaluate,positionToEvaluate.getGameState())){
                                     int evaluation = 0;
                                     if(AdvancedChessFunctions.isChecked(positionToEvaluate.isWhiteTurn,positionToEvaluate.board)){
                                         evaluation = -EvaluationFunctions.baseMateScore;

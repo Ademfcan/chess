@@ -1,9 +1,9 @@
 package chessengine.Managers;
 
 import chessengine.App;
-import chessserver.CampaignProgress;
-import chessserver.CampaignTier;
-import chessserver.ProfilePicture;
+import chessserver.User.CampaignProgress;
+import chessserver.Enums.CampaignTier;
+import chessserver.Enums.ProfilePicture;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;

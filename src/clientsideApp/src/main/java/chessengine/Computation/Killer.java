@@ -1,7 +1,7 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Functions.GeneralChessFunctions;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.Functions.GeneralChessFunctions;
 
 public class Killer {
     private final killerRecord[] killers;

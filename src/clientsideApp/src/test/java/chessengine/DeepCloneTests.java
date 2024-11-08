@@ -1,9 +1,9 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.ChessGameState;
-import chessengine.Misc.ChessConstants;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessPosition;
+import chessserver.ChessRepresentations.ChessGameState;
+import chessserver.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

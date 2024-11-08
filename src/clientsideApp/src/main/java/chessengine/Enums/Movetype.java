@@ -1,8 +1,7 @@
 package chessengine.Enums;
 
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.Misc.ChessConstants;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessPosition;
 
 public enum Movetype {
     FORK,

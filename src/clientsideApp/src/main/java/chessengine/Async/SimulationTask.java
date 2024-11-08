@@ -2,16 +2,16 @@ package chessengine.Async;
 
 import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Enums.MainScreenState;
-import chessengine.Functions.PgnFunctions;
+import chessserver.Functions.PgnFunctions;
 import chessengine.Misc.EloEstimator;
 import chessengine.Records.SearchResult;
-import chessserver.ComputerDifficulty;
-import chessserver.ProfilePicture;
+import chessserver.Enums.ComputerDifficulty;
+import chessserver.Enums.ProfilePicture;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import org.apache.logging.log4j.LogManager;
@@ -201,8 +201,8 @@ public class SimulationTask extends Task<Void> {
             Platform.runLater(() -> {
                 control.chessActionHandler.reset();
                 control.chessBoardGUIHandler.resetEverything(isPlayer1WhitePlayer);
-                control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION, true);
-                simGame.moveToEndOfGame(false);
+                control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION,false ,true);
+                control.gameHandler.gameWrapper.moveToEndOfGame(false,App.userPreferenceManager.isNoAnimate());
             });
             currentSimGame = simGame;
             try {
@@ -214,19 +214,19 @@ public class SimulationTask extends Task<Void> {
             isPlayer1Turn = simGame.isWhiteTurn() == isPlayer1WhitePlayer;
         } else {
 
-            if (currentSimGame.gameState.isGameOver()) {
+            if (currentSimGame.getGameState().isGameOver()) {
                 // end game
                 try {
                     Thread.sleep(200); // show end of game for a little
                 } catch (Exception e) {
                     logger.error("Error on thread sleep", e);
                 }
-                if (currentSimGame.gameState.isStaleMated()) {
+                if (currentSimGame.getGameState().isStaleMated()) {
                     // draw
                     numDraws++;
                 } else {
                     // else one side must have one,
-                    boolean isPlayer1Win = currentSimGame.gameState.isCheckMated()[1];
+                    boolean isPlayer1Win = currentSimGame.getGameState().isCheckMated()[1];
                     if (isPlayer1Win) {
                         if (isPlayer1WhitePlayer) {
                             // computer is player 1 and won (Computer win)
@@ -262,6 +262,7 @@ public class SimulationTask extends Task<Void> {
             } else {
                 // else just change turn as normall
                 boolean isWhiteTurn = isPlayer1Turn == isPlayer1WhitePlayer;
+                boolean animateIfPossible = App.userPreferenceManager.isNoAnimate();
                 if (isPlayer1Turn) {
                     logger.debug("Player 1 turn");
                     ChessMove move = getMove(player1Difficulty, currentSimGame, isWhiteTurn);
@@ -271,7 +272,7 @@ public class SimulationTask extends Task<Void> {
                         return;
                     }
                     Platform.runLater(() -> {
-                        currentSimGame.makeNewMove(move, true, false);
+                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible);
                     });
                 } else {
                     logger.debug("Player 2 turn");
@@ -282,7 +283,7 @@ public class SimulationTask extends Task<Void> {
                         return;
                     }
                     Platform.runLater(() -> {
-                        currentSimGame.makeNewMove(move, true, false);
+                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible);
                     });
                 }
                 isPlayer1Turn = !isPlayer1Turn;
@@ -298,13 +299,13 @@ public class SimulationTask extends Task<Void> {
         if (currentPlayerDifficulty.isStockfishBased) {
             String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, waitTime);
             if (moveUci != null) {
-                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.currentPosition.board);
+                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.getCurrentPosition().board);
                 Platform.runLater(() -> {
-                    game.makeNewMove(move, true, false);
+                    control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userPreferenceManager.isNoAnimate());
                 });
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
-            SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), waitTime);
+            SearchResult out = searcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), waitTime);
             if(out == null || stop){
                 return null;
             }
@@ -313,7 +314,7 @@ public class SimulationTask extends Task<Void> {
                 return move;
             }
         } else {
-            ChessMove move = multiSearcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), waitTime, 1).results()[0].move();
+            ChessMove move = multiSearcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), waitTime, 1).results()[0].move();
             if (stop) {
                 return null;
             }

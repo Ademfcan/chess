@@ -23,15 +23,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // This dependency is used by the application.
-    implementation 'com.google.guava:guava:31.1-jre'
 
 
-    implementation 'org.apache.logging.log4j:log4j-api:2.23.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.23.1'
-
-    compileOnly 'javax.websocket:javax.websocket-api:1.1'
-
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3' // Use the latest version
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21'
 
     implementation 'com.zaxxer:HikariCP:5.0.1' // Or the latest version

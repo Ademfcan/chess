@@ -5,8 +5,6 @@ import chessengine.Functions.EvaluationFunctions;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Paint;
 
-import java.util.Arrays;
-
 public enum MoveRanking {
     BESTMOVE("#248232","/MoveIcons/bestMove.png"){
         @Override

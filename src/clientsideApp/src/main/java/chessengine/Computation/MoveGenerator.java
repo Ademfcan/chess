@@ -1,12 +1,12 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.XYcoord;
+import chessserver.ChessRepresentations.BackendChessPosition;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.XYcoord;
 import chessengine.Enums.PromotionType;
-import chessengine.Functions.AdvancedChessFunctions;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Misc.ChessConstants;
+import chessserver.Functions.AdvancedChessFunctions;
+import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Misc.ChessConstants;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class MoveGenerator {
         int cnt = 0;
         List<XYcoord> peices = GeneralChessFunctions.getPieceCoordsForComputer(pos.isWhiteTurn ? pos.board.getWhitePiecesBB() : pos.board.getBlackPiecesBB());
         for (XYcoord coord : peices) {
-            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, pos.isWhiteTurn, pos, pos.gameState, coord.peiceType, onlyCaptures);
+            List<XYcoord> piecePossibleMoves = AdvancedChessFunctions.getPossibleMoves(coord.x, coord.y, pos.isWhiteTurn, pos, pos.getGameState(), coord.peiceType, onlyCaptures);
             for (XYcoord move : piecePossibleMoves) {
                 int endSquarePiece = GeneralChessFunctions.getBoardWithPiece(move.x, move.y, !pos.isWhiteTurn, pos.board);
                 if (endSquarePiece == ChessConstants.KINGINDEX) {

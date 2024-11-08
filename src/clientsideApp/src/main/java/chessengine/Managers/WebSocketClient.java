@@ -2,16 +2,20 @@ package chessengine.Managers;
 
 import chessengine.App;
 import chessengine.Audio.Effect;
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.Misc.ChessConstants;
-import chessserver.*;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.Communication.InputMessage;
+import chessserver.Communication.OutputMessage;
+import chessserver.Enums.INTENT;
+import chessserver.Friends.Friend;
+import chessserver.Communication.DatabaseEntry;
+import chessserver.Communication.DatabaseRequest;
+import chessserver.User.FrontendClient;
+import chessserver.User.UserInfo;
 import jakarta.websocket.*;
 import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.tyrus.client.ClientManager;
-import org.nd4j.shade.jackson.core.JsonProcessingException;
-import org.nd4j.shade.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -58,7 +62,7 @@ public class WebSocketClient {
     @OnMessage
     public void onMessage(String message) {
         try {
-            OutputMessage out = ChessConstants.objectMapper.readValue(message, OutputMessage.class);
+            OutputMessage out = App.objectMapper.readValue(message, OutputMessage.class);
             if(responseMap.containsKey(out.getUniqueId())){
                 responseMap.get(out.getUniqueId()).accept(out.getExtraInformation());
                 responseMap.remove(out.getUniqueId());
@@ -71,13 +75,15 @@ public class WebSocketClient {
                 }
                 case CLIENTVAIDATIONSUCESS -> {
                     // sucessfuly accesed acount on
-                    UserInfo info = ChessConstants.objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
+                    UserInfo info = App.objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
                     App.changeUser(info);
                 }
 
                 case GAMECLOSED -> {
                     logger.debug("Game closed");
-                    linkedGame.sendMessageToInfo(out.getExtraInformation());
+                    Platform.runLater(() ->{
+                        App.ChessCentralControl.chessActionHandler.appendNewMessageToChat(out.getExtraInformation());
+                    });
                 }
                 case ENTEREDGAME -> {
                     String[] info = out.getExtraInformation().split(",");
@@ -85,9 +91,10 @@ public class WebSocketClient {
                     int opponentElo = Integer.parseInt(info[1]);
                     String pfpUrl = info[2];
                     boolean isPlayer1White = Boolean.parseBoolean(info[3]);
-                    linkedGame.setWebGameInitialized(true);
-                    linkedGame.initWebGame(opponentName, opponentElo, pfpUrl, isPlayer1White);
-                    linkedGame.sendMessageToInfo("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
+                    Platform.runLater(() ->{
+                        App.ChessCentralControl.gameHandler.gameWrapper.initWebGame(opponentName, opponentElo, pfpUrl, isPlayer1White);
+                        App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
+                    });
                 }
                 case INVALIDOPERATION -> {
                     logger.error("Invalid operation: \n" + out.getExtraInformation());
@@ -96,11 +103,15 @@ public class WebSocketClient {
                     logger.error("Sql error: \n" + out.getExtraInformation());
                 }
                 case CHATFROMOPPONENT -> {
-                    linkedGame.sendMessageToInfo("(" + linkedGame.getBlackPlayerName() + ") " + out.getExtraInformation());
-                    App.soundPlayer.playEffect(Effect.MESSAGE);
+                    Platform.runLater(() ->{
+                        App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + linkedGame.getBlackPlayerName() + ") " + out.getExtraInformation());
+                        App.soundPlayer.playEffect(Effect.MESSAGE);
+                    });
                 }
                 case GAMEMOVEFROMOPPONENT -> {
-                    linkedGame.makePgnMove(out.getExtraInformation(), true);
+                    Platform.runLater(() ->{
+                        App.ChessCentralControl.gameHandler.gameWrapper.makePgnMove(out.getExtraInformation(), true,App.userPreferenceManager.isNoAnimate());
+                    });
                 }
                 case ELOUPDATE -> {
                     int change = Integer.parseInt(out.getExtraInformation());
@@ -150,11 +161,11 @@ public class WebSocketClient {
 //        App.attemptReconnection();
     }
 
-    public void sendRequest(INTENT intent, String extraInfo,Consumer<String> runOnResponse) {
+    public void sendRequest(INTENT intent, String extraInfo, Consumer<String> runOnResponse) {
 //        logger.debug("Sending request with Intent: " + intent.toString() + " exInfo: " + extraInfo);
         try {
             InputMessage inputMessage = new InputMessage(this.client, intent, extraInfo);
-            String message = ChessConstants.objectMapper.writeValueAsString(inputMessage);
+            String message = App.objectMapper.writeValueAsString(inputMessage);
             if(runOnResponse != null){
                 responseMap.put(inputMessage.getUniqueId(),runOnResponse);
             }
@@ -170,14 +181,14 @@ public class WebSocketClient {
 
     }
 
-    public void databaseRequest(INTENT intent,String userName, String passwordHash,int UUID,DatabaseEntry entry,Consumer<String> responseAction){
+    public void databaseRequest(INTENT intent, String userName, String passwordHash, int UUID, DatabaseEntry entry, Consumer<String> responseAction){
         if(entry == null){
             sendRequest(intent, userName + "," + passwordHash,responseAction);
         }
         else{
             try {
-                DatabaseRequest request  = new DatabaseRequest(ChessConstants.objectMapper.writeValueAsString(entry),userName,passwordHash,UUID,entry.getUserInfo().getLastUpdateTimeMS(),entry.getUserInfo().getUserelo());
-                sendRequest(intent,ChessConstants.objectMapper.writeValueAsString(request),responseAction);
+                DatabaseRequest request  = new DatabaseRequest(App.objectMapper.writeValueAsString(entry),userName,passwordHash,UUID,entry.getUserInfo().getLastUpdateTimeMS(),entry.getUserInfo().getUserelo());
+                sendRequest(intent,App.objectMapper.writeValueAsString(request),responseAction);
             }
             catch (org.nd4j.shade.jackson.core.JsonProcessingException e){
                 logger.error("objctmapper json eception for database request",e);

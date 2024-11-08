@@ -1,12 +1,9 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.*;
 import chessengine.Computation.*;
-import chessengine.Functions.AdvancedChessFunctions;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Functions.PgnFunctions;
-import chessengine.Functions.ZobristHasher;
-import chessengine.Misc.ChessConstants;
+import chessserver.Functions.*;
+import chessserver.Misc.ChessConstants;
+import chessserver.ChessRepresentations.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +14,8 @@ import java.util.Objects;
 public class ComputerTests {
     @Test void getFullEvalTests(){
 
-        ChessGame equalGame = ChessGame.createTestGame("1.e4 e5",false);
-        System.out.println(ComputerHelperFunctions.getFullEval(equalGame.currentPosition, equalGame.gameState,false,false));
+        ChessGame equalGame = ChessGame.createTestGame("1.e4 e5");
+        System.out.println(ComputerHelperFunctions.getFullEval(equalGame.getCurrentPosition(), equalGame.getGameState(),false,false));
 
     }
 
@@ -47,12 +44,12 @@ public class ComputerTests {
 
         if (stockfish.startEngine()) {
             for (String pgn : pgns) {
-                ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
-                game.moveToEndOfGame(false);
-                String fen = PgnFunctions.positionToFEN(game.currentPosition, game.gameState, game.isWhiteTurn());
+                ChessGame game = ChessGame.createTestGame(pgn); // Create game from PGN
+                game.moveToEndOfGame();
+                String fen = PgnFunctions.positionToFEN(game.getCurrentPosition(), game.getGameState(), game.isWhiteTurn());
 
                 // Calculate evaluation with Computer
-                float computerEval = (float) computer.search(game.currentPosition.toBackend(game.gameState, game.isWhiteTurn()),1000).evaluation();
+                float computerEval = (float) computer.search(game.getCurrentPosition().toBackend(game.getGameState(), game.isWhiteTurn()),1000).evaluation();
 
                 // Calculate evaluation with Stockfish
                 double stockfishEval = stockfish.getEvalScore(fen, game.isWhiteTurn(),1000).getAdvantage(); // 1000 milliseconds time limit
@@ -90,7 +87,7 @@ public class ComputerTests {
 //    @Test void hashCollisionTest(){
 //        BackendChessPosition startPos = ChessConstants.startBoardState.clonePosition().toBackend(new ChessStates(),false);
 //        // going to see how many collisions each hash method has
-//        miniMaxForHashTest(startPos,startPos.gameState,6,true);
+//        miniMaxForHashTest(startPos,startPos.getGameState(),6,true);
 //        System.out.println("Zobrist Collision Count: " + zobristCollisionCount);
 //        System.out.println("Objects Hash Collision Count: " + objectHashCollisionCount);
 //        System.out.println("Total unique positions created: " + totalUniquePositionCount/2);
@@ -152,7 +149,7 @@ public class ComputerTests {
             for(int i = 0;i<childMoves.size();i++){
                 ChessMove c = childMoves.get(i);
                 position.makeLocalPositionMove(c);
-                miniMaxForHashTest(position,position.gameState, depth - 1, false);
+                miniMaxForHashTest(position,position.getGameState(), depth - 1, false);
                 position.undoLocalPositionMove();
 
 
@@ -166,7 +163,7 @@ public class ComputerTests {
                 ChessMove c = childMoves.get(i);
 //
                 position.makeLocalPositionMove(c);
-                miniMaxForHashTest(position,position.gameState, depth - 1, true);
+                miniMaxForHashTest(position,position.getGameState(), depth - 1, true);
                 position.undoLocalPositionMove();
 
 
@@ -179,14 +176,14 @@ public class ComputerTests {
     }
 
     @Test void castlingTest(){
-        ChessGame game = ChessGame.createTestGame("1.e4 e5 2.Nf3 Nf6 3.Bc4 Bc5 4.h4 h5",true);
-        game.moveToEndOfGame(false);
-        BackendChessPosition castleTest = game.currentPosition.clonePosition().toBackend(game.gameState, game.isWhiteTurn());
+        ChessGame game = ChessGame.createTestGame("1.e4 e5 2.Nf3 Nf6 3.Bc4 Bc5 4.h4 h5");
+        game.moveToEndOfGame();
+        BackendChessPosition castleTest = game.getCurrentPosition().clonePosition().toBackend(game.getGameState(), game.isWhiteTurn());
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(ChessMove::isCastleMove).toList().get(0);
+        ChessMove castleMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.getGameState()).stream().filter(ChessMove::isCastleMove).toList().get(0);
         castleTest.makeLocalPositionMove(castleMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.getGameState()).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove();
@@ -195,7 +192,7 @@ public class ComputerTests {
 
         castleTest.undoLocalPositionMove();
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
-        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.gameState).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
+        ChessMove rookMove2 = castleTest.getAllChildMoves(game.isWhiteTurn(),castleTest.getGameState()).stream().filter(m->m.getBoardIndex() == ChessConstants.ROOKINDEX).toList().get(0);
         castleTest.makeLocalPositionMove(rookMove2);
         GeneralChessFunctions.printBoardDetailed(castleTest.board);
         castleTest.undoLocalPositionMove();
@@ -232,10 +229,10 @@ public class ComputerTests {
 
 
     @Test void isCheckmatedTest(){
-        ChessGame game = ChessGame.createTestGame("1.e4 e6 2.f4 Bc5 3.d4 Qh4+ 4.g3 Qe7 5.Qf3 Bxd4 6.Be3 Bxb2 7.Nc3 Bxc3+ 8.Bd2 Bxa1 9.Qd1 Bd4 10.Bc3 Bxc3+ 11.Ke2 Qd6 12.Qd3 Qxd3+ 13.xd3 d5 14.Ke3 e5 15.d4 Bxd4+ 16.Kd3 xe4+ 17.Kxe4 Nf6+ 18.Kd3 Bxg1 19.Kc4 xf4 20.Kb5 xg3 21.Kc4 xh2 22.Kd3 Bf5+ 23.Ke2 Be4 24.Ke1 Bxh1 25.Ke2 Bf3+ 26.Kxf3 h1=Q+ 27.Ke2 Bc5 28.Kd2 Qxf1 29.Kc3 Qe2 30.Kb3 Kd7 31.Ka4 Qc4",false);
-        game.moveToEndOfGame(false);
-        GeneralChessFunctions.printBoardDetailed(game.currentPosition.board);
-        System.out.println(AdvancedChessFunctions.isCheckmated(game.currentPosition,game.gameState));
+        ChessGame game = ChessGame.createTestGame("1.e4 e6 2.f4 Bc5 3.d4 Qh4+ 4.g3 Qe7 5.Qf3 Bxd4 6.Be3 Bxb2 7.Nc3 Bxc3+ 8.Bd2 Bxa1 9.Qd1 Bd4 10.Bc3 Bxc3+ 11.Ke2 Qd6 12.Qd3 Qxd3+ 13.xd3 d5 14.Ke3 e5 15.d4 Bxd4+ 16.Kd3 xe4+ 17.Kxe4 Nf6+ 18.Kd3 Bxg1 19.Kc4 xf4 20.Kb5 xg3 21.Kc4 xh2 22.Kd3 Bf5+ 23.Ke2 Be4 24.Ke1 Bxh1 25.Ke2 Bf3+ 26.Kxf3 h1=Q+ 27.Ke2 Bc5 28.Kd2 Qxf1 29.Kc3 Qe2 30.Kb3 Kd7 31.Ka4 Qc4");
+        game.moveToEndOfGame();
+        GeneralChessFunctions.printBoardDetailed(game.getCurrentPosition().board);
+        System.out.println(AdvancedChessFunctions.isCheckmated(game.getCurrentPosition(),game.getGameState()));
     }
 
 

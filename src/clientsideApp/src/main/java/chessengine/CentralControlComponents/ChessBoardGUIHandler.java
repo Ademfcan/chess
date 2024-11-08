@@ -1,15 +1,16 @@
 package chessengine.CentralControlComponents;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessPosition;
-import chessengine.ChessRepresentations.XYcoord;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessPosition;
+import chessserver.ChessRepresentations.XYcoord;
 import chessengine.Enums.MoveRanking;
-import chessengine.Functions.GeneralChessFunctions;
+import chessserver.Functions.AdvancedChessFunctions;
+import chessserver.Functions.GeneralChessFunctions;
 import chessengine.Graphics.Arrow;
 import chessengine.Graphics.BindingController;
-import chessengine.Misc.ChessConstants;
-import chessserver.ChessboardTheme;
+import chessserver.Misc.ChessConstants;
+import chessserver.Enums.ChessboardTheme;
 import javafx.animation.PathTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
@@ -429,6 +430,48 @@ public class ChessBoardGUIHandler {
 
     }
 
+    public void updateChessBoardGui(ChessPosition newPos, ChessPosition currentPos,boolean isWhiteOriented) {
+        List<String>[] changes = AdvancedChessFunctions.getChangesNeeded(currentPos.board, newPos.board);
+        List<String> thingsToAdd = changes[0];
+        List<String> thingsToRemove = changes[1];
+
+
+        // all of this is to update the pieces on the gui
+
+        int i = 0;
+        int z = 0;
+
+        while (z < thingsToRemove.size()) {
+            // edge case where you need to remove more to the board
+            String[] Delinfo = thingsToRemove.get(z).split(",");
+            int OldX = Integer.parseInt(Delinfo[0]);
+            int OldY = Integer.parseInt(Delinfo[1]);
+            boolean isWhite = Delinfo[2].equals("w");
+            int brdRmvIndex = Integer.parseInt(Delinfo[3]);
+            removeFromChessBoard(OldX, OldY, isWhite, isWhiteOriented);
+            addToEatenPieces(brdRmvIndex, isWhite, isWhiteOriented);
+
+
+            z++;
+
+        }
+        while (i < thingsToAdd.size()) {
+            // edge case where you need to add more to the board
+            String[] Moveinfo = thingsToAdd.get(i).split(",");
+            int NewX = Integer.parseInt(Moveinfo[0]);
+            int NewY = Integer.parseInt(Moveinfo[1]);
+            int brdAddIndex = Integer.parseInt(Moveinfo[3]);
+            boolean isWhite = Moveinfo[2].equals("w");
+            addToChessBoard(NewX, NewY, brdAddIndex, isWhite, isWhiteOriented);
+            removeFromEatenPeices(Integer.parseInt(Moveinfo[3]), isWhite == isWhiteOriented);
+
+
+            i++;
+
+
+        }
+    }
+
     // not usefull but maybe later
     private void setUpChessPieces(GridPane board) {
         int pieceX = 0;
@@ -684,7 +727,7 @@ public class ChessBoardGUIHandler {
      **/
 
     public void makeChessMove(ChessMove move, boolean isReverse, ChessPosition currentPosition, ChessPosition newPos, boolean isWhiteOriented) {
-
+        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         if (move.isEating() && !isReverse) {
             // needs to be before move
             int eatenAddIndex = move.getEatingIndex();

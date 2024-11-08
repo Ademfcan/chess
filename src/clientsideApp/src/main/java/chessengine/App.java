@@ -2,8 +2,8 @@ package chessengine;
 
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.Computation.MagicBitboardGenerator;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.Functions.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
@@ -17,9 +17,15 @@ import chessengine.Managers.CampaignMessageManager;
 import chessengine.Managers.ClientManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Managers.WebSocketClient;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Start.StartScreenController;
-import chessserver.*;
+import chessserver.Enums.CampaignTier;
+import chessserver.Enums.GlobalTheme;
+import chessserver.Enums.INTENT;
+import chessserver.Friends.FriendDataResponse;
+import chessserver.Communication.DatabaseEntry;
+import chessserver.User.UserInfo;
+import chessserver.User.UserPreferences;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -35,6 +41,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.shade.jackson.core.JsonProcessingException;
+import org.nd4j.shade.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -94,6 +101,19 @@ public class App extends Application {
         Application.launch(args);
     }
 
+    public static final ObjectMapper objectMapper = new ObjectMapper();
+
+    public static <T> T readFromObjectMapper(String object, Class<T> objectClass){
+        try {
+            return objectMapper.readValue(object,objectClass);
+        }
+        catch (Exception e){
+            appLogger.error("Objectmapper error when reading value!",e);
+        }
+        return null;
+    }
+
+
     public static void changeUser(UserInfo info) {
         userManager.changeAppUser(info);
         try {
@@ -152,7 +172,6 @@ public class App extends Application {
 //            centralControl.asyncController.setEvalDepth(preferences.getEvalDepth());
 //            centralControl.asyncController.setNmovesDepth(preferences.getEvalDepth());
             centralControl.asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
-            boolean isPlayer1White = centralControl.gameHandler.currentGame == null || centralControl.gameHandler.currentGame.isWhiteOriented();
             centralControl.chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
             // todo pieces theme
 
@@ -186,20 +205,20 @@ public class App extends Application {
 
     }
 
-    public static void changeToMainScreenWithGame(chessengine.ChessRepresentations.ChessGame loadedGame, MainScreenState state, boolean isFirstLoad) {
+    public static void changeToMainScreenWithGame(ChessGame loadedGame, MainScreenState state,boolean isWebGame, boolean isFirstLoad) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupWithGame(loadedGame, state, isFirstLoad);
+        mainScreenController.setupWithGame(loadedGame, state,isWebGame, isFirstLoad);
 
 
     }
 
-    public static void changeToMainScreenOnline(ChessGame onlinePreinit) {
+    public static void changeToMainScreenOnline(ChessGame onlinePreinit,String gameType) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.preinitOnlineGame(onlinePreinit);
+        mainScreenController.preinitOnlineGame(gameType,onlinePreinit);
 
     }
 
@@ -305,7 +324,7 @@ public class App extends Application {
                 databaseRequest(INTENT.PUTUSER, userManager.getCurrentUser(), userPreferenceManager.getUserPref(), currentPasswordHash, null);
             } else {
                 try {
-                    DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                    DatabaseEntry newEntry = objectMapper.readValue(out, DatabaseEntry.class);
                     long serverLastTimeStamp = newEntry.getUserInfo().getLastUpdateTimeMS();
                     long localLastTimeStamp = userManager.getLastTimeStampMs();
                     System.out.println("Server timestamp: " + serverLastTimeStamp + " local timestamp: " + localLastTimeStamp);
@@ -457,7 +476,7 @@ public class App extends Application {
                 userManager.setCurrentIncomingRequestsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getIncomingFriendRequests()));
             }
             sendRequest(INTENT.GETFRIENDDATA, incomingUUIDS, (out) -> {
-                FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
+                FriendDataResponse response = readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
                     Platform.runLater(() -> {
                         userManager.setCurrentIncomingRequestsFromServer(response);
@@ -471,7 +490,7 @@ public class App extends Application {
                 userManager.setCurrentSuggestedFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriendSuggestions()));
             }
             sendRequest(INTENT.GETFRIENDDATA, suggestedUUIDS, (out) -> {
-                FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
+                FriendDataResponse response = readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
                     Platform.runLater(() -> {
                         userManager.setCurrentSuggestedFriendsFromServer(response);
@@ -485,7 +504,7 @@ public class App extends Application {
                 userManager.setCurrentFriendsFromServer(UserHelperFunctions.createPlaceholderFriends(userManager.getFriends()));
             }
             sendRequest(INTENT.GETFRIENDDATA, friendUUIDS, (out) -> {
-                FriendDataResponse response = ChessConstants.readFromObjectMapper(out, FriendDataResponse.class);
+                FriendDataResponse response = readFromObjectMapper(out, FriendDataResponse.class);
                 if (response != null) {
                     Platform.runLater(() -> {
                         userManager.setCurrentFriendsFromServer(response);
@@ -523,6 +542,13 @@ public class App extends Application {
                 });
             }, false);
         }
+    }
+
+    public static void createOnlineGameRequest(String gameType,ChessGame onlinePreinit) {
+        webclient.setLinkedGame(onlinePreinit);
+        webclient.sendRequest(INTENT.CREATEGAME,gameType,(out) ->{
+            System.out.println("todo");
+        });
     }
 
     @Override
@@ -667,11 +693,11 @@ public class App extends Application {
     public void stop() {
         stockfishForEval.stopEngine();
         mainScreenController.endAsync();
-        if (ChessCentralControl.gameHandler.currentGame != null && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)) {
-            if (ChessCentralControl.gameHandler.currentGame.maxIndex > -1) {
+        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)) {
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
                 // if the game is not empty add it
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
-                App.userManager.saveUserGame(ChessCentralControl.gameHandler.currentGame);
+                App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
             }
         }
     }

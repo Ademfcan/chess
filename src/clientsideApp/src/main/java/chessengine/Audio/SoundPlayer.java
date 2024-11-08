@@ -1,7 +1,6 @@
 package chessengine.Audio;
 
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Misc.ChessConstants;
+import chessserver.ChessRepresentations.ChessMove;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

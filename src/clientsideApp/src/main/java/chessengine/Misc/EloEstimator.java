@@ -1,14 +1,14 @@
 package chessengine.Misc;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Computation.Stockfish;
-import chessengine.Functions.PgnFunctions;
+import chessserver.Functions.PgnFunctions;
 import chessengine.Records.SearchResult;
-import chessserver.ComputerDifficulty;
+import chessserver.Enums.ComputerDifficulty;
 import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,9 +45,9 @@ public class EloEstimator {
         int numDraws = 0;
         boolean isPlayer1First = true;
         for (int i = 0; i < numRuns; i++) {
-            ChessGame testGame = ChessGame.createTestGame("", true);
+            ChessGame testGame = ChessGame.createTestGame("");
             boolean isPlayer1Turn = isPlayer1First;
-            while (!testGame.gameState.isGameOver()) {
+            while (!testGame.getGameState().isGameOver()) {
                 boolean isWhiteTurn = isPlayer1Turn == isPlayer1First;
                 ChessMove move = getMove(isPlayer1Turn ? player1TestDifficulty : player2TestDifficulty, testGame, isWhiteTurn);
                 if (move == null) {
@@ -60,12 +60,12 @@ public class EloEstimator {
 
             // game over
 
-            if (testGame.gameState.isStaleMated()) {
+            if (testGame.getGameState().isStaleMated()) {
                 // draw
                 numDraws++;
             } else {
                 // else one side must have one,
-                boolean isPlayer1Win = testGame.gameState.isCheckMated()[1];
+                boolean isPlayer1Win = testGame.getGameState().isCheckMated()[1];
                 if (isPlayer1Win) {
                     if (isPlayer1First) {
                         // computer is player 1 and won (Computer win)
@@ -101,13 +101,13 @@ public class EloEstimator {
         if (currentPlayerDifficulty.isStockfishBased) {
             String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, timeLimit);
             if (moveUci != null) {
-                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.currentPosition.board);
+                ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.getCurrentPosition().board);
                 Platform.runLater(() -> {
                     game.makeNewMove(move, true, false);
                 });
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
-            SearchResult out = searcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit);
+            SearchResult out = searcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), timeLimit);
             if(out != null){
                 ChessMove move = out.move();
                 if (!searcher.wasForcedStop()) {
@@ -115,7 +115,7 @@ public class EloEstimator {
                 }
             }
         } else {
-            ChessMove move = multiSearcher.search(game.currentPosition.toBackend(game.gameState, isWhiteTurn), timeLimit, 1).results()[0].move();
+            ChessMove move = multiSearcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), timeLimit, 1).results()[0].move();
             if (!multiSearcher.wasForcedStop()) {
                 return move;
             }

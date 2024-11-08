@@ -1,19 +1,15 @@
 package chessengine.Crypto;
 
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.Misc.ChessConstants;
-import chessserver.FrontendClient;
-import chessserver.UserInfo;
-import chessserver.UserPreferences;
-import org.apache.commons.math3.analysis.function.Log;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.User.FrontendClient;
+import chessserver.User.UserInfo;
+import chessserver.User.UserPreferences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nd4j.shade.jackson.databind.ObjectMapper;
 
 import javax.crypto.*;
 import java.io.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 

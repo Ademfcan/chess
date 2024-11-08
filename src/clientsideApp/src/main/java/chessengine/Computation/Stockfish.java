@@ -1,9 +1,9 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Functions.PgnFunctions;
-import chessengine.Misc.ChessConstants;
+import chessserver.ChessRepresentations.BitBoardWrapper;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.Functions.PgnFunctions;
+import chessserver.Misc.ChessConstants;
 import chessengine.Records.MoveOutput;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,8 +1,8 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Enums.Flag;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Records.HashEntry;
 
 public class TranspositionTable {

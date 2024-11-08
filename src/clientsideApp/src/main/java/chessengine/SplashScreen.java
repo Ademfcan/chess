@@ -2,7 +2,7 @@ package chessengine;
 
 import chessengine.Graphics.AppStateChangeNotification;
 import chessengine.Graphics.BindingController;
-import chessserver.GlobalTheme;
+import chessserver.Enums.GlobalTheme;
 import javafx.application.Preloader;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringExpression;

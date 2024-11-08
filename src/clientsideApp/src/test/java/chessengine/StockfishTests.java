@@ -1,9 +1,9 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.ChessGameState;
+import chessserver.ChessRepresentations.ChessGameState;
 import chessengine.Computation.Stockfish;
-import chessengine.Functions.PgnFunctions;
-import chessengine.Misc.ChessConstants;
+import chessserver.Functions.PgnFunctions;
+import chessserver.Misc.ChessConstants;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

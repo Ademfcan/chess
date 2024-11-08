@@ -1,6 +1,6 @@
 package chessengine.Crypto;
 
-import chessengine.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessGame;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

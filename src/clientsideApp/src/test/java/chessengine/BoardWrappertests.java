@@ -1,11 +1,10 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.XYcoord;
-import chessengine.Functions.BitFunctions;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Misc.ChessConstants;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import chessserver.ChessRepresentations.BitBoardWrapper;
+import chessserver.ChessRepresentations.XYcoord;
+import chessserver.Functions.BitFunctions;
+import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Misc.ChessConstants;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

@@ -19,7 +19,7 @@
 //        this.position = board;
 //        this.d = depth;
 //        this.isWhite = isWhite;
-//        this.gameState = gameState;
+//        this.getGameState() = gameState;
 //    }
 //
 //    @Override

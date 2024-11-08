@@ -1,11 +1,11 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.ChessRepresentations.XYcoord;
-import chessengine.Computation.MagicBitboardGenerator;
-import chessengine.Functions.AdvancedChessFunctions;
-import chessengine.Functions.BitFunctions;
-import chessengine.Functions.GeneralChessFunctions;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.XYcoord;
+import chessserver.Functions.MagicBitboardGenerator;
+import chessserver.Functions.AdvancedChessFunctions;
+import chessserver.Functions.BitFunctions;
+import chessserver.Functions.GeneralChessFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,12 +32,12 @@ public class MagicBitboardTests {
 
         for (String pgn : pgns) {
             MagicBitboardGenerator m = new MagicBitboardGenerator();
-            ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
-            game.moveToEndOfGame(false);
+            ChessGame game = ChessGame.createTestGame(pgn); // Create game from PGN
+            game.moveToEndOfGame();
             for(int z = 0;z<64;z++){
                 int[] xy = BitFunctions.bitindexToXY(z);
-                List<XYcoord> rookMovesNormal = GeneralChessFunctions.getPieceCoords(AdvancedChessFunctions.calculateRookMoves(xy[0],xy[1],game.isWhiteTurn(),game.currentPosition.board));
-                List<XYcoord> rookMovesMagic = AdvancedChessFunctions.calculateRookMovesMagicBitboard(xy[0],xy[1],game.isWhiteTurn(),game.currentPosition.board );
+                List<XYcoord> rookMovesNormal = GeneralChessFunctions.getPieceCoords(AdvancedChessFunctions.calculateRookMoves(xy[0],xy[1],game.isWhiteTurn(),game.getCurrentPosition().board));
+                List<XYcoord> rookMovesMagic = AdvancedChessFunctions.calculateRookMovesMagicBitboard(xy[0],xy[1],game.isWhiteTurn(),game.getCurrentPosition().board );
                 Set<XYcoord> matchSet = new HashSet<>();
                 matchSet.addAll(rookMovesNormal);
                 for(XYcoord c : rookMovesMagic){
@@ -68,12 +68,12 @@ public class MagicBitboardTests {
 
         for (String pgn : pgns) {
             MagicBitboardGenerator m = new MagicBitboardGenerator();
-            ChessGame game = ChessGame.createTestGame(pgn, false); // Create game from PGN
-            game.moveToEndOfGame(false);
+            ChessGame game = ChessGame.createTestGame(pgn); // Create game from PGN
+            game.moveToEndOfGame();
             for(int z = 0;z<64;z++){
                 int[] xy = BitFunctions.bitindexToXY(z);
-                List<XYcoord> bishopMovesNormal = GeneralChessFunctions.getPieceCoords(AdvancedChessFunctions.calculateBishopMoves(xy[0],xy[1],game.isWhiteTurn(),game.currentPosition.board));
-                List<XYcoord> bishopMovesMagic = AdvancedChessFunctions.calculateBishopMovesMagicBitboard(xy[0],xy[1],game.isWhiteTurn(),game.currentPosition.board );
+                List<XYcoord> bishopMovesNormal = GeneralChessFunctions.getPieceCoords(AdvancedChessFunctions.calculateBishopMoves(xy[0],xy[1],game.isWhiteTurn(),game.getCurrentPosition().board));
+                List<XYcoord> bishopMovesMagic = AdvancedChessFunctions.calculateBishopMovesMagicBitboard(xy[0],xy[1],game.isWhiteTurn(),game.getCurrentPosition().board );
                 Set<XYcoord> matchSet = new HashSet<>();
                 System.out.println(bishopMovesMagic.size());
                 Assertions.assertEquals(bishopMovesNormal.size(),bishopMovesMagic.size());

@@ -1,6 +1,6 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessMove;
 
 public class ComputerOutput {
     public final ChessMove move;

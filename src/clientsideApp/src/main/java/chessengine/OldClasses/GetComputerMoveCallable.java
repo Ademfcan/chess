@@ -11,7 +11,7 @@
 //        this.c = c;
 //        this.isWhite = isWhite;
 //        this.position = pos;
-//        this.gameState = gameState;
+//        this.getGameState() = gameState;
 //
 //    }
 //

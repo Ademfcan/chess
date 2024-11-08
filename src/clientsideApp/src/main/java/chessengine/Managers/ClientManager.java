@@ -1,16 +1,25 @@
 package chessengine.Managers;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Crypto.PersistentSaveManager;
 import chessengine.Functions.UserHelperFunctions;
 import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Start.StartScreenController;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Misc.ClientsideFriendDataResponse;
-import chessserver.*;
+import chessserver.Enums.CampaignTier;
+import chessserver.Enums.ProfilePicture;
+import chessserver.Friends.Friend;
+import chessserver.Friends.FriendDataPair;
+import chessserver.Friends.FriendDataResponse;
+import chessserver.Friends.FriendInfo;
+import chessserver.Communication.DatabaseEntry;
+import chessserver.User.CampaignProgress;
+import chessserver.User.FrontendClient;
+import chessserver.User.UserInfo;
 import jakarta.websocket.DeploymentException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,7 +57,7 @@ public class ClientManager {
                 appUser.getInfo().getFriends().removeIf(f -> f.getUUID() == dataPair.getUUID());
             }
             else{
-                currentFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(),DatabaseEntry.class)));
+                currentFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),App.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
             }
         }
     }
@@ -69,7 +78,7 @@ public class ClientManager {
                 appUser.getInfo().getIncomingRequests().removeIf(f -> f.getUUID() == dataPair.getUUID());
             }
             else{
-                currentIncomingRequestsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
+                currentIncomingRequestsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),App.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
             }
         }
     }
@@ -91,7 +100,7 @@ public class ClientManager {
                 // todo
             }
             else{
-                currentSuggestedFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),ChessConstants.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
+                currentSuggestedFriendsFromServer.addDatabaseEntry(new ClientsideDataEntry(dataPair.isOnline(),App.readFromObjectMapper(dataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
             }
         }
     }

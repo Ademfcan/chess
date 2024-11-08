@@ -1,6 +1,6 @@
 package chessengine.Misc;
 
-import chessserver.DatabaseEntry;
+import chessserver.Communication.DatabaseEntry;
 
 public class ClientsideDataEntry {
     private boolean isCurrentlyOnline;

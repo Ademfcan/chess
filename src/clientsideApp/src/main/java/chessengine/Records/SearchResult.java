@@ -1,6 +1,6 @@
 package chessengine.Records;
 
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessMove;
 
 public record SearchResult(ChessMove move, int evaluation, int depth, PVEntry[] pV) {
 

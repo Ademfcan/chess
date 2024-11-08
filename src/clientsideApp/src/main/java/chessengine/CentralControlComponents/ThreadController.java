@@ -3,7 +3,7 @@ package chessengine.CentralControlComponents;
 import chessengine.Async.GeneralPurposeThread;
 import chessengine.Async.GetComputerMoveTask;
 import chessengine.Async.SimulationTask;
-import chessserver.ComputerDifficulty;
+import chessserver.Enums.ComputerDifficulty;
 
 public class ThreadController {
 

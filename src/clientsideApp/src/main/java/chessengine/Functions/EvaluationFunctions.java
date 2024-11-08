@@ -1,10 +1,12 @@
 package chessengine.Functions;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.XYcoord;
-import chessengine.Misc.ChessConstants;
-import chessengine.Misc.pieceMapHandler;
+import chessserver.ChessRepresentations.BackendChessPosition;
+import chessserver.ChessRepresentations.BitBoardWrapper;
+import chessserver.ChessRepresentations.XYcoord;
+import chessserver.Functions.BitFunctions;
+import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Misc.ChessConstants;
+import chessserver.Misc.pieceMapHandler;
 
 public class EvaluationFunctions {
     public static  final int baseMateScore = -1000000;

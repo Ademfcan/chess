@@ -1,19 +1,22 @@
 package chessengine.Start;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
-import chessengine.Enums.FriendEntry;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.StartScreenState;
 import chessengine.Enums.UserInfoState;
 import chessengine.Functions.UserHelperFunctions;
 import chessengine.Managers.CampaignManager;
 import chessengine.Managers.UserPreferenceManager;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Misc.ClientsideFriendDataResponse;
-import chessserver.*;
+import chessserver.Enums.Gametype;
+import chessserver.Enums.INTENT;
+import chessserver.Enums.ProfilePicture;
+import chessserver.Friends.FriendDataResponse;
+import chessserver.Communication.DatabaseEntry;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -389,7 +392,7 @@ public class StartScreenController implements Initializable {
         setupUserOldGamesBox(oldGames);
     }
 
-    public void setProfileInfo(ProfilePicture picture, String name, int elo,int uuid) {
+    public void setProfileInfo(ProfilePicture picture, String name, int elo, int uuid) {
         profileButton.setImage(new Image(picture.urlString));
         nameProfileLabel.setText(name);
         eloProfileLabel.setText(Integer.toString(elo));
@@ -563,7 +566,7 @@ public class StartScreenController implements Initializable {
                     else{
                         try{
                             KeyManager.saveNewPassword(passwordHash);
-                            DatabaseEntry newEntry = ChessConstants.objectMapper.readValue(out, DatabaseEntry.class);
+                            DatabaseEntry newEntry = App.objectMapper.readValue(out, DatabaseEntry.class);
                             Platform.runLater(() ->{
                                 System.out.println("loading new user: " + newEntry.getUserInfo().getUserName());
                                 App.refreshAppWithNewUser(newEntry);
@@ -667,7 +670,7 @@ public class StartScreenController implements Initializable {
                 }
                 else{
                     App.sendRequest(INTENT.MATCHALLUSERNAMES,inputText,(out) ->{
-                        ClientsideFriendDataResponse response = UserHelperFunctions.readFriendDataResponse(ChessConstants.readFromObjectMapper(out,FriendDataResponse.class));
+                        ClientsideFriendDataResponse response = UserHelperFunctions.readFriendDataResponse(App.readFromObjectMapper(out, FriendDataResponse.class));
                         lookupCache.put(inputText,response);
                         Platform.runLater(() ->{
                             userInfoManager.updateFriendsLookup(response);
@@ -892,8 +895,8 @@ public class StartScreenController implements Initializable {
         });
         multiplayerStart.setOnMouseClicked(e -> {
             if (!gameTypes.getSelectionModel().isEmpty()) {
-                // todo this is not correct!
-                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameTypes.getValue(), true)); // isPlayer1White will change when match is found
+                String gameType = gameTypes.getValue();
+                App.changeToMainScreenOnline(ChessGame.getOnlinePreInit(gameType,App.userManager.getUserName(),App.userManager.getUserElo(),App.userManager.getUserPfpUrl()),gameType); // isPlayer1White will change when match is found
             }
 
         });
@@ -962,7 +965,7 @@ public class StartScreenController implements Initializable {
             } else {
                 try {
                     ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), playAsWhite.isSelected());
-                    App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, true);
+                    App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, false,true);
 
                 } catch (Exception ex) {
                     pgnTextArea.clear();
@@ -982,7 +985,7 @@ public class StartScreenController implements Initializable {
 
     private void setupExplorerOptions() {
         enterExplorerButton.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(), MainScreenState.VIEWER, false);
+            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(), MainScreenState.VIEWER,false, false);
         });
     }
 
@@ -1147,7 +1150,7 @@ public class StartScreenController implements Initializable {
 
         Button openGame = new Button();
         openGame.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER, false);
+            App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER,false ,false);
 
         });
         App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .3);

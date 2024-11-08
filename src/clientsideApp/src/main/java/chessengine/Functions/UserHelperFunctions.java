@@ -1,11 +1,17 @@
 package chessengine.Functions;
 
-import chessengine.ChessRepresentations.ChessGame;
+import chessengine.App;
+import chessserver.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Misc.ClientsideFriendDataResponse;
-import chessserver.*;
+import chessserver.Friends.Friend;
+import chessserver.Friends.FriendDataPair;
+import chessserver.Friends.FriendDataResponse;
+import chessserver.Communication.DatabaseEntry;
+import chessserver.User.UserInfo;
+import chessserver.User.UserPreferences;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +35,7 @@ public class UserHelperFunctions {
             if(friendDataPair.getFriendDatabaseEntryAsString().isEmpty()){
                 continue;
             }
-            clientsideFriendDataResponse.addDatabaseEntry(new ClientsideDataEntry(friendDataPair.isOnline(),ChessConstants.readFromObjectMapper(friendDataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
+            clientsideFriendDataResponse.addDatabaseEntry(new ClientsideDataEntry(friendDataPair.isOnline(), App.readFromObjectMapper(friendDataPair.getFriendDatabaseEntryAsString(), DatabaseEntry.class)));
         }
 
         return clientsideFriendDataResponse;

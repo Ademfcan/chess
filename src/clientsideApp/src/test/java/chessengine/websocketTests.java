@@ -1,17 +1,16 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Managers.WebSocketClient;
-import chessengine.Misc.ChessConstants;
-import chessserver.*;
+import chessserver.Misc.ChessConstants;
+import chessserver.Enums.INTENT;
+import chessserver.User.FrontendClient;
 import org.junit.jupiter.api.Test;
 
 import jakarta.websocket.DeploymentException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 public class websocketTests {
     @Test void testGetClientCount() throws InterruptedException {

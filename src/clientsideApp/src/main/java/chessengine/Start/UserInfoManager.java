@@ -1,18 +1,16 @@
 package chessengine.Start;
 
 import chessengine.App;
-import chessengine.ChessRepresentations.ChessGame;
 import chessengine.Enums.FriendEntry;
 import chessengine.Enums.UserInfoState;
 import chessengine.Functions.UserHelperFunctions;
 import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Misc.ClientsideFriendDataResponse;
-import chessserver.DatabaseEntry;
-import chessserver.Friend;
-import chessserver.FriendInfo;
-import chessserver.UserInfo;
+import chessserver.Communication.DatabaseEntry;
+import chessserver.Friends.Friend;
+import chessserver.Friends.FriendInfo;
+import chessserver.User.UserInfo;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -21,8 +19,6 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.List;
 
 public class UserInfoManager {
     private static final Logger logger = LogManager.getLogger("User_Info_Manager");
@@ -145,8 +141,8 @@ public class UserInfoManager {
             activityIndicator.setFill(Paint.valueOf("Gray"));
         }
         activityIndicator.radiusProperty().bind(profilePicture.fitHeightProperty().divide(16));
-        activityIndicator.layoutXProperty().bind(profileGroup.widthProperty().subtract(activityIndicator.radiusProperty().divide(2).subtract(1)));
-        activityIndicator.layoutYProperty().bind(profileGroup.heightProperty().subtract(activityIndicator.radiusProperty().divide(2).subtract(2)));
+        activityIndicator.layoutXProperty().bind(profilePicture.layoutXProperty().add(profilePicture.fitWidthProperty()));
+        activityIndicator.layoutYProperty().bind(profilePicture.layoutYProperty().add(profilePicture.fitHeightProperty()));
         profileGroup.getChildren().addAll(activityIndicator,profilePicture);
 
 

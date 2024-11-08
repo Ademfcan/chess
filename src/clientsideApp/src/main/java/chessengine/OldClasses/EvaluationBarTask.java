@@ -6,7 +6,7 @@
 //import chessengine.Computation.EvalOutput;
 //import chessengine.Records.SearchResult;
 //import chessengine.Computation.Searcher;
-//import chessengine.Misc.ChessConstants;
+//import chessserver.Misc.ChessConstants;
 //import javafx.application.Platform;
 //import javafx.concurrent.Task;
 //import org.apache.logging.log4j.LogManager;
@@ -59,9 +59,9 @@
 //                        if (endEval || myControl.gameHandler.currentGame == null) {
 //                            break;
 //                        }
-//                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
+//                        lastIndex = myControl.gameHandler.currentGame.getCurMoveIndex();
 //                        EvalOutput output = App.stockfishForNmoves.getEvalScore(myControl.gameHandler.currentGame.getCurrentFen(), myControl.gameHandler.currentGame.isWhiteTurn(), (ChessConstants.DefaultWaitTime / iterCount) * i);
-//                        if (output != null && lastIndex == myControl.gameHandler.currentGame.curMoveIndex && !App.isStartScreen && !endEval) {
+//                        if (output != null && lastIndex == myControl.gameHandler.currentGame.getCurMoveIndex() && !App.isStartScreen && !endEval) {
 //                            Platform.runLater(() -> myControl.mainScreenController.setEvalBar(output.getAdvantage(), output.getOutputDepth(), false));
 //                        }
 //                    }
@@ -70,9 +70,9 @@
 //                        if (endEval || myControl.gameHandler.currentGame == null) {
 //                            break;
 //                        }
-//                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
-//                        SearchResult output = searcher.search(myControl.gameHandler.currentGame.currentPosition.toBackend(myControl.gameHandler.currentGame.gameState, myControl.gameHandler.currentGame.isWhiteTurn()),(ChessConstants.DefaultWaitTime/iterCount)*i,1);
-//                        if (output.results()[0].evaluation() != Integer.MIN_VALUE+1 && lastIndex == myControl.gameHandler.currentGame.curMoveIndex && !App.isStartScreen && !endEval) {
+//                        lastIndex = myControl.gameHandler.currentGame.getCurMoveIndex();
+//                        SearchResult output = searcher.search(myControl.gameHandler.currentGame.getCurrentPosition().toBackend(myControl.gameHandler.currentGame.getGameState(), myControl.gameHandler.currentGame.isWhiteTurn()),(ChessConstants.DefaultWaitTime/iterCount)*i,1);
+//                        if (output.results()[0].evaluation() != Integer.MIN_VALUE+1 && lastIndex == myControl.gameHandler.currentGame.getCurMoveIndex() && !App.isStartScreen && !endEval) {
 //                            Platform.runLater(() -> myControl.mainScreenController.setEvalBar(((double) output.results()[0].evaluation() /100)*(myControl.gameHandler.currentGame.isWhiteTurn() ? 1 : -1), output.depth(), false));
 //                        }
 //                    }

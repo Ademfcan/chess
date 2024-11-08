@@ -7,7 +7,7 @@
 //        if (position.isDraw()) {
 //        return new MinimaxEvalOutput(isWhiteTurn ? currentDifficulty.drawConst : -currentDifficulty.drawConst);
 //        }
-//        boolean isAnyMoveNotPossible = AdvancedChessFunctions.isAnyNotMovePossible(isWhiteTurn, position, position.gameState);
+//        boolean isAnyMoveNotPossible = AdvancedChessFunctions.isAnyNotMovePossible(isWhiteTurn, position, position.getGameState());
 //        boolean isChecked = AdvancedChessFunctions.isChecked(isWhiteTurn, position.board);
 //        if (isAnyMoveNotPossible) {
 //        // possiblity of a black winning from checkmate, else draw
@@ -20,7 +20,7 @@
 //        depth+= ComputerHelperFunctions.calculateMoveExtension(position,isWhiteTurn,isChecked);
 //        if (depth == 0) {
 //        // first check move extensions
-//        return new MinimaxEvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+//        return new MinimaxEvalOutput(ComputerHelperFunctions.getFullEval(position, position.getGameState(), isWhiteTurn, true));
 //        }
 //
 //        long key = hasher.computeHash(position.board, isWhiteTurn);
@@ -40,7 +40,7 @@
 //
 //        if (depth <= evalDepth - currentDifficulty.depthThreshold) {
 //        // do a check to see if there is any noticeable advantage diff.  If not then return
-//        double posEval = ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true);
+//        double posEval = ComputerHelperFunctions.getFullEval(position, position.getGameState(), isWhiteTurn, true);
 //        double diff = posEval - callTimeEval;
 //        double advtgThresholdCalc = currentDifficulty.advantageThreshold + (double) (evalDepth - currentDifficulty.depthThreshold - depth) / 8;
 //        if (isWhiteTurn) {
@@ -73,26 +73,26 @@
 //        // recursive part
 //        if (isWhiteTurn) {
 //        MinimaxEvalOutput maxEval = new MinimaxEvalOutput(Double.NEGATIVE_INFINITY);
-//        List<ChessMove> childMoves = position.getAllChildMoves(true, position.gameState);
+//        List<ChessMove> childMoves = position.getAllChildMoves(true, position.getGameState());
 //        if(childMoves == null){
 //        logger.error("Childmoves error!");
 //        return Stopped;
 //        }
-////            List<BackendChessPosition> childPositions = position.getAllChildPositions(true,position.gameState);
+////            List<BackendChessPosition> childPositions = position.getAllChildPositions(true,position.getGameState());
 ////            assertTrue(childMoves.size(),childPositions.size(),true);
 //        for (int i = 0; i < childMoves.size(); i++) {
 //        ChessMove c = childMoves.get(i);
 //        position.makeLocalPositionMove(c);
 ////                if(!assertTrue(position,childPositions.get(i),true,og + "\n" + ogMove)){
-////                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
-////                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
+////                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.getCurMoveIndex() + (currentDifficulty.depth-depth)+1));
+////                    assertTrue(position.getGameState().toString().trim(),childPositions.get(i).getGameState().toString().trim(),true,"Before");
 ////                    System.out.println("whywhywhywhywhywhywhy");
 ////                    return Stopped;
 //
 //
 ////                }
 ////                assertTrue(position.getMoveThatCreatedThis(),childPositions.get(i).getMoveThatCreatedThis(),true);
-////                assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString(),true,"Before");
+////                assertTrue(position.getGameState().toString().trim(),childPositions.get(i).getGameState().toString(),true,"Before");
 //        MinimaxEvalOutput out = miniMax(position, depth - 1, alpha, beta, false);
 //        position.undoLocalPositionMove();
 //        if (out == Stopped) {
@@ -115,19 +115,19 @@
 //        return maxEval.incrementAndReturn();
 //        } else {
 //        MinimaxEvalOutput minEval = new MinimaxEvalOutput(Double.POSITIVE_INFINITY);
-//        List<ChessMove> childMoves = position.getAllChildMoves(false, position.gameState);
+//        List<ChessMove> childMoves = position.getAllChildMoves(false, position.getGameState());
 //        if(childMoves == null){
 //        logger.error("Childmoves error!");
 //        return Stopped;
 //        }
-////           List<BackendChessPosition> childPositions = position.getAllChildPositions(false,position.gameState);
+////           List<BackendChessPosition> childPositions = position.getAllChildPositions(false,position.getGameState());
 ////            assertTrue(childMoves.size(),childPositions.size(),true);
 //        for (int i = 0; i < childMoves.size(); i++) {
 //        ChessMove c = childMoves.get(i);
 //        position.makeLocalPositionMove(c);
 ////                if(!assertTrue(position,childPositions.get(i),false,og + "\n" + ogMove)){
-////                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.curMoveIndex + (currentDifficulty.depth-depth)+1));
-////                    assertTrue(position.gameState.toString().trim(),childPositions.get(i).gameState.toString().trim(),true,"Before");
+////                    System.out.println("Expected index: " + (App.ChessCentralControl.gameHandler.currentGame.getCurMoveIndex() + (currentDifficulty.depth-depth)+1));
+////                    assertTrue(position.getGameState().toString().trim(),childPositions.get(i).getGameState().toString().trim(),true,"Before");
 ////                    System.out.println("whywhywhywhywhywhywhy");
 ////                    return Stopped;
 ////                }

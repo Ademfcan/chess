@@ -4,10 +4,10 @@
 //import chessengine.ChessRepresentations.ChessMove;
 //import chessengine.ChessRepresentations.ChessPosition;
 //import chessengine.ChessRepresentations.ChessStates;
-//import chessengine.Functions.AdvancedChessFunctions;
-//import chessengine.Functions.ZobristHasher;
-//import chessengine.Misc.ChessConstants;
-//import chessserver.ComputerDifficulty;
+//import chessserver.Functions.AdvancedChessFunctions;
+//import chessserver.Functions.ZobristHasher;
+//import chessserver.Misc.ChessConstants;
+//import chessserver.Enums.ComputerDifficulty;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
 //
@@ -239,7 +239,7 @@
 //        if (position.isDraw()) {
 //            return new EvalOutput(isWhiteTurn ? currentDifficulty.drawConst : -currentDifficulty.drawConst);
 //        }
-//        List<ChessMove> possibleMoves = position.getAllChildMoves(isWhiteTurn, position.gameState);
+//        List<ChessMove> possibleMoves = position.getAllChildMoves(isWhiteTurn, position.getGameState());
 //        if (possibleMoves == null) {
 //            logger.error("Childmoves error!");
 //            return Stopped;
@@ -262,7 +262,7 @@
 //
 //            }
 //            if (moveExtension == 0) {
-//                return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+//                return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.getGameState(), isWhiteTurn, true));
 ////                return new EvalOutput(quiescenceSearch(position,alpha,beta,isWhiteTurn));
 //            }
 //            depth += moveExtension;
@@ -271,7 +271,7 @@
 //        long currentTime = System.currentTimeMillis();
 ////        if(currentTime-callTimeMs > ChessConstants.MAXTIMEMS){
 ////            TIMEOUTFLAG = true;
-////            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true));
+////            return new EvalOutput(ComputerHelperFunctions.getFullEval(position, position.getGameState(), isWhiteTurn, true));
 ////        }
 //
 ////        long key = hasher.computeHash(position.board, isWhiteTurn);
@@ -291,7 +291,7 @@
 //
 ////        if (depth <= currentDifficulty.depth - currentDifficulty.depthThreshold) {
 ////            // do a check to see if there is any noticeable advantage diff.  If not then return
-////            double posEval = ComputerHelperFunctions.getFullEval(position, position.gameState, isWhiteTurn, true);
+////            double posEval = ComputerHelperFunctions.getFullEval(position, position.getGameState(), isWhiteTurn, true);
 ////            double diff = posEval - callTimeEval;
 ////            double advtgThresholdCalc = currentDifficulty.advantageThreshold + (double) (currentDifficulty.depth - currentDifficulty.depthThreshold - depth) / 8;
 ////            if (isWhiteTurn) {
@@ -353,7 +353,7 @@
 //
 //    public double quiescenceSearch(BackendChessPosition position,double alpha, double beta,boolean isWhiteTurn) {
 //        // Static evaluation of the current position
-//        double eval = ComputerHelperFunctions.getFullEval(position,position.gameState,isWhiteTurn,false) * (isWhiteTurn ? 1 : -1);
+//        double eval = ComputerHelperFunctions.getFullEval(position,position.getGameState(),isWhiteTurn,false) * (isWhiteTurn ? 1 : -1);
 //
 //        // Alpha-Beta pruning: if the evaluation already exceeds beta, cut off search
 //        if (eval >= beta) {
@@ -366,7 +366,7 @@
 //        }
 //
 //        // Generate all legal capture moves
-//        List<ChessMove> captureMoves = position.getAllChildMoves(isWhiteTurn,position.gameState).stream().filter(m -> ComputerHelperFunctions.isNotQuiet(position.board,m)).toList();
+//        List<ChessMove> captureMoves = position.getAllChildMoves(isWhiteTurn,position.getGameState()).stream().filter(m -> ComputerHelperFunctions.isNotQuiet(position.board,m)).toList();
 //
 //        // Evaluate all capture moves
 //        for (ChessMove move : captureMoves) {

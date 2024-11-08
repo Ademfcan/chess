@@ -2,8 +2,12 @@ package chessengine.Managers;
 
 import chessengine.App;
 import chessengine.Crypto.PersistentSaveManager;
-import chessengine.Misc.ChessConstants;
-import chessserver.*;
+import chessserver.Misc.ChessConstants;
+import chessserver.Enums.ChessPieceTheme;
+import chessserver.Enums.ChessboardTheme;
+import chessserver.Enums.ComputerDifficulty;
+import chessserver.Enums.GlobalTheme;
+import chessserver.User.UserPreferences;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
@@ -12,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Objects;
 
 public class UserPreferenceManager {
@@ -293,4 +296,7 @@ public class UserPreferenceManager {
         loadChanges();
     }
 
+    public boolean isNoAnimate() {
+        return false;
+    }
 }

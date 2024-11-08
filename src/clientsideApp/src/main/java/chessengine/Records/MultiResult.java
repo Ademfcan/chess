@@ -1,6 +1,6 @@
 package chessengine.Records;
 
-import chessengine.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessMove;
 
 import java.util.HashMap;
 

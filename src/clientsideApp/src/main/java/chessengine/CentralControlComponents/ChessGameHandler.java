@@ -1,13 +1,18 @@
 package chessengine.CentralControlComponents;
 
-import chessengine.ChessRepresentations.ChessGame;
-import chessserver.CampaignTier;
+import chessengine.ChessRepresentations.ClientsideChessGameWrapper;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.Enums.CampaignTier;
 
 import java.util.Objects;
 
 public class ChessGameHandler {
     private final ChessCentralControl control;
-    public ChessGame currentGame;
+    public ClientsideChessGameWrapper gameWrapper;
+
+    public boolean currentlyGameActive(){
+        return gameWrapper.getGame() != null;
+    }
     // for campaign mode only
     private int gameDifficulty;
     private int levelOfCampaignTier;
@@ -16,6 +21,7 @@ public class ChessGameHandler {
 
     public ChessGameHandler(ChessCentralControl control) {
         this.control = control;
+        gameWrapper = new ClientsideChessGameWrapper(control);
 
     }
 
@@ -48,34 +54,28 @@ public class ChessGameHandler {
     }
 
     public void clearGame() {
-        currentGame = null;
         campaignTier = null;
         levelOfCampaignTier = -1;
         gameDifficulty = -1;
+        gameWrapper.clearGame();
     }
 
 
-    public void switchToNewGame(ChessGame newGame) {
-        setUpGameGui(newGame, true);
+    public void switchToNewGame(ChessGame newGame,boolean isWebGame) {
+        setUpGameGui(newGame,isWebGame, true);
 
     }
 
-    public void switchToGame(ChessGame newGame, boolean isFirstLoad) {
-        setUpGameGui(newGame, isFirstLoad);
+    public void switchToGame(ChessGame newGame,boolean isWebGame, boolean isFirstLoad) {
+        setUpGameGui(newGame,isWebGame, isFirstLoad);
 
     }
 
-    private void setUpGameGui(ChessGame newSetup, boolean isFirstSave) {
+
+    private void setUpGameGui(ChessGame newSetup,boolean isWebGame, boolean isFirstSave) {
         isCurrentGameFirstSetup = isFirstSave;
-        if (Objects.isNull(currentGame)) {
-            newSetup.setMainGame(control);
+        gameWrapper.loadInNewGame(newSetup,isWebGame);
 
-        } else {
-            currentGame.clearMainGame();
-            newSetup.setMainGame(control);
-
-        }
-        currentGame = newSetup;
 
 
     }

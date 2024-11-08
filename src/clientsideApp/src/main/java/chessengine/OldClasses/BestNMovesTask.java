@@ -6,7 +6,7 @@
 //import chessengine.ChessRepresentations.ChessPosition;
 //import chessengine.ChessRepresentations.ChessStates;
 //import chessengine.Computation.*;
-//import chessengine.Misc.ChessConstants;
+//import chessserver.Misc.ChessConstants;
 //import javafx.application.Platform;
 //import javafx.concurrent.Task;
 //import org.apache.logging.log4j.LogManager;
@@ -69,19 +69,19 @@
 //                c.clearFlags();
 //                if(App.userPreferenceManager.getNMovesStockfishBased()){
 //                    if(!endEval && myControl.gameHandler.currentGame != null){
-//                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
-//                        MoveOutput[] moveOutputs = App.stockfishForEval.getBestNMoves(myControl.gameHandler.currentGame.getCurrentFen(),myControl.gameHandler.currentGame.isWhiteTurn(),myControl.gameHandler.currentGame.currentPosition.board, ChessConstants.DefaultWaitTime,ChessConstants.NMOVES);
-//                        if(lastIndex == myControl.gameHandler.currentGame.curMoveIndex && moveOutputs != null && !App.isStartScreen && !endEval) {
+//                        lastIndex = myControl.gameHandler.currentGame.getCurMoveIndex();
+//                        MoveOutput[] moveOutputs = App.stockfishForEval.getBestNMoves(myControl.gameHandler.currentGame.getCurrentFen(),myControl.gameHandler.currentGame.isWhiteTurn(),myControl.gameHandler.currentGame.getCurrentPosition().board, ChessConstants.DefaultWaitTime,ChessConstants.NMOVES);
+//                        if(lastIndex == myControl.gameHandler.currentGame.getCurMoveIndex() && moveOutputs != null && !App.isStartScreen && !endEval) {
 //                            Platform.runLater(()-> myControl.chessActionHandler.addBestMovesToViewer(moveOutputs));
 //                        }
 //                    }
 //                }
 //                else{
 //                    if(!endEval && myControl.gameHandler.currentGame != null){
-//                        lastIndex = myControl.gameHandler.currentGame.curMoveIndex;
-//                        Result[] moveOutputs = searcher.search(myControl.gameHandler.currentGame.currentPosition.toBackend(myControl.gameHandler.currentGame.gameState, myControl.gameHandler.currentGame.isWhiteTurn()),ChessConstants.DefaultWaitTime,ChessConstants.NMOVES).results();
+//                        lastIndex = myControl.gameHandler.currentGame.getCurMoveIndex();
+//                        Result[] moveOutputs = searcher.search(myControl.gameHandler.currentGame.getCurrentPosition().toBackend(myControl.gameHandler.currentGame.getGameState(), myControl.gameHandler.currentGame.isWhiteTurn()),ChessConstants.DefaultWaitTime,ChessConstants.NMOVES).results();
 //                        System.out.println(Arrays.toString(moveOutputs));
-//                        if(lastIndex == myControl.gameHandler.currentGame.curMoveIndex && moveOutputs != null && !App.isStartScreen && !endEval) {
+//                        if(lastIndex == myControl.gameHandler.currentGame.getCurMoveIndex() && moveOutputs != null && !App.isStartScreen && !endEval) {
 //                            Platform.runLater(()-> myControl.chessActionHandler.addBestMovesToViewer(moveOutputs));
 //                        }
 //                    }

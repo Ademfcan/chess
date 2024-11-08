@@ -1,14 +1,12 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.Functions.AdvancedChessFunctions;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.Functions.AdvancedChessFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PGNTests {
     @Test
@@ -50,12 +48,12 @@ public class PGNTests {
                 "30.h3 Bd8 31.g4 Bf6 32.Nc2 Bd8 33.b4 b5 34.axb5 axb4 35.Nxb4 Bxb5 36.Nxd5 Bc6\n" +
                 "37.Nb4 Be8 38.Ra6 Bc7 39.Nd5 Rc8 40.f6+ Kf8 41.Nxc7 Rxc7 42.Ra8 Rb7 43.d5 Rb2\n" +
                 "44.Ke3";
-        ChessGame game = ChessGame.createTestGame(pgn,false);
-        ChessGame game2 = ChessGame.createTestGame(secondPgn,false);
-        ChessGame game3 = ChessGame.createTestGame(pgn3,false);
-        System.out.println(game.maxIndex);
-        System.out.println(game2.maxIndex);
-        System.out.println(game3.maxIndex);
+        ChessGame game = ChessGame.createTestGame(pgn);
+        ChessGame game2 = ChessGame.createTestGame(secondPgn);
+        ChessGame game3 = ChessGame.createTestGame(pgn3);
+        System.out.println(game.getMaxIndex());
+        System.out.println(game2.getMaxIndex());
+        System.out.println(game3.getMaxIndex());
 
     }
 
@@ -67,7 +65,7 @@ public class PGNTests {
                 "30.h3 Bd8 31.g4 Bf6 32.Nc2 Bd8 33.b4 b5 34.axb5 axb4 35.Nxb4 Bxb5 36.Nxd5 Bc6 \n" +
                 "37.Nb4 Be8 38.Ra6 Bc7 39.Nd5 Rc8 40.f6+ Kf8 41.Nxc7 Rxc7 42.Ra8 Rb7 43.d5 Rb2 \n" +
                 "44.Ke3 ";
-        ChessGame game = ChessGame.createTestGame(pgn,true);
+        ChessGame game = ChessGame.createTestGame(pgn);
         System.out.println(game.gameToPgn());
         String pgnOut = game.gameToPgn();
         System.out.println(normalizeString(pgn));
@@ -94,8 +92,8 @@ public class PGNTests {
                 "130.Ra3+ Ra4 131.Rd3 Rg4 132.Kd5 Kb5 133.Rb3+ Ka4 134.Rb2 Rh4 135.Bd4 Ka3 \n" +
                 "136.Rb7 Ka2 137.Kc4 Rg4 138.Rb2+ Ka3 139.Rb1 Rg2 140.Rb7 ";
 
-        ChessGame game2 = ChessGame.createTestGame(thirdPgn,true);
-        for(int i = 0;i<game.maxIndex+1;i++){
+        ChessGame game2 = ChessGame.createTestGame(thirdPgn);
+        for(int i = 0;i<game.getMaxIndex()+1;i++){
             System.out.println(game.getPos(i).getMoveThatCreatedThis().toString());
         }
         System.out.println(game2.gameToPgn());
@@ -109,8 +107,8 @@ public class PGNTests {
                 "Rxd7 g6 22.Bg5 Kg7 23.Qc2 Re8 24.Qc3+ Kg8 25.Rad1 Rxe4 26.Rd8+ Re8 27." +
                 "Rxe8#";
 
-        ChessGame game3 = ChessGame.createTestGame(fourthPgn,false);
-        boolean isCheckmated = AdvancedChessFunctions.isCheckmated(game3.currentPosition,game3.gameState);
+        ChessGame game3 = ChessGame.createTestGame(fourthPgn);
+        boolean isCheckmated = AdvancedChessFunctions.isCheckmated(game3.getCurrentPosition(),game3.getGameState());
         System.out.println("Is checkmated: " + isCheckmated);
     }
 
@@ -200,7 +198,7 @@ public class PGNTests {
         };
 
         for(String pgn : top50Openings){
-            ChessGame game = ChessGame.createTestGame(pgn,true);
+            ChessGame game = ChessGame.createTestGame(pgn);
         }
     }
 }

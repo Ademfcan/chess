@@ -1,8 +1,5 @@
 package chessengine.Misc;
 
-import chessserver.DatabaseEntry;
-import chessserver.FriendDataResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 

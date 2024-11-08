@@ -1,7 +1,6 @@
 package chessengine.Graphics;
 
 import chessengine.App;
-import chessengine.Misc.ChessConstants;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;

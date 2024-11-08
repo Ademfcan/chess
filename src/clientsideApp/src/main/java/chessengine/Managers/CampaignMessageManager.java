@@ -2,9 +2,8 @@ package chessengine.Managers;
 
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.MainScreenState;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Misc.ChessConstants;
-import chessserver.CampaignTier;
+import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Enums.CampaignTier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -189,7 +188,7 @@ public class CampaignMessageManager {
     }
 
     private String getName() {
-        if (centralControl.gameHandler.currentGame != null && centralControl.mainScreenController.currentState.equals(MainScreenState.CAMPAIGN)) {
+        if (centralControl.gameHandler.currentlyGameActive() && centralControl.mainScreenController.currentState.equals(MainScreenState.CAMPAIGN)) {
             CampaignTier currentTier = centralControl.gameHandler.getCampaignTier();
             int currentTierLevel = centralControl.gameHandler.getLevelOfCampaignTier();
             return currentTier.levelNames[currentTierLevel];

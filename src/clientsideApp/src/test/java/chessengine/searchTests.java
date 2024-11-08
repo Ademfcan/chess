@@ -1,14 +1,14 @@
 package chessengine;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
-import chessengine.ChessRepresentations.ChessGame;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.ChessRepresentations.ChessGameState;
+import chessserver.ChessRepresentations.BackendChessPosition;
+import chessserver.ChessRepresentations.ChessGame;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.ChessRepresentations.ChessGameState;
 import chessengine.Computation.*;
 import chessengine.Enums.Flag;
 import chessengine.Enums.PromotionType;
 import chessengine.Functions.EvaluationFunctions;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Records.SearchResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -43,9 +43,9 @@ public class searchTests {
                 "1.e4 d5 2.Nf3 Nf6 3.Bb5+ Bd7 4.Nc3 e6 5.a3 Bc5 6.O-O O-O 7.Re1 Re8 8.Re3 Re7"
         };
         for(String pgn : pgns) {
-            ChessGame testGame = ChessGame.createTestGame(pgn, false);
-            testGame.moveToEndOfGame(false);
-            System.out.println(EvaluationFunctions.getStaticEvaluation(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn())));
+            ChessGame testGame = ChessGame.createTestGame(pgn);
+            testGame.moveToEndOfGame();
+            System.out.println(EvaluationFunctions.getStaticEvaluation(testGame.getCurrentPosition().toBackend(testGame.getGameState(),testGame.isWhiteTurn())));
         }
 
 
@@ -106,10 +106,10 @@ public class searchTests {
                 "1. d4 d5 2. c4 e6 3. Nc3 c6 4. e4 dxe4 5. Nxe4 Bb4+ 6. Bd2 Bxd2+ 7. Qxd2 Nf6 8. Ng3 O-O 9. Nf3 Nbd7 10. Bd3 c5 11. O-O b6 12. d5 exd5 13. cxd5 Bb7 14. Rfe1 Nxd5 15. Rad1 N7f6 16. Nf5 g6 17. Qh6 gxf5 18. Bxf5 Kh8 19. Ng5"};
 
         for(String pgn : pgns){
-            ChessGame testGame = ChessGame.createTestGame(pgn,false);
-            testGame.moveToEndOfGame(false);
+            ChessGame testGame = ChessGame.createTestGame(pgn);
+            testGame.moveToEndOfGame();
             Searcher searcher = new Searcher();
-            SearchResult out = searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000);
+            SearchResult out = searcher.search(testGame.getCurrentPosition().toBackend(testGame.getGameState(),testGame.isWhiteTurn()),1000);
             System.out.println(out.evaluation());
             System.out.println(out.move());
             System.out.println(out.depth());
@@ -127,10 +127,10 @@ public class searchTests {
                 "Kg8 32. Qxe5 d4 33. Nb3 d3 34. Nd2 Qd5 35. Qxd5 Bxd5 36. f4 Kf8 37. Kf2 Ke7 \n" +
                 "38. Ke3 Bc4 39. Kd4 Kd6 40. Nxc4+ bxc4 41. Kxc4 d2 42. Kc3 d1=Q 43. Kb2 Qf3 \n" +
                 "44. a4 Qxg3 45. b5 axb5 46. axb5 Qxf4 47. Kc3 Kc5 48. b6 Kxb6 49. Kd3 Qh4 \n" +
-                "50. Ke3 Qxh3+ 51. Ke4 Qe6+ 52. Kf4 Kc5 53. Kg3 Kd4 54. Kh4 Qg6 55. Kh3\n",false);
-        testGame.moveToEndOfGame(false);
+                "50. Ke3 Qxh3+ 51. Ke4 Qe6+ 52. Kf4 Kc5 53. Kg3 Kd4 54. Kh4 Qg6 55. Kh3\n");
+        testGame.moveToEndOfGame();
         Searcher searcher = new Searcher();
-//        System.out.println(searcher.search(testGame.currentPosition.toBackend(testGame.gameState,testGame.isWhiteTurn()),1000000));
+//        System.out.println(searcher.search(testGame.getCurrentPosition().toBackend(testGame.getGameState(),testGame.isWhiteTurn()),1000000));
     }
 
 

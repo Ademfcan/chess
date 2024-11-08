@@ -1,21 +1,22 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BackendChessPosition;
+import chessserver.ChessRepresentations.BackendChessPosition;
 import chessengine.Enums.Movetype;
-import chessengine.Functions.AdvancedChessFunctions;
+import chessserver.Functions.AdvancedChessFunctions;
 import chessengine.Functions.EvaluationFunctions;
-import chessengine.Misc.ChessConstants;
+import chessserver.Functions.ComputerHelperFunctions;
+import chessserver.Misc.ChessConstants;
 import chessengine.Records.MultiResult;
 import chessengine.Records.PVEntry;
 import chessengine.Records.SearchResult;
-import chessserver.ComputerDifficulty;
+import chessserver.Enums.ComputerDifficulty;
 
 import java.util.List;
 import java.util.concurrent.*;
 
 public class CustomMultiSearcher extends MultiSearcher {
     public MultiResult search(BackendChessPosition position, int waitTimeMs, int nPvs, ComputerDifficulty difficulty) {
-        List<BackendChessPosition> chessPositions = position.getAllChildPositions(position.isWhiteTurn, position.gameState);
+        List<BackendChessPosition> chessPositions = position.getAllChildPositions(position.isWhiteTurn, position.getGameState());
         List<BackendChessPosition> filteredPositions;
         if (difficulty.equals(ComputerDifficulty.MaxDifficulty)) {
             filteredPositions = chessPositions;
@@ -45,7 +46,7 @@ public class CustomMultiSearcher extends MultiSearcher {
                             Thread.sleep(10);
                             BackendChessPosition positionToEvaluate = positionsToEvaluate.poll();
                             if (positionToEvaluate != null) {
-                                if(positionToEvaluate.isDraw() || AdvancedChessFunctions.isAnyNotMovePossible(positionToEvaluate.isWhiteTurn,positionToEvaluate,positionToEvaluate.gameState)){
+                                if(positionToEvaluate.isDraw() || AdvancedChessFunctions.isAnyNotMovePossible(positionToEvaluate.isWhiteTurn,positionToEvaluate,positionToEvaluate.getGameState())){
                                     int evaluation = 0;
                                     if(AdvancedChessFunctions.isChecked(positionToEvaluate.isWhiteTurn,positionToEvaluate.board)){
                                         evaluation = -EvaluationFunctions.baseMateScore;

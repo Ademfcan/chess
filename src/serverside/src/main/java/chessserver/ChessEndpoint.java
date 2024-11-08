@@ -1,5 +1,7 @@
 package chessserver;
 
+import chessserver.ClientHandling.ClientHandler;
+import chessserver.Enums.ServerResponseType;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.logging.log4j.LogManager;
@@ -7,10 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import javax.sql.DataSource;
-import javax.naming.InitialContext;
 
 @ServerEndpoint("/home")
 public class ChessEndpoint {
@@ -59,7 +58,7 @@ public class ChessEndpoint {
                 int totalConnections = dataSource.getHikariPoolMXBean().getTotalConnections();
                 int activeConnections = dataSource.getHikariPoolMXBean().getActiveConnections();
                 int idleConnections = dataSource.getHikariPoolMXBean().getIdleConnections();
-                ClientHandler.sendMessage(session,ServerResponseType.SQLMESSAGE,String.format("Total Connections: %d | Active Connections: %d | Idle Connections: %d ",totalConnections,activeConnections,idleConnections),Integer.MAX_VALUE);
+                ClientHandler.sendMessage(session, ServerResponseType.SQLMESSAGE,String.format("Total Connections: %d | Active Connections: %d | Idle Connections: %d ",totalConnections,activeConnections,idleConnections),Integer.MAX_VALUE);
             }
             ClientHandler.handleMessage(message, session,dataSource);
 

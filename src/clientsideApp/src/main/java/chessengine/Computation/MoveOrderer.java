@@ -1,10 +1,10 @@
 package chessengine.Computation;
 
-import chessengine.ChessRepresentations.BitBoardWrapper;
-import chessengine.ChessRepresentations.ChessMove;
-import chessengine.Functions.GeneralChessFunctions;
-import chessengine.Misc.ChessConstants;
-import chessengine.Misc.pieceMapHandler;
+import chessserver.ChessRepresentations.BitBoardWrapper;
+import chessserver.ChessRepresentations.ChessMove;
+import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Misc.ChessConstants;
+import chessserver.Misc.pieceMapHandler;
 
 public class MoveOrderer {
 

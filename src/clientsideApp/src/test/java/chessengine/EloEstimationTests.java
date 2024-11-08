@@ -1,8 +1,7 @@
 package chessengine;
 
 import chessengine.Misc.EloEstimator;
-import chessserver.ComputerDifficulty;
-import org.junit.jupiter.api.Test;
+import chessserver.Enums.ComputerDifficulty;
 
 public class EloEstimationTests {
     EloEstimator est = new EloEstimator();

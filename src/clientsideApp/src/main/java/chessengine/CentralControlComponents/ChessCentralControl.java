@@ -5,7 +5,7 @@ import chessengine.Computation.MultiSearcher;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
 import chessengine.Graphics.MainScreenController;
-import chessengine.Misc.ChessConstants;
+import chessserver.Misc.ChessConstants;
 import chessengine.Records.CachedPv;
 import chessengine.Records.MultiResult;
 import chessengine.Records.SearchResult;
@@ -73,8 +73,8 @@ public class ChessCentralControl {
 
 
     public void checkCacheNewIndex() {
-        int maxMoveIndex = gameHandler.currentGame.maxIndex;
-        int currentMoveIndex = gameHandler.currentGame.curMoveIndex;
+        int maxMoveIndex = gameHandler.gameWrapper.getGame().getMaxIndex();
+        int currentMoveIndex = gameHandler.gameWrapper.getGame().getCurMoveIndex();
         int bottomRange = Math.max(-1, currentMoveIndex - 1);
         int topRange = Math.min(currentMoveIndex + 1, maxMoveIndex);
         for (int i = bottomRange; i <= topRange; i++) {
@@ -87,7 +87,7 @@ public class ChessCentralControl {
             currentlySearching.add(i);
             asyncController.generalTask.addTask(() -> {
                 try {
-                    MultiResult result = searcher.search(gameHandler.currentGame.getPos(i).clonePosition().toBackend(gameHandler.currentGame.getGameStateAtPos(i), gameHandler.currentGame.isWhiteTurn(i)), ChessConstants.DefaultWaitTime / 2, ChessConstants.NMOVES);
+                    MultiResult result = searcher.search(gameHandler.gameWrapper.getGame().getPos(i).clonePosition().toBackend(gameHandler.gameWrapper.getGame().getGameStateAtPos(i), gameHandler.gameWrapper.getGame().isWhiteTurn(i)), ChessConstants.DefaultWaitTime / 2, ChessConstants.NMOVES);
                     Platform.runLater(() -> {
                         cachedResults.put(i, result);
                         currentlySearching.remove(i);
@@ -102,7 +102,7 @@ public class ChessCentralControl {
 
     public void getCentralEvaluation() {
         if (isInValidGameMove()) {
-            int currentIndex = gameHandler.currentGame.curMoveIndex;
+            int currentIndex = gameHandler.gameWrapper.getGame().getCurMoveIndex();
             if (cachedResults.containsKey(currentIndex) && (currentIndex < 0 || cachedResults.containsKey(currentIndex - 1))) {
                 setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ? null : cachedResults.get(currentIndex - 1));
             } else {
@@ -120,7 +120,7 @@ public class ChessCentralControl {
     private void setStateBasedOnResults(MultiResult currentResults, MultiResult previousResults) {
         SearchResult primeResult = currentResults.results()[0];
 
-        boolean isWhiteTurn = gameHandler.currentGame.isWhiteTurn(); // for relative evaluation
+        boolean isWhiteTurn = gameHandler.gameWrapper.getGame().isWhiteTurn(); // for relative evaluation
         if (mainScreenController.isEvalAllowed(mainScreenController.currentState)) {
             mainScreenController.setEvalBar((primeResult.evaluation() / (double) 100) * (isWhiteTurn ? 1 : -1), primeResult.depth(), false);
             // eval over time todo
@@ -129,10 +129,10 @@ public class ChessCentralControl {
         if (mainScreenController.currentState.equals(MainScreenState.VIEWER)) {
             // todo
             chessActionHandler.addBestMovesToViewer(currentResults);
-            if (gameHandler.currentGame.curMoveIndex >= 0) {
-                CachedPv pv = previousResults.moveValues().get(gameHandler.currentGame.currentPosition.getMoveThatCreatedThis());
+            if (gameHandler.gameWrapper.getGame().getCurMoveIndex() >= 0) {
+                CachedPv pv = previousResults.moveValues().get(gameHandler.gameWrapper.getGame().getCurrentPosition().getMoveThatCreatedThis());
                 MoveRanking ranking = MoveRanking.getMoveRanking(previousResults.results()[0].evaluation(), pv.evaluation(), previousResults.results()[0].pV(), pv.pV());
-                chessBoardGUIHandler.addMoveRanking(gameHandler.currentGame.currentPosition.getMoveThatCreatedThis(), ranking, gameHandler.currentGame.isWhiteOriented());
+                chessBoardGUIHandler.addMoveRanking(gameHandler.gameWrapper.getGame().getCurrentPosition().getMoveThatCreatedThis(), ranking, gameHandler.gameWrapper.getGame().isWhiteOriented());
             }
         }
 
@@ -150,7 +150,7 @@ public class ChessCentralControl {
     }
 
     public boolean isInValidGameMove(){
-        return !App.isStartScreen && !mainScreenController.currentState.equals(MainScreenState.SIMULATION) && gameHandler.currentGame != null && !gameHandler.currentGame.gameState.isGameOver();
+        return !App.isStartScreen && !mainScreenController.currentState.equals(MainScreenState.SIMULATION) && gameHandler.currentlyGameActive() && !gameHandler.gameWrapper.getGame().getGameState().isGameOver();
     }
 
 
