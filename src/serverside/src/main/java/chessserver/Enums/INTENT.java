@@ -30,8 +30,6 @@ public enum INTENT {
     GETPOOLERS(false),
     /** does not require a response action**/
     CLOSESESS(false),
-    /** does not require a response action**/
-    GAMEFINISHED(false),
     /** requires a response action**/
     GetCurrentUUID(true),
     /** does not require a response action**/

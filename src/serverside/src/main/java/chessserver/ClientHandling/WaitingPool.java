@@ -40,9 +40,8 @@ public class WaitingPool {
             waitingClients.get(wantedGametype).add(newClient);
             return false;
         } else {
-            new ServerChessGame(newClient, bestMatch, true, wantedGametype.getLength());
+            new ServerChessGame(newClient, bestMatch, true, wantedGametype);
             waitingClients.get(wantedGametype).remove(bestMatch);
-            waitingClients.get(wantedGametype).remove(newClient);
             return true;
         }
 
@@ -60,5 +59,11 @@ public class WaitingPool {
             }
         }
         return null;
+    }
+
+    public void tryRemoveClient(BackendClient c) {
+        for(Set<BackendClient> clients : waitingClients.values()){
+            clients.remove(c);
+        }
     }
 }

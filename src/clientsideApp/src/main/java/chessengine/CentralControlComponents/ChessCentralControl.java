@@ -154,4 +154,12 @@ public class ChessCentralControl {
     }
 
 
+    public void tryPreloadCentralEvaluations() {
+        if(gameHandler.currentlyGameActive()){
+            for(int i = 0;i<gameHandler.gameWrapper.getGame().getMaxIndex();i++){
+                addSearchRequest(i);
+            }
+
+        }
+    }
 }

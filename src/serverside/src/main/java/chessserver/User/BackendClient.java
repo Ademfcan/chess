@@ -27,7 +27,7 @@ public class BackendClient extends Client {
     }
 
     public void endGame(boolean isClientWinner, boolean isDraw, boolean isEarlyClose) {
-        currentGame.closeGame(this, isClientWinner, isDraw, isEarlyClose);
+        currentGame.handleGameEnd(this, isClientWinner, isDraw, isEarlyClose);
     }
 
     public Session getClientSession() {

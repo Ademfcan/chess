@@ -54,7 +54,7 @@ public class EloEstimator {
                     logger.error("Null move encountered, redoing turn");
                     continue;
                 }
-                testGame.makeNewMove(move, true, false);
+                testGame.makeNewMove(move, true);
                 isPlayer1Turn = !isPlayer1Turn;
             }
 
@@ -103,7 +103,7 @@ public class EloEstimator {
             if (moveUci != null) {
                 ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.getCurrentPosition().board);
                 Platform.runLater(() -> {
-                    game.makeNewMove(move, true, false);
+                    game.makeNewMove(move, true);
                 });
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {

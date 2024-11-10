@@ -205,11 +205,11 @@ public class App extends Application {
 
     }
 
-    public static void changeToMainScreenWithGame(ChessGame loadedGame, MainScreenState state,boolean isWebGame, boolean isFirstLoad) {
+    public static void changeToMainScreenWithGame(ChessGame loadedGame, MainScreenState state, boolean isFirstLoad) {
         isStartScreen = false;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
-        mainScreenController.setupWithGame(loadedGame, state,isWebGame, isFirstLoad);
+        mainScreenController.setupWithGame(loadedGame, state, isFirstLoad);
 
 
     }
@@ -546,9 +546,9 @@ public class App extends Application {
 
     public static void createOnlineGameRequest(String gameType,ChessGame onlinePreinit) {
         webclient.setLinkedGame(onlinePreinit);
-        webclient.sendRequest(INTENT.CREATEGAME,gameType,(out) ->{
+        sendRequest(INTENT.CREATEGAME,gameType,(out) ->{
             System.out.println("todo");
-        });
+        },true);
     }
 
     @Override

@@ -447,6 +447,9 @@ public class ChessActionHandler {
             case VIEWER -> {
 //                myControl.asyncController.evalTask.evalRequest();
 //                updateViewerSuggestions();
+                if(isInit){
+                    myControl.tryPreloadCentralEvaluations();
+                }
             }
             case LOCAL -> {
                 // could be a new move pgn, or not
@@ -1083,6 +1086,21 @@ public class ChessActionHandler {
         myControl.asyncController.computerTask.currentGameState = myControl.gameHandler.gameWrapper.getGame().getGameState();
         myControl.asyncController.computerTask.currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurn();
     }
+
+    public void timeTick(int timeLeft) {
+        if(myControl.gameHandler.currentlyGameActive()){
+            boolean currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurn();
+            boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
+
+            Label moveClockToUpdate = currentIsWhite == isWhiteOriented ? p1moveClk : p2moveClk;
+            moveClockToUpdate.setText(ChessConstants.formatSeconds(timeLeft));
+            System.out.println("Time tick inside-----");
+        }
+        else{
+            logger.error("Time tick while no game active!");
+        }
+    }
+
 //    private void updateNMovesTask() {
 //        this.currentEval = ComputerHelperFunctions.getFullEval(myControl.gameHandler.currentGame.getCurrentPosition(),myControl.gameHandler.currentGame.getGameState(),myControl.gameHandler.currentGame.isWhiteTurn(),false);
 //        myControl.asyncController.nMovesTask.getCurrentPosition() = myControl.gameHandler.currentGame.getCurrentPosition();

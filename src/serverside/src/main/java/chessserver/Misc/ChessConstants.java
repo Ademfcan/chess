@@ -68,7 +68,15 @@ public class ChessConstants {
     public static int ComputerEloEstimate = 2400;
     public static int DefaultWaitTime = 1000; // ms;
 
-
+    public static String formatSeconds(int timeSeconds){
+        int minutes = timeSeconds / 60;
+        int seconds = timeSeconds % 60;
+        String secondsStr = Integer.toString(seconds);
+        if(seconds < 10){
+            secondsStr = "0" + secondsStr;
+        }
+        return String.format("%d:%s",minutes,secondsStr);
+    }
 
 
 

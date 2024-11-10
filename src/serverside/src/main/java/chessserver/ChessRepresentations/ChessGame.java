@@ -251,6 +251,32 @@ public class ChessGame {
     }
 
     /**
+     * This method is pretty much exclusively called from tests. All vars with user information/Graphical Features are not expected to be used
+     **/
+    public static ChessGame createServerFollowerGame() {
+        ChessGame game = new ChessGame();
+        game.gameState = new ChessGameState();
+        game.moves = new ArrayList<>();
+        game.isVsComputer = false;
+        game.isWhiteOriented = true;
+        game.curMoveIndex = -1;
+        game.maxIndex = -1;
+        game.currentPosition = game.getPos(game.getCurMoveIndex());
+        game.gameName = "Server follower game";
+        game.isWhiteTurn = game.firstTurnDefault;
+        game.whitePlayerName = "P1";
+        game.blackPlayerName = "P2";
+        game.whiteElo = 0;
+        game.blackElo = 0;
+        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
+        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
+        game.gameHash = String.valueOf(game.hashCode());
+        game.setGameStateToAbsIndex(game.getCurMoveIndex());
+
+        return game;
+    }
+
+    /**
      * This method is pretty much exclusively called for explorer
      */
 
@@ -517,15 +543,15 @@ public class ChessGame {
     }
 
     // only used for web move
-    public void makePgnMove(String pgn, boolean isWebMove) {
+    public void makePgnMove(String pgn) {
         moveToEndOfGame();
         ChessMove move = pgnToMove(pgn, getPos(curMoveIndex), isWhiteTurn);
         ChessPosition newPos = new ChessPosition(getPos(curMoveIndex), gameState, move);
-        MakeMove(newPos, move, isWebMove, false);
+        MakeMove(newPos, move);
     }
 
     // one called for all local moves
-    public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove) {
+    public void makeNewMove(ChessMove move, boolean isComputerMove) {
         System.out.println(move.toString());
         if (!isComputerMove) {
             // clear any entries, you are branching off
@@ -540,22 +566,23 @@ public class ChessGame {
 
         }
         ChessPosition newPos = new ChessPosition(currentPosition, gameState, move);
-        MakeMove(newPos, move, false, isDragMove);
+        MakeMove(newPos, move);
 
 
     }
 
     // only for sandbox
     public void makeCustomMoveSandbox(ChessPosition newPos) {
-        MakeMove(newPos, newPos.getMoveThatCreatedThis(), false, true);
+        MakeMove(newPos, newPos.getMoveThatCreatedThis());
     }
 
-    public void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
+    public void MakeMove(ChessPosition newPosition, ChessMove move) {
         GeneralChessFunctions.printBoardDetailed(newPosition.board);
         isWhiteTurn = !isWhiteTurn;
         maxIndex++;
         curMoveIndex++;
         moves.add(newPosition);
+        gameState.makeNewMoveAndCheckDraw(newPosition);
         if (AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(), newPosition, gameState)) {
             if (AdvancedChessFunctions.isCheckmated(!move.isWhite(), newPosition, gameState)) {
                 gameState.setCheckMated(move.isWhite(), ChessConstants.EMPTYINDEX);
@@ -868,7 +895,8 @@ public class ChessGame {
         blackElo = isClientWhite ? onlineElo : tempClientElo;
         blackPlayerPfpUrl = isClientWhite ? onlinePfpUrl : tempClientPfpUrl;
 
-        this.isWhiteTurn = isClientWhite;
+        this.isWhiteTurn = true;
+        this.isWhiteOriented = isClientWhite;
 
     }
 }

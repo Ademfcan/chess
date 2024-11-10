@@ -70,6 +70,7 @@ public class WebSocketClient {
             }
             switch (out.getServerResponseType()) {
                 case SERVERRESPONSEACTIONREQUEST -> {
+                    System.out.println(out.toString());
                     logger.error("------------Critical-ERROR--------------\nThe server has reponded with an action request, and no action is provided!");
 
                 }
@@ -84,6 +85,17 @@ public class WebSocketClient {
                     Platform.runLater(() ->{
                         App.ChessCentralControl.chessActionHandler.appendNewMessageToChat(out.getExtraInformation());
                     });
+                }
+                case GAMEFINISHED -> {
+                    Platform.runLater(() ->{
+                        App.ChessCentralControl.mainScreenController.showGameOver(out.getExtraInformation());
+                    });
+                }
+                case TIMETICK -> {
+                    Platform.runLater(() -> {
+                        App.ChessCentralControl.chessActionHandler.timeTick(Integer.parseInt(out.getExtraInformation()));
+                    });
+                    System.out.println(out.getExtraInformation());
                 }
                 case ENTEREDGAME -> {
                     String[] info = out.getExtraInformation().split(",");

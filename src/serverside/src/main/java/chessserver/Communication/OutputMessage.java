@@ -4,6 +4,16 @@ import chessserver.Enums.ServerResponseType;
 
 public class OutputMessage {
     ServerResponseType serverResponseType;
+
+    @Override
+    public String toString() {
+        return "OutputMessage{" +
+                "serverResponseType=" + serverResponseType +
+                ", extraInformation='" + extraInformation + '\'' +
+                ", uniqueId=" + uniqueId +
+                '}';
+    }
+
     String extraInformation;
     int uniqueId;
 

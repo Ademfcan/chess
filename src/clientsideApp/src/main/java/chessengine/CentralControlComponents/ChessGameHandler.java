@@ -3,6 +3,7 @@ package chessengine.CentralControlComponents;
 import chessengine.ChessRepresentations.ClientsideChessGameWrapper;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.Enums.CampaignTier;
+import chessserver.Enums.Gametype;
 
 import java.util.Objects;
 
@@ -61,20 +62,24 @@ public class ChessGameHandler {
     }
 
 
-    public void switchToNewGame(ChessGame newGame,boolean isWebGame) {
-        setUpGameGui(newGame,isWebGame, true);
+    public void switchToNewGame(ChessGame newGame) {
+        setUpGameGui(newGame,false,null, true);
 
     }
 
-    public void switchToGame(ChessGame newGame,boolean isWebGame, boolean isFirstLoad) {
-        setUpGameGui(newGame,isWebGame, isFirstLoad);
+    public void switchToGame(ChessGame newGame, boolean isFirstLoad) {
+        setUpGameGui(newGame,false,null, isFirstLoad);
+
+    }
+    public void switchToOnlineGame(ChessGame newGame, Gametype gametype, boolean isFirstLoad) {
+        setUpGameGui(newGame,true,gametype, isFirstLoad);
 
     }
 
 
-    private void setUpGameGui(ChessGame newSetup,boolean isWebGame, boolean isFirstSave) {
+    private void setUpGameGui(ChessGame newSetup, boolean isWebGame, Gametype gametype, boolean isFirstSave) {
         isCurrentGameFirstSetup = isFirstSave;
-        gameWrapper.loadInNewGame(newSetup,isWebGame);
+        gameWrapper.loadInNewGame(newSetup,isWebGame,gametype);
 
 
 

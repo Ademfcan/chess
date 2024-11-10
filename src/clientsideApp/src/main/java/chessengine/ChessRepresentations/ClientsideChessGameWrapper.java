@@ -7,6 +7,7 @@ import chessengine.Enums.MainScreenState;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.ChessRepresentations.ChessMove;
 import chessserver.ChessRepresentations.ChessPosition;
+import chessserver.Enums.Gametype;
 import chessserver.Enums.INTENT;
 import chessserver.Enums.ProfilePicture;
 import chessserver.Functions.AdvancedChessFunctions;
@@ -28,6 +29,20 @@ public class ClientsideChessGameWrapper {
      **/
 
     private boolean isWebGame;
+
+    public boolean isWebGame() {
+        return isWebGame;
+    }
+
+    public Gametype getWebGameType() {
+        return webGameType;
+    }
+
+    public boolean isWebGameInitialized() {
+        return isWebGameInitialized;
+    }
+
+    private Gametype webGameType;
     private boolean isWebGameInitialized;
 
     public boolean isCurrentlyWebGame() {
@@ -53,8 +68,10 @@ public class ClientsideChessGameWrapper {
         if (isMainGame) {
             Platform.runLater(() -> {
                 // now do a full init
+                loadGameGraphics();
                 centralControl.mainScreenController.setPlayerLabels(game.getWhitePlayerName(),game.getWhiteElo(), game.getBlackPlayerName(), game.getBlackElo(), game.isWhiteOriented());
                 centralControl.mainScreenController.setPlayerIcons(game.getWhitePlayerPfpUrl(), game.getBlackPlayerPfpUrl(), game.isWhiteOriented());
+
             });
         }
 
@@ -65,8 +82,14 @@ public class ClientsideChessGameWrapper {
         this.centralControl = centralControl;
     }
 
-    public void loadInNewGame(ChessGame gameToWrap,boolean isWebGame){
+    public void loadInNewGame(ChessGame gameToWrap,boolean isWebGame,Gametype gametype){
         this.game = gameToWrap;
+        this.isWebGame = isWebGame;
+        this.webGameType = gametype;
+        loadGameGraphics();
+    }
+
+    private void loadGameGraphics(){
         moveToMoveIndexAbsolute(-1, false, false);
         centralControl.chessBoardGUIHandler.reloadNewBoard(game.getPos(game.getCurMoveIndex()), game.isWhiteOriented());
         centralControl.mainScreenController.setMoveLabels(game.getCurMoveIndex(), game.getMaxIndex());
@@ -330,7 +353,7 @@ public class ClientsideChessGameWrapper {
 
     private void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
         ChessPosition currentPosition = game.getCurrentPosition();
-        game.MakeMove(newPosition,move,isWebMove,isDragMove);
+        game.MakeMove(newPosition,move);
         if (!isMainGame || !centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)) {
             if (game.getGameState().isStaleMated()) {
                 if (isMainGame) {
@@ -401,7 +424,7 @@ public class ClientsideChessGameWrapper {
         }
         if (isWebGame && !isWebMove) {
             // todo with other things: add time
-            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, game.getGameState()) + ",10", null, true);
+            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, game.getGameState()), null, true);
 
         }
     }
@@ -414,6 +437,7 @@ public class ClientsideChessGameWrapper {
     public void clearGame() {
         centralControl.chessBoardGUIHandler.resetEverything(true);
         game = null;
+        webGameType = null;
         isWebGame = false;
         isWebGameInitialized = false;
     }

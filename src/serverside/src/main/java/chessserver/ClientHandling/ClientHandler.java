@@ -484,9 +484,9 @@ public class ClientHandler {
             } else {
                 switch (input.getIntent()) {
                     case MAKEMOVE -> {
-                        String[] info = input.getExtraInformation().split(",");
+                        String pgn = input.getExtraInformation();
                         if (c.isInGame()) {
-                            c.getCurrentGame().makeMove(info[0], Integer.parseInt(info[1]), c);
+                            c.getCurrentGame().makeMove(pgn, c);
                         } else {
                             sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "not currently in game, cannot make a move", input.getUniqueId());
                         }
@@ -507,7 +507,9 @@ public class ClientHandler {
                             sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(pool.getWaitingClientsOfTypeCount(c, wantedType, 1000)), input.getUniqueId());
 
                         }
-                        sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(-1), input.getUniqueId());
+                        else{
+                            sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(-1), input.getUniqueId());
+                        }
 
                     }
                     case LEAVEGAME -> {
@@ -523,16 +525,6 @@ public class ClientHandler {
                     }
                     case PULLTOTALPLAYERCOUNT ->
                             sendMessage(c.getClientSession(), ServerResponseType.SERVERRESPONSEACTIONREQUEST, Integer.toString(pool.getPoolCount()), input.getUniqueId());
-                    case GAMEFINISHED -> {
-                        if (c.isInGame()) {
-                            String[] split = input.getExtraInformation().split(",");
-                            boolean isClientWinner = Boolean.parseBoolean(split[0]);
-                            boolean isDraw = Boolean.parseBoolean(split[1]);
-                            c.endGame(isClientWinner, isDraw, false);
-                        } else {
-                            sendMessage(c.getClientSession(), ServerResponseType.INVALIDOPERATION, "cannot send checkmate as not currently in a game", input.getUniqueId());
-                        }
-                    }
                 }
 
 
@@ -573,9 +565,10 @@ public class ClientHandler {
         BackendClient c = clientHashMap.getOrDefault(session, null);
         if (Objects.nonNull(c)) {
             if (c.isInGame()) {
-                c.getCurrentGame().closeGame(c, false, false, true);
+                c.getCurrentGame().handleGameEnd(c, false, false, true);
             }
             UUIDSessionMap.remove(c.getInfo().getUuid());
+            pool.tryRemoveClient(c);
         }
         clientHashMap.remove(session);
 

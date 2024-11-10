@@ -367,26 +367,54 @@ public class GeneralChessFunctions {
         int bqC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]);
         int wrC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.ROOKINDEX]);
         int brC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.ROOKINDEX]);
+        if(wqC + bqC + wrC + brC > 0){
+            // any of these pieces on the board means no draw
+            return false;
+        }
+        int wbC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.BISHOPINDEX]);
+        int bbC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.BISHOPINDEX]);
+        int wnC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.KNIGHTINDEX]);
+        int bnC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.KNIGHTINDEX]);
+        if(wbC == 2 || bbC == 2){
+            return false;
+        }
+        if(wbC + wnC > 2 || bbC + bnC > 2){
+            return false; // one side has a bishop + knight
+        }
+        // Two knights can't force a checkmate unless the opponent has material
+        return (wnC != 2 || bbC + bnC == 0) && (bnC != 2 || wbC + wnC == 0);
+    }
+
+    /** returns boolean[] first value is if insufficient material and second is who has insufficient material**/
+    public static boolean[] isTimedInsufiicientMaterial(BitBoardWrapper board) {
+        if (getPieceCount(board.getWhitePiecesBB()[ChessConstants.PAWNINDEX]) > 0 || getPieceCount(board.getBlackPiecesBB()[ChessConstants.PAWNINDEX]) > 0) {
+            return new boolean[]{false,false}; // only can be true if all pawns are off the board
+        }
+        int wqC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.QUEENINDEX]);
+        int bqC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.QUEENINDEX]);
+        int wrC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.ROOKINDEX]);
+        int brC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.ROOKINDEX]);
         int wbC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.BISHOPINDEX]);
         int bbC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.BISHOPINDEX]);
         int wnC = getPieceCount(board.getWhitePiecesBB()[ChessConstants.KNIGHTINDEX]);
         int bnC = getPieceCount(board.getBlackPiecesBB()[ChessConstants.KNIGHTINDEX]);
         if(wqC + bqC + wrC + brC > 0){
             // any of these pieces on the board means no draw
-            return false;
+            return new boolean[]{false,false};
         }
-        if(wbC + wnC > 1 || bbC + bnC > 1){
-            return false; // one side has a bishop + knight
+        if(wbC + bbC == 4 || wbC + wnC + bbC + bnC == 6){
+            return new boolean[]{false,false};
         }
-        if(wbC == 2 || bbC == 2){
-            return false;
+
+        if(wbC + wnC < 3){
+            return new boolean[]{true,true};
         }
-        // Two knights can't force a checkmate unless the opponent has material
-        if(wnC == 2 && bbC + bnC > 0 || bnC == 2 && bbC + bnC > 0){
-            return false;
+        else{
+            return new boolean[]{true,false};
+
         }
-        return true;
     }
+
 
 
 }

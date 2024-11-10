@@ -1,37 +1,105 @@
 package chessserver;
 
+import chessserver.ChessRepresentations.ChessGame;
 import chessserver.ClientHandling.ClientHandler;
+import chessserver.ClientHandling.GameHandler;
+import chessserver.Enums.Gametype;
 import chessserver.Enums.ServerResponseType;
+import chessserver.Functions.GeneralChessFunctions;
 import chessserver.User.BackendClient;
 
+import java.util.concurrent.ScheduledFuture;
+
 public class ServerChessGame {
+    Gametype gametype;
     BackendClient client1;
     BackendClient client2;
+    ChessGame game;
     boolean isClient1Turn;
-    int gameLength;
+    int client1TimeLeft;
+    int client2TimeLeft;
+    ScheduledFuture<?> timeTickFuture;
 
-    public ServerChessGame(BackendClient client1, BackendClient client2, boolean isClient1Turn, int gameLength) {
+    public ServerChessGame(BackendClient client1, BackendClient client2, boolean isClient1Turn, Gametype gametype) {
+        this.gametype = gametype;
         this.client1 = client1;
         this.client2 = client2;
         this.isClient1Turn = isClient1Turn;
-        this.gameLength = gameLength;
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() + "," + client1.getInfo().getProfilePictureUrl() + "," + isClient1Turn,Integer.MAX_VALUE);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() + "," + client2.getInfo().getProfilePictureUrl() + "," + !isClient1Turn,Integer.MAX_VALUE);
+        this.client1TimeLeft = (int) gametype.getTimeUnit().toSeconds(gametype.getLength());
+        this.client2TimeLeft = (int) gametype.getTimeUnit().toSeconds(gametype.getLength());
+        game = ChessGame.createServerFollowerGame();
+        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() + "," + client2.getInfo().getProfilePictureUrl() + "," + isClient1Turn,Integer.MAX_VALUE);
+        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() + "," + client1.getInfo().getProfilePictureUrl() + "," + !isClient1Turn,Integer.MAX_VALUE);
+        timeTickFuture = GameHandler.sceduleNewTimeTick(this::oneSecondtimeTick);
         client1.setCurrentGame(this);
         client2.setCurrentGame(this);
 
     }
 
-    public void makeMove(String pgn, int timeElapsed, BackendClient player) {
+    private void oneSecondtimeTick(){
+        if(isClient1Turn){
+            client1TimeLeft--;
+            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
+            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
+            if(client1TimeLeft <= 0){
+                handleTimeRunout();
+            }
+        }
+        else{
+            client2TimeLeft--;
+            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
+            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
+            if(client2TimeLeft <= 0){
+                handleTimeRunout();
+            }
+        }
+    }
 
+    private void handleTimeRunout() {
+        boolean isClient1Win = !isClient1Turn;
+        boolean isDraw = false;
+        boolean[] otherSideInsufficientMaterial = GeneralChessFunctions.isTimedInsufiicientMaterial(game.getCurrentPosition().board);
+
+        if(otherSideInsufficientMaterial[0]){
+            // client won on time, but had insufficient material to checkmate. Thus this results in a draw
+            if(isClient1Win == otherSideInsufficientMaterial[1]){
+                isDraw = true;
+            }
+        }
+        handleGameEnd(client1,isClient1Win,isDraw,false);
+    }
+
+    private void stopTimeTick(){
+        if(timeTickFuture != null) {
+            timeTickFuture.cancel(true);
+            timeTickFuture = null;
+        }
+    }
+    private void resetTimeTick(){
+        if(timeTickFuture != null) {
+            timeTickFuture.cancel(true);
+        }
+        timeTickFuture = GameHandler.sceduleNewTimeTick(this::oneSecondtimeTick);
+
+
+    }
+
+    public void makeMove(String pgn, BackendClient player) {
+        stopTimeTick();
+        game.makePgnMove(pgn);
         BackendClient turn = isClient1Turn ? client1 : client2;
         if (turn.equals(player)) {
             BackendClient send = isClient1Turn ? client2 : client1;
             isClient1Turn = !isClient1Turn;
-            gameLength -= timeElapsed;
             ClientHandler.sendMessage(send.getClientSession(), ServerResponseType.GAMEMOVEFROMOPPONENT, pgn,Integer.MAX_VALUE);
         } else {
             ClientHandler.sendMessage(player.getClientSession(), ServerResponseType.INVALIDOPERATION, "not your turn!",Integer.MAX_VALUE);
+        }
+        if(game.getGameState().isGameOver()){
+            handleGameEnd(client1,game.getGameState().isCheckMated()[1],game.getGameState().isStaleMated(),false);
+        }
+        else {
+            resetTimeTick();
         }
 
 
@@ -42,7 +110,7 @@ public class ServerChessGame {
         ClientHandler.sendMessage(receiever.getClientSession(), ServerResponseType.CHATFROMOPPONENT, message,Integer.MAX_VALUE);
     }
 
-    public void closeGame(BackendClient player, boolean isClient1Winner, boolean isDraw, boolean isEarlyExit) {
+    public void handleGameEnd(BackendClient player, boolean isClient1Winner, boolean isDraw, boolean isEarlyExit) {
         boolean isClient1Request = player.equals(client1);
         int[] finalElos;
         if (isEarlyExit) {
@@ -55,11 +123,17 @@ public class ServerChessGame {
         String requester = isClient1Request ? client1.getInfo().getUserName() : client2.getInfo().getUserName();
         String opponent = isClient1Request ? client2.getInfo().getUserName() : client1.getInfo().getUserName();
         String winner = isEarlyExit ? (opponent) : (isClient1Winner ? client1.getInfo().getUserName() : client2.getInfo().getUserName());
-        String extraInfo = isEarlyExit ? requester + " closed the game early" : winner + " won the game";
 
-        // update clients about game closing
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo,Integer.MAX_VALUE);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMECLOSED, extraInfo,Integer.MAX_VALUE);
+        if(isEarlyExit){
+            // update clients about game closing
+            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMECLOSED, requester + " closed the game early",Integer.MAX_VALUE);
+            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMECLOSED, requester + " closed the game early",Integer.MAX_VALUE);
+        }
+        else {
+            String extraInfo = isDraw ? "Tie game" :  winner + " won the game";
+            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMEFINISHED, extraInfo,Integer.MAX_VALUE);
+            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMEFINISHED, extraInfo,Integer.MAX_VALUE);
+        }
 
         // update clients about how much elo they won/lost
         ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[0]),Integer.MAX_VALUE);
@@ -101,6 +175,4 @@ public class ServerChessGame {
         return 1 / (1 + Math.pow(10, (currentPlayerElo - opponentElo) / 400.0d));
     }
 
-    public void timeTick() {
-    }
 }

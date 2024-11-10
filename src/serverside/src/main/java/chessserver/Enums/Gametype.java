@@ -1,19 +1,21 @@
 package chessserver.Enums;
 
+import java.util.concurrent.TimeUnit;
+
 public enum Gametype {
-    REGULAR10(10, Gamemode.REGULAR, "reg10") {
+    REGULAR10(10, TimeUnit.MINUTES, Gamemode.REGULAR, "reg10") {
         @Override
         String stringValue() {
             return this.getStrVersion();
         }
     },
-    REGULAR30(30, Gamemode.REGULAR, "reg30") {
+    REGULAR30(30, TimeUnit.MINUTES, Gamemode.REGULAR, "reg30") {
         @Override
         String stringValue() {
             return this.getStrVersion();
         }
     },
-    REGULARUNLIMITED(10000, Gamemode.REGULAR, "regUn") {
+    REGULARUNLIMITED(10000, TimeUnit.MINUTES, Gamemode.REGULAR, "regUn") {
         @Override
         String stringValue() {
             return this.getStrVersion();
@@ -23,9 +25,11 @@ public enum Gametype {
     private final int length; // in minutes
     private final Gamemode mode;
     private final String strVersion;
+    private final TimeUnit timeUnit;
 
-    Gametype(int length, Gamemode mode, String strVersion) {
+    Gametype(int length, TimeUnit timeUnit, Gamemode mode, String strVersion) {
         this.length = length;
+        this.timeUnit = timeUnit;
         this.mode = mode;
         this.strVersion = strVersion;
     }
@@ -48,6 +52,10 @@ public enum Gametype {
 
     public Gamemode getMode() {
         return mode;
+    }
+
+    public TimeUnit getTimeUnit() {
+        return timeUnit;
     }
 
     public String getStrVersion() {

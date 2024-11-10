@@ -24,7 +24,7 @@ dependencies {
 
     // This dependency is used by the application.
 
-
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21'
 
     implementation 'com.zaxxer:HikariCP:5.0.1' // Or the latest version

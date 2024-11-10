@@ -7,14 +7,11 @@ import chessengine.Misc.Constants;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Enums.MainScreenState;
+import chessserver.Enums.*;
 import chessserver.Functions.AdvancedChessFunctions;
 import chessserver.Functions.GeneralChessFunctions;
 import chessengine.Managers.UserPreferenceManager;
 import chessserver.Misc.ChessConstants;
-import chessserver.Enums.CampaignTier;
-import chessserver.Enums.ComputerDifficulty;
-import chessserver.Enums.INTENT;
-import chessserver.Enums.ProfilePicture;
 import chessserver.User.UserPreferences;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
@@ -38,6 +35,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.joda.time.Minutes;
 
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -669,19 +667,19 @@ public class MainScreenController implements Initializable {
         player2TurnIndicator.prefHeightProperty().bind(player1Select.fitHeightProperty().multiply(.8));
         player1TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
         player2TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
-        player1MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                updateTextVisibility(player1MoveClock, true);
-            }
-        });
-
-        player2MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                updateTextVisibility(player2MoveClock, false);
-            }
-        });
+//        player1MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
+//            @Override
+//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//                updateTextVisibility(player1MoveClock, true);
+//            }
+//        });
+//
+//        player2MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
+//            @Override
+//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//                updateTextVisibility(player2MoveClock, false);
+//            }
+//        });
 
 //        sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()));
 //        initLabelBindings(bgLabel);
@@ -772,7 +770,9 @@ public class MainScreenController implements Initializable {
 
         setMoveLabels(ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex(), ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex());
         ChessCentralControl.chessActionHandler.highlightMovesPlayedLine(ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
-
+        if(currentState == MainScreenState.ONLINE){
+            setTimeLabels(ChessCentralControl.gameHandler.gameWrapper.getWebGameType());
+        }
     }
 
     public void setupCampaign(String player1Name, int player1Elo, String player1PfpUrl, CampaignTier levelTier, int levelOfTier, int campaignDifficuly) {
@@ -784,7 +784,7 @@ public class MainScreenController implements Initializable {
         // set computer difficulty to closest based on elo
         ChessCentralControl.asyncController.setComputerDifficulty(ComputerDifficulty.getDifficultyOffOfElo(campaignOpponentElo, false));
 
-        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal() + 1) + "L: " + levelOfTier, player1Name, campaignOpponentName, player1Elo, campaignOpponentElo, player1PfpUrl, pfpUrl2, true, true),false);
+        ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName("Campaign T:" + (levelTier.ordinal() + 1) + "L: " + levelOfTier, player1Name, campaignOpponentName, player1Elo, campaignOpponentElo, player1PfpUrl, pfpUrl2, true, true));
         ChessCentralControl.gameHandler.setGameDifficulty(campaignDifficuly);
         ChessCentralControl.gameHandler.setCampaignTier(levelTier);
         ChessCentralControl.gameHandler.setLevelOfCampaignTier(levelOfTier);
@@ -822,9 +822,9 @@ public class MainScreenController implements Initializable {
 
 
         if (gameName.isEmpty()) {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White),false);
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
         } else {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White),false);
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
         }
         String extraInfo = "";
         if (currentState.equals(MainScreenState.LOCAL)) {
@@ -833,9 +833,9 @@ public class MainScreenController implements Initializable {
         setUp(extraInfo);
     }
 
-    public void setupWithGame(ChessGame gameToSetup, MainScreenState currentState,boolean isWebGame, boolean isFirstLoad) {
+    public void setupWithGame(ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
         this.currentState = currentState;
-        ChessCentralControl.gameHandler.switchToGame(gameToSetup,isWebGame, isFirstLoad);
+        ChessCentralControl.gameHandler.switchToGame(gameToSetup, isFirstLoad);
         String extraStuff = "";
         switch (currentState) {
             case VIEWER -> extraStuff = gameToSetup.getGameName();
@@ -848,7 +848,7 @@ public class MainScreenController implements Initializable {
     public void preinitOnlineGame(String gameType,ChessGame onlinePreinit) {
         this.currentState = MainScreenState.ONLINE;
         // put loading icon
-        ChessCentralControl.gameHandler.switchToGame(onlinePreinit,true, true);
+        ChessCentralControl.gameHandler.switchToOnlineGame(onlinePreinit, Gametype.getType(gameType), true);
         setUp(onlinePreinit.getGameName());
 
         App.createOnlineGameRequest(gameType,onlinePreinit);
@@ -1110,6 +1110,12 @@ public class MainScreenController implements Initializable {
     public void setMoveLabels(int curIndex, int maxIndex) {
         saveIndicator.setText((curIndex + 1) + "/" + (maxIndex + 1));
     }
+    public void setTimeLabels(Gametype gametype) {
+        player1MoveClock.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
+        player2MoveClock.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
+    }
+
+
 
     public void setSimScore(int numComputerWins, int numStockFishWins, int numDraws,int estimatedElo) {
         simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d Estimated elo: %d", numComputerWins, numStockFishWins, numDraws,estimatedElo));

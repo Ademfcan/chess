@@ -965,7 +965,7 @@ public class StartScreenController implements Initializable {
             } else {
                 try {
                     ChessGame game = ChessGame.gameFromPgnLimitedInfo(pgnTextArea.getText(), "Pgn Game", App.userManager.getUserName(), App.userManager.getUserElo(), App.userManager.getUserPfpUrl(), computerRadioButton.isSelected(), playAsWhite.isSelected());
-                    App.changeToMainScreenWithGame(game, MainScreenState.LOCAL, false,true);
+                    App.changeToMainScreenWithGame(game, MainScreenState.LOCAL,true);
 
                 } catch (Exception ex) {
                     pgnTextArea.clear();
@@ -985,7 +985,7 @@ public class StartScreenController implements Initializable {
 
     private void setupExplorerOptions() {
         enterExplorerButton.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(), MainScreenState.VIEWER,false, false);
+            App.changeToMainScreenWithGame(ChessGame.createEmptyExplorer(), MainScreenState.VIEWER, false);
         });
     }
 
@@ -1150,7 +1150,7 @@ public class StartScreenController implements Initializable {
 
         Button openGame = new Button();
         openGame.setOnMouseClicked(e -> {
-            App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER,false ,false);
+            App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER ,false);
 
         });
         App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .3);

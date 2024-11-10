@@ -21,17 +21,11 @@ public class ChessEndpoint {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        if (dataSource == null) {
-            try {
-                dataSource = initDbConnection();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        dataSource = getDataSource();
     }
 
 
-    private HikariDataSource initDbConnection(){
+    private static HikariDataSource initDbConnection(){
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://localhost:3306/chessDB");
         config.setUsername("admin");
@@ -49,18 +43,35 @@ public class ChessEndpoint {
         return new HikariDataSource(config);
     }
 
+    public static HikariDataSource getDataSource(){
+        if (dataSource == null) {
+            try {
+                dataSource = initDbConnection();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return dataSource;
+    }
+
     @OnMessage
     public void onMessage(String message, Session session) {
         // Echo the message back to the client
         try {
             if(message.equals("metrics")){
-                // Access metrics
-                int totalConnections = dataSource.getHikariPoolMXBean().getTotalConnections();
-                int activeConnections = dataSource.getHikariPoolMXBean().getActiveConnections();
-                int idleConnections = dataSource.getHikariPoolMXBean().getIdleConnections();
-                ClientHandler.sendMessage(session, ServerResponseType.SQLMESSAGE,String.format("Total Connections: %d | Active Connections: %d | Idle Connections: %d ",totalConnections,activeConnections,idleConnections),Integer.MAX_VALUE);
+                try {
+                    // Access metrics
+                    getDataSource();
+                    int totalConnections = dataSource.getHikariPoolMXBean().getTotalConnections();
+                    int activeConnections = dataSource.getHikariPoolMXBean().getActiveConnections();
+                    int idleConnections = dataSource.getHikariPoolMXBean().getIdleConnections();
+                    ClientHandler.sendMessage(session, ServerResponseType.SQLMESSAGE,String.format("Total Connections: %d | Active Connections: %d | Idle Connections: %d ",totalConnections,activeConnections,idleConnections),Integer.MAX_VALUE);
+                }
+                catch (Exception e){
+                    ClientHandler.sendMessage(session,ServerResponseType.SQLERROR,e.getMessage(),Integer.MAX_VALUE);
+                }
             }
-            ClientHandler.handleMessage(message, session,dataSource);
+            ClientHandler.handleMessage(message, session,getDataSource());
 
         } catch (Exception e) {
             ClientHandler.sendMessage(session,ServerResponseType.INVALIDOPERATION,"Invalid request!",Integer.MAX_VALUE);
