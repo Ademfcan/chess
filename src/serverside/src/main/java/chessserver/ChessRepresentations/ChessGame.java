@@ -375,6 +375,10 @@ public class ChessGame {
         return isWhiteTurn;
     }
 
+    public boolean isWhiteTurnAtMax() {
+        return (maxIndex+1) % 2 == 0;
+    }
+
     public void setWhiteTurn(boolean whiteTurn) {
         isWhiteTurn = whiteTurn;
     }

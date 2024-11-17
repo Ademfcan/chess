@@ -376,10 +376,8 @@ public class ChessActionHandler {
             whiteIndicator.setBackground(Constants.whiteTurnActive);
             blackIndicator.setBackground(Constants.labelUnactive);
             if (updateTimeLabels) {
-                whiteLabel.setText("White Turn");
                 whiteLabel.styleProperty().unbind();
                 App.bindingController.bindSmallText(whiteLabel, true, "Black");
-                blackLabel.setText("");
             }
 
 
@@ -387,10 +385,8 @@ public class ChessActionHandler {
             whiteIndicator.setBackground(Constants.labelUnactive);
             blackIndicator.setBackground(Constants.blackTurnActive);
             if (updateTimeLabels) {
-                whiteLabel.setText("");
                 blackLabel.styleProperty().unbind();
                 App.bindingController.bindSmallText(blackLabel, true, "White");
-                blackLabel.setText("Black Turn");
             }
         }
 
@@ -410,7 +406,7 @@ public class ChessActionHandler {
 //        myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
         highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
         if (!currentState.equals(MainScreenState.SANDBOX)) {
-            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented(), !myControl.gameHandler.gameWrapper.isCurrentlyWebGame()); // web game will send time updates
+            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented(), true); // web game will send time updates
             if (myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > -1) {
                 lineLabel.setText(LineLabeler.getLineName(gamePgn));
             }
@@ -869,7 +865,7 @@ public class ChessActionHandler {
 
     public void handleMakingMove(int startX, int startY, int endX, int endY, boolean isEating, boolean isWhitePiece, boolean isCastle, boolean isEnPassant, boolean isComputerMove, boolean isPawnPromoFinalized, int promoIndx, MainScreenState currentState, boolean isDragMove) {
         if (isComputerMove) {
-            myControl.gameHandler.gameWrapper.moveToEndOfGame(true,App.userPreferenceManager.isNoAnimate());
+            myControl.gameHandler.gameWrapper.moveToEndOfGame(App.userPreferenceManager.isNoAnimate());
         }
         myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
         myControl.chessBoardGUIHandler.clearArrows();
@@ -1088,16 +1084,15 @@ public class ChessActionHandler {
     }
 
     public void timeTick(int timeLeft) {
-        if(myControl.gameHandler.currentlyGameActive()){
-            boolean currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurn();
+        if(myControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isCurrentlyWebGame()){
+            boolean currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurnAtMax();
             boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
 
             Label moveClockToUpdate = currentIsWhite == isWhiteOriented ? p1moveClk : p2moveClk;
             moveClockToUpdate.setText(ChessConstants.formatSeconds(timeLeft));
-            System.out.println("Time tick inside-----");
         }
         else{
-            logger.error("Time tick while no game active!");
+            logger.error("Time tick while no game active or not web game!");
         }
     }
 

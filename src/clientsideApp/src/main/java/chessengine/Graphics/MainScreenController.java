@@ -16,8 +16,6 @@ import chessserver.User.UserPreferences;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -35,7 +33,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joda.time.Minutes;
 
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -1034,7 +1031,7 @@ public class MainScreenController implements Initializable {
         logger.debug("Resetting to abs index:" + absIndex);
 
         int curMoveIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex();
-        ChessCentralControl.gameHandler.gameWrapper.moveToMoveIndexAbsolute(absIndex, false, true);
+        ChessCentralControl.gameHandler.gameWrapper.moveToMoveIndexAbsolute(absIndex, true);
 
         setMoveLabels(ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex(), ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex());
 
@@ -1054,7 +1051,7 @@ public class MainScreenController implements Initializable {
 
 
         } else {
-            ChessCentralControl.gameHandler.gameWrapper.changeToDifferentMove(direction, false, App.userPreferenceManager.isNoAnimate());
+            ChessCentralControl.gameHandler.gameWrapper.changeToDifferentMove(direction, App.userPreferenceManager.isNoAnimate());
 
 
         }

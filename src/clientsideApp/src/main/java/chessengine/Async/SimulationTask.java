@@ -202,7 +202,7 @@ public class SimulationTask extends Task<Void> {
                 control.chessActionHandler.reset();
                 control.chessBoardGUIHandler.resetEverything(isPlayer1WhitePlayer);
                 control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION ,true);
-                control.gameHandler.gameWrapper.moveToEndOfGame(false,App.userPreferenceManager.isNoAnimate());
+                control.gameHandler.gameWrapper.moveToEndOfGame(App.userPreferenceManager.isNoAnimate());
             });
             currentSimGame = simGame;
             try {

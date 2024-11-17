@@ -111,6 +111,7 @@ public class ServerChessGame {
     }
 
     public void handleGameEnd(BackendClient player, boolean isClient1Winner, boolean isDraw, boolean isEarlyExit) {
+        stopTimeTick();
         boolean isClient1Request = player.equals(client1);
         int[] finalElos;
         if (isEarlyExit) {
