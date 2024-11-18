@@ -492,7 +492,7 @@ public class MainScreenController implements Initializable {
             ChessCentralControl.asyncController.stopAll();
 
             // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
-            if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !currentState.equals(MainScreenState.VIEWER) && !currentState.equals(MainScreenState.SANDBOX) && !currentState.equals(MainScreenState.SIMULATION) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
+            if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
                 App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.oldGamesPanelContent);
                 App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.userOldGamesContent);
@@ -508,7 +508,7 @@ public class MainScreenController implements Initializable {
             boolean isNewLvl = false;
 
             // if we are in campaign mode and the game finished, depending on the outcome we will want to move the player to the next level
-            if (currentState.equals(MainScreenState.CAMPAIGN)) {
+            if (currentState == MainScreenState.CAMPAIGN) {
                 // draw will be one star regardless of difficulty
                 // other than that only a win will also have you progress
                 CampaignTier completedTier = ChessCentralControl.gameHandler.getCampaignTier();
@@ -549,12 +549,18 @@ public class MainScreenController implements Initializable {
     }
 
     public void processChatInput() {
-        App.soundPlayer.playEffect(Effect.MESSAGE);
-        ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + ChessCentralControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() + ") " + chatInput.getText());
-        if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame() && ChessCentralControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
-            App.sendRequest(INTENT.SENDCHAT, chatInput.getText(),null,true);
+        if(!chatInput.getText().isBlank()){
+            App.soundPlayer.playEffect(Effect.MESSAGE);
+            boolean isWhiteOriented = ChessCentralControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
+            ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + (isWhiteOriented ? ChessCentralControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() : ChessCentralControl.gameHandler.gameWrapper.getGame().getBlackPlayerName()) + ") " + chatInput.getText());
+            if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame() && ChessCentralControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
+                App.sendRequest(INTENT.SENDCHAT, chatInput.getText(),null,true);
+            }
+            chatInput.clear();
         }
-        chatInput.clear();
+        else{
+            logger.debug("Not sending chat, empty input");
+        }
     }
 
     // for campaign only
@@ -633,7 +639,7 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindSmallText(inGameInfo, true, "black");
         inGameInfo.prefWidthProperty().bind(campaignInfo.widthProperty());
         inGameInfo.prefHeightProperty().bind(campaignInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
-        sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(inGameInfo.widthProperty().divide(8)));
+        sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().divide(8));
         chatInput.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(sendMessageButton.widthProperty()).subtract(5));
         chatInput.prefHeightProperty().bind(sendMessageButton.heightProperty());
 
@@ -747,7 +753,7 @@ public class MainScreenController implements Initializable {
         // some modes do not want an eval bar
         checkHideEvalBar(currentState);
         checkHideMoveControls(currentState);
-        if (currentState.equals(MainScreenState.LOCAL)) {
+        if (currentState == MainScreenState.LOCAL) {
             // since in campaign mode the diffiiculty might have been changed, when back to local set it to whatever selected
             ChessCentralControl.asyncController.setComputerDifficulty(App.userPreferenceManager.getPrefDifficulty());
         }
@@ -824,7 +830,7 @@ public class MainScreenController implements Initializable {
             ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
         }
         String extraInfo = "";
-        if (currentState.equals(MainScreenState.LOCAL)) {
+        if (currentState == MainScreenState.LOCAL) {
             extraInfo = isVsComputer ? "vs Computer" : "PvP";
         }
         setUp(extraInfo);
@@ -852,24 +858,16 @@ public class MainScreenController implements Initializable {
     }
 
     private void checkHideMoveControls(MainScreenState currentState) {
-//        if (currentState.equals(MainScreenState.SIMULATION)) {
-//            // hidden as these are real games
-//            bottomControls.setVisible(false);
-//            bottomControls.setMouseTransparent(true);
-//        } else {
-            bottomControls.setVisible(true);
-            bottomControls.setMouseTransparent(false);
-//        }
+        bottomControls.setVisible(true);
+        bottomControls.setMouseTransparent(false);
     }
 
     private void checkHideEvalBar(MainScreenState currentState) {
         // hidden as these are real games
-        evalBar.setVisible(isEvalAllowed(currentState));
+        evalBar.setVisible(MainScreenState.isEvalAllowed(currentState));
     }
 
-    public boolean isEvalAllowed(MainScreenState currentState){
-        return !currentState.equals(MainScreenState.ONLINE) && !currentState.equals(MainScreenState.LOCAL) && !currentState.equals(MainScreenState.CAMPAIGN);
-    }
+
 
     public void setPlayerIcons(String player1Url, String player2Url, boolean isPlayer1White) {
         ImageView player1 = isPlayer1White ? player1Select : player2Select;
@@ -947,32 +945,31 @@ public class MainScreenController implements Initializable {
         mainSidePanel.setVisible(true);
     }
 
-    private void setMainControls(MainScreenState currentState, String extraStuff) {
+    private void setMainControls(MainScreenState currentState, String gameName) {
         hideAllControls();
+        if(currentState != MainScreenState.SIMULATION){
+            stateLabel.setText(gameName); // game name
+        }
         switch (currentState) {
             case VIEWER -> {
                 currentControls = viewerControls;
-                stateLabel.setText("Viewer: " + extraStuff); // game name
             }
             case LOCAL -> {
                 currentControls = localControls;
-                stateLabel.setText("Local Game: " + extraStuff); // pvp or pvc (computer)
             }
             case ONLINE -> {
                 currentControls = onlineControls;
-                stateLabel.setText("Online " + extraStuff + " Game"); // time controls
             }
             case SANDBOX -> {
                 currentControls = sandboxControls;
-                stateLabel.setText("Sandbox Mode");
             }
             case CAMPAIGN -> {
-                String[] split = extraStuff.split(",");
-                int T = Integer.parseInt(split[0]); // tier
-                int L = Integer.parseInt(split[1]); // level of tier
-                String Diff = split[2]; // difficuly
                 currentControls = campaignControls;
-                stateLabel.setText(String.format("Campaign T:%d L:%d (%s)", T, L, Diff));
+//                String[] split = gameName.split(",");
+//                int T = Integer.parseInt(split[0]); // tier
+//                int L = Integer.parseInt(split[1]); // level of tier
+//                String Diff = split[2]; // difficuly
+//                stateLabel.setText(String.format("Campaign T:%d L:%d (%s)", T, L, Diff));
             }
             case SIMULATION -> {
                 currentControls = simulationControls;
@@ -1190,7 +1187,7 @@ public class MainScreenController implements Initializable {
 
     // what actually happens when you click a square on the board
     public void makeComputerMove(ChessMove move) {
-        if (!App.isStartScreen && (currentState.equals(MainScreenState.LOCAL) || currentState.equals(MainScreenState.CAMPAIGN)) && ChessCentralControl.gameHandler.gameWrapper.getGame().isVsComputer() && move != null) {
+        if (!App.isStartScreen && (currentState == MainScreenState.LOCAL || currentState == MainScreenState.CAMPAIGN) && ChessCentralControl.gameHandler.gameWrapper.getGame().isVsComputer() && move != null) {
             logger.info("Looking at best move for " + (ChessCentralControl.gameHandler.gameWrapper.getGame().isWhiteTurn() ? "WhitePeices" : "BlackPeices"));
             logger.info("Computer thinks move: \n" + move);
             // computers move

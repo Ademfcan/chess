@@ -83,7 +83,7 @@ public class ChessCentralControl {
     }
 
     private void addSearchRequest(int i) {
-        if (isInValidGameMove() && !cachedResults.containsKey(i) && !currentlySearching.contains(i)) {
+        if (isInValidActiveGame() && !cachedResults.containsKey(i) && !currentlySearching.contains(i)) {
             currentlySearching.add(i);
             asyncController.generalTask.addTask(() -> {
                 try {
@@ -101,7 +101,7 @@ public class ChessCentralControl {
     }
 
     public void getCentralEvaluation() {
-        if (isInValidGameMove()) {
+        if (isInValidActiveGame()) {
             int currentIndex = gameHandler.gameWrapper.getGame().getCurMoveIndex();
             if (cachedResults.containsKey(currentIndex) && (currentIndex < 0 || cachedResults.containsKey(currentIndex - 1))) {
                 setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ? null : cachedResults.get(currentIndex - 1));
@@ -121,12 +121,12 @@ public class ChessCentralControl {
         SearchResult primeResult = currentResults.results()[0];
 
         boolean isWhiteTurn = gameHandler.gameWrapper.getGame().isWhiteTurn(); // for relative evaluation
-        if (mainScreenController.isEvalAllowed(mainScreenController.currentState)) {
+        if (MainScreenState.isEvalAllowed(mainScreenController.currentState)) {
             mainScreenController.setEvalBar((primeResult.evaluation() / (double) 100) * (isWhiteTurn ? 1 : -1), primeResult.depth(), false);
             // eval over time todo
         }
 
-        if (mainScreenController.currentState.equals(MainScreenState.VIEWER)) {
+        if (mainScreenController.currentState == MainScreenState.VIEWER) {
             // todo
             chessActionHandler.addBestMovesToViewer(currentResults);
             if (gameHandler.gameWrapper.getGame().getCurMoveIndex() >= 0) {
@@ -145,12 +145,12 @@ public class ChessCentralControl {
     }
 
 
-    public boolean isInViewerMove() {
-        return isInValidGameMove() && mainScreenController.currentState.equals(MainScreenState.VIEWER);
+    public boolean isInViewerActive() {
+        return isInValidActiveGame() && mainScreenController.currentState == MainScreenState.VIEWER;
     }
 
-    public boolean isInValidGameMove(){
-        return !App.isStartScreen && !mainScreenController.currentState.equals(MainScreenState.SIMULATION) && gameHandler.currentlyGameActive() && !gameHandler.gameWrapper.getGame().getGameState().isGameOver();
+    public boolean isInValidActiveGame(){
+        return !App.isStartScreen && mainScreenController.currentState != MainScreenState.SIMULATION && gameHandler.currentlyGameActive() && !gameHandler.gameWrapper.getGame().getGameState().isGameOver();
     }
 
 

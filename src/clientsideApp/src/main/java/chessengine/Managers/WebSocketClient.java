@@ -116,7 +116,7 @@ public class WebSocketClient {
                 }
                 case CHATFROMOPPONENT -> {
                     Platform.runLater(() ->{
-                        App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + linkedGame.getBlackPlayerName() + ") " + out.getExtraInformation());
+                        App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + (linkedGame.isWhiteOriented() ? linkedGame.getBlackPlayerName() : linkedGame.getWhitePlayerName())  + ") " + out.getExtraInformation());
                         App.soundPlayer.playEffect(Effect.MESSAGE);
                     });
                 }

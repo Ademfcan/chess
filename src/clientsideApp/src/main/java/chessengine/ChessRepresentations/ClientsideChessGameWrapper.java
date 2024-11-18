@@ -90,7 +90,7 @@ public class ClientsideChessGameWrapper {
         moveToMoveIndexAbsolute(-1, false);
         centralControl.chessBoardGUIHandler.reloadNewBoard(game.getPos(game.getCurMoveIndex()), game.isWhiteOriented());
         centralControl.mainScreenController.setMoveLabels(game.getCurMoveIndex(), game.getMaxIndex());
-        if (!isWebGameInitialized && isWebGame && centralControl.mainScreenController.currentState.equals(MainScreenState.ONLINE)) {
+        if (!isWebGameInitialized && isWebGame && centralControl.mainScreenController.currentState== MainScreenState.ONLINE) {
             // since we dont have any info on the second player, we only do a basic setup of the UI
             // also send request for online match here
 
@@ -169,7 +169,7 @@ public class ClientsideChessGameWrapper {
             }
             ChessPosition newPos = game.getPos(newIndex);
 
-            if (Math.abs(dir) > 1 || (isMainGame && centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)) || noAnimate) {
+            if (Math.abs(dir) > 1 || (isMainGame && centralControl.mainScreenController.currentState == MainScreenState.SANDBOX) || noAnimate) {
                 // cannot try to animate move (actually can but not neccesary)
                 if (isMainGame) {
                     centralControl.chessBoardGUIHandler.updateChessBoardGui(newPos, game.getCurrentPosition(),game.isWhiteOriented());
@@ -296,7 +296,7 @@ public class ClientsideChessGameWrapper {
     private void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
         ChessPosition currentPosition = game.getCurrentPosition();
         game.MakeMove(newPosition,move);
-        if (!isMainGame || !centralControl.mainScreenController.currentState.equals(MainScreenState.SANDBOX)) {
+        if (!isMainGame || centralControl.mainScreenController.currentState != MainScreenState.SANDBOX) {
             if (game.getGameState().isStaleMated()) {
                 if (isMainGame) {
                     logger.debug("stalemate");

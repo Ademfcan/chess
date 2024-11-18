@@ -188,11 +188,13 @@ public class UserInfo {
 
     public void setUserelo(int userelo) {
         this.userelo = userelo;
+        this.userelo = Math.max(this.userelo,0);
         updateLastTimeStamp();
     }
 
     public void adjustElo(int change) {
         this.userelo += change;
+        this.userelo = Math.max(this.userelo,0);
         updateLastTimeStamp();
     }
 

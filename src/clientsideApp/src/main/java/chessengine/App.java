@@ -693,7 +693,7 @@ public class App extends Application {
     public void stop() {
         stockfishForEval.stopEngine();
         mainScreenController.endAsync();
-        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && !mainScreenController.currentState.equals(MainScreenState.VIEWER) && !mainScreenController.currentState.equals(MainScreenState.SANDBOX) && !mainScreenController.currentState.equals(MainScreenState.SIMULATION)) {
+        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && mainScreenController.currentState != MainScreenState.VIEWER && mainScreenController.currentState != MainScreenState.SANDBOX && mainScreenController.currentState != MainScreenState.SIMULATION) {
             if (ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
                 // if the game is not empty add it
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);

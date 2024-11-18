@@ -172,7 +172,7 @@ public class UserInfoManager {
             actionButton.setGraphic(sendRequestGraphic);
             lookupEntry.getChildren().add(actionButton);
 
-            if(entryType.equals(FriendEntry.UNCONNECTED)){
+            if(entryType == FriendEntry.UNCONNECTED){
                 actionButton.setOnMouseClicked(e-> {
                     App.sendFriendRequest(friendName,() ->{
                         lookupEntry.getChildren().remove(actionButton);

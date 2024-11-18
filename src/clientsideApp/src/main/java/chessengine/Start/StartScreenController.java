@@ -535,7 +535,7 @@ public class StartScreenController implements Initializable {
     private void setUpUserSettings() {
         userInfoManager = new UserInfoManager(this,App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
         profileButton.setOnMouseClicked(e -> {
-            if (currentState.equals(StartScreenState.USERSETTINGS)) {
+            if (currentState == StartScreenState.USERSETTINGS) {
                 if(userInfoPage.isVisible()){
                     setSelection(lastStateBeforeUserSettings);
                 }

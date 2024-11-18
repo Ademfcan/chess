@@ -23,6 +23,8 @@ public class Searcher {
     private final AtomicBoolean stopSearch = new AtomicBoolean(false);
     private final int defaultMaxDepth = 25;
     private int maxSearchDepth = defaultMaxDepth;
+    private final int defaultDrawConstant = 0;
+    private int drawConstant = defaultDrawConstant;
     public SearchInfoAggregator searchInfo;
     long startTime;
     BackendChessPosition chessPosition;
@@ -75,6 +77,8 @@ public class Searcher {
     }
 
     private void resetSearch() {
+        maxSearchDepth = defaultMaxDepth;
+        drawConstant = defaultDrawConstant;
         pV = new PVEntry[maxSearchDepth];
         pVIter = new PVEntry[maxSearchDepth];
         stopSearch.set(false);
@@ -89,9 +93,10 @@ public class Searcher {
         stop = false;
     }
 
-
+    /** Default search call, starts an iterative deepening search with only a time limitation**/
     public SearchResult search(BackendChessPosition pos, int maxTimeMs) {
         this.maxTimeMs = maxTimeMs;
+        this.drawConstant = 0;
         this.maxSearchDepth = defaultMaxDepth;
         resetSearch();
         chessPosition = pos.clonePosition();
@@ -108,9 +113,11 @@ public class Searcher {
         return new SearchResult(bestMove, bestEvaluation, CurrentDepth, pV);
     }
 
-    public SearchResult search(BackendChessPosition pos, int maxTimeMs,int maxSearchDepth) {
+    /** Multisearcher search call, starts an iterative deepening search with a time limitation, depth limitation, and draw constant**/
+    public SearchResult search(BackendChessPosition pos, int maxTimeMs,int maxSearchDepth,int drawConstant) {
         this.maxTimeMs = maxTimeMs;
         this.maxSearchDepth = maxSearchDepth;
+        this.drawConstant = drawConstant;
         resetSearch();
         chessPosition = pos.clonePosition();
         runIterativeDeepening();
@@ -161,7 +168,7 @@ public class Searcher {
 
     private int search(int currentPly, int plyFromRoot, int alpha, int beta, int numExtensions) {
         if (chessPosition.isDraw() || stop || checkStopSearch()) {
-            return 0;
+            return drawConstant;
         }
 
         if (plyFromRoot > 0) {
@@ -208,11 +215,12 @@ public class Searcher {
                 isNoMoves = true;
             }
 //            System.out.println("Game over!");
+            // checkmate
             if (isChecked) {
                 return EvaluationFunctions.baseMateScore - plyFromRoot;
             }
-
-            return 0;
+            // draw
+            return drawConstant;
         }
 
 

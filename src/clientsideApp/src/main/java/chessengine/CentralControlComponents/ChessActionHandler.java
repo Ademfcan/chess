@@ -135,12 +135,12 @@ public class ChessActionHandler {
     private void onlineInit() {
         // event handlers for when sending a message
         sendMessageButton.setOnMouseClicked(e -> {
-            if (!chatInput.getText().isEmpty() && myControl.mainScreenController.currentState.equals(MainScreenState.ONLINE)) {
+            if (!chatInput.getText().isEmpty() && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
                 myControl.mainScreenController.processChatInput();
             }
         });
         chatInput.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER && myControl.mainScreenController.currentState.equals(MainScreenState.ONLINE)) {
+            if (e.getCode() == KeyCode.ENTER && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
                 myControl.mainScreenController.processChatInput();
             }
         });
@@ -405,13 +405,13 @@ public class ChessActionHandler {
         myControl.getCentralEvaluation();
 //        myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
         highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
-        if (!currentState.equals(MainScreenState.SANDBOX)) {
+        if (currentState != MainScreenState.SANDBOX) {
             updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented(), true); // web game will send time updates
             if (myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > -1) {
                 lineLabel.setText(LineLabeler.getLineName(gamePgn));
             }
         }
-        if (!currentState.equals(MainScreenState.SANDBOX) && (numLabels - 1) != myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
+        if (currentState != MainScreenState.SANDBOX && (numLabels - 1) != myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
             adjustMovesPlayed(myControl.gameHandler.gameWrapper.getGame().getMaxIndex());
         }
         switch (currentState) {
@@ -581,7 +581,7 @@ public class ChessActionHandler {
                     int boardIndex = GeneralChessFunctions.getBoardWithPiece(backendX, backendY, isWhitePiece, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board);
 
                     ImageView piece = myControl.chessBoardGUIHandler.piecesAtLocations[xy[0]][xy[1]];
-                    if (currentState.equals(MainScreenState.SANDBOX)) {
+                    if (currentState == MainScreenState.SANDBOX) {
                         // in sandbox mode players can move pieces anywhere
                         prepareDragSelected(piece, xy[0], xy[1], isWhitePiece, boardIndex, true);
                     } else if (checkIfCanMakeAction(currentState)) {
@@ -698,7 +698,7 @@ public class ChessActionHandler {
                 int backendX = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? newX : 7 - newX;
                 int oldbackendY = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? oldY : 7 - oldY;
                 int oldbackendX = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? oldX : 7 - oldX;
-                if (currentState.equals(MainScreenState.SANDBOX)) {
+                if (currentState == MainScreenState.SANDBOX) {
                     // for sandbox we dont care about rules, we just move wherever we want
                     myControl.gameHandler.gameWrapper.makeNewMove(new ChessMove(oldbackendX, oldbackendY, backendX, backendY, ChessConstants.EMPTYINDEX, oldDragPieceIndex, oldIsWhite, false, GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board, "nut")[0], ChessConstants.EMPTYINDEX, false, false), false, true,App.userPreferenceManager.isNoAnimate());
                     placePiece(selected, newX, newY);
@@ -768,7 +768,7 @@ public class ChessActionHandler {
             clearPrevPiece(true);
         } else {
             int boardIndex = GeneralChessFunctions.getBoardWithPiece(backendX, backendY, isWhiteHitPiece, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board);
-            if (currentState.equals(MainScreenState.SANDBOX)) {
+            if (currentState == MainScreenState.SANDBOX) {
                 handleSandboxSquareClick(clickX, clickY, isHitPiece, isWhiteHitPiece);
             } else if (checkIfCanMakeAction(currentState)) {
                 if (!prevPeiceSelected && !isHitPiece) {
@@ -1031,7 +1031,7 @@ public class ChessActionHandler {
 //    }
 
     public void addBestMovesToViewer(MultiResult results) {
-        if (myControl.isInViewerMove()) {
+        if (myControl.isInViewerActive()) {
             bestmovesBox.getChildren().clear();
             myControl.chessBoardGUIHandler.clearArrows();
             int cnt = 0;

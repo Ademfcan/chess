@@ -96,7 +96,7 @@ public class CampaignManager {
             CampaignTier newTier = getCurrentTierScrollerIsOn(campaignScroller.getVvalue());
             if (currentScrollerTier == null) {
                 currentScrollerTier = newTier;
-            } else if (!newTier.equals(currentScrollerTier)) {
+            } else if (newTier != currentScrollerTier) {
                 // change in tier
                 fadeBetweenBackgrounds(currentImageView, standbyImageView, newTier.bgUrl);
                 currentScrollerTier = newTier;
@@ -162,7 +162,7 @@ public class CampaignManager {
             CampaignTier curTier = CampaignTier.values()[i];
             int lockedAmnt = -1;
             int unlockedAmnt = -1;
-            if (playerProgress.getCurrentTier().equals(curTier) && playerProgress.getCurrentLevelOfTier() < curTier.NLevels - 1) {
+            if (playerProgress.getCurrentTier() == curTier && playerProgress.getCurrentLevelOfTier() < curTier.NLevels - 1) {
                 // means that somewhere along this tier you will have unlocked levels and locked levels
                 unlockedAmnt = playerProgress.getCurrentLevelOfTier() + 1;
                 lockedAmnt = curTier.NLevels - unlockedAmnt;

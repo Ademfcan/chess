@@ -58,7 +58,7 @@ public class CustomMultiSearcher extends MultiSearcher {
 
 
                                 }
-                                SearchResult result = searcher.search(positionToEvaluate, timePerBatch,difficulty.depth);
+                                SearchResult result = searcher.search(positionToEvaluate, timePerBatch,difficulty.depth, difficulty.drawConst);
                                 if(result != null){
                                     PVEntry[] pvBuffer = result.pV();
                                     // reshift everything by 1

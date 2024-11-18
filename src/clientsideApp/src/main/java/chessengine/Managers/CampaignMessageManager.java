@@ -188,7 +188,7 @@ public class CampaignMessageManager {
     }
 
     private String getName() {
-        if (centralControl.gameHandler.currentlyGameActive() && centralControl.mainScreenController.currentState.equals(MainScreenState.CAMPAIGN)) {
+        if (centralControl.gameHandler.currentlyGameActive() && centralControl.mainScreenController.currentState == MainScreenState.CAMPAIGN) {
             CampaignTier currentTier = centralControl.gameHandler.getCampaignTier();
             int currentTierLevel = centralControl.gameHandler.getLevelOfCampaignTier();
             return currentTier.levelNames[currentTierLevel];
