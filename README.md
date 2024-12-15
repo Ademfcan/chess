@@ -1,5 +1,5 @@
 # Chess App
-This is an ongoing project, so expect occasional errors here and there as i squish all the bugs
+This is an ongoing project, so expect occasional blips here and there as i squish all the bugs
 
 ## Getting Started
 1.Clone the latest version of the repository in a suitable directory:
