@@ -47,22 +47,39 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+//jar {
+//    archiveClassifier.set('fat')
+//    manifest {
+//        attributes(
+//                'Main-Class': 'chessengine.Main',
+//                'Class-Path': configurations.runtimeClasspath.asFileTree.files.collect { "lib/${it.name}" }.join(' '),
+//                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false','-Djavafx.preloader=chessengine.SplashScreen'
+//        )
+//    }
+//    from {
+//        configurations.runtimeClasspath.asFileTree.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    archiveFileName = 'chessengine-fat.jar'
+//
+//    from sourceSets.main.output
+//
+//}
+
 jar {
-    archiveClassifier.set('fat')
+    archiveClassifier.set('fat') // Appends "-fat" to the JAR name
     manifest {
         attributes(
-                'Main-Class': 'chessengine.Main',
-                'Class-Path': configurations.runtimeClasspath.asFileTree.files.collect { "lib/${it.name}" }.join(' '),
-                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false','-Djavafx.preloader=chessengine.SplashScreen'
+                'Main-Class': 'chessengine.Main', // Fully qualified main class
+                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false -Djavafx.preloader=chessengine.SplashScreen'
         )
     }
     from {
-        configurations.runtimeClasspath.asFileTree.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveFileName = 'chessengine-fat.jar'
 
     from sourceSets.main.output
-
 }
 

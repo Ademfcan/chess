@@ -7,8 +7,10 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
@@ -17,13 +19,13 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.Callable;
 
 
 public class GlobalMessager {
@@ -39,6 +41,10 @@ public class GlobalMessager {
     private Group mainMessager;
     private Pane startRef;
     private Pane mainRef;
+    private Stack<Popup> popupsStart = new Stack<>();
+    private Set<Integer> activeStartPopupIds = new HashSet<>();
+    private Stack<Popup> popupsMain = new Stack<>();
+    private Set<Integer> activeMainPopupIds = new HashSet<>();
     private boolean isInit;
     private final String[] clrs = new String[]{"Red", "Blue", "Green", "Cyan", "midnightblue"};
     private final Random r = new Random();
@@ -56,6 +62,20 @@ public class GlobalMessager {
         this.startMessager = startMessager;
         this.mainMessager = mainMessager;
         this.startRef = startRef;
+        startRef.setOnMouseClicked(e ->{
+            // if the raw pane is being clicked, it means at least one popup is left and thus the pane is not empty
+            Popup p = this.popupsStart.peek();
+            if(p.isSkippable){
+                closePopup(false,p.popupBox,p.popupIdx);
+            }
+        });
+        mainRef.setOnMouseClicked(e ->{
+            // if the raw pane is being clicked, it means at least one popup is left and thus the pane is not empty
+            Popup p = this.popupsMain.peek();
+            if(p.isSkippable){
+                closePopup(true,p.popupBox,p.popupIdx);
+            }
+        });
         this.mainRef = mainRef;
         startRef.layoutBoundsProperty().addListener(e -> {
             Platform.runLater(() -> {
@@ -342,7 +362,7 @@ public class GlobalMessager {
         focusMaskRight.setMouseTransparent(false);
 
 
-        ref.getChildren().addAll(focusMaskTop,focusMaskBottom,focusMaskLeft,focusMaskRight);
+        container.getChildren().addAll(focusMaskTop,focusMaskBottom,focusMaskLeft,focusMaskRight);
 
 
     }
@@ -353,8 +373,154 @@ public class GlobalMessager {
 
     }
 
+
+
+    public void createBooleanPopup(String prompt,boolean isMain,boolean isSkippable, int popupIdx, Runnable ifSucess){
+        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+        if(popupIds.contains(popupIdx)) return;
+        HBox customAction = new HBox();
+        customAction.setAlignment(Pos.CENTER);
+        customAction.setSpacing(5);
+        Button yes = new Button("Yes");
+        yes.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
+        yes.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
+        App.bindingController.bindSmallText(yes,isMain);
+        Button no = new Button("No");
+        no.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
+        no.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
+        App.bindingController.bindSmallText(no,isMain);
+        customAction.getChildren().addAll(yes,no);
+        VBox popup = createBasePopupWindow(prompt,customAction,isMain,isSkippable,popupIdx);
+        yes.setOnMouseClicked(e->{
+            closePopup(isMain,popup,popupIdx);
+            ifSucess.run();
+        });
+        no.setOnMouseClicked(e->{
+            closePopup(isMain,popup,popupIdx);
+        });
+
+    }
+
+    private VBox createBasePopupWindow(String prompt, HBox customAction,boolean isMain,boolean isSkippable,int popupIdx){
+
+
+        VBox popupBox = new VBox();
+        popupBox.setStyle("-fx-background-color: #E5ECE9;-fx-background-radius: 13");
+        popupBox.setAlignment(Pos.TOP_CENTER);
+
+        HBox top = new HBox();
+        top.setAlignment(Pos.CENTER);
+        top.prefWidthProperty().bind(popupBox.widthProperty());
+        top.prefHeightProperty().bind(popupBox.heightProperty().multiply(.3));
+
+        Label promptLabel = new Label(prompt);
+        App.bindingController.bindSmallText(promptLabel,isMain,"Black");
+        top.getChildren().add(promptLabel);
+
+        HBox bottom = new HBox();
+        bottom.prefWidthProperty().bind(popupBox.widthProperty());
+        bottom.prefHeightProperty().bind(popupBox.heightProperty().multiply(0.3));
+        bottom.setAlignment(Pos.BOTTOM_RIGHT);
+        if(isSkippable) {
+            Button cancelButton = new Button("Cancel");
+            cancelButton.setOnMouseClicked(e ->{
+                closePopup(isMain,popupBox,popupIdx);
+            });
+            cancelButton.prefWidthProperty().bind(bottom.prefWidthProperty().divide(3));
+            cancelButton.prefHeightProperty().bind(bottom.prefHeightProperty());
+
+            App.bindingController.bindSmallText(cancelButton, isMain);
+            bottom.getChildren().add(cancelButton);
+        }
+
+        customAction.prefWidthProperty().bind(popupBox.widthProperty());
+        customAction.prefHeightProperty().bind(popupBox.heightProperty().subtract(top.heightProperty()).subtract(bottom.heightProperty()));
+        popupBox.getChildren().addAll(top,customAction,bottom);
+
+        Pane ref = isMain ? this.mainRef : this.startRef;
+        App.bindingController.bindCustom(ref.widthProperty(),popupBox.prefWidthProperty(),350,0.4);
+        App.bindingController.bindCustom(ref.heightProperty(),popupBox.prefHeightProperty(),220,0.4);
+        popupBox.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(popupBox.widthProperty().divide(2)));
+        popupBox.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(popupBox.heightProperty().divide(2)));
+        addPopup(isMain,isSkippable,popupBox,popupIdx);
+        return popupBox;
+
+    }
+
+    private void addPopup(boolean isMain,boolean isSkippable,VBox popupBox,int popupIdx){
+        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+        if(!popupIds.contains(popupIdx)){
+            Pane ref = isMain ? this.mainRef : this.startRef;
+            ref.getChildren().add(popupBox);
+            popupBox.toFront();
+            if(isMain){
+                this.popupsMain.push(new Popup(popupBox,isSkippable,popupIdx));
+            }
+            else{
+                this.popupsStart.push(new Popup(popupBox,isSkippable,popupIdx));
+            }
+            popupIds.add(popupIdx);
+            updatePaneWithPopup(isMain);
+        }
+        else{
+            logger.debug("Skipping adding already active popup");
+        }
+
+    }
+
+    private void closePopup(boolean isMain,VBox popup,int popupIdx) {
+        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+        if(popupIds.contains(popupIdx)){
+            Pane ref = isMain ? this.mainRef : this.startRef;
+            ref.getChildren().remove(popup);
+            removePanePopup(isMain);
+            if(isMain){
+                this.popupsMain.pop(); // should never be empty
+            }
+            else{
+                this.popupsStart.pop();
+            }
+            popupIds.remove(popupIdx);
+        }
+        else {
+            logger.warn("Trying to close a popup window with an invalid idx. (Not contained in current ids)");
+        }
+
+    }
+    private int numMainPopups = 0;
+    private int numStartPopups = 0;
+    private void updatePaneWithPopup(boolean isMain){
+        if(isMain){
+            this.numMainPopups++;
+        }
+        else{
+            this.numStartPopups++;
+        }
+        Pane ref = isMain ? this.mainRef : this.startRef;
+        ref.setMouseTransparent(false); // adding a popup means that there is a popup guaranteed so no need to check for mouse transparency
+    }
+
+    private void removePanePopup(boolean isMain){
+        boolean greaterThanZero;
+        if(isMain){
+            this.numMainPopups--;
+            greaterThanZero = this.numMainPopups > 0;
+        }
+        else{
+            this.numStartPopups--;
+            greaterThanZero = this.numStartPopups > 0;
+        }
+        Pane ref = isMain ? this.mainRef : this.startRef;
+        ref.setMouseTransparent(!greaterThanZero); // if there are any popups (ie greaterthanzero) the pane should NOT be mouse transparent
+    }
+
+
     private record NodeWrapper(Node n, double percentX, double percentY, double animationTimeSeconds) {
 
+
+    }
+
+    private record Popup(VBox popupBox,boolean isSkippable,int popupIdx){
 
     }
 

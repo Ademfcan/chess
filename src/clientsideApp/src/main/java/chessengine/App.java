@@ -274,7 +274,7 @@ public class App extends Application {
 
             if (userManager.isLoggedIn()) {
                 logout();
-                System.out.println("----------------------------------------------------------");
+//                System.out.println("----------------------------------------------------------");
             }
 
 

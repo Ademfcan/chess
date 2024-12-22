@@ -255,6 +255,10 @@ public class MainScreenController implements Initializable {
     TextField chatInput;
     @FXML
     Button sendMessageButton;
+    @FXML
+    Button resignButton;
+    @FXML
+    Button offerDrawButton;
     // simulation controls
     @FXML
     Button playPauseButton;
@@ -336,7 +340,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl = App.ChessCentralControl;
 
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
-                arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton, Bgpanes, moveBoxes, highlightPanes,
+                arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
                 chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
                 player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
 //         small change to make sure moves play box is always focused on the very end
@@ -422,8 +426,8 @@ public class MainScreenController implements Initializable {
 
     private void setUpButtons() {
 
-        setupresetToHome(gameoverHomebutton);
-        setupresetToHome(homeButton);
+        setUpResetToHome(gameoverHomebutton);
+        setUpResetToHome(homeButton);
 
 
         pgnSaveButton.setOnMouseClicked(e -> {
@@ -479,73 +483,76 @@ public class MainScreenController implements Initializable {
         });
     }
 
-    private void setupresetToHome(Button gameoverHomebutton) {
+    private void setUpResetToHome(Button gameoverHomebutton) {
         gameoverHomebutton.setOnMouseClicked(e -> {
-            // clearing all board related stuff
-
-            ChessCentralControl.chessBoardGUIHandler.removeAllPieces();
-            ChessCentralControl.chessBoardGUIHandler.resetEverything(true);
-            ChessCentralControl.chessActionHandler.reset();
-
-
-            // stopping async threads (eval bar etc)
-            ChessCentralControl.asyncController.stopAll();
-
-            // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
-            if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
-//                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
-                App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.oldGamesPanelContent);
-                App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.userOldGamesContent);
-                App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
-            }
-            // need to leave online game if applicable
-            if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame()) {
-                ChessCentralControl.gameHandler.gameWrapper.leaveWebGame();
-            }
-
-
-            // boolean flag for scrolling to the next level
-            boolean isNewLvl = false;
-
-            // if we are in campaign mode and the game finished, depending on the outcome we will want to move the player to the next level
-            if (currentState == MainScreenState.CAMPAIGN) {
-                // draw will be one star regardless of difficulty
-                // other than that only a win will also have you progress
-                CampaignTier completedTier = ChessCentralControl.gameHandler.getCampaignTier();
-                int completedLevelOfTier = ChessCentralControl.gameHandler.getLevelOfCampaignTier();
-                int numStars = 0;
-                if (ChessCentralControl.gameHandler.gameWrapper.getGame().getGameState().isStaleMated()) {
-                    numStars = 1;
-                } else if (ChessCentralControl.gameHandler.gameWrapper.getGame().getGameState().isCheckMated()[1]) {
-                    // game over only happens if draw or checkmate
-                    // so if not draw it must be checkmate
-                    // so we only have to check if white(the user) won
-                    numStars = ChessCentralControl.gameHandler.getGameDifficulty();
-                }
-
-                if (numStars != 0) {
-                    // now if the user earned any stars make sure you add them
-                    // btw this will not decrement your level if you have done better before
-                    App.userManager.setLevelStars(completedTier, completedLevelOfTier, numStars);
-
-                    // now if this was a new level for them(and they were sucessful), unlock the next one
-                    if (completedTier.equals(App.userManager.getCurrentCampaignTier()) && completedLevelOfTier == App.userManager.getCurrentCampaignLevel()) {
-                        isNewLvl = true;
-                        App.userManager.moveToNextLevel();
-                    }
-
-                }
-
-
-            }
-            ChessCentralControl.gameHandler.clearGame();
-            App.changeToStart();
-            // in campaign mode as you move to the next level, scroll up to that level
-            if (isNewLvl) {
-                App.startScreenController.campaignManager.scrollToPlayerTier(App.userManager.getCampaignProgress());
-            }
-
+            HomeReset();
         });
+    }
+    /** Clears current game, performs cleanup and then goes back to start screen**/
+    public void HomeReset(){
+        // clearing all board related stuff
+
+        ChessCentralControl.chessBoardGUIHandler.removeAllPieces();
+        ChessCentralControl.chessBoardGUIHandler.resetEverything(true);
+        ChessCentralControl.chessActionHandler.reset();
+
+
+        // stopping async threads (eval bar etc)
+        ChessCentralControl.asyncController.stopAll();
+
+        // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
+        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
+//                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
+            App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.oldGamesPanelContent);
+            App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.userOldGamesContent);
+            App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
+        }
+        // need to leave online game if applicable
+        if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame()) {
+            ChessCentralControl.gameHandler.gameWrapper.leaveWebGame();
+        }
+
+
+        // boolean flag for scrolling to the next level
+        boolean isNewLvl = false;
+
+        // if we are in campaign mode and the game finished, depending on the outcome we will want to move the player to the next level
+        if (currentState == MainScreenState.CAMPAIGN) {
+            // draw will be one star regardless of difficulty
+            // other than that only a win will also have you progress
+            CampaignTier completedTier = ChessCentralControl.gameHandler.getCampaignTier();
+            int completedLevelOfTier = ChessCentralControl.gameHandler.getLevelOfCampaignTier();
+            int numStars = 0;
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getGameState().isStaleMated()) {
+                numStars = 1;
+            } else if (ChessCentralControl.gameHandler.gameWrapper.getGame().getGameState().isCheckMated()[1]) {
+                // game over only happens if draw or checkmate
+                // so if not draw it must be checkmate
+                // so we only have to check if white(the user) won
+                numStars = ChessCentralControl.gameHandler.getGameDifficulty();
+            }
+
+            if (numStars != 0) {
+                // now if the user earned any stars make sure you add them
+                // btw this will not decrement your level if you have done better before
+                App.userManager.setLevelStars(completedTier, completedLevelOfTier, numStars);
+
+                // now if this was a new level for them(and they were sucessful), unlock the next one
+                if (completedTier.equals(App.userManager.getCurrentCampaignTier()) && completedLevelOfTier == App.userManager.getCurrentCampaignLevel()) {
+                    isNewLvl = true;
+                    App.userManager.moveToNextLevel();
+                }
+
+            }
+
+
+        }
+        ChessCentralControl.gameHandler.clearGame();
+        App.changeToStart();
+        // in campaign mode as you move to the next level, scroll up to that level
+        if (isNewLvl) {
+            App.startScreenController.campaignManager.scrollToPlayerTier(App.userManager.getCampaignProgress());
+        }
     }
 
     public void processChatInput() {

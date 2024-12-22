@@ -70,7 +70,6 @@ public class ChessGame {
         game.isWhiteTurn = game.firstTurnDefault;
         game.gameHash = gameHash;
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
-        System.out.println(game.gameState.cloneState().toString());
 
         return game;
     }

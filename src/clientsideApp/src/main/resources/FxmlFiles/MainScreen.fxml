@@ -229,6 +229,12 @@
                                                       <Button fx:id="sendMessageButton" mnemonicParsing="false" text="-&gt;" />
                                                    </children>
                                                 </HBox>
+                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
+                                                         <children>
+                                                            <Button fx:id="resignButton" mnemonicParsing="false" text="Button" />
+                                                            <Button fx:id="offerDrawButton" mnemonicParsing="false" text="Button" />
+                                                         </children>
+                                                      </HBox>
                                              </children>
                                           </VBox>
                                        </children>

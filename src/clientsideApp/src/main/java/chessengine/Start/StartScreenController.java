@@ -439,19 +439,21 @@ public class StartScreenController implements Initializable {
         });
         playAsWhite.setOnAction(e -> {
             // Get the node's local bounds
+            App.messager.createBooleanPopup("Are you sure?",false,true,2,() ->{
+//                App.messager.addFocusNode(playAsWhite,true);
+    //            App.messager.addMovingArrow(playAsWhite,.03,.03,5,true);
+    //            App.messager.addInformationBox(.5,.5,.3,.3,"Welcome","Hello, i will guide you through a small tutorial",true);
+                playAsWhite.setSelected(playAsWhite.isSelected());
+                if (playAsWhite.isSelected()) {
+                    playAsWhite.setText("Play as White");
+                    App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
+                } else {
+                    playAsWhite.setText("Play as Black");
+                    App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: black ;-fx-text-fill: white");
 
-//            App.messager.addFocusNode(playAsWhite,true);
-//            App.messager.addMovingArrow(playAsWhite,.03,.03,5,true);
-//            App.messager.addInformationBox(.5,.5,.3,.3,"Welcome","Hello, i will guide you through a small tutorial",true);
-            playAsWhite.setSelected(playAsWhite.isSelected());
-            if (playAsWhite.isSelected()) {
-                playAsWhite.setText("Play as White");
-                App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
-            } else {
-                playAsWhite.setText("Play as Black");
-                App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: black ;-fx-text-fill: white");
-
-            }
+                }
+            });
+//
         });
     }
 

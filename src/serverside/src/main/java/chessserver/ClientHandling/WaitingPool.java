@@ -53,6 +53,7 @@ public class WaitingPool {
             return null;
         } else {
             for (BackendClient c : clients) {
+                // o(n) on a sorted set?? todo :|
                 if ((Math.abs(c.getInfo().getUserelo()) - newClient.getInfo().getUserelo()) <= maxEloDiff) {
                     return c;
                 }

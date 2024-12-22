@@ -70,6 +70,8 @@ public class ChessActionHandler {
     private final TextArea currentGamePgn;
     private final Logger logger = LogManager.getLogger(this.toString());
     public final Slider timeSlider;
+    private final Button resignButton;
+    private final Button offerDrawButton;
     MoveGenerator moveGenerator = new MoveGenerator();
     private StackPane lastSelected = null;
     private int numLabels = 0;
@@ -106,7 +108,7 @@ public class ChessActionHandler {
     private boolean isEatingPromo;
     private int numRedos = 0;
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -126,6 +128,8 @@ public class ChessActionHandler {
         this.player1SimSelector = player1SimSelector;
         this.player2SimSelector = player2SimSelector;
         this.currentGamePgn = currentGamePgn;
+        this.resignButton = resignButton;
+        this.offerDrawButton = offerDrawButton;
         onlineInit();
         localInit();
         sandboxInit();
@@ -143,6 +147,15 @@ public class ChessActionHandler {
             if (e.getCode() == KeyCode.ENTER && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
                 myControl.mainScreenController.processChatInput();
             }
+        });
+
+        resignButton.setOnMouseClicked(e -> {
+            App.messager.createBooleanPopup("Are you sure?",true,true,1,() ->{
+                myControl.mainScreenController.HomeReset();
+            });
+        });
+        offerDrawButton.setOnMouseClicked(e->{
+            // todo
         });
     }
 
