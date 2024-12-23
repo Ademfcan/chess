@@ -3,15 +3,15 @@ package chessengine.Graphics;
 import chessengine.App;
 import javafx.beans.binding.*;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 
 
 public class BindingController {
 
+    private final int extraSmallMaxSize = 10;
+    private final double extraSmallParentToTextSize = (double) 1 / 63;
     private final int smallMaxSize = 15;
     private final double smallParentToTextSize = (double) 1 / 50;
     private final int medMaxSize = 22;
@@ -20,31 +20,6 @@ public class BindingController {
     private final double lgParentToTextSize = (double) 1 / 30;
     private final int xlMaxSize = 35;
 
-//    /** Provided a region and java fx styles this method will bind each style respectively to its scale factor based off the reference provided (Styles and Scale Factors must be same length!)**/
-//    public void bindRegionWithCustomStyles(Region region,DoubleExpression reference,String[] styles,double[] scaleFactors,String extraStyle){
-//        if (styles.length != scaleFactors.length) {
-//            throw new IllegalArgumentException("Styles and scaleFactors arrays must have the same length");
-//        }
-//
-//        StringBinding[] respectiveBindings = new StringBinding[styles.length];
-//        for(int i = 0;i<styles.length;i++){
-//            DoubleProperty b1 = new SimpleDoubleProperty();
-//            b1.bind(b1.multiply(scaleFactors[i]));
-//            respectiveBindings[i] = b1.asString();
-//        }
-//        StringExpression binding = Bindings.concat();
-//        for (int i = 0; i < respectiveBindings.length; i++) {
-//            if(i < respectiveBindings.length-1){
-//                binding = Bindings.concat(binding, styles[i], respectiveBindings[i], ";");
-//            }
-//            else{
-//                binding = Bindings.concat(binding, styles[i], respectiveBindings[i], ";",extraStyle);
-//            }
-//        }
-//
-//        region.styleProperty().bind(binding);
-//
-//    }
     private final double xlParentToTextSize = (double) 1 / 25;
     private final Region mainScreenFullScreen;
     private final Region startScreenFullScreen;
@@ -145,49 +120,59 @@ public class BindingController {
     }
 
     public void bindChildWidthToParentWidthWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         child.prefWidthProperty().bind(sizeBinding);
 
     }
 
     public void bindChildHeightToParentWidthWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         child.prefHeightProperty().bind(sizeBinding);
 
     }
 
     public void bindChildWidthToParentHeightWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize, percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         child.prefWidthProperty().bind(sizeBinding);
 
     }
 
     public void bindChildHeightToParentHeightWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize, percentExpectedSize);
+        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         child.prefHeightProperty().bind(sizeBinding);
 
     }
 
+    public void bindCustom(DoubleExpression parent, DoubleProperty child, double maxSize, double percentExpectedSize){
+        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize*App.dpiScaleFactor,percentExpectedSize);
+        child.bind(sizeBinding);
+    }
+
+    public void bindXSmallText(Node text, boolean isMainScreen, String textColor) {
+        Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, extraSmallMaxSize, extraSmallParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+
     public void bindSmallTextCustom(Node text, boolean isMainScreen, String extraCss) {
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, extraCss);
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, extraCss);
     }
 
     public void bindSmallText(Node text, boolean isMainScreen, String textColor) {
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, " -fx-text-fill: "+ textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, " -fx-text-fill: "+ textColor);
     }
 
     public void bindMediumText(Node text, boolean isMainScreen, String textColor) {
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, " -fx-text-fill: "+ textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, " -fx-text-fill: "+ textColor);
 
 
     }
 
     public void bindLargeText(Node text, boolean isMainScreen, String textColor) {
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentWidthWithMaxSizeCustomCss(parent, text, lgMaxSize, lgParentToTextSize, " -fx-text-fill: "+ textColor);
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, lgMaxSize, lgParentToTextSize, " -fx-text-fill: "+ textColor);
 
 
     }
@@ -197,8 +182,12 @@ public class BindingController {
         bindTextToParentMinwMaxSizeCustomCss(parent, text, xlMaxSize, xlParentToTextSize, " -fx-text-fill: "+ textColor);
 
     }
-
     // since when one scene is shown, the size of the hidden scene is not guaranteed, we bind to parent elements respective of that scene
+    public void bindXSmallText(Node text, boolean isMainScreen) {
+        Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
+        bindTextToParentMinwMaxSize(parent, text, extraSmallMaxSize, extraSmallParentToTextSize);
+    }
+
     public void bindSmallText(Node text, boolean isMainScreen) {
         Region parent = isMainScreen ? mainScreenFullScreen : startScreenFullScreen;
         bindTextToParentMinwMaxSize(parent, text, smallMaxSize, smallParentToTextSize);
@@ -238,31 +227,31 @@ public class BindingController {
     }
 
     public void bindTextToParentMinwMaxSizeCustomCss(Region parent, Node text, double maxSize, double percentExpectedSize, String extraCss) {
-        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
+        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; ", extraCss));
 
     }
 
     public void bindTextToParentMinwMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
+        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
 
     }
 
     public void bindTextToParentWidthWithMaxSizeCustomCss(Region parent, Node text, double maxSize, double percentExpectedSize, String extraCss) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; ", extraCss));
 
     }
 
     public void bindTextToParentWidthWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize, String color) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
+        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; -fx-text-fill: ", color));
 
     }
 
     public void bindTextToParentHeightWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize, String color) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
+        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
         text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; -fx-text-fill: ", color));
 
     }
@@ -282,11 +271,6 @@ public class BindingController {
 
     private NumberBinding getMaxSizeBindingCustom(DoubleExpression parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(parent.multiply(percentExpectedSize), maxSize);
-    }
-
-    public void bindCustom(DoubleExpression parent, DoubleProperty child, double maxSize, double percentExpectedSize){
-        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize,percentExpectedSize);
-        child.bind(sizeBinding);
     }
 
 

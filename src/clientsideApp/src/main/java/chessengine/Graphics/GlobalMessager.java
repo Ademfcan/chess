@@ -19,13 +19,11 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
-import javafx.util.Callback;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 
 
 public class GlobalMessager {
@@ -429,7 +427,7 @@ public class GlobalMessager {
             cancelButton.prefWidthProperty().bind(bottom.prefWidthProperty().divide(3));
             cancelButton.prefHeightProperty().bind(bottom.prefHeightProperty());
 
-            App.bindingController.bindSmallText(cancelButton, isMain);
+            App.bindingController.bindXSmallText(cancelButton, isMain);
             bottom.getChildren().add(cancelButton);
         }
 
