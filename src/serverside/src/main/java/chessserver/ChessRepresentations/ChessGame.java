@@ -7,6 +7,7 @@ import chessserver.Functions.PgnFunctions;
 import chessserver.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.AppenderRef;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -21,7 +22,7 @@ public class ChessGame {
     private ChessPosition currentPosition;
     private int curMoveIndex = -1;
     private int maxIndex = -1;
-    public String blackPlayerName;
+    private String blackPlayerName;
     private String whitePlayerName;
     private String whitePlayerPfpUrl;
     private String blackPlayerPfpUrl;

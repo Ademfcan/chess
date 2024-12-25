@@ -43,9 +43,14 @@ public class ClientsideChessGameWrapper {
 
     private Gametype webGameType;
     private boolean isWebGameInitialized;
+    private boolean isWebGameFinished;
 
-    public boolean isCurrentlyWebGame() {
-        return isWebGame;
+    public boolean isActiveWebGame() {
+        return isWebGame && (isWebGameInitialized && !isWebGameFinished);
+    }
+
+    public void setOnlineGameFinished() {
+        isWebGameFinished = true;
     }
 
     public boolean isCurrentWebGameInitialized() {
@@ -359,5 +364,6 @@ public class ClientsideChessGameWrapper {
         webGameType = null;
         isWebGame = false;
         isWebGameInitialized = false;
+        isWebGameFinished = false;
     }
 }

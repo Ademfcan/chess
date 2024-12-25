@@ -2,6 +2,7 @@ package chessengine.Managers;
 
 import chessengine.App;
 import chessengine.Audio.Effect;
+import chessengine.Enums.Window;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.Communication.InputMessage;
 import chessserver.Communication.OutputMessage;
@@ -74,6 +75,21 @@ public class WebSocketClient {
                     logger.error("------------Critical-ERROR--------------\nThe server has reponded with an action request, and no action is provided!");
 
                 }
+                case ASKINGFORDRAW -> Platform.runLater(() -> App.ChessCentralControl.chessActionHandler.handleDrawRequest());
+                case DRAWACCEPTANCEUPDATE -> {
+                    boolean drawAccepted = Boolean.parseBoolean(out.getExtraInformation());
+                    if(drawAccepted){
+                        Platform.runLater(() ->{
+                            App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("Draw Accepted");
+                        });
+                    }
+                    else{
+                        Platform.runLater(() ->{
+                            App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("Draw Request Rejected");
+                        });
+                    }
+                }
+
                 case CLIENTVAIDATIONSUCESS -> {
                     // sucessfuly accesed acount on
                     UserInfo info = App.objectMapper.readValue(out.getExtraInformation(), UserInfo.class);
@@ -81,12 +97,14 @@ public class WebSocketClient {
                 }
 
                 case GAMECLOSED -> {
+                    App.ChessCentralControl.gameHandler.gameWrapper.setOnlineGameFinished();
                     logger.debug("Game closed");
                     Platform.runLater(() ->{
                         App.ChessCentralControl.chessActionHandler.appendNewMessageToChat(out.getExtraInformation());
                     });
                 }
                 case GAMEFINISHED -> {
+                    App.ChessCentralControl.gameHandler.gameWrapper.setOnlineGameFinished();
                     Platform.runLater(() ->{
                         App.ChessCentralControl.mainScreenController.showGameOver(out.getExtraInformation());
                     });
@@ -104,6 +122,7 @@ public class WebSocketClient {
                     String pfpUrl = info[2];
                     boolean isPlayer1White = Boolean.parseBoolean(info[3]);
                     Platform.runLater(() ->{
+                        App.messager.removeLoadingCircles(Window.Main);
                         App.ChessCentralControl.gameHandler.gameWrapper.initWebGame(opponentName, opponentElo, pfpUrl, isPlayer1White);
                         App.ChessCentralControl.chessActionHandler.appendNewMessageToChat("Game Started!\nName: " + opponentName + " elo: " + opponentElo);
                     });
@@ -126,9 +145,11 @@ public class WebSocketClient {
                     });
                 }
                 case ELOUPDATE -> {
-                    int change = Integer.parseInt(out.getExtraInformation());
+                    int newElo = Integer.parseInt(out.getExtraInformation());
                     Platform.runLater(() -> {
-                        App.userManager.updateUserElo(change);
+                        App.messager.sendMessage("New Elo: " + newElo,Window.Main);
+                        App.messager.sendMessage("New Elo: " + newElo,Window.Start);
+                        App.userManager.updateUserElo(newElo);
                     });
                 }
                 case SQLSUCESS -> {
@@ -136,8 +157,8 @@ public class WebSocketClient {
                 }
                 case SQLMESSAGE ->{
                     Platform.runLater(() ->{
-                        App.messager.sendMessageQuick(out.getExtraInformation(),true);
-                        App.messager.sendMessageQuick(out.getExtraInformation(),false);
+                        App.messager.sendMessage(out.getExtraInformation(), Window.Main);
+                        App.messager.sendMessage(out.getExtraInformation(),Window.Start);
                     });
                 }
                 case INCOMINGFRIENDREQUEST -> {

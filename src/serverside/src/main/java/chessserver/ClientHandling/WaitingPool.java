@@ -62,9 +62,11 @@ public class WaitingPool {
         return null;
     }
 
-    public void tryRemoveClient(BackendClient c) {
+    public boolean tryRemoveClient(BackendClient c) {
+        boolean wasRemoved = false;
         for(Set<BackendClient> clients : waitingClients.values()){
-            clients.remove(c);
+            wasRemoved |= clients.remove(c);
         }
+        return wasRemoved;
     }
 }

@@ -2,6 +2,7 @@ package chessengine.Managers;
 
 import chessengine.App;
 import chessengine.Crypto.PersistentSaveManager;
+import chessengine.Enums.Window;
 import chessserver.Misc.ChessConstants;
 import chessserver.Enums.ChessPieceTheme;
 import chessserver.Enums.ChessboardTheme;
@@ -33,51 +34,51 @@ public class UserPreferenceManager {
 
     }
 
-    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<String> evalOptions, ComboBox<String> nMovesOptions, ComboBox<String> computerOptions, boolean isMainScreen) {
+    public static void setupUserSettingsScreen(ChoiceBox<String> themeSelection, ComboBox<String> bgColorSelector, ComboBox<String> pieceSelector, Button audioMuteBGButton, Slider audioSliderBG, Button audioMuteEffButton, Slider audioSliderEff, ComboBox<String> evalOptions, ComboBox<String> nMovesOptions, ComboBox<String> computerOptions, Window window) {
         if (themeSelection != null) {
             themeSelection.getItems().addAll("Light", "Dark");
-            App.bindingController.bindSmallText(themeSelection, isMainScreen);
+            App.bindingController.bindSmallText(themeSelection,window);
             themeSelection.setOnAction(e -> {
                 if (!themeSelection.getSelectionModel().isEmpty()) {
                     boolean isLight = themeSelection.getValue().equals("Light");
                     App.userPreferenceManager.setGlobalTheme(isLight ? GlobalTheme.Light : GlobalTheme.Dark);
-                    App.messager.sendMessageQuick("Changed Global Theme to: " + themeSelection.getValue().toLowerCase(), App.isStartScreen);
+                    App.messager.sendMessage("Changed Global Theme to: " + themeSelection.getValue().toLowerCase(), App.currentWindow);
 
                 }
             });
         }
 
         if (bgColorSelector != null) {
-            App.bindingController.bindSmallText(bgColorSelector, isMainScreen);
+            App.bindingController.bindSmallText(bgColorSelector, window);
             bgColorSelector.getItems().addAll(Arrays.stream(ChessboardTheme.values()).map(Enum::toString).toList());
             bgColorSelector.setOnAction(e -> {
                 if (!bgColorSelector.getSelectionModel().isEmpty()) {
                     App.userPreferenceManager.setChessboardTheme(ChessboardTheme.getCorrespondingTheme(bgColorSelector.getValue()));
-                    App.messager.sendMessageQuick("Changed chessboard theme to: " + bgColorSelector.getValue(), App.isStartScreen);
+                    App.messager.sendMessage("Changed chessboard theme to: " + bgColorSelector.getValue(), App.currentWindow);
                 }
             });
         }
 
         if (pieceSelector != null) {
-            App.bindingController.bindSmallText(pieceSelector, isMainScreen);
+            App.bindingController.bindSmallText(pieceSelector, window);
             pieceSelector.getItems().addAll(
                     Arrays.stream(ChessPieceTheme.values()).map(ChessPieceTheme::toString).toList()
             );
             pieceSelector.setOnAction(e -> {
                 if (!pieceSelector.getSelectionModel().isEmpty()) {
                     App.userPreferenceManager.setPieceTheme(ChessPieceTheme.getCorrespondingTheme(pieceSelector.getValue()));
-                    App.messager.sendMessageQuick("Changed piece theme to: " + pieceSelector.getValue(), App.isStartScreen);
+                    App.messager.sendMessage("Changed piece theme to: " + pieceSelector.getValue(), App.currentWindow);
                 }
             });
         }
 
         if (audioMuteBGButton != null) {
-            App.bindingController.bindSmallText(audioMuteBGButton, isMainScreen);
+            App.bindingController.bindSmallText(audioMuteBGButton, window);
             audioMuteBGButton.setOnMouseClicked(e -> {
                 boolean isBgCurMuted = App.soundPlayer.isUserPrefBgPaused();
                 // isbgCurMuted is the opposite of setbackgroundmusics arg, so no flip needed
                 App.userPreferenceManager.setBackgroundmusic(isBgCurMuted);
-                App.messager.sendMessageQuick(isBgCurMuted ? "Background Audio Unmuted" : "Background Audio Muted", App.isStartScreen);
+                App.messager.sendMessage(isBgCurMuted ? "Background Audio Unmuted" : "Background Audio Muted", App.currentWindow);
                 audioMuteBGButton.setText(isBgCurMuted ? "🔉" : "✖");
             });
         }
@@ -88,17 +89,17 @@ public class UserPreferenceManager {
             audioSliderBG.setMax(1);
             audioSliderBG.setOnMouseReleased(e -> {
                 App.userPreferenceManager.setBackgroundVolume(audioSliderBG.getValue());
-                App.messager.sendMessageQuick("Background volume: " + audioSliderBG.getValue(), App.isStartScreen);
+                App.messager.sendMessage("Background volume: " + audioSliderBG.getValue(), App.currentWindow);
             });
         }
 
         if (audioMuteEffButton != null) {
-            App.bindingController.bindSmallText(audioMuteEffButton, isMainScreen);
+            App.bindingController.bindSmallText(audioMuteEffButton, window);
             audioMuteEffButton.setOnMouseClicked(e -> {
                 boolean isEffCurMuted = App.soundPlayer.isEffectsMuted();
                 // isEffCurMuted is the opposite of effectson
                 App.userPreferenceManager.setEffectsOn(isEffCurMuted);
-                App.messager.sendMessageQuick(isEffCurMuted ? "Effects Unmuted" : "Effects Muted", App.isStartScreen);
+                App.messager.sendMessage(isEffCurMuted ? "Effects Unmuted" : "Effects Muted", App.currentWindow);
                 audioMuteEffButton.setText(isEffCurMuted ? "🔉" : "✖");
             });
         }
@@ -108,38 +109,38 @@ public class UserPreferenceManager {
             audioSliderEff.setMax(1);
             audioSliderEff.setOnMouseReleased(e -> {
                 App.userPreferenceManager.setEffectVolume(audioSliderEff.getValue());
-                App.messager.sendMessageQuick("Effect volume: " + audioSliderEff.getValue(), App.isStartScreen);
+                App.messager.sendMessage("Effect volume: " + audioSliderEff.getValue(), App.currentWindow);
             });
         }
 
         if (evalOptions != null) {
-            App.bindingController.bindSmallText(evalOptions, isMainScreen);
+            App.bindingController.bindSmallText(evalOptions, window);
             evalOptions.getItems().addAll(
                     "Stockfish", "My Computer"
             );
             evalOptions.setOnAction(e -> {
                 if (!evalOptions.getSelectionModel().isEmpty()) {
                     App.userPreferenceManager.setEvalStockfishBased(evalOptions.getValue().equals("Stockfish"));
-                    App.messager.sendMessageQuick("Changing eval base to: " + evalOptions.getValue(), App.isStartScreen);
+                    App.messager.sendMessage("Changing eval base to: " + evalOptions.getValue(), App.currentWindow);
                 }
             });
         }
 
         if (nMovesOptions != null) {
-            App.bindingController.bindSmallText(nMovesOptions, isMainScreen);
+            App.bindingController.bindSmallText(nMovesOptions, window);
             nMovesOptions.getItems().addAll(
                     "Stockfish", "My Computer"
             );
             nMovesOptions.setOnAction(e -> {
                 if (!nMovesOptions.getSelectionModel().isEmpty()) {
                     App.userPreferenceManager.setNMovesStockfishBased(nMovesOptions.getValue().equals("Stockfish"));
-                    App.messager.sendMessageQuick("Changing nMoves base to: " + nMovesOptions.getValue(), App.isStartScreen);
+                    App.messager.sendMessage("Changing nMoves base to: " + nMovesOptions.getValue(), App.currentWindow);
                 }
             });
         }
 
         if (computerOptions != null) {
-            App.bindingController.bindSmallText(computerOptions, isMainScreen);
+            App.bindingController.bindSmallText(computerOptions, window);
             computerOptions.setOnAction(e -> {
                 if (!computerOptions.getSelectionModel().isEmpty()) {
                     String out = computerOptions.getValue();
@@ -147,7 +148,7 @@ public class UserPreferenceManager {
                         out = out.substring(0, out.indexOf("(S*)"));
                     }
                     App.userPreferenceManager.setComputerMoveDiff(ComputerDifficulty.getDifficultyOffOfElo(Integer.parseInt(out), false));
-                    App.messager.sendMessageQuick("New computer elo: " + out, App.isStartScreen);
+                    App.messager.sendMessage("New computer elo: " + out, App.currentWindow);
                 }
             });
 

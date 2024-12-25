@@ -1,6 +1,7 @@
 package chessengine.Start;
 
 import chessengine.App;
+import chessengine.Enums.Window;
 import chessserver.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
@@ -10,7 +11,6 @@ import chessengine.Enums.UserInfoState;
 import chessengine.Functions.UserHelperFunctions;
 import chessengine.Managers.CampaignManager;
 import chessengine.Managers.UserPreferenceManager;
-import chessserver.Misc.ChessConstants;
 import chessengine.Misc.ClientsideFriendDataResponse;
 import chessserver.Enums.Gametype;
 import chessserver.Enums.INTENT;
@@ -45,7 +45,6 @@ import java.util.ResourceBundle;
 public class StartScreenController implements Initializable {
 
     private final Logger logger = LogManager.getLogger("Start_Screen_Controller");
-    private final int maxNewGameButtonSize = 100;
     private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
     private final Image computerIconUrl = new Image("/StartScreenIcons/robot.png");
     private final Image openIcon = new Image("/StartScreenIcons/openGame.png");
@@ -355,7 +354,6 @@ public class StartScreenController implements Initializable {
     @FXML
     HBox s10;
     List<ChessGame> oldGames;
-    boolean isRed = false;
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
     private HashMap<String,ClientsideFriendDataResponse> lookupCache;
@@ -429,7 +427,7 @@ public class StartScreenController implements Initializable {
     private void setUpLocalOptions() {
         playAsWhite.setSelected(true);
         playAsWhite.setText("Play as White");
-        App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
+        App.bindingController.bindSmallTextCustom(playAsWhite, Window.Start, "-fx-background-color: white ;-fx-text-fill: black");
         vsPlayer.setOnMouseClicked(e -> {
             App.changeToMainScreenWithoutAny("Local Game", false, playAsWhite.isSelected(), MainScreenState.LOCAL, playAsWhite.isSelected());
 
@@ -439,20 +437,15 @@ public class StartScreenController implements Initializable {
         });
         playAsWhite.setOnAction(e -> {
             // Get the node's local bounds
-            App.messager.createBooleanPopup("Are you sure?",false,true,2,() ->{
-//                App.messager.addFocusNode(playAsWhite,true);
-    //            App.messager.addMovingArrow(playAsWhite,.03,.03,5,true);
-    //            App.messager.addInformationBox(.5,.5,.3,.3,"Welcome","Hello, i will guide you through a small tutorial",true);
-                playAsWhite.setSelected(playAsWhite.isSelected());
-                if (playAsWhite.isSelected()) {
-                    playAsWhite.setText("Play as White");
-                    App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: white ;-fx-text-fill: black");
-                } else {
-                    playAsWhite.setText("Play as Black");
-                    App.bindingController.bindSmallTextCustom(playAsWhite, false, "-fx-background-color: black ;-fx-text-fill: white");
+            playAsWhite.setSelected(playAsWhite.isSelected());
+            if (playAsWhite.isSelected()) {
+                playAsWhite.setText("Play as White");
+                App.bindingController.bindSmallTextCustom(playAsWhite, Window.Start, "-fx-background-color: white ;-fx-text-fill: black");
+            } else {
+                playAsWhite.setText("Play as Black");
+                App.bindingController.bindSmallTextCustom(playAsWhite, Window.Start, "-fx-background-color: black ;-fx-text-fill: white");
 
-                }
-            });
+            }
 //
         });
     }
@@ -462,32 +455,32 @@ public class StartScreenController implements Initializable {
             setSelection(StartScreenState.CAMPAIGN);
             campaignManager.scrollToPlayerTier(App.userManager.getCampaignProgress());
         });
-        App.bindingController.bindSmallText(campaignButton, false);
+        App.bindingController.bindSmallText(campaignButton, Window.Start);
 
         localButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.REGULAR);
         });
-        App.bindingController.bindSmallText(localButton, false);
+        App.bindingController.bindSmallText(localButton, Window.Start);
 
         pgnButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.PGN);
         });
-        App.bindingController.bindSmallText(pgnButton, false);
+        App.bindingController.bindSmallText(pgnButton, Window.Start);
 
         multiplayerButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.MULTIPLAYER);
         });
-        App.bindingController.bindSmallText(multiplayerButton, false);
+        App.bindingController.bindSmallText(multiplayerButton, Window.Start);
 
         extraModesButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.EXTRA);
         });
-        App.bindingController.bindSmallText(extraModesButton, false);
+        App.bindingController.bindSmallText(extraModesButton, Window.Start);
 
         settingsButton.setOnMouseClicked(e -> {
             setSelection(StartScreenState.GENERALSETTINGS);
         });
-        App.bindingController.bindSmallText(settingsButton, false);
+        App.bindingController.bindSmallText(settingsButton, Window.Start);
 
 
         backgroundAudioButton.setOnMouseClicked(e -> {
@@ -503,7 +496,7 @@ public class StartScreenController implements Initializable {
             // muted = opposite of is bg music
             App.userPreferenceManager.setBackgroundmusic(isCurPaused);
         });
-        App.bindingController.bindSmallText(backgroundAudioButton, false);
+        App.bindingController.bindSmallText(backgroundAudioButton, Window.Start);
 
     }
 
@@ -562,7 +555,7 @@ public class StartScreenController implements Initializable {
                 App.getUserRequest(nameInput.getText(),passwordHash,(out) ->{
                     if(out.isEmpty()){
                         Platform.runLater(() -> {
-                            App.messager.sendMessageQuick("Invalid account!",true);
+                            App.messager.sendMessage("Invalid account!", Window.Start);
                         });
                     }
                     else{
@@ -662,7 +655,7 @@ public class StartScreenController implements Initializable {
 
             friendsLookupContent.getChildren().clear();
             Label noResultsLabel = new Label("No Results");
-            App.bindingController.bindSmallText(noResultsLabel,false,"Black");
+            App.bindingController.bindSmallText(noResultsLabel,Window.Start,"Black");
             friendsLookupContent.getChildren().add(noResultsLabel);
 
             if(!newValue.isEmpty()){
@@ -727,21 +720,21 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindCustom(userSettingsStack.widthProperty(),userInfoPfp.fitWidthProperty(),150,.3);
         App.bindingController.bindCustom(userSettingsStack.heightProperty(),userInfoPfp.fitHeightProperty(),150,.3);
 
-        App.bindingController.bindSmallText(friendsLookupInput,false,"Black");
-        App.bindingController.bindSmallText(FriendsButton,false,"Black");
-        App.bindingController.bindSmallText(RequestsButton,false,"Black");
-        App.bindingController.bindSmallText(SuggestedFriendsButton,false,"Black");
-        App.bindingController.bindSmallText(friendsLookupButton,false,"Black");
+        App.bindingController.bindSmallText(friendsLookupInput,Window.Start,"Black");
+        App.bindingController.bindSmallText(FriendsButton,Window.Start,"Black");
+        App.bindingController.bindSmallText(RequestsButton,Window.Start,"Black");
+        App.bindingController.bindSmallText(SuggestedFriendsButton,Window.Start,"Black");
+        App.bindingController.bindSmallText(friendsLookupButton,Window.Start,"Black");
 
 
 
         // user info page
 
         // top box
-        App.bindingController.bindMediumText(userInfoUserName,false,"Black");
-        App.bindingController.bindSmallText(userInfoUUID,false,"Black");
-        App.bindingController.bindSmallText(userInfoUserElo,false,"Black");
-        App.bindingController.bindSmallText(userInfoRank,false,"Black");
+        App.bindingController.bindMediumText(userInfoUserName,Window.Start,"Black");
+        App.bindingController.bindSmallText(userInfoUUID,Window.Start,"Black");
+        App.bindingController.bindSmallText(userInfoUserElo,Window.Start,"Black");
+        App.bindingController.bindSmallText(userInfoRank,Window.Start,"Black");
 
         App.bindingController.bindCustom(userSettingScreen.prefHeightProperty(),topUserInfoBox.prefHeightProperty(),400,.3);
         topUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
@@ -752,7 +745,7 @@ public class StartScreenController implements Initializable {
         topUserInfoRightBox.prefHeightProperty().bind(userInfoPfp.fitHeightProperty());
 
         // bottom box
-        App.bindingController.bindSmallText(userOldGamesLabel,false,"Black");
+        App.bindingController.bindSmallText(userOldGamesLabel,Window.Start,"Black");
         bottomUserInfoBox.prefHeightProperty().bind(userSettingScreen.prefHeightProperty().subtract(topUserInfoBox.heightProperty()).subtract(bottomInfoNav.heightProperty()));
         bottomUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
 
@@ -786,9 +779,9 @@ public class StartScreenController implements Initializable {
 //        hyperlinkBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
 //        backButtonBox.prefHeightProperty().bind(bottomInfoNav.heightProperty());
 //        backButtonBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
-        App.bindingController.bindSmallText(LoginPage,false,"Black");
-        App.bindingController.bindSmallText(SignUpPage,false,"Black");
-        App.bindingController.bindSmallText(userInfoBackButton,false,"Black");
+        App.bindingController.bindSmallText(LoginPage,Window.Start,"Black");
+        App.bindingController.bindSmallText(SignUpPage,Window.Start,"Black");
+        App.bindingController.bindSmallText(userInfoBackButton,Window.Start,"Black");
 
         setUserInfoNav(0);
     }
@@ -798,6 +791,17 @@ public class StartScreenController implements Initializable {
         userInfoManager.clearAllUserPanels();
         userInfoManager.changeUserInfoState(App.userManager.isLoggedIn() ? UserInfoState.LOGGEDIN : UserInfoState.SIGNEDOUT);
         userInfoManager.reloadUserPanel(App.userManager.getCurrentUser(),false,false);
+    }
+
+    public void reset(){
+        nameInput.clear();
+        passwordInput.clear();
+        createUsername.clear();
+        createPassword.clear();
+        friendsLookupInput.clear();
+        friendsLookupContent.getChildren().clear();
+        pgnTextArea.clear();
+        poolCount.setText("");
     }
 
 
@@ -841,17 +845,17 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpGeneralSettings() {
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, audioMuteBGButton, audioSliderBG, audioMuteEffButton, audioSliderEff, evalOptions, nMovesOptions, computerOptions, false);
-        App.bindingController.bindSmallText(themeLabel, false);
-        App.bindingController.bindSmallText(bgLabel, false);
-        App.bindingController.bindSmallText(pieceLabel, false);
-        App.bindingController.bindSmallText(audioLabelBG, false);
-        App.bindingController.bindSmallText(audioMuteBG, false);
-        App.bindingController.bindSmallText(audioLabelEff, false);
-        App.bindingController.bindSmallText(audioMuteEff, false);
-        App.bindingController.bindSmallText(evalLabel, false);
-        App.bindingController.bindSmallText(nMovesLabel, false);
-        App.bindingController.bindSmallText(computerLabel, false);
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, audioMuteBGButton, audioSliderBG, audioMuteEffButton, audioSliderEff, evalOptions, nMovesOptions, computerOptions, Window.Main);
+        App.bindingController.bindSmallText(themeLabel, Window.Start);
+        App.bindingController.bindSmallText(bgLabel, Window.Start);
+        App.bindingController.bindSmallText(pieceLabel, Window.Start);
+        App.bindingController.bindSmallText(audioLabelBG, Window.Start);
+        App.bindingController.bindSmallText(audioMuteBG, Window.Start);
+        App.bindingController.bindSmallText(audioLabelEff, Window.Start);
+        App.bindingController.bindSmallText(audioMuteEff, Window.Start);
+        App.bindingController.bindSmallText(evalLabel, Window.Start);
+        App.bindingController.bindSmallText(nMovesLabel, Window.Start);
+        App.bindingController.bindSmallText(computerLabel, Window.Start);
 
 
         // container bindings
@@ -911,10 +915,10 @@ public class StartScreenController implements Initializable {
         reconnectButton.setOnMouseClicked(e -> {
             boolean isSucess = App.attemptReconnection();
             if (isSucess) {
-                App.messager.sendMessageQuick("Connected to server", true);
+                App.messager.sendMessage("Connected to server", Window.Start);
                 enableMultioptions(true);
             } else {
-                App.messager.sendMessageQuick("Connection Failed", true);
+                App.messager.sendMessage("Connection Failed", Window.Start);
                 disableMultioptions();
             }
 
@@ -1001,8 +1005,8 @@ public class StartScreenController implements Initializable {
 
 
         // top left profile info
-        App.bindingController.bindSmallText(nameProfileLabel, false);
-        App.bindingController.bindSmallText(eloProfileLabel, false);
+        App.bindingController.bindSmallText(nameProfileLabel, Window.Start);
+        App.bindingController.bindSmallText(eloProfileLabel, Window.Start);
         mainAreaTopSpacer.prefHeightProperty().bind(content.heightProperty().multiply(0.01));
         content.prefWidthProperty().bind(fullscreen.widthProperty());
         content.prefHeightProperty().bind(fullscreen.heightProperty());
@@ -1013,9 +1017,9 @@ public class StartScreenController implements Initializable {
         mainArea.prefHeightProperty().bind(mainAreaReference.heightProperty());
 
         // profile options
-        App.bindingController.bindLargeText(loginTitle, false, "black");
-        App.bindingController.bindMediumText(nameLabel, false, "black");
-        App.bindingController.bindMediumText(eloLabel, false, "black");
+        App.bindingController.bindLargeText(loginTitle, Window.Start, "black");
+        App.bindingController.bindMediumText(nameLabel, Window.Start, "black");
+        App.bindingController.bindMediumText(eloLabel, Window.Start, "black");
 
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput, 350, .45);
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, nameInput, 350, .45);
@@ -1025,7 +1029,7 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindChildHeightToParentHeightWithMaxSize(mainArea, themeSelection, 50, .1);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(mainArea, themeSelection, 100, .1);
         oldGamesPanelContent.prefWidthProperty().bind(oldGamesPanel.widthProperty());
-        App.bindingController.bindSmallText(oldGamesLabel, false, "black");
+        App.bindingController.bindSmallText(oldGamesLabel, Window.Start, "black");
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, reconnectButton, 120, .30);
         reconnectButton.prefHeightProperty().bind(reconnectButton.prefWidthProperty().multiply(0.75));
     }
@@ -1128,46 +1132,54 @@ public class StartScreenController implements Initializable {
         innerGameInfo.setAlignment(Pos.CENTER);
 
         Label gameName = new Label(newGame.getGameName());
-        App.bindingController.bindSmallText(gameName, false, "Black");
+        App.bindingController.bindSmallText(gameName, Window.Start, "Black");
 
         Label playersName = new Label(newGame.getWhitePlayerName() + " vs " + newGame.getBlackPlayerName());
-        App.bindingController.bindSmallText(playersName, false, "Black");
+        App.bindingController.bindSmallText(playersName, Window.Start, "Black");
 
 
         innerGameInfo.getChildren().addAll(playersName);
         gameInfo.getChildren().addAll(gameName, innerGameInfo);
 
         Button deleteButton = new Button();
+        deleteButton.setMinWidth(Button.USE_PREF_SIZE);
+        deleteButton.setMinHeight(Button.USE_PREF_SIZE);
+        deleteButton.setMaxWidth(Button.USE_PREF_SIZE);
+        deleteButton.setMaxHeight(Button.USE_PREF_SIZE);
         deleteButton.setOnMouseClicked(e -> {
             removeFromOldGames(String.valueOf(newGame.getGameHash()));
         });
-        App.bindingController.bindCustom(gameContainer.widthProperty(), deleteButton.prefWidthProperty(), 30, .3);
-        deleteButton.prefHeightProperty().bind(deleteButton.widthProperty());
-//        deleteButton.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
+        App.bindingController.bindCustom(gameContainer.widthProperty(), deleteButton.prefWidthProperty(), 30, .2);
+        deleteButton.prefHeightProperty().bind(deleteButton.prefWidthProperty().multiply(1.2));
+        App.bindingController.bindSmallText(deleteButton,Window.Start);
         ImageView trashIconView = new ImageView(trashIcon);
-        trashIconView.fitHeightProperty().bind(deleteButton.widthProperty());
-        trashIconView.fitWidthProperty().bind(deleteButton.widthProperty());
-//        deleteButton.setGraphic(trashIconView);
+        trashIconView.setPreserveRatio(true);
+        trashIconView.fitWidthProperty().bind(deleteButton.prefWidthProperty());
+        deleteButton.setGraphic(trashIconView);
 
 
         Button openGame = new Button();
+        openGame.setMinWidth(Button.USE_PREF_SIZE);
+        openGame.setMinHeight(Button.USE_PREF_SIZE);
+        openGame.setMaxWidth(Button.USE_PREF_SIZE);
+        openGame.setMaxHeight(Button.USE_PREF_SIZE);
         openGame.setOnMouseClicked(e -> {
             App.changeToMainScreenWithGame(newGame.cloneGame(), MainScreenState.VIEWER ,false);
 
         });
-        App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .3);
-        openGame.prefHeightProperty().bind(openGame.widthProperty());
-//        openGame.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSizeButtons.asString()));
+        App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .2);
+        openGame.prefHeightProperty().bind(openGame.prefWidthProperty().multiply(1.2));
+        App.bindingController.bindSmallText(openGame,Window.Start);
         ImageView playerIconView = new ImageView(openIcon);
-        playerIconView.fitHeightProperty().bind(openGame.widthProperty());
-        playerIconView.fitWidthProperty().bind(openGame.heightProperty());
-//        openGame.setGraphic(playerIconView);
+        playerIconView.setPreserveRatio(true);
+        playerIconView.fitWidthProperty().bind(openGame.prefWidthProperty());
+        openGame.setGraphic(playerIconView);
 
         gameContainer.getChildren().add(gameInfo);
         gameContainer.getChildren().add(openGame);
         gameContainer.getChildren().add(deleteButton);
 
-        App.bindingController.bindCustom(gamesContainer.widthProperty(), gameContainer.prefHeightProperty(), 75, .30);
+        gameContainer.prefHeightProperty().bind(deleteButton.prefHeightProperty().add(3));
         gameContainer.prefWidthProperty().bind(gamesContainer.widthProperty());
         gameContainer.setStyle("-fx-background-color: darkgrey");
         gameContainer.setUserData(String.valueOf(newGame.getGameHash()));
@@ -1209,7 +1221,7 @@ public class StartScreenController implements Initializable {
             } else {
                 createUsername.clear();
                 createPassword.clear();
-                App.messager.sendMessageQuick("Creating account", true);
+                App.messager.sendMessage("Creating account", Window.Start);
                 App.createAndLoginClientRequest(lastUsername, lastPassword,currentUUID);
             }
         } else {

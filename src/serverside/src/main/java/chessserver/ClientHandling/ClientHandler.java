@@ -512,6 +512,25 @@ public class ClientHandler {
                         }
 
                     }
+                    case LEAVEWAITINGPOOL -> {
+                        boolean wasRemoved = pool.tryRemoveClient(c);
+                    }
+                    case REQUESTDRAW -> {
+                        if(c.isInGame()){
+                            c.handleDrawRequest();
+                        }
+                        else{
+                            sendMessage(c.getClientSession(),ServerResponseType.INVALIDOPERATION,"Cannot send draw request as not currently in game", input.getUniqueId());
+                        }
+                    }
+                    case DRAWACCEPTANCEUPDATE -> {
+                        if(c.isInGame()){
+                            c.handleDrawUpdate(Boolean.parseBoolean(input.getExtraInformation()));
+                        }
+                        else{
+                            sendMessage(c.getClientSession(),ServerResponseType.INVALIDOPERATION,"Cannot send draw acceptance not currently in a game", input.getUniqueId());
+                        }
+                    }
                     case LEAVEGAME -> {
                         if (c.isInGame()) {
                             c.endGame(false, false, true);

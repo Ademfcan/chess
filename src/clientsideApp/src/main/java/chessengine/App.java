@@ -2,6 +2,7 @@ package chessengine;
 
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.Enums.Window;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.Functions.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
@@ -17,7 +18,6 @@ import chessengine.Managers.CampaignMessageManager;
 import chessengine.Managers.ClientManager;
 import chessengine.Managers.UserPreferenceManager;
 import chessengine.Managers.WebSocketClient;
-import chessserver.Misc.ChessConstants;
 import chessengine.Start.StartScreenController;
 import chessserver.Enums.CampaignTier;
 import chessserver.Enums.GlobalTheme;
@@ -63,6 +63,7 @@ public class App extends Application {
     public static GlobalMessager messager;
     public static SoundPlayer soundPlayer;
     public static boolean isStartScreen;
+    public static Window currentWindow;
     public static GlobalTheme globalTheme;
     public static ClientManager userManager;
     public static BindingController bindingController;
@@ -119,7 +120,7 @@ public class App extends Application {
         try {
             webclient = userManager.getClientFromUser();
         } catch (DeploymentException e) {
-            messager.sendMessageQuick("No connection to server!", true);
+            messager.sendMessage("No connection to server!", Window.Start);
         } catch (IOException e) {
             appLogger.error("Error when changing user", e);
         }
@@ -128,10 +129,10 @@ public class App extends Application {
     public static boolean attemptReconnection() {
         try {
             Platform.runLater(() -> {
-                messager.sendMessageQuick("Disconnected from server, reconnecting...", true);
-                messager.sendMessageQuick("Disconnected from server, reconnecting...", false);
-                messager.addLoadingCircle(true);
-                messager.addLoadingCircle(false);
+                messager.sendMessage("Disconnected from server, reconnecting...", Window.Main);
+                messager.sendMessage("Disconnected from server, reconnecting...", Window.Start);
+                messager.addLoadingCircle(Window.Main);
+                messager.addLoadingCircle(Window.Start);
             });
             webclient = userManager.getClientFromUser();
             return true;
@@ -142,8 +143,8 @@ public class App extends Application {
             appLogger.error("Error when attempting reconnection", e);
         } finally {
             Platform.runLater(() -> {
-                messager.removeLoadingCircles(true);
-                messager.removeLoadingCircles(false);
+                messager.removeLoadingCircles(Window.Main);
+                messager.removeLoadingCircles(Window.Start);
             });
         }
         return false;
@@ -184,6 +185,7 @@ public class App extends Application {
 
     public static void changeToStart() {
         isStartScreen = true;
+        currentWindow = Window.Start;
         mainScene.setRoot(startRoot);
         updateTheme(globalTheme);
         if (!soundPlayer.isUserPrefBgPaused()) {
@@ -198,6 +200,7 @@ public class App extends Application {
      **/
     public static void changeToMainScreenWithoutAny(String gameName, boolean isVsComputer, boolean isPlayer1White, MainScreenState state, boolean playAsWhite) {
         isStartScreen = false;
+        currentWindow = Window.Main;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
         mainScreenController.setupWithoutGame(isVsComputer, isPlayer1White, gameName, userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), state, playAsWhite);
@@ -207,6 +210,7 @@ public class App extends Application {
 
     public static void changeToMainScreenWithGame(ChessGame loadedGame, MainScreenState state, boolean isFirstLoad) {
         isStartScreen = false;
+        currentWindow = Window.Main;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
         mainScreenController.setupWithGame(loadedGame, state, isFirstLoad);
@@ -216,6 +220,7 @@ public class App extends Application {
 
     public static void changeToMainScreenOnline(ChessGame onlinePreinit,String gameType) {
         isStartScreen = false;
+        currentWindow = Window.Main;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
         mainScreenController.preinitOnlineGame(gameType,onlinePreinit);
@@ -224,6 +229,7 @@ public class App extends Application {
 
     public static void changeToMainScreenCampaign(CampaignTier campaignTier, int campaignLevelOfTier, int difficulty) {
         isStartScreen = false;
+        currentWindow = Window.Main;
         mainScene.setRoot(mainRoot);
         updateTheme(globalTheme);
         mainScreenController.setupCampaign(userManager.getUserName(), userManager.getUserElo(), userManager.getUserPfpUrl(), campaignTier, campaignLevelOfTier, difficulty);
@@ -239,8 +245,8 @@ public class App extends Application {
                 sendRequest(intent, extraInfo, requestResponseAction, isUserSent);
             } else {
                 if (isUserSent) {
-                    messager.sendMessageQuick("No server connection!", true);
-                    messager.sendMessageQuick("No server connection!", false);
+                    messager.sendMessage("No server connection!", Window.Main);
+                    messager.sendMessage("No server connection!", Window.Start);
                 }
                 appLogger.error("Server Not Acessable!!");
 
@@ -404,13 +410,13 @@ public class App extends Application {
         if (existence > 0) {
             switch (existence) {
                 case 1:
-                    messager.sendMessageQuick("Already your friend!", true);
+                    messager.sendMessage("Already your friend!", Window.Start);
                     break;
                 case 2:
-                    messager.sendMessageQuick("You have already sent a friend request", true);
+                    messager.sendMessage("You have already sent a friend request", Window.Start);
                     break;
                 case 3:
-                    messager.sendMessageQuick("This person has already sent you a friend request", true);
+                    messager.sendMessage("This person has already sent you a friend request", Window.Start);
                     break;
             }
             return;
@@ -421,9 +427,9 @@ public class App extends Application {
             Platform.runLater(() -> {
                 if (!out.isEmpty()) {
                     App.userManager.addOutgoingRequest(userName, Integer.parseInt(out), true);
-                    messager.sendMessageQuick("Request Sent", true);
+                    messager.sendMessage("Request Sent", Window.Start);
                 } else {
-                    messager.sendMessageQuick("Failed to send request", true);
+                    messager.sendMessage("Failed to send request", Window.Start);
                 }
                 if (runIfSucess != null) {
                     runIfSucess.run();
@@ -436,7 +442,7 @@ public class App extends Application {
     public static void acceptIncomingRequest(String userName, int UUID, Runnable runIfSucess) {
         int existence = userManager.doesFriendExist(userName, false);
         if (existence > 0) {
-            messager.sendMessageQuick("Already your friend!", true);
+            messager.sendMessage("Already your friend!", Window.Start);
             return;
         }
 
@@ -444,9 +450,9 @@ public class App extends Application {
             Platform.runLater(() -> {
                 if (Boolean.parseBoolean(out)) {
                     App.userManager.addNewFriend(userName, UUID, true);
-                    messager.sendMessageQuick("Added friend", true);
+                    messager.sendMessage("Added friend", Window.Start);
                 } else {
-                    messager.sendMessageQuick("Error! Friend no longer exists on server", true);
+                    messager.sendMessage("Error! Friend no longer exists on server", Window.Start);
                 }
 
                 if (runIfSucess != null) {
@@ -547,6 +553,12 @@ public class App extends Application {
     public static void createOnlineGameRequest(String gameType,ChessGame onlinePreinit) {
         webclient.setLinkedGame(onlinePreinit);
         sendRequest(INTENT.CREATEGAME,gameType,(out) ->{
+            if(Integer.parseInt(out) == -1){
+                // match found
+                Platform.runLater(()->{
+                    App.messager.removeLoadingCircles(Window.Main);
+                });
+            }
             System.out.println("todo");
         },true);
     }
@@ -644,6 +656,7 @@ public class App extends Application {
         messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.mainRef);
         mainScene = new Scene(startRoot);
         isStartScreen = true;
+        currentWindow = Window.Start;
         primaryStage.setOnCloseRequest(e -> {
             mainScreenController.endAsync();
         });

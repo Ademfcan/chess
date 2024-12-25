@@ -3,6 +3,7 @@ package chessengine.Start;
 import chessengine.App;
 import chessengine.Enums.FriendEntry;
 import chessengine.Enums.UserInfoState;
+import chessengine.Enums.Window;
 import chessengine.Functions.UserHelperFunctions;
 import chessengine.Misc.ClientsideDataEntry;
 import chessengine.Misc.ClientsideFriendDataResponse;
@@ -61,6 +62,7 @@ public class UserInfoManager {
                 App.resyncFriends(true);
                 showFriends();
             }
+            currentUserShown = user;
         }
         else{
             logger.debug("Already showing same user!");
@@ -155,7 +157,7 @@ public class UserInfoManager {
         String friendName = databaseEntry.getUserInfo().getUserName();
         int friendUUID = databaseEntry.getUserInfo().getUuid();
         Label name = new Label(friendName);
-        App.bindingController.bindSmallText(name,false,"black");
+        App.bindingController.bindSmallText(name, Window.Start,"black");
         lookupEntry.getChildren().add(name);
 
         // action button / graphic
@@ -210,7 +212,7 @@ public class UserInfoManager {
 
     private void addEmptyEntry(VBox container,String message){
         Label label = new Label(message);
-        App.bindingController.bindSmallText(label,false,"Black");
+        App.bindingController.bindSmallText(label,Window.Start,"Black");
         container.getChildren().add(label);
     }
 

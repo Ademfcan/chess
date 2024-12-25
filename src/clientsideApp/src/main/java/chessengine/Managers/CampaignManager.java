@@ -1,6 +1,7 @@
 package chessengine.Managers;
 
 import chessengine.App;
+import chessengine.Enums.Window;
 import chessserver.User.CampaignProgress;
 import chessserver.Enums.CampaignTier;
 import chessserver.Enums.ProfilePicture;
@@ -353,7 +354,7 @@ public class CampaignManager {
 
                 // children of infoPanel
                 Label title = new Label(levelName + " " + levelElo);
-                App.bindingController.bindLargeText(title, false, "black");
+                App.bindingController.bindLargeText(title, Window.Start, "black");
                 // will contain the pawns showing your score
                 // like 3 stars in a game
                 HBox pawnContainer = new HBox(5);

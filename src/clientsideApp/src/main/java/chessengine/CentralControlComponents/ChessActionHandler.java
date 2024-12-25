@@ -5,7 +5,9 @@ import chessengine.Audio.Effect;
 import chessengine.Computation.MoveGenerator;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
+import chessengine.Enums.Window;
 import chessengine.Misc.Constants;
+import chessserver.Enums.INTENT;
 import chessserver.Functions.AdvancedChessFunctions;
 import chessserver.Functions.GeneralChessFunctions;
 import chessengine.Functions.LineLabeler;
@@ -29,6 +31,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import org.apache.commons.io.output.ClosedOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -139,23 +142,43 @@ public class ChessActionHandler {
     private void onlineInit() {
         // event handlers for when sending a message
         sendMessageButton.setOnMouseClicked(e -> {
-            if (!chatInput.getText().isEmpty() && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
-                myControl.mainScreenController.processChatInput();
+            if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
+                if (!chatInput.getText().isEmpty() && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
+                    myControl.mainScreenController.processChatInput();
+                }
+            }
+            else{
+                logger.debug("Not active web game");
             }
         });
         chatInput.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
-                myControl.mainScreenController.processChatInput();
+            if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
+                if (e.getCode() == KeyCode.ENTER && myControl.mainScreenController.currentState == MainScreenState.ONLINE) {
+                    myControl.mainScreenController.processChatInput();
+                }
+            }
+            else{
+                logger.debug("Not active web game");
             }
         });
 
         resignButton.setOnMouseClicked(e -> {
-            App.messager.createBooleanPopup("Are you sure?",true,true,1,() ->{
-                myControl.mainScreenController.HomeReset();
-            });
+            if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
+                App.messager.createBooleanPopup("Are you sure?","Yes","No",Window.Main,true,1,() ->{
+                    myControl.mainScreenController.HomeReset();
+                },null);
+            }
+            else{
+                logger.debug("Not active web game");
+            }
         });
         offerDrawButton.setOnMouseClicked(e->{
-            // todo
+            if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
+                App.sendRequest(INTENT.REQUESTDRAW,"",null,true);
+            }
+            else{
+                logger.debug("Not active web game");
+            }
         });
     }
 
@@ -244,6 +267,8 @@ public class ChessActionHandler {
         clearPrevPiece(true);
         bestmovesBox.getChildren().clear();
         movesPlayedBox.getChildren().clear();
+        p1moveClk.setText("");
+        p2moveClk.setText("");
 
         gameInfo.clear();
         chatInput.clear();
@@ -261,7 +286,7 @@ public class ChessActionHandler {
         Label pgnDescriptor = new Label(pgn);
         pgnDescriptor.setBackground(Constants.defaultBg);
 
-        App.bindingController.bindSmallText(pgnDescriptor, true, "Black");
+        App.bindingController.bindSmallText(pgnDescriptor, Window.Main, "Black");
         pgnDescriptor.setUserData(numLabels);
         pgnDescriptor.setAlignment(Pos.CENTER);
         int pgnLen = pgn.length();
@@ -282,7 +307,7 @@ public class ChessActionHandler {
             Label numSeparator = new Label(moveNum + ".");
             numSeparator.setAlignment(Pos.CENTER);
             numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
-            App.bindingController.bindSmallText(numSeparator, true, "White");
+            App.bindingController.bindSmallText(numSeparator, Window.Main, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 
         }
@@ -367,7 +392,12 @@ public class ChessActionHandler {
 //    }
 
     public void appendNewMessageToChat(String message) {
-        gameInfo.appendText(message + "\n");
+        if(myControl.gameHandler.currentlyGameActive()){
+            gameInfo.appendText(message + "\n");
+        }
+        else{
+            logger.warn("Message being appended to chat when no game is active!");
+        }
     }
 
 
@@ -392,7 +422,7 @@ public class ChessActionHandler {
             blackIndicator.setBackground(Constants.labelUnactive);
             if (updateTimeLabels) {
                 whiteLabel.styleProperty().unbind();
-                App.bindingController.bindSmallText(whiteLabel, true, "Black");
+                App.bindingController.bindSmallText(whiteLabel, Window.Main, "Black");
             }
 
 
@@ -401,7 +431,7 @@ public class ChessActionHandler {
             blackIndicator.setBackground(Constants.blackTurnActive);
             if (updateTimeLabels) {
                 blackLabel.styleProperty().unbind();
-                App.bindingController.bindSmallText(blackLabel, true, "White");
+                App.bindingController.bindSmallText(blackLabel, Window.Main, "White");
             }
         }
 
@@ -1072,9 +1102,9 @@ public class ChessActionHandler {
                 myControl.chessBoardGUIHandler.addArrow(moveArrow);
                 String advStr = formatter.format(adv);
                 Label expectedAdvantage = new Label(advStr);
-                App.bindingController.bindSmallText(moveNumber, true);
-                App.bindingController.bindSmallText(moveAsPgn, true);
-                App.bindingController.bindSmallText(expectedAdvantage, true);
+                App.bindingController.bindSmallText(moveNumber, Window.Main);
+                App.bindingController.bindSmallText(moveAsPgn, Window.Main);
+                App.bindingController.bindSmallText(expectedAdvantage, Window.Main);
                 moveGui.prefWidthProperty().bind(bestmovesBox.widthProperty());
                 moveGui.getChildren().addAll(moveNumber, moveAsPgn, expectedAdvantage);
                 moveGui.setOnMouseClicked(e -> {
@@ -1099,7 +1129,7 @@ public class ChessActionHandler {
     }
 
     public void timeTick(int timeLeft) {
-        if(myControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isCurrentlyWebGame()){
+        if(myControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
             boolean currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurnAtMax();
             boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
 
@@ -1108,6 +1138,22 @@ public class ChessActionHandler {
         }
         else{
             logger.error("Time tick while no game active or not web game!");
+        }
+    }
+
+    public void handleDrawRequest() {
+        if(App.ChessCentralControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
+            String opponentName = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? myControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() : myControl.gameHandler.gameWrapper.getGame().getBlackPlayerName();
+            App.messager.createBooleanPopup(opponentName + " is offering a draw","Accept","Regect",Window.Main,true,2,
+                () ->{
+                    App.sendRequest(INTENT.DRAWACCEPTANCEUPDATE,"true",null,true);
+                },
+                () -> {
+                    App.sendRequest(INTENT.DRAWACCEPTANCEUPDATE,"false",null,true);
+                });
+        }
+        else{
+            logger.error("Asking for draw when no game currently active or not web game!");
         }
     }
 

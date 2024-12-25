@@ -192,8 +192,8 @@ public class UserInfo {
         updateLastTimeStamp();
     }
 
-    public void adjustElo(int change) {
-        this.userelo += change;
+    public void setNewElo(int newElo) {
+        this.userelo = newElo;
         this.userelo = Math.max(this.userelo,0);
         updateLastTimeStamp();
     }

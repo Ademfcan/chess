@@ -59,6 +59,18 @@ public enum INTENT {
      **/
     CLOSESESS(false),
     /**
+     * does not require a response action
+     **/
+    REQUESTDRAW(false),
+    /**
+     * does not require a response action
+     **/
+    DRAWACCEPTANCEUPDATE(false),
+    /**
+     * does not require a response action
+     **/
+    LEAVEWAITINGPOOL(false),
+    /**
      * requires a response action
      **/
     GetCurrentUUID(true),

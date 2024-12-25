@@ -1,6 +1,7 @@
 package chessengine.Graphics;
 
 import chessengine.App;
+import chessengine.Enums.Window;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -18,12 +19,15 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 
 public class GlobalMessager {
@@ -49,10 +53,12 @@ public class GlobalMessager {
     public GlobalMessager() {
         isInit = false;
     }
-    public void addLoadingCircle(boolean isStart){
+    public void addLoadingCircle(Window window){
         ProgressIndicator indicator = new ProgressIndicator();
         indicator.setUserData("l_c");
-        Pane ref = isStart ? startRef : mainRef;
+        Pane ref = window == Window.Start ? startRef : mainRef;
+        indicator.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(indicator.widthProperty().divide(2)));
+        indicator.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(indicator.heightProperty().divide(2)));
         ref.getChildren().add(indicator);
     }
 
@@ -64,27 +70,33 @@ public class GlobalMessager {
             // if the raw pane is being clicked, it means at least one popup is left and thus the pane is not empty
             Popup p = this.popupsStart.peek();
             if(p.isSkippable){
-                closePopup(false,p.popupBox,p.popupIdx);
+                if(p.runOnClose != null){
+                    p.runOnClose.run();
+                }
+                closePopup(Window.Start,p.popupBox,p.popupIdx);
             }
         });
         mainRef.setOnMouseClicked(e ->{
             // if the raw pane is being clicked, it means at least one popup is left and thus the pane is not empty
             Popup p = this.popupsMain.peek();
             if(p.isSkippable){
-                closePopup(true,p.popupBox,p.popupIdx);
+                if(p.runOnClose != null){
+                    p.runOnClose.run();
+                }
+                closePopup(Window.Main,p.popupBox,p.popupIdx);
             }
         });
         this.mainRef = mainRef;
         startRef.layoutBoundsProperty().addListener(e -> {
             Platform.runLater(() -> {
-                redrawArrows(true);
-                redrawFocusNodes(true);
+                redrawArrows(Window.Start);
+                redrawFocusNodes(Window.Start);
             });
         });
         mainRef.layoutBoundsProperty().addListener(e -> {
             Platform.runLater(() -> {
-                redrawArrows(false);
-                redrawFocusNodes(false);
+                redrawArrows(Window.Main);
+                redrawFocusNodes(Window.Main);
 
             });
         });
@@ -96,35 +108,44 @@ public class GlobalMessager {
         return isInit;
     }
 
-    public void sendMessageQuick(String message, boolean isforStart) {
-        sendMessage(message, isforStart, Duration.seconds(2));
+    private int numFloatingMessages = 0;
+    public void sendMessage(String message, Window window) {
+        sendMessage(message, window, Duration.seconds(2),Duration.seconds(2));
 
 
     }
 
-    public void sendMessage(String message, boolean isforStart, Duration duration) {
+    private void sendMessage(String message, Window window, Duration pauseDuration,Duration fadeAwayDuration) {
         if (isInit) {
             Label messageL = new Label(message);
-            Pane ref = isforStart ? startRef : mainRef;
-            PathTransition transition = new PathTransition();
-            FadeTransition ftransition = new FadeTransition();
-
-            Line path = new Line(ref.getWidth() / 2, ref.getHeight() / 2, ref.getWidth() / 2, 0);
-            transition.setPath(path);
-            transition.setDuration(duration);
-            transition.setInterpolator(Interpolator.EASE_OUT);
-            transition.setOnFinished(e -> {
-                ref.getChildren().remove(messageL);
-            });
+            messageL.setFont(Font.font("Bold"));
+            App.bindingController.bindSmallText(messageL,window);
+            Pane ref = window == Window.Start ? startRef : mainRef;
+            messageL.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(messageL.widthProperty().divide(2)));
+            if(numFloatingMessages == 0){
+                messageL.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(messageL.heightProperty().divide(2)));
+            }
+            else{
+                messageL.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(messageL.heightProperty().divide(2)).subtract(messageL.heightProperty().multiply(numFloatingMessages)));
+            }
             ref.getChildren().add(messageL);
 
-            ftransition.setFromValue(1.0);
-            ftransition.setToValue(0);
-            ftransition.setDuration(duration);
+            PauseTransition pause = new PauseTransition(pauseDuration.add(Duration.seconds(0.2).multiply(numFloatingMessages)));
+            FadeTransition fadetransition = new FadeTransition(fadeAwayDuration,messageL);
+            fadetransition.setFromValue(1.0);
+            fadetransition.setToValue(.1);
+            fadetransition.setOnFinished(e ->{
+                ref.getChildren().remove(messageL);
+            });
+            numFloatingMessages++;
 
-            ParallelTransition pTrans = new ParallelTransition(messageL, transition, ftransition);
 
-            pTrans.play();
+            pause.setOnFinished(event -> {
+                numFloatingMessages--;
+                fadetransition.play();
+            });
+
+            pause.play();
 
         } else {
             logger.error("Trying to send a global message before it is init");
@@ -142,23 +163,23 @@ public class GlobalMessager {
         startMessager.getChildren().add(c);
     }
 
-    public void addMovingArrow(Node focus, double percentX, double percentY, double animationTimeSeconds, boolean isForStart) {
+    public void addMovingArrow(Node focus, double percentX, double percentY, double animationTimeSeconds, Window window) {
         Bounds boundsInScene = focus.localToScene(focus.getBoundsInLocal());
         // Get the x and y coordinates relative to the scene
         double leftX = boundsInScene.getMinX();
         double rightX = boundsInScene.getMaxX();
         double sceneY = boundsInScene.getCenterY();
-        if (isForStart) {
+        if (window == Window.Start) {
             movingArrowsStart.add(new NodeWrapper(focus, percentX, percentY, animationTimeSeconds));
         } else {
             movingArrowsMain.add(new NodeWrapper(focus, percentX, percentY, animationTimeSeconds));
         }
-        addArrow(leftX, rightX, sceneY, percentX, percentY, isForStart, true, animationTimeSeconds);
+        addArrow(leftX, rightX, sceneY, percentX, percentY, window, true, animationTimeSeconds);
 
     }
 
-    private void addArrow(double leftX, double rightX, double y, double percentX, double percentY, boolean isForStart, boolean animate, double animationTimeSeconds) {
-        Pane ref = isForStart ? startRef : mainRef;
+    private void addArrow(double leftX, double rightX, double y, double percentX, double percentY, Window window, boolean animate, double animationTimeSeconds) {
+        Pane ref = window == Window.Start ? startRef : mainRef;
         double spaceX = ref.getWidth();
         double spaceY = ref.getHeight();
         double spaceNeededX = percentX * spaceX;
@@ -253,9 +274,9 @@ public class GlobalMessager {
 
     }
 
-    private void redrawArrows(boolean isForStart) {
-        clearArrows(isForStart);
-        List<NodeWrapper> arrowsToRedraw = isForStart ? movingArrowsStart : movingArrowsMain;
+    private void redrawArrows(Window window) {
+        clearArrows(window);
+        List<NodeWrapper> arrowsToRedraw = window == Window.Start ? movingArrowsStart : movingArrowsMain;
         for (NodeWrapper s : arrowsToRedraw) {
             Bounds boundsInScene = s.n.localToScene(s.n.getBoundsInLocal());
             // Get the x and y coordinates relative to the scene
@@ -263,35 +284,35 @@ public class GlobalMessager {
             double rightX = boundsInScene.getMaxX();
             double sceneY = boundsInScene.getCenterY();
 //            addRef(boundsInScene.getCenterX(),sceneY);
-            addArrow(leftX, rightX, sceneY, s.percentX, s.percentY, isForStart, true, s.animationTimeSeconds);
+            addArrow(leftX, rightX, sceneY, s.percentX, s.percentY, window, true, s.animationTimeSeconds);
         }
     }
 
-    private void redrawFocusNodes(boolean isForStart) {
-        clearFocusNodes(isForStart);
-        List<Node> arrowsToRedraw = isForStart ? focusPointsStart : focusPointsMain;
+    private void redrawFocusNodes(Window window) {
+        clearFocusNodes(window);
+        List<Node> arrowsToRedraw = window == Window.Start ? focusPointsStart : focusPointsMain;
         for (Node s : arrowsToRedraw) {
-            addFocusNodeH(s, isForStart);
+            addFocusNodeH(s, window);
         }
     }
 
-    private void clearArrows(boolean isForStart) {
-        Pane parent = isForStart ? startRef : mainRef;
+    private void clearArrows(Window window) {
+        Pane parent = window == Window.Start ? startRef : mainRef;
         parent.getChildren().removeIf(n -> n.getUserData() != null && n.getUserData().toString().equals("arrow"));
     }
 
-    private void clearFocusNodes(boolean isForStart) {
-        Group parent = isForStart ? startMessager : mainMessager;
+    private void clearFocusNodes(Window window) {
+        Group parent = window == Window.Start ? startMessager : mainMessager;
         parent.getChildren().removeIf(n -> n.getUserData() != null && n.getUserData().toString().equals("focus"));
     }
 
-    private void clearInfoBoxes(boolean isForStart) {
-        Pane parent = isForStart ? startRef : mainRef;
+    private void clearInfoBoxes(Window window) {
+        Pane parent = window == Window.Start ? startRef : mainRef;
         parent.getChildren().removeIf(n -> n.getUserData() != null && n.getUserData().toString().equals("bg"));
     }
 
-    public void addInformationBox(double percentCenterX, double percentCenterY, double percX, double percY, String title, String information, boolean isStart) {
-        Pane ref = isStart ? startRef : mainRef;
+    public void addInformationBox(double percentCenterX, double percentCenterY, double percX, double percY, String title, String information, Window window) {
+        Pane ref = window == Window.Start ? startRef : mainRef;
         VBox background = new VBox(6);
         background.setUserData("bg");
         background.setAlignment(Pos.CENTER);
@@ -303,30 +324,30 @@ public class GlobalMessager {
         background.layoutYProperty().bind(ref.heightProperty().multiply(percentCenterY).subtract(background.heightProperty().divide(2)));
 
         Label titleLabel = new Label(title);
-        App.bindingController.bindMediumText(titleLabel, !isStart, "Black");
+        App.bindingController.bindMediumText(titleLabel, window, "Black");
 
         Text content = new Text(information);
-        App.bindingController.bindSmallTextCustom(content, !isStart, "-fx-text-fill: Black;-fx-text-alignment: center;");
+        App.bindingController.bindSmallTextCustom(content, window, "-fx-text-fill: Black;-fx-text-alignment: center;");
         background.getChildren().addAll(titleLabel, content);
 
         ref.getChildren().add(background);
 
     }
 
-    public void addFocusNode(Node n, boolean isStart) {
-        if (isStart) {
+    public void addFocusNode(Node n, Window window) {
+        if (window == Window.Start) {
             focusPointsStart.add(n);
         } else {
             focusPointsMain.add(n);
         }
-        addFocusNodeH(n, isStart);
+        addFocusNodeH(n, window);
     }
 
     private final int[][] horizontalknowns = new int[][]{new int[]{0, 0, 1, -1}, new int[]{0, -1, 1, 1},new int[]{0, -1, -1, 1}, new int[]{-1, 0, 1, 1}, };
 
-    private void addFocusNodeH(Node n, boolean isStart) {
-        Pane ref = isStart ? startRef : mainRef;
-        Group container = isStart ? startMessager : mainMessager;
+    private void addFocusNodeH(Node n, Window window) {
+        Pane ref = window == Window.Start ? startRef : mainRef;
+        Group container = window == Window.Start ? startMessager : mainMessager;
         Bounds boundsInScene = n.localToScene(n.getBoundsInLocal());
         // Get the x and y coordinates relative to the scene
         double x = boundsInScene.getMinX();
@@ -365,41 +386,46 @@ public class GlobalMessager {
 
     }
 
-    public void removeLoadingCircles(boolean isStart) {
-        Pane ref = isStart ? startRef : mainRef;
+    public void removeLoadingCircles(Window window) {
+        Pane ref = window == Window.Start ? startRef : mainRef;
         ref.getChildren().removeIf(c -> c.getUserData() != null && c.getUserData().equals("l_c"));
 
     }
 
 
 
-    public void createBooleanPopup(String prompt,boolean isMain,boolean isSkippable, int popupIdx, Runnable ifSucess){
-        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+    public void createBooleanPopup(String prompt,String yesPrompt,String noPrompt, Window window, boolean isSkippable, int popupIdx, Runnable ifSucess,Runnable ifFail){
+        Set<Integer> popupIds = window == Window.Start ? this.activeStartPopupIds : this.activeMainPopupIds;
         if(popupIds.contains(popupIdx)) return;
         HBox customAction = new HBox();
         customAction.setAlignment(Pos.CENTER);
         customAction.setSpacing(5);
-        Button yes = new Button("Yes");
+        Button yes = new Button(yesPrompt);
         yes.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
         yes.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
-        App.bindingController.bindSmallText(yes,isMain);
-        Button no = new Button("No");
+        App.bindingController.bindSmallText(yes, window);
+        Button no = new Button(noPrompt);
         no.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
         no.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
-        App.bindingController.bindSmallText(no,isMain);
+        App.bindingController.bindSmallText(no, window);
         customAction.getChildren().addAll(yes,no);
-        VBox popup = createBasePopupWindow(prompt,customAction,isMain,isSkippable,popupIdx);
+        VBox popup = createBasePopupWindow(prompt,customAction, window,isSkippable,popupIdx,ifFail);
         yes.setOnMouseClicked(e->{
-            closePopup(isMain,popup,popupIdx);
-            ifSucess.run();
+            closePopup(window,popup,popupIdx);
+            if(ifSucess != null){
+                ifSucess.run();
+            }
         });
         no.setOnMouseClicked(e->{
-            closePopup(isMain,popup,popupIdx);
+            closePopup(window,popup,popupIdx);
+            if(ifFail != null){
+                ifFail.run();
+            }
         });
 
     }
 
-    private VBox createBasePopupWindow(String prompt, HBox customAction,boolean isMain,boolean isSkippable,int popupIdx){
+    private VBox createBasePopupWindow(String prompt, HBox customAction, Window window, boolean isSkippable, int popupIdx,Runnable ifFail){
 
 
         VBox popupBox = new VBox();
@@ -412,7 +438,7 @@ public class GlobalMessager {
         top.prefHeightProperty().bind(popupBox.heightProperty().multiply(.3));
 
         Label promptLabel = new Label(prompt);
-        App.bindingController.bindSmallText(promptLabel,isMain,"Black");
+        App.bindingController.bindSmallText(promptLabel, window,"Black");
         top.getChildren().add(promptLabel);
 
         HBox bottom = new HBox();
@@ -422,12 +448,15 @@ public class GlobalMessager {
         if(isSkippable) {
             Button cancelButton = new Button("Cancel");
             cancelButton.setOnMouseClicked(e ->{
-                closePopup(isMain,popupBox,popupIdx);
+                if(ifFail != null){
+                    ifFail.run();
+                }
+                closePopup(window,popupBox,popupIdx);
             });
             cancelButton.prefWidthProperty().bind(bottom.prefWidthProperty().divide(3));
             cancelButton.prefHeightProperty().bind(bottom.prefHeightProperty());
 
-            App.bindingController.bindXSmallText(cancelButton, isMain);
+            App.bindingController.bindXSmallText(cancelButton, window); // uses ismain
             bottom.getChildren().add(cancelButton);
         }
 
@@ -435,30 +464,30 @@ public class GlobalMessager {
         customAction.prefHeightProperty().bind(popupBox.heightProperty().subtract(top.heightProperty()).subtract(bottom.heightProperty()));
         popupBox.getChildren().addAll(top,customAction,bottom);
 
-        Pane ref = isMain ? this.mainRef : this.startRef;
+        Pane ref = window == Window.Start ? this.startRef : this.mainRef;
         App.bindingController.bindCustom(ref.widthProperty(),popupBox.prefWidthProperty(),350,0.4);
         App.bindingController.bindCustom(ref.heightProperty(),popupBox.prefHeightProperty(),220,0.4);
         popupBox.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(popupBox.widthProperty().divide(2)));
         popupBox.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(popupBox.heightProperty().divide(2)));
-        addPopup(isMain,isSkippable,popupBox,popupIdx);
+        addPopup(window,isSkippable,popupBox,popupIdx,ifFail);
         return popupBox;
 
     }
 
-    private void addPopup(boolean isMain,boolean isSkippable,VBox popupBox,int popupIdx){
-        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+    private void addPopup(Window window, boolean isSkippable, VBox popupBox, int popupIdx,Runnable ifFail){
+        Set<Integer> popupIds = window == Window.Start ? this.activeStartPopupIds : this.activeMainPopupIds;
         if(!popupIds.contains(popupIdx)){
-            Pane ref = isMain ? this.mainRef : this.startRef;
+            Pane ref = window == Window.Start ? this.startRef : this.mainRef;
             ref.getChildren().add(popupBox);
             popupBox.toFront();
-            if(isMain){
-                this.popupsMain.push(new Popup(popupBox,isSkippable,popupIdx));
+            if(window == Window.Start){
+                this.popupsStart.push(new Popup(popupBox,isSkippable,popupIdx,ifFail));
             }
             else{
-                this.popupsStart.push(new Popup(popupBox,isSkippable,popupIdx));
+                this.popupsMain.push(new Popup(popupBox,isSkippable,popupIdx,ifFail));
             }
             popupIds.add(popupIdx);
-            updatePaneWithPopup(isMain);
+            updatePaneWithPopup(window);
         }
         else{
             logger.debug("Skipping adding already active popup");
@@ -466,17 +495,17 @@ public class GlobalMessager {
 
     }
 
-    private void closePopup(boolean isMain,VBox popup,int popupIdx) {
-        Set<Integer> popupIds = isMain ? this.activeMainPopupIds : this.activeStartPopupIds;
+    private void closePopup(Window window, VBox popup, int popupIdx) {
+        Set<Integer> popupIds = window == Window.Start ? this.activeStartPopupIds : this.activeMainPopupIds;
         if(popupIds.contains(popupIdx)){
-            Pane ref = isMain ? this.mainRef : this.startRef;
+            Pane ref = window == Window.Start ? this.startRef : this.mainRef;
             ref.getChildren().remove(popup);
-            removePanePopup(isMain);
-            if(isMain){
-                this.popupsMain.pop(); // should never be empty
+            removePanePopup(window);
+            if(window == Window.Start){
+                this.popupsStart.pop();
             }
             else{
-                this.popupsStart.pop();
+                this.popupsMain.pop(); // should never be empty
             }
             popupIds.remove(popupIdx);
         }
@@ -487,28 +516,28 @@ public class GlobalMessager {
     }
     private int numMainPopups = 0;
     private int numStartPopups = 0;
-    private void updatePaneWithPopup(boolean isMain){
-        if(isMain){
-            this.numMainPopups++;
-        }
-        else{
+    private void updatePaneWithPopup(Window window){
+        if(window == Window.Start){
             this.numStartPopups++;
         }
-        Pane ref = isMain ? this.mainRef : this.startRef;
+        else{
+            this.numMainPopups++;
+        }
+        Pane ref = window == Window.Start ? this.startRef : this.mainRef;
         ref.setMouseTransparent(false); // adding a popup means that there is a popup guaranteed so no need to check for mouse transparency
     }
 
-    private void removePanePopup(boolean isMain){
+    private void removePanePopup(Window window){
         boolean greaterThanZero;
-        if(isMain){
-            this.numMainPopups--;
-            greaterThanZero = this.numMainPopups > 0;
-        }
-        else{
+        if(window == Window.Start){
             this.numStartPopups--;
             greaterThanZero = this.numStartPopups > 0;
         }
-        Pane ref = isMain ? this.mainRef : this.startRef;
+        else{
+            this.numMainPopups--;
+            greaterThanZero = this.numMainPopups > 0;
+        }
+        Pane ref = window == Window.Start ? this.startRef : this.mainRef;
         ref.setMouseTransparent(!greaterThanZero); // if there are any popups (ie greaterthanzero) the pane should NOT be mouse transparent
     }
 
@@ -518,7 +547,7 @@ public class GlobalMessager {
 
     }
 
-    private record Popup(VBox popupBox,boolean isSkippable,int popupIdx){
+    private record Popup(VBox popupBox,boolean isSkippable,int popupIdx,Runnable runOnClose){
 
     }
 

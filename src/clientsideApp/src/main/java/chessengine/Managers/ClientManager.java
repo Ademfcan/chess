@@ -163,9 +163,9 @@ public class ClientManager {
 
     }
 
-    public void updateUserElo(int change) {
-        if (change != 0) {
-            appUser.getInfo().adjustElo(change);
+    public void updateUserElo(int newElo) {
+        if (newElo >= 0) {
+            appUser.getInfo().setNewElo(newElo);
             loadChanges();
             pushChangesToDatabase();
         } else {

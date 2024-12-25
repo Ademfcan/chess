@@ -51,4 +51,12 @@ public class BackendClient extends Client {
     public int hashCode() {
         return Objects.hash(clientSession);
     }
+
+    public void handleDrawRequest() {
+        currentGame.handleDrawRequest(this);
+    }
+
+    public void handleDrawUpdate(boolean isDraw) {
+        currentGame.handleDrawUpdate(this,isDraw);
+    }
 }

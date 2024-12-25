@@ -67,7 +67,7 @@ tasks.named('test') {
 //}
 
 jar {
-    archiveClassifier.set('fat') // Appends "-fat" to the JAR name
+    archiveClassifier.set('fat')
     manifest {
         attributes(
                 'Main-Class': 'chessengine.Main', // Fully qualified main class

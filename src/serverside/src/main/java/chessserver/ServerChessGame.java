@@ -176,4 +176,21 @@ public class ServerChessGame {
         return 1 / (1 + Math.pow(10, (currentPlayerElo - opponentElo) / 400.0d));
     }
 
+    public void handleDrawRequest(BackendClient requester) {
+        if(requester.equals(client1)){
+            ClientHandler.sendMessage(client2.getClientSession(),ServerResponseType.ASKINGFORDRAW,"",Integer.MAX_VALUE);
+        }
+        else{
+            ClientHandler.sendMessage(client1.getClientSession(),ServerResponseType.ASKINGFORDRAW,"",Integer.MAX_VALUE);
+        }
+    }
+
+    public void handleDrawUpdate(BackendClient updater,boolean isDraw) {
+        BackendClient otherPlayer = updater.equals(client1) ? client2 : client1;
+        ClientHandler.sendMessage(otherPlayer.getClientSession(),ServerResponseType.DRAWACCEPTANCEUPDATE,Boolean.toString(isDraw),Integer.MAX_VALUE);
+        if(isDraw){
+            handleGameEnd(updater,false,true,false);
+        }
+        // else we do nothing;
+    }
 }

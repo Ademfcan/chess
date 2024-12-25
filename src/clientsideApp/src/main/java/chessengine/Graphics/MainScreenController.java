@@ -3,6 +3,7 @@ package chessengine.Graphics;
 import chessengine.App;
 import chessengine.Audio.Effect;
 import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.Enums.Window;
 import chessengine.Misc.Constants;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.ChessRepresentations.ChessMove;
@@ -372,7 +373,7 @@ public class MainScreenController implements Initializable {
         // called after app's classes are initialized
         setUpBindings();
         setEvalBar(0, -1, false);
-        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, true);
+        UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
         ChessCentralControl.chessActionHandler.reset();
 
     }
@@ -508,8 +509,12 @@ public class MainScreenController implements Initializable {
             App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
         }
         // need to leave online game if applicable
-        if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame()) {
+        if (ChessCentralControl.gameHandler.gameWrapper.isActiveWebGame()) {
+            System.out.println("Leaving game!");
             ChessCentralControl.gameHandler.gameWrapper.leaveWebGame();
+        }
+        else if(ChessCentralControl.gameHandler.gameWrapper.isWebGame() && !ChessCentralControl.gameHandler.gameWrapper.isWebGameInitialized()){
+            App.sendRequest(INTENT.LEAVEWAITINGPOOL,"",null,true);
         }
 
 
@@ -560,7 +565,7 @@ public class MainScreenController implements Initializable {
             App.soundPlayer.playEffect(Effect.MESSAGE);
             boolean isWhiteOriented = ChessCentralControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
             ChessCentralControl.chessActionHandler.appendNewMessageToChat("(" + (isWhiteOriented ? ChessCentralControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() : ChessCentralControl.gameHandler.gameWrapper.getGame().getBlackPlayerName()) + ") " + chatInput.getText());
-            if (ChessCentralControl.gameHandler.gameWrapper.isCurrentlyWebGame() && ChessCentralControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
+            if (ChessCentralControl.gameHandler.gameWrapper.isActiveWebGame() && ChessCentralControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
                 App.sendRequest(INTENT.SENDCHAT, chatInput.getText(),null,true);
             }
             chatInput.clear();
@@ -573,8 +578,8 @@ public class MainScreenController implements Initializable {
     // for campaign only
 
     public void setUpBindings() {
-        App.bindingController.bindSmallText(currentGamePgnLabel,true,"Black");
-        App.bindingController.bindSmallText(currentGamePgn,true,"Black");
+        App.bindingController.bindSmallText(currentGamePgnLabel,Window.Main,"Black");
+        App.bindingController.bindSmallText(currentGamePgn,Window.Main,"Black");
         currentGamePgn.prefWidthProperty().bind(settingsScreen.widthProperty());
 
         // moves played
@@ -603,7 +608,7 @@ public class MainScreenController implements Initializable {
 
         // side panel
         // simulation controls
-        App.bindingController.bindSmallText(simulationScore, true, "Black");
+        App.bindingController.bindSmallText(simulationScore, Window.Main, "Black");
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, playPauseButton, 200, .3);
         App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, playPauseButton, 180, .2);
         // eval bar related
@@ -623,12 +628,12 @@ public class MainScreenController implements Initializable {
 
         switchingOptions.prefHeightProperty().bind(gameControls.heightProperty().subtract(bottomControls.heightProperty().subtract(lineLabel.heightProperty()).subtract(movesPlayed.heightProperty()).subtract(gameControls.heightProperty().divide(4))));
 
-        App.bindingController.bindSmallText(player1SimLabel,true,"Black");
-        App.bindingController.bindSmallText(player2SimLabel,true,"Black");
+        App.bindingController.bindSmallText(player1SimLabel,Window.Main,"Black");
+        App.bindingController.bindSmallText(player2SimLabel,Window.Main,"Black");
 
         sandboxPieces.prefHeightProperty().bind(switchingOptions.heightProperty());
 
-        App.bindingController.bindSmallText(lineLabel,true,"Black");
+        App.bindingController.bindSmallText(lineLabel,Window.Main,"Black");
 
 //        evalOverTimeBox.prefHeightProperty().bind(localInfo.heightProperty());
 //        evalOverTimeBox.prefWidthProperty().bind(localInfo.widthProperty());
@@ -640,10 +645,10 @@ public class MainScreenController implements Initializable {
 
         // all the different side panels
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, campaignInfo, 100, .8);
-        App.bindingController.bindSmallText(campaignInfo, true, "Black");
+        App.bindingController.bindSmallText(campaignInfo, Window.Main, "Black");
 
         campaignInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
-        App.bindingController.bindSmallText(inGameInfo, true, "black");
+        App.bindingController.bindSmallText(inGameInfo, Window.Main, "black");
         inGameInfo.prefWidthProperty().bind(campaignInfo.widthProperty());
         inGameInfo.prefHeightProperty().bind(campaignInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
         sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().divide(8));
@@ -653,12 +658,12 @@ public class MainScreenController implements Initializable {
 
         // side panel labels
 
-        App.bindingController.bindSmallText(stateLabel, true);
-        App.bindingController.bindLargeText(victoryLabel, true, "White");
-        App.bindingController.bindSmallText(player1Label, true);
-        App.bindingController.bindSmallText(player2Label, true);
-        App.bindingController.bindSmallText(WhiteNumericalAdv, true);
-        App.bindingController.bindSmallText(BlackNumericalAdv, true);
+        App.bindingController.bindSmallText(stateLabel, Window.Main);
+        App.bindingController.bindLargeText(victoryLabel, Window.Main, "White");
+        App.bindingController.bindSmallText(player1Label, Window.Main);
+        App.bindingController.bindSmallText(player2Label, Window.Main);
+        App.bindingController.bindSmallText(WhiteNumericalAdv, Window.Main);
+        App.bindingController.bindSmallText(BlackNumericalAdv, Window.Main);
 //        reset.prefWidthProperty().bind(chessPieceBoard.widthProperty().subtract(whiteadvantage.widthProperty().multiply(2)));
 //        LeftButton.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()).divide(3));
 //        LeftButton.prefHeightProperty().bind(LeftButton.widthProperty());
@@ -703,27 +708,27 @@ public class MainScreenController implements Initializable {
         settingsScreen.prefWidthProperty().bind(sidePanel.widthProperty());
 
         // game over menu
-        App.bindingController.bindXLargeText(gameoverTitle, true, "White");
-        App.bindingController.bindXLargeText(victoryLabel, true, "White");
+        App.bindingController.bindXLargeText(gameoverTitle, Window.Main, "White");
+        App.bindingController.bindXLargeText(victoryLabel, Window.Main, "White");
 
         // miscelaneus buttons
-        App.bindingController.bindMediumText(settingsButton, true,"Black");
-        App.bindingController.bindMediumText(homeButton, true,"Black");
-        App.bindingController.bindMediumText(LeftButton, true);
+        App.bindingController.bindMediumText(settingsButton, Window.Main,"Black");
+        App.bindingController.bindMediumText(homeButton, Window.Main,"Black");
+        App.bindingController.bindMediumText(LeftButton, Window.Main);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftButton, 110, .32);
-        App.bindingController.bindMediumText(RightButton, true);
+        App.bindingController.bindMediumText(RightButton, Window.Main);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightButton, 110, .32);
-        App.bindingController.bindMediumText(LeftReset, true);
+        App.bindingController.bindMediumText(LeftReset, Window.Main);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftReset, 140, .36);
-        App.bindingController.bindMediumText(RightReset, true);
+        App.bindingController.bindMediumText(RightReset, Window.Main);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightReset, 140, .36);
-        App.bindingController.bindSmallText(saveIndicator, true);
-        App.bindingController.bindMediumText(reset, true);
+        App.bindingController.bindSmallText(saveIndicator, Window.Main);
+        App.bindingController.bindMediumText(reset, Window.Main);
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, reset, 240, .45);
 //
-        App.bindingController.bindSmallText(evalLabel,true);
-        App.bindingController.bindSmallText(nMovesLabel,true);
-        App.bindingController.bindSmallText(computerLabel,true);
+        App.bindingController.bindSmallText(evalLabel,Window.Main);
+        App.bindingController.bindSmallText(nMovesLabel,Window.Main);
+        App.bindingController.bindSmallText(computerLabel,Window.Main);
     }
 
     // label hide ellipsis hack
@@ -754,6 +759,7 @@ public class MainScreenController implements Initializable {
      **/
     private void setUp(String extraStuff) {
         ChessCentralControl.clearForNewGame();
+        ChessCentralControl.chessActionHandler.reset();
 
         // side panel controls are slightly different for every mode
         setMainControls(currentState, extraStuff);
@@ -861,6 +867,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl.gameHandler.switchToOnlineGame(onlinePreinit, Gametype.getType(gameType), true);
         setUp(onlinePreinit.getGameName());
 
+        App.messager.addLoadingCircle(Window.Main);
         App.createOnlineGameRequest(gameType,onlinePreinit);
     }
 

@@ -231,8 +231,8 @@
                                                 </HBox>
                                                       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                                          <children>
-                                                            <Button fx:id="resignButton" mnemonicParsing="false" text="Button" />
-                                                            <Button fx:id="offerDrawButton" mnemonicParsing="false" text="Button" />
+                                                            <Button fx:id="resignButton" mnemonicParsing="false" text="Resign" />
+                                                            <Button fx:id="offerDrawButton" mnemonicParsing="false" text="Offer Draw" />
                                                          </children>
                                                       </HBox>
                                              </children>
