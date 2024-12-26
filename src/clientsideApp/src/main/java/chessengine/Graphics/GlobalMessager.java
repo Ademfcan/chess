@@ -11,9 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -75,6 +73,9 @@ public class GlobalMessager {
                 }
                 closePopup(Window.Start,p.popupBox,p.popupIdx);
             }
+            else{
+                flashPopup(p.popupBox);
+            }
         });
         mainRef.setOnMouseClicked(e ->{
             // if the raw pane is being clicked, it means at least one popup is left and thus the pane is not empty
@@ -84,6 +85,9 @@ public class GlobalMessager {
                     p.runOnClose.run();
                 }
                 closePopup(Window.Main,p.popupBox,p.popupIdx);
+            }
+            else{
+                flashPopup(p.popupBox);
             }
         });
         this.mainRef = mainRef;
@@ -513,6 +517,30 @@ public class GlobalMessager {
             logger.warn("Trying to close a popup window with an invalid idx. (Not contained in current ids)");
         }
 
+    }
+
+    private void flashPopup(VBox popup){
+        final Border visibleBorder = new Border(new BorderStroke(
+                Paint.valueOf("red"),
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(8),
+                new BorderWidths(4)
+        ));
+        final Border transparentBorder = new Border(new BorderStroke(
+                Paint.valueOf("transparent"),
+                BorderStrokeStyle.SOLID,
+                new CornerRadii(8),
+                new BorderWidths(4)
+        ));
+
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.seconds(0),e -> popup.setBorder(transparentBorder)),
+            new KeyFrame(Duration.seconds(0.2),e -> popup.setBorder(visibleBorder)),
+            new KeyFrame(Duration.seconds(0.4),e -> popup.setBorder(transparentBorder))
+        );
+        timeline.setCycleCount(2);
+        timeline.setAutoReverse(true);
+        timeline.play();
     }
     private int numMainPopups = 0;
     private int numStartPopups = 0;
