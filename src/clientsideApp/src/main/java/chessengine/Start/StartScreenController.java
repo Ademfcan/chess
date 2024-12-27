@@ -113,6 +113,8 @@ public class StartScreenController implements Initializable {
     Button enterSimulationButton;
     @FXML
     Button enterExplorerButton;
+    @FXML
+    Button enterPuzzleButton;
     // campaign screen
     @FXML
     StackPane levelContainer;
