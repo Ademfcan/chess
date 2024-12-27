@@ -765,7 +765,7 @@ public class MainScreenController implements Initializable {
         setMainControls(currentState, extraStuff);
         // some modes do not want an eval bar
         checkHideEvalBar(currentState);
-        checkHideMoveControls(currentState);
+        checkHideResetButton(currentState);
         if (currentState == MainScreenState.LOCAL) {
             // since in campaign mode the diffiiculty might have been changed, when back to local set it to whatever selected
             ChessCentralControl.asyncController.setComputerDifficulty(App.userPreferenceManager.getPrefDifficulty());
@@ -871,9 +871,15 @@ public class MainScreenController implements Initializable {
         App.createOnlineGameRequest(gameType,onlinePreinit);
     }
 
-    private void checkHideMoveControls(MainScreenState currentState) {
-        bottomControls.setVisible(true);
-        bottomControls.setMouseTransparent(false);
+    private void checkHideResetButton(MainScreenState currentState) {
+        if(!MainScreenState.cannotReset(currentState)){
+            reset.setVisible(true);
+            reset.setMouseTransparent(false);
+        }
+        else{
+            reset.setVisible(false);
+            reset.setMouseTransparent(true);
+        }
     }
 
     private void checkHideEvalBar(MainScreenState currentState) {

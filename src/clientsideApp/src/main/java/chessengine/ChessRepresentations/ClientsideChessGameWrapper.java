@@ -18,7 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 public class ClientsideChessGameWrapper {
     private final static Logger logger = LogManager.getLogger("ChessGame_Gui");
-    public ChessGame game;
+    private ChessGame game;
     private ChessCentralControl centralControl;
     private boolean isMainGame = true;
 
@@ -130,7 +130,6 @@ public class ClientsideChessGameWrapper {
         if (game.getMaxIndex() != game.getCurMoveIndex()) {
             int dir = game.getMaxIndex()-game.getCurMoveIndex();
             changeToDifferentMove(dir, animateIfPossible);
-            game.changeToDifferentMove(dir);
         } else {
             logger.debug("Already at end of game");
         }
@@ -203,6 +202,9 @@ public class ClientsideChessGameWrapper {
 
 
             }
+            // actuall change here
+            game.changeToDifferentMove(dir);
+
             // setting eval bar if checkmated
             if (isMainGame) {
                 if (game.getGameState().isCheckMated()[0]) {
@@ -228,7 +230,6 @@ public class ClientsideChessGameWrapper {
                 }
             }
 
-            game.changeToDifferentMove(dir);
 
 
         } else {
@@ -301,27 +302,20 @@ public class ClientsideChessGameWrapper {
     private void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
         ChessPosition currentPosition = game.getCurrentPosition();
         game.MakeMove(newPosition,move);
-        if (!isMainGame || centralControl.mainScreenController.currentState != MainScreenState.SANDBOX) {
+        if(isMainGame && centralControl.mainScreenController.currentState != MainScreenState.SANDBOX){
             if (game.getGameState().isStaleMated()) {
-                if (isMainGame) {
-                    logger.debug("stalemate");
-                    centralControl.mainScreenController.setEvalBar(0, -1, true);
-                    App.soundPlayer.playEffect(Effect.GAMEOVER);
-                }
+                logger.debug("stalemate");
+                centralControl.mainScreenController.setEvalBar(0, -1, true);
+                App.soundPlayer.playEffect(Effect.GAMEOVER);
             } else if (game.getGameState().isCheckMated()[0]) {
-                if (isMainGame) {
-                    logger.debug("checkmate");
-                    centralControl.mainScreenController.setEvalBar(move.isWhite() ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE, -1, true);
-
-                }
-                if (isMainGame) {
-                    App.soundPlayer.playEffect(Effect.GAMEOVER);
-                }
+                logger.debug("checkmate");
+                centralControl.mainScreenController.setEvalBar(move.isWhite() ? ChessConstants.WHITECHECKMATEVALUE : ChessConstants.BLACKCHECKMATEVALUE, -1, true);
+                App.soundPlayer.playEffect(Effect.GAMEOVER);
             }
         }
+
         if (isMainGame) {
             //  chessboard gui make move stuff
-
             if (isWebMove) {
 //                System.out.println("Web move: now supposed to update position");
                 centralControl.chessBoardGUIHandler.makeChessMove(move, false, currentPosition, newPosition,game.isWhiteOriented());
@@ -336,20 +330,16 @@ public class ClientsideChessGameWrapper {
 
             }
             sendMessageToInfo("Move: " + PgnFunctions.moveToPgn(move, newPosition, game.getGameState()));
-        }
-        // side panel stuff
-        if (isMainGame) {
+            // side panel stuff
             centralControl.mainScreenController.updateSimpleAdvantageLabels();
             centralControl.chessActionHandler.makeBackendUpdate(centralControl.mainScreenController.currentState, true, false);
             centralControl.mainScreenController.setMoveLabels(game.getCurMoveIndex(), game.getMaxIndex());
-        }
-        if (isMainGame) {
+            // move effects
             App.soundPlayer.playMoveEffect(move, AdvancedChessFunctions.isChecked(!move.isWhite(), newPosition.board), game.getGameState().isGameOver());
-        }
-        if (isWebGame && !isWebMove) {
-            // todo with other things: add time
-            App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, game.getGameState()), null, true);
+            if (isWebGame && !isWebMove) {
+                App.sendRequest(INTENT.MAKEMOVE, PgnFunctions.moveToPgn(move, newPosition, game.getGameState()), null, true);
 
+            }
         }
     }
 

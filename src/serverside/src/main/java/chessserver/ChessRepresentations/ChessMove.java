@@ -88,6 +88,13 @@ public class ChessMove {
         return new ChessMove(newX, newY, oldX, oldY, promoIndx, boardIndex, isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, isCustomMove, shouldRequireExtension);
     }
 
+    public ChessMove getMoveWhiteOriented(boolean isWhiteOriented){
+        if(isWhiteOriented){
+            return this;
+        }
+        return new ChessMove(7-oldX,7-oldY,7-newX,7-newY,promoIndx,boardIndex,isWhite,isCastleMove,isEating,eatingIndex,isEnPassant,isCustomMove,shouldRequireExtension);
+    }
+
 
     public boolean isPawnPromo() {
         return isPawnPromo;

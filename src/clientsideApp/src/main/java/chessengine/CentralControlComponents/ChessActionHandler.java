@@ -31,12 +31,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import org.apache.commons.io.output.ClosedOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -446,6 +446,7 @@ public class ChessActionHandler {
 
         bestmovesBox.getChildren().clear();
         myControl.chessBoardGUIHandler.clearArrows();
+        currentlyShownSuggestedArrows.clear();
         myControl.checkCacheNewIndex();
         myControl.getCentralEvaluation();
 //        myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
@@ -488,9 +489,9 @@ public class ChessActionHandler {
             case VIEWER -> {
 //                myControl.asyncController.evalTask.evalRequest();
 //                updateViewerSuggestions();
-                if(isInit){
-                    myControl.tryPreloadCentralEvaluations();
-                }
+//                if(isInit){
+//                    myControl.tryPreloadCentralEvaluations();
+//                }
             }
             case LOCAL -> {
                 // could be a new move pgn, or not
@@ -795,7 +796,7 @@ public class ChessActionHandler {
             dragging = false;
         } else if (e.getButton() == MouseButton.SECONDARY) {
             if (creatingArrow && (oldArrowX != newXY[0] || oldArrowY != newXY[1])) {
-                myControl.chessBoardGUIHandler.addArrow(new MoveArrow(oldArrowX, oldArrowY, newXY[0], newXY[1], ChessConstants.arrowColor));
+                myControl.chessBoardGUIHandler.toggleArrow(new MoveArrow(oldArrowX, oldArrowY, newXY[0], newXY[1], ChessConstants.arrowColor));
             }
             creatingArrow = false;
         }
@@ -1074,7 +1075,7 @@ public class ChessActionHandler {
 //            logger.error("Invalid viewer update!");
 //        }
 //    }
-
+    private List<Arrow> currentlyShownSuggestedArrows = new ArrayList<>();
     public void addBestMovesToViewer(MultiResult results) {
         if (myControl.isInViewerActive()) {
             bestmovesBox.getChildren().clear();
@@ -1083,6 +1084,7 @@ public class ChessActionHandler {
             int primeEvaluation = results.results()[0].evaluation();
             PVEntry[] bestPV = results.results()[0].pV();
             for (SearchResult result : results.results()) {
+                PVEntry[] pv = result.pV();
                 ChessMove move = result.move();
                 double adv = ((double) result.evaluation() / 100) * (myControl.gameHandler.gameWrapper.getGame().isWhiteTurn() ? 1 : -1);
 
@@ -1091,24 +1093,47 @@ public class ChessActionHandler {
                 moveGui.setSpacing(5);
                 Label moveNumber = new Label("#" + (++cnt));
                 // for pgn generation
+                final int maxPvLength = 7;
+                HBox pvsBox = new HBox();
+                pvsBox.setSpacing(5);
+                pvsBox.setAlignment(Pos.CENTER);
                 ChessGameState testState = myControl.gameHandler.gameWrapper.getGame().getGameState().cloneState();
-                ChessPosition testPos = new ChessPosition(myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().clonePosition(), testState, move);
-                Label moveAsPgn = new Label(PgnFunctions.moveToPgn(move, testPos, testState));
+                ChessPosition testPos = myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().clonePosition();
+                for(int i = 0;i<Math.min(maxPvLength,pv.length);i++){
+                    ChessMove pvMove = pv[i].pvMove();
+                    testPos = new ChessPosition(testPos, testState, pvMove);
+                    Label movePVPGN = new Label(PgnFunctions.moveToPgn(pvMove, testPos, testState));
+                    App.bindingController.bindSmallText(movePVPGN, Window.Main);
+                    pvsBox.getChildren().add(movePVPGN);
+                    setupPVMouseOver(movePVPGN,pvMove,testPos.clonePosition());
+                }
 
                 // add arrow showing move
                 boolean isPlayer1White = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
                 MoveRanking currentMoveRanking = MoveRanking.getMoveRanking(primeEvaluation, results.moveValues().get(move).evaluation(), bestPV, result.pV());
-                Arrow moveArrow = new MoveArrow(isPlayer1White ? move.getOldX() : 7 - move.getOldX(), isPlayer1White ? move.getOldY() : 7 - move.getOldY(), isPlayer1White ? move.getNewX() : 7 - move.getNewX(), isPlayer1White ? move.getNewY() : 7 - move.getNewY(), currentMoveRanking.getColor().toString());
-                myControl.chessBoardGUIHandler.addArrow(moveArrow);
+                Arrow moveArrow = new MoveArrow(move.getMoveWhiteOriented(isPlayer1White), currentMoveRanking.getColor().toString());
+                myControl.chessBoardGUIHandler.toggleArrow(moveArrow);
+                currentlyShownSuggestedArrows.add(moveArrow);
                 String advStr = formatter.format(adv);
                 Label expectedAdvantage = new Label(advStr);
                 App.bindingController.bindSmallText(moveNumber, Window.Main);
-                App.bindingController.bindSmallText(moveAsPgn, Window.Main);
                 App.bindingController.bindSmallText(expectedAdvantage, Window.Main);
                 moveGui.prefWidthProperty().bind(bestmovesBox.widthProperty());
-                moveGui.getChildren().addAll(moveNumber, moveAsPgn, expectedAdvantage);
+                moveGui.getChildren().addAll(moveNumber, pvsBox, expectedAdvantage);
                 moveGui.setOnMouseClicked(e -> {
                     myControl.gameHandler.gameWrapper.makeNewMove(move, false, false,App.userPreferenceManager.isNoAnimate());
+                });
+                int curIndex = myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex();
+                boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
+                ChessPosition currentPos = myControl.gameHandler.gameWrapper.getGame().getCurrentPosition();
+                pvsBox.setOnMouseExited(e->{
+                    int newIndex = myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex();
+                    // avoid edge case where you click the movegui button (move to next move) then you move your cursor off. In that case you shoudnt reset
+                    if(curIndex == newIndex){
+                        updateCurrentlyShownArrows(true);
+                        myControl.chessBoardGUIHandler.reloadNewBoard(currentPos,isWhiteOriented);
+                    }
+
                 });
                 moveGui.setStyle("-fx-background-color: darkgray");
                 bestmovesBox.getChildren().add(moveGui);
@@ -1118,6 +1143,28 @@ public class ChessActionHandler {
 
         } else {
             logger.error("Invalid viewer update");
+        }
+    }
+
+    private void setupPVMouseOver(Label PV,ChessMove pvMove,ChessPosition movePreview){
+        boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
+        PV.setOnMouseEntered(e ->{
+            myControl.chessBoardGUIHandler.reloadNewBoard(movePreview,isWhiteOriented);
+            myControl.chessBoardGUIHandler.toggleArrow(new MoveArrow(pvMove.getMoveWhiteOriented(isWhiteOriented),ChessConstants.arrowColor));
+            updateCurrentlyShownArrows(false);
+        });
+        PV.setOnMouseExited(e->{
+            myControl.chessBoardGUIHandler.toggleArrow(new MoveArrow(pvMove.getMoveWhiteOriented(isWhiteOriented),ChessConstants.arrowColor));
+        });
+    }
+    private void updateCurrentlyShownArrows(boolean isShow){
+        for(Arrow arrow : currentlyShownSuggestedArrows){
+            if(isShow){
+                myControl.chessBoardGUIHandler.addArrow(arrow);
+            }
+            else{
+                myControl.chessBoardGUIHandler.removeArrow(arrow);
+            }
         }
     }
 

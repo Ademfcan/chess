@@ -143,7 +143,7 @@ public class ChessBoardGUIHandler {
         arrowBoard.getChildren().clear();
     }
 
-    public void addArrow(Arrow newArrow) {
+    public void toggleArrow(Arrow newArrow) {
         // remove arrow when drawn into same location where there already is one. Like a toggle switch
         boolean isAlreadyArrow = arrowBoard.getChildren().removeIf(a -> a.getUserData().toString().equals(newArrow.toString()));
         if (!isAlreadyArrow) {
@@ -152,6 +152,19 @@ public class ChessBoardGUIHandler {
         } else {
             arrows.removeIf(a -> a.equals(newArrow));
         }
+    }
+
+    public void addArrow(Arrow newArrow){
+        boolean isAlreadyArrow = arrowBoard.getChildren().stream().anyMatch(a -> a.getUserData().toString().equals(newArrow.toString()));
+        if (!isAlreadyArrow) {
+            arrows.add(newArrow);
+            drawArrow(newArrow);
+        }
+    }
+
+    public boolean removeArrow(Arrow newArrow){
+        arrowBoard.getChildren().removeIf(a -> a.getUserData().toString().equals(newArrow.toString()));
+        return arrows.removeIf(a -> a.equals(newArrow));
     }
 
     private void drawArrow(Arrow arrow) {

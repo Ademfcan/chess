@@ -107,7 +107,7 @@ public class ChessCentralControl {
                 setStateBasedOnResults(cachedResults.get(currentIndex), currentIndex < 0 ? null : cachedResults.get(currentIndex - 1));
             } else {
                 addSearchRequest(currentIndex);
-                addSearchRequest(Math.max(currentIndex - 1, -1));
+//                addSearchRequest(Math.max(currentIndex - 1, -1));
                 asyncController.generalTask.addTask(() -> {
                     Platform.runLater(this::getCentralEvaluation);
                 });

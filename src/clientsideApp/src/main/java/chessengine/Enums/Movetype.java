@@ -6,7 +6,7 @@ import chessserver.ChessRepresentations.ChessPosition;
 public enum Movetype {
     FORK,
     SHADOW,
-    NONE;
+    NONE, MATE;
 
     public static Movetype getMoveType(ChessPosition pos){
         ChessMove move = pos.getMoveThatCreatedThis();

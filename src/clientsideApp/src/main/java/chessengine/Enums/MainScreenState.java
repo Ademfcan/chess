@@ -17,4 +17,7 @@ public enum MainScreenState {
     }
 
 
+    public static boolean cannotReset(MainScreenState state) {
+        return state == ONLINE || state == PUZZLE || state == SIMULATION;
+    }
 }

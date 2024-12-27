@@ -65,7 +65,7 @@ public class MultiSearcher {
                                         evaluation = -EvaluationFunctions.baseMateScore;
                                     }
 
-                                    outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), evaluation, 1, new PVEntry[]{}));
+                                    outputs.add(new SearchResult(positionToEvaluate.getMoveThatCreatedThis(), evaluation, 1, new PVEntry[]{new PVEntry(positionToEvaluate.getMoveThatCreatedThis(), evaluation,Movetype.MATE)}));
 
                                     continue;
 

@@ -303,6 +303,7 @@ public class Searcher {
                 bestMoveSoFar = move;
                 alpha = eval;
                 pVIter[plyFromRoot] = new PVEntry(move, eval, movetype);
+                System.out.println("Set pv: " + plyFromRoot + " : " + eval);
 
                 if (plyFromRoot == 0) {
                     bestEvaluationIter = alpha;
