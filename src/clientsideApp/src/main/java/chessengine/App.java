@@ -30,6 +30,7 @@ import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.application.Preloader;
+import javafx.application.Preloader.ProgressNotification;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -568,12 +569,12 @@ public class App extends Application {
         super.init();
         // load app
 
-        notifyPreloader(new Preloader.ProgressNotification(0.1));
+        notifyPreloader(new ProgressNotification(0.1));
         notifyPreloader(new AppStateChangeNotification("Loading stockfish..."));
         stockfishForEval = new Stockfish();
         getMoveStockfish = new Stockfish();
 
-        notifyPreloader(new Preloader.ProgressNotification(0.2));
+        notifyPreloader(new ProgressNotification(0.2));
         notifyPreloader(new AppStateChangeNotification("Starting stockfish..."));
         if (stockfishForEval.startEngine()) {
             appLogger.debug("Started stockfish for eval succesfully");
@@ -588,7 +589,7 @@ public class App extends Application {
         }
 
 
-        notifyPreloader(new Preloader.ProgressNotification(0.3));
+        notifyPreloader(new ProgressNotification(0.3));
         notifyPreloader(new AppStateChangeNotification("Loading magic bitboards..."));
 
         magicBitboardGenerator = new MagicBitboardGenerator();
@@ -597,12 +598,12 @@ public class App extends Application {
         dpi = Screen.getPrimary().getDpi();
         dpiScaleFactor = dpi / referenceDpi;
 
-        notifyPreloader(new Preloader.ProgressNotification(0.35));
+        notifyPreloader(new ProgressNotification(0.35));
         notifyPreloader(new AppStateChangeNotification("Loading user..."));
 
         userManager = new ClientManager();
 
-        notifyPreloader(new Preloader.ProgressNotification(0.4));
+        notifyPreloader(new ProgressNotification(0.4));
         notifyPreloader(new AppStateChangeNotification("Connecting to server..."));
 
         try {
@@ -613,10 +614,10 @@ public class App extends Application {
         } catch (IOException e) {
             appLogger.error("Io error on webclient creation", e);
         }
-        notifyPreloader(new Preloader.ProgressNotification(0.5));
+        notifyPreloader(new ProgressNotification(0.5));
 
 
-        notifyPreloader(new Preloader.ProgressNotification(0.5));
+        notifyPreloader(new ProgressNotification(0.5));
         notifyPreloader(new AppStateChangeNotification("Loading managers..."));
         soundPlayer = new SoundPlayer();
 
@@ -630,7 +631,7 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        notifyPreloader(new Preloader.ProgressNotification(0.6));
+        notifyPreloader(new ProgressNotification(0.6));
         notifyPreloader(new AppStateChangeNotification("Loading graphics..."));
         mainStage = primaryStage;
 
@@ -650,7 +651,7 @@ public class App extends Application {
         Group startMessageBoard = new Group();
         Group mainMessageBoard = new Group();
 
-        notifyPreloader(new Preloader.ProgressNotification(0.7));
+        notifyPreloader(new ProgressNotification(0.7));
         notifyPreloader(new AppStateChangeNotification("Setting up graphics..."));
 
         messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.mainRef);
@@ -674,7 +675,7 @@ public class App extends Application {
         startScreenController.setup();
         userManager.init(startScreenController);
         mainScreenController.oneTimeSetup();
-        notifyPreloader(new Preloader.ProgressNotification(0.8));
+        notifyPreloader(new ProgressNotification(0.8));
 
         userPreferenceManager.setDefaultSelections();
 
@@ -690,9 +691,9 @@ public class App extends Application {
 
 
         primaryStage.setScene(mainScene);
-        primaryStage.setHeight(540);
-        primaryStage.setWidth(960);
-        notifyPreloader(new Preloader.ProgressNotification(0.9));
+        primaryStage.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+        primaryStage.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
+        notifyPreloader(new ProgressNotification(0.9));
         notifyPreloader(new AppStateChangeNotification("Ready"));
         primaryStage.show();
         primaryStage.setMaximized(true);

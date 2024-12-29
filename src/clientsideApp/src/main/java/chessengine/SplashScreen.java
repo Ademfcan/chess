@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 
@@ -29,11 +30,11 @@ public class SplashScreen extends Preloader {
         progressBar = new ProgressBar(0);
         progressBar.prefWidthProperty().bind(primaryStage.widthProperty().multiply(.8));
 
-        VBox root = new VBox(title,currentState,progressBar);
+        VBox root = new VBox(title, currentState, progressBar);
         root.setSpacing(10);
         root.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(root, 400, 250);
+        Scene scene = new Scene(root, Screen.getPrimary().getVisualBounds().getWidth() / 3, Screen.getPrimary().getVisualBounds().getHeight() / 3);
         scene.getStylesheets().add(GlobalTheme.Dark.cssLocation);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Loading...");
@@ -41,21 +42,13 @@ public class SplashScreen extends Preloader {
         primaryStage.getIcons().add(new Image("/appIcon/icon.png"));
 
 
-        StringExpression textSizeBinding = BindingController.getBinding1Style(Bindings.min(primaryStage.widthProperty(),primaryStage.heightProperty()),"-fx-font-size: ",(float)1/20,"");
+        StringExpression textSizeBinding = BindingController.getBinding1Style(Bindings.min(primaryStage.widthProperty(), primaryStage.heightProperty()), "-fx-font-size: ", (float) 1 / 20, "");
         currentState.styleProperty().bind(textSizeBinding);
 
-        StringExpression titleSizeBinding = BindingController.getBinding1Style(Bindings.min(primaryStage.widthProperty(),primaryStage.heightProperty()),"-fx-font-size: ",(float)1/5,"");
+        StringExpression titleSizeBinding = BindingController.getBinding1Style(Bindings.min(primaryStage.widthProperty(), primaryStage.heightProperty()), "-fx-font-size: ", (float) 1 / 5, "");
         title.styleProperty().bind(titleSizeBinding);
 
 
-    }
-
-    @Override
-    public void handleProgressNotification(ProgressNotification pn) {
-        // avoid weird 1.0 call not coming from me
-        if(pn.getProgress() < 1){
-            progressBar.setProgress(pn.getProgress());
-        }
     }
 
     @Override
@@ -64,7 +57,9 @@ public class SplashScreen extends Preloader {
             currentState.setText(((AppStateChangeNotification) pn).getMessage());
             primaryState.setTitle(((AppStateChangeNotification) pn).getMessage());
         }
-
+        else if(pn instanceof  ProgressNotification){
+            progressBar.setProgress(((ProgressNotification) pn).getProgress());
+        }
 
     }
 
