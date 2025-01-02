@@ -92,7 +92,7 @@ public class ClientsideChessGameWrapper {
     }
 
     private void loadGameGraphics(){
-        moveToMoveIndexAbsolute(-1, false);
+        moveToMoveIndexAbsolute(game.getMinIndex(), false);
         centralControl.chessBoardGUIHandler.reloadNewBoard(game.getPos(game.getCurMoveIndex()), game.isWhiteOriented());
         centralControl.mainScreenController.setMoveLabels(game.getCurMoveIndex(), game.getMaxIndex());
         if (!isWebGameInitialized && isWebGame && centralControl.mainScreenController.currentState== MainScreenState.ONLINE) {
@@ -108,7 +108,7 @@ public class ClientsideChessGameWrapper {
             // now set player icons
             centralControl.mainScreenController.setPlayerIcons(game.getWhitePlayerPfpUrl(), game.getBlackPlayerPfpUrl(), game.isWhiteOriented());
             centralControl.mainScreenController.setPlayerLabels(game.getWhitePlayerName(), game.getWhiteElo(), game.getBlackPlayerName(), game.getBlackElo(), game.isWhiteOriented());
-            if (game.getMaxIndex() > -1) {
+            if (game.getMaxIndex() > game.getMinIndex()) {
                 // this game has some moves we need to add to moves played
                 String[] pgns = game.gameToPgnArr();
                 for (String movePgn : pgns) {
@@ -143,7 +143,7 @@ public class ClientsideChessGameWrapper {
             if (animateIfPossible) {
                 // we will move one back then we will move forward to give the impresison that you are animating the move that created that positon
                 int dirWithOneMore = absIndex - game.getCurMoveIndex() - 1;
-                if (game.getCurMoveIndex() + dirWithOneMore >= -1) {
+                if (game.getCurMoveIndex() + dirWithOneMore >= game.getMinIndex()) {
                     // means we wont go too far back so we can do it
                     changeToDifferentMove(dirWithOneMore, true);
                     // this call will animate it
@@ -163,7 +163,7 @@ public class ClientsideChessGameWrapper {
     public void changeToDifferentMove(int dir, boolean noAnimate) {
 //        System.out.println(GeneralChessFunctions.getBoardDetailedString(currentPosition.board));
         int newIndex = game.getCurMoveIndex()+dir;
-        if (dir != 0 && newIndex >= -1 && newIndex <= game.getMaxIndex() && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition || !centralControl.asyncController.simTask.isMakingMove())) {
+        if (dir != 0 && newIndex >= game.getMinIndex() && newIndex <= game.getMaxIndex() && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition || !centralControl.asyncController.simTask.isMakingMove())) {
             if (isMainGame) {
                 if (newIndex >= 0) {
                     centralControl.chessActionHandler.highlightMovesPlayedLine(newIndex);
@@ -184,7 +184,7 @@ public class ClientsideChessGameWrapper {
                     ChessMove move;
                     if (isReverse) {
                         move = game.getCurrentPosition().getMoveThatCreatedThis().reverseMove();
-                        if (newIndex != -1 && !move.isCustomMove()) {
+                        if (newIndex != game.getMinIndex() && !move.isCustomMove()) {
                             // always highlight the move that created the current pos
                             centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(), game.isWhiteOriented());
                         }
@@ -242,7 +242,7 @@ public class ClientsideChessGameWrapper {
 
 
     public void reset() {
-        centralControl.chessBoardGUIHandler.updateChessBoardGui(game.getPos(-1), game.getCurrentPosition(),game.isWhiteOriented());
+        centralControl.chessBoardGUIHandler.updateChessBoardGui(game.getPos(game.getMinIndex()), game.getCurrentPosition(),game.isWhiteOriented());
         centralControl.chessActionHandler.reset();
         centralControl.chessBoardGUIHandler.resetEverything(game.isWhiteOriented());
         centralControl.mainScreenController.hideGameOver();
@@ -271,7 +271,11 @@ public class ClientsideChessGameWrapper {
 
     // one called for all local moves
     public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove,boolean animateIfPossible) {
-        System.out.println(move.toString());
+        if(centralControl.mainScreenController.currentState == MainScreenState.PUZZLE){
+            // for puzzles we dont actually make the move, we just check if its the right move or a checkmate and then move on
+            centralControl.puzzleGuiManager.handleMoveCheck(move);
+            return;
+        }
         if (!isComputerMove) {
             // clear any entries, you are branching off
             centralControl.clearForNewBranch(game.getCurMoveIndex() + 1);

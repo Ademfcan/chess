@@ -1,10 +1,7 @@
 package chessserver.Functions;
 
+import chessserver.ChessRepresentations.*;
 import chessserver.Misc.ChessConstants;
-import chessserver.ChessRepresentations.BitBoardWrapper;
-import chessserver.ChessRepresentations.ChessMove;
-import chessserver.ChessRepresentations.ChessPosition;
-import chessserver.ChessRepresentations.ChessGameState;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -96,35 +93,59 @@ public class PgnFunctions {
 
 
     public static char intToChar(int i) {
-        return (char) (i + 48);
+        return (char) (i + '0');
+    }
+
+    public static int charToInt(char c){
+        return (int) (c - '0');
     }
 
     public static int turnFileStrToInt(char c) {
-        int ascii = c;
-        return ascii - 97;
+        return (c - 'a');
     }
 
     public static char turnIntToFileStr(int i) {
-        char ascii = (char) i;
-        return (char) (ascii + 97);
+        return (char) (i + 'a');
     }
 
-
-    public static int turnPgnPieceToPieceIndex(char c) {
+    /**Will give you the index of a piece given its respective character. Will match only uppercase characters**/
+    public static int turnPieceCharacterToPieceIndex(char c) {
         switch (c) {
             case 'K':
-                return 5;
+                return ChessConstants.KINGINDEX;
             case 'Q':
-                return 4;
+                return ChessConstants.QUEENINDEX;
             case 'R':
-                return 3;
+                return ChessConstants.ROOKINDEX;
             case 'B':
-                return 2;
+                return ChessConstants.BISHOPINDEX;
             case 'N':
-                return 1;
+                return ChessConstants.KNIGHTINDEX;
         }
         // if none match then it is a pawn(index 0)
         return 0;
+
+
+    }
+    /**This function returns an int[] {[0] = color, [1] = index} with the color and piece index of a character provided. Similar to {@link #turnPieceCharacterToPieceIndex(char)} but not color independent**/
+    public static int[] turnPieceCharacterToPieceIndexWithColor(char c) {
+        return switch (c) {
+            case 'K' -> new int[]{1, 5};
+            case 'k' -> new int[]{0, 5};
+            case 'Q' -> new int[]{1, 4};
+            case 'q' -> new int[]{0, 4};
+            case 'R' -> new int[]{1, 3};
+            case 'r' -> new int[]{0, 3};
+            case 'B' -> new int[]{1, 2};
+            case 'b' -> new int[]{0, 2};
+            case 'N' -> new int[]{1, 1};
+            case 'n' -> new int[]{0, 1};
+            case 'P' -> new int[]{1, 0};
+            case 'p' -> new int[]{0, 0};
+            default ->
+                // if none match then return null
+                null;
+        };
 
 
     }
@@ -210,10 +231,10 @@ public class PgnFunctions {
 
         boolean whiteCastle = gameStateForPos.isWhiteCastleRight();
         boolean blackCastle = gameStateForPos.isBlackCastleRight();
-        String wksC = gameStateForPos.isWhiteShortRookRight() && whiteCastle ? "K" : "";
-        String wqsC = gameStateForPos.isWhiteLongRookRight() && whiteCastle ? "Q" : "";
-        String bksC = gameStateForPos.isWhiteShortRookRight() && blackCastle ? "k" : "";
-        String bqsC = gameStateForPos.isWhiteShortRookRight() && blackCastle ? "q" : "";
+        String wksC = gameStateForPos.isWhiteKingSideRight() && whiteCastle ? "K" : "";
+        String wqsC = gameStateForPos.isWhiteQueenSideRight() && whiteCastle ? "Q" : "";
+        String bksC = gameStateForPos.isWhiteKingSideRight() && blackCastle ? "k" : "";
+        String bqsC = gameStateForPos.isWhiteKingSideRight() && blackCastle ? "q" : "";
         if (wksC.isEmpty() && wqsC.isEmpty() && bksC.isEmpty() && bqsC.isEmpty()) {
             fenBuilder.append("-");
         } else {
@@ -254,18 +275,101 @@ public class PgnFunctions {
         return fenBuilder.toString();
     }
 
+    public static FullChessPosition FenToPosition(String fen){
+        String[] split = fen.split(" ");
+        // part one board
+        BitBoardWrapper board = BitBoardWrapper.getEmptyBoard();
+        int x = 0, y = 0;
+        // process the board part of the pgn
+        for(char c : split[0].toCharArray()){
+            if(c == '/'){
+                x = 0;
+                y++;
+                continue;
+            }
+
+            if(Character.isDigit(c)){
+                x+=charToInt(c)-1;
+            }
+            else{
+                int[] piece = turnPieceCharacterToPieceIndexWithColor(c);
+                int color = piece[0];
+                int idx = piece[1];
+                board.addPiece(GeneralChessFunctions.positionToBitIndex(x,y),idx,color == 1);
+            }
+            x++;
+
+        }
+        board.updateAttackMasks();
+        // part 2 white turn
+        boolean isWhiteTurn = split[1].equals("w");
+
+        // part 3 castling rights
+        ChessGameState gameState = new ChessGameState();
+        gameState.removeAllRightsInstantly();
+        boolean whiteRight = false,blackRight=false;
+        for(char c : split[2].toCharArray()){
+            switch (c){
+                case 'K':
+                    gameState.giveRookRight(true,false);
+                    whiteRight = true;
+                    break;
+                case 'Q':
+                    gameState.giveRookRight(true,true);
+                    whiteRight = true;
+                    break;
+                case 'k':
+                    gameState.giveRookRight(false,false);
+                    blackRight = true;
+                    break;
+                case 'q':
+                    gameState.giveRookRight(false,true);
+                    blackRight = true;
+                    break;
+            }
+        }
+        if(whiteRight){
+            gameState.giveCastleRight(true);
+        }
+        if(blackRight){
+            gameState.giveCastleRight(false);
+        }
+        // part 4 en passant
+        ChessMove previousMove = ChessConstants.startMove;
+        if(!split[3].equals("-")){
+            boolean pawnWhiteMove = !isWhiteTurn;
+            int dir = pawnWhiteMove ? -1 : 1;
+            int pawnNewX = turnFileStrToInt(split[3].charAt(0));
+            int pawnNewY = charToInt(split[3].charAt(1))-1 + (pawnWhiteMove ? -dir : dir);
+            int pawnOldX = pawnNewX;
+            int pawnOldY = pawnNewY - (2*dir); // move 2 back
+            previousMove = new ChessMove(pawnOldX,pawnOldY,pawnNewX,pawnNewY,ChessConstants.EMPTYINDEX,ChessConstants.PAWNINDEX,pawnWhiteMove,false,false,ChessConstants.EMPTYINDEX,false,false);
+        }
+        // part 5 num half moves for 50 move rule
+        int numHalfMoves = Integer.parseInt(split[4]);
+
+        // part 6 num full moves + 1 if blacks turn to get total number of halfmoves played
+//        int numTotalMoves = Integer.parseInt(split[5]) + (isWhiteTurn ? 0 : 1);
+        // numtotal moves not used for these puzzles currently
+        gameState.setMovesSinceNoCheckOrNoPawn(numHalfMoves);
+
+        ChessPosition position = new ChessPosition(board,previousMove);
+        return new FullChessPosition(position,gameState,isWhiteTurn);
+
+    }
+
     public static ChessMove uciToChessMove(String uci, boolean isWhite, BitBoardWrapper board) {
         char[] c = uci.toCharArray();
         int startX = turnFileStrToInt(c[0]);
         int endX = turnFileStrToInt(c[2]);
-        int startY = 7 - (Integer.parseInt(Character.toString(c[1])) - 1);
-        int endY = 7 - (Integer.parseInt(Character.toString(c[3])) - 1);
+        int startY = 7 - charToInt(c[1]) + 1;
+        int endY = 7 - charToInt(c[3]) + 1;
         int boardIndex = GeneralChessFunctions.getBoardWithPiece(startX, startY, board);
         // eating (technically should check to see if its a correct piece color or throw error but nahh its fine)
         boolean isEating = GeneralChessFunctions.checkIfContains(endX, endY, board, "ya")[0];
         int eatingIndex = GeneralChessFunctions.getBoardWithPiece(endX, endY, board);
         boolean isCastleMove = boardIndex == ChessConstants.KINGINDEX && (uci.equals("e1g1") /* white short castle */ || uci.equals("e8g8") /*black short castle*/ || uci.equals("e1c1") /* white long*/ || uci.equals("e8c8"))/*black short*/;
-        int promoIndex = c.length > 4 ? turnPgnPieceToPieceIndex(Character.toUpperCase(c[4])) : ChessConstants.EMPTYINDEX;
+        int promoIndex = c.length > 4 ? turnPieceCharacterToPieceIndex(Character.toUpperCase(c[4])) : ChessConstants.EMPTYINDEX;
         int backDir = isWhite ? 1 : -1;
         boolean isEnPassant = startX != endX && boardIndex == ChessConstants.PAWNINDEX && GeneralChessFunctions.getBoardWithPiece(endX, endY + backDir, !isWhite, board) == ChessConstants.PAWNINDEX && !isEating;
         return new ChessMove(startX, startY, endX, endY, promoIndex, boardIndex, isWhite, isCastleMove, isEating, eatingIndex, isEnPassant, false);

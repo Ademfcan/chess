@@ -29,6 +29,7 @@ public class ChessConstants {
     public static final int KNIGHTINDEX = 1;
     public static final int PAWNINDEX = 0;
     public static final String FIRSTGAMENAME = "StartGame";
+    public static final int NUMPIECES = 6;
     public static final int ONESIDEPIECECOUNT = 16;
     public static final int BOTHSIDEPIECECOUNT = 32;
     public static final int WHITECHECKMATEVALUE = 1000000;

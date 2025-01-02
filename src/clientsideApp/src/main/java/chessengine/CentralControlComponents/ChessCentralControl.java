@@ -29,6 +29,7 @@ public class ChessCentralControl {
 //    public ChessboardMoveMaker chessboardMoveMaker;
     public MainScreenController mainScreenController;
     public ChessBoardGUIHandler chessBoardGUIHandler;
+    public PuzzleGuiManager puzzleGuiManager;
     public ThreadController asyncController;
     public ChessGameHandler gameHandler;
     public ChessActionHandler chessActionHandler;
@@ -45,13 +46,23 @@ public class ChessCentralControl {
     }
 
 
-    public void init(MainScreenController mainScreenController, Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput, Button sendMessageButton,Button resignButton,Button offerDrawButton, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessBgBoard, GridPane chessHighlightBoard, GridPane chessMoveBoard, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
+    public void init(MainScreenController mainScreenController, Pane chessPieceBoard, HBox eatenWhites,
+                     HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard,
+                     VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput,
+                     Button sendMessageButton,Button resignButton,Button offerDrawButton, VBox[][] bgPanes,
+                     VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessBgBoard, GridPane chessHighlightBoard,
+                     GridPane chessMoveBoard, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel,
+                     Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk,
+                     Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector,
+                     TextArea currentGamePgn,Slider puzzleEloSlider,Label puzzleElo,Button nextPuzzleButton,VBox puzzleTagsBox) {
         this.mainScreenController = mainScreenController;
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(this, chessPieceBoard, eatenWhites, eatenBlacks, piecesAtLocations, ArrowBoard, bgPanes, moveBoxes, highlightPanes, chessHighlightBoard, chessBgBoard, chessMoveBoard, localInfo);
         this.gameHandler = new ChessGameHandler(this);
         this.chessActionHandler = new ChessActionHandler(this, bestmovesBox, localInfo, sandboxPieces, gameInfo, chatInput, sendMessageButton,resignButton,offerDrawButton, movesPlayedBox,movesPlayedScrollpane, lineLabel, playPauseButton,timeSlider, p1Indicator, p2Indicator, p1moveClk, p2moveClk, player1SimSelector, player2SimSelector, currentGamePgn);
         this.asyncController = new ThreadController(this);
+        this.puzzleGuiManager = new PuzzleGuiManager(this,App.puzzleManager,puzzleEloSlider,puzzleElo,nextPuzzleButton,puzzleTagsBox);
         this.cachedResults = new HashMap<>();
+
         isInit = true;
 
     }
@@ -75,7 +86,7 @@ public class ChessCentralControl {
     public void checkCacheNewIndex() {
         int maxMoveIndex = gameHandler.gameWrapper.getGame().getMaxIndex();
         int currentMoveIndex = gameHandler.gameWrapper.getGame().getCurMoveIndex();
-        int bottomRange = Math.max(-1, currentMoveIndex - 1);
+        int bottomRange = Math.max(gameHandler.gameWrapper.getGame().getMinIndex(), currentMoveIndex - 1);
         int topRange = Math.min(currentMoveIndex + 1, maxMoveIndex);
         for (int i = bottomRange; i <= topRange; i++) {
             addSearchRequest(i);

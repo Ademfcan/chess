@@ -55,8 +55,7 @@ public class ChessPosition {
                 }
             }
             if (pieceType == ChessConstants.KINGINDEX) {
-                // update king location + remove castling right
-                board.setKingLocation(isWhite, new XYcoord(newX, newY));
+                // remove castling right
                 curGamestate.removeCastlingRight(isWhite);
 
             }

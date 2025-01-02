@@ -311,7 +311,7 @@
                                           </Button>
                                           <Button fx:id="enterPuzzleButton" layoutX="116.0" layoutY="159.0" mnemonicParsing="false" text="Play Puzzles">
                                              <font>
-                                                <Font size="23.0" />
+                                                <Font name="System Bold" size="23.0" />
                                              </font>
                                           </Button>
                                        </children>

@@ -1,5 +1,7 @@
 package chessserver.ChessRepresentations;
 
+import chessserver.Functions.BitFunctions;
+import chessserver.Functions.GeneralChessFunctions;
 import chessserver.Misc.ChessConstants;
 
 import java.util.Objects;
@@ -33,6 +35,16 @@ public class XYcoord {
     public XYcoord(int x, int y) {
         this.x = x;
         this.y = y;
+        this.isCastleMove = false;
+        this.enPassant = false;
+        this.direction = ChessConstants.EMPTYINDEX;
+        this.peiceType = ChessConstants.EMPTYINDEX;
+    }
+
+    public XYcoord(int bitIndex) {
+        int[] xy = BitFunctions.bitindexToXY(bitIndex);
+        this.x = xy[0];
+        this.y = xy[1];
         this.isCastleMove = false;
         this.enPassant = false;
         this.direction = ChessConstants.EMPTYINDEX;

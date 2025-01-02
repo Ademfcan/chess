@@ -29,16 +29,16 @@ public class ChessGameState {
 
 
     // movesSinceCheckOrPawn used for 50 move rule
-    private boolean whiteShortRookRight = true;
-    private boolean whiteLongRookRight = true;
-    private boolean blackShortRookRight = true;
-    private boolean blackLongRookRight = true;
+    private boolean whiteKingSideRight = true;
+    private boolean whiteQueenSideRight = true;
+    private boolean blackKingSideRight = true;
+    private boolean blackQueenSideRight = true;
     private int blackCastleIndx = 1000;
     private int whiteCastleIndx = 1000;
-    private int whiteShortRookIndx = 1000;
-    private int whiteLongRookIndx = 1000;
-    private int blackShortRookIndx = 1000;
-    private int blackLongRookIndx = 1000;
+    private int whiteKingSideIndx = 1000;
+    private int whiteQueenSideIndex = 1000;
+    private int blackKingSideIndx = 1000;
+    private int blackQueenSideIndx = 1000;
     private int currentIndex = -1;
 
     public ChessGameState() {
@@ -47,20 +47,20 @@ public class ChessGameState {
         this.movesWhenResetted = new Stack<>();
     }
 
-    private ChessGameState(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteShortRookRight, boolean whiteLongRookRight, boolean blackShortRookRight, boolean blackLongRookRight, int blackCastleIndx, int whiteCastleIndx, int whiteShortRookIndx, int whiteLongRookIndx, int blackShortRookIndx, int blackLongRookIndx, int currentIndex, boolean isCheckMated, int checkMateIndex, boolean isWhiteWin, boolean isStaleMated, int staleMateIndex, HashMap<Long, Integer> posMap, Stack<Integer> movesWhenResetted, int movesSinceNoCheckOrNoPawn) {
+    private ChessGameState(boolean whiteCastleRight, boolean blackCastleRight, boolean whiteKingSideRight, boolean whiteQueenSideRight, boolean blackKingSideRight, boolean blackQueenSideRight, int blackCastleIndx, int whiteCastleIndx, int whiteKingSideIndx, int whiteQueenSideIndx, int blackKingSideIndx, int blackQueenSideIndx, int currentIndex, boolean isCheckMated, int checkMateIndex, boolean isWhiteWin, boolean isStaleMated, int staleMateIndex, HashMap<Long, Integer> posMap, Stack<Integer> movesWhenResetted, int movesSinceNoCheckOrNoPawn) {
         this.hasher = new ZobristHasher();
         this.whiteCastleRight = whiteCastleRight;
         this.blackCastleRight = blackCastleRight;
-        this.whiteShortRookRight = whiteShortRookRight;
-        this.whiteLongRookRight = whiteLongRookRight;
-        this.blackShortRookRight = blackShortRookRight;
-        this.blackLongRookRight = blackLongRookRight;
+        this.whiteKingSideRight = whiteKingSideRight;
+        this.whiteQueenSideRight = whiteQueenSideRight;
+        this.blackKingSideRight = blackKingSideRight;
+        this.blackQueenSideRight = blackQueenSideRight;
         this.blackCastleIndx = blackCastleIndx;
         this.whiteCastleIndx = whiteCastleIndx;
-        this.whiteShortRookIndx = whiteShortRookIndx;
-        this.whiteLongRookIndx = whiteLongRookIndx;
-        this.blackShortRookIndx = blackShortRookIndx;
-        this.blackLongRookIndx = blackLongRookIndx;
+        this.whiteKingSideIndx = whiteKingSideIndx;
+        this.whiteQueenSideIndex = whiteQueenSideIndx;
+        this.blackKingSideIndx = blackKingSideIndx;
+        this.blackQueenSideIndx = blackQueenSideIndx;
         this.currentIndex = currentIndex;
         this.isCheckMated = isCheckMated;
         this.isWhiteWin = isWhiteWin;
@@ -84,16 +84,16 @@ public class ChessGameState {
                 ", staleMateIndex=" + staleMateIndex +
                 ", whiteCastleRight=" + whiteCastleRight +
                 ", blackCastleRight=" + blackCastleRight +
-                ", whiteShortRookRight=" + whiteShortRookRight +
-                ", whiteLongRookRight=" + whiteLongRookRight +
-                ", blackShortRookRight=" + blackShortRookRight +
-                ", blackLongRookRight=" + blackLongRookRight +
+                ", whiteShortRookRight=" + whiteKingSideRight +
+                ", whiteLongRookRight=" + whiteQueenSideRight +
+                ", blackShortRookRight=" + blackKingSideRight +
+                ", blackLongRookRight=" + blackQueenSideRight +
                 ", blackCastleIndx=" + blackCastleIndx +
                 ", whiteCastleIndx=" + whiteCastleIndx +
-                ", whiteShortRookIndx=" + whiteShortRookIndx +
-                ", whiteLongRookIndx=" + whiteLongRookIndx +
-                ", blackShortRookIndx=" + blackShortRookIndx +
-                ", blackLongRookIndx=" + blackLongRookIndx +
+                ", whiteShortRookIndx=" + whiteKingSideIndx +
+                ", whiteLongRookIndx=" + whiteQueenSideIndex +
+                ", blackShortRookIndx=" + blackKingSideIndx +
+                ", blackLongRookIndx=" + blackQueenSideIndx +
                 ", currentIndex=" + currentIndex +
                 ", stack for movessincecheckornoPawn=" + movesWhenResetted.toString() +
                 '}';
@@ -105,10 +105,10 @@ public class ChessGameState {
         staleMateIndex = staleMateIndex > newMoveIndex ? 1000 : staleMateIndex;
         whiteCastleIndx = whiteCastleIndx >= newMoveIndex ? 1000 : whiteCastleIndx;
         blackCastleIndx = blackCastleIndx >= newMoveIndex ? 1000 : blackCastleIndx;
-        whiteLongRookIndx = whiteLongRookIndx >= newMoveIndex ? 1000 : whiteLongRookIndx;
-        whiteShortRookIndx = whiteShortRookIndx >= newMoveIndex ? 1000 : whiteShortRookIndx;
-        blackLongRookIndx = blackLongRookIndx >= newMoveIndex ? 1000 : blackLongRookIndx;
-        blackShortRookIndx = blackShortRookIndx >= newMoveIndex ? 1000 : blackShortRookIndx;
+        whiteQueenSideIndex = whiteQueenSideIndex >= newMoveIndex ? 1000 : whiteQueenSideIndex;
+        whiteKingSideIndx = whiteKingSideIndx >= newMoveIndex ? 1000 : whiteKingSideIndx;
+        blackQueenSideIndx = blackQueenSideIndx >= newMoveIndex ? 1000 : blackQueenSideIndx;
+        blackKingSideIndx = blackKingSideIndx >= newMoveIndex ? 1000 : blackKingSideIndx;
         updateAllStatesToNewIndex(newMoveIndex);
     }
 
@@ -117,12 +117,12 @@ public class ChessGameState {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ChessGameState that = (ChessGameState) o;
-        return isWhiteWin == that.isWhiteWin && isCheckMated == that.isCheckMated && isStaleMated == that.isStaleMated && whiteCastleRight == that.whiteCastleRight && blackCastleRight == that.blackCastleRight && whiteShortRookRight == that.whiteShortRookRight && whiteLongRookRight == that.whiteLongRookRight && blackShortRookRight == that.blackShortRookRight && blackLongRookRight == that.blackLongRookRight;
+        return isWhiteWin == that.isWhiteWin && isCheckMated == that.isCheckMated && isStaleMated == that.isStaleMated && whiteCastleRight == that.whiteCastleRight && blackCastleRight == that.blackCastleRight && whiteKingSideRight == that.whiteKingSideRight && whiteQueenSideRight == that.whiteQueenSideRight && blackKingSideRight == that.blackKingSideRight && blackQueenSideRight == that.blackQueenSideRight;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(isWhiteWin, isCheckMated, isStaleMated, whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight, blackShortRookRight, blackLongRookRight);
+        return Objects.hash(isWhiteWin, isCheckMated, isStaleMated, whiteCastleRight, blackCastleRight, whiteKingSideRight, whiteQueenSideRight, blackKingSideRight, blackQueenSideRight);
     }
 
     public HashMap<Long, Integer> getPosMap() {
@@ -157,7 +157,7 @@ public class ChessGameState {
                 // increment moves since no check or pawn move
                 movesSinceNoCheckOrNoPawn++;
                 // 100 moves in total == 50 moves per side
-                if(movesSinceNoCheckOrNoPawn > 99){
+                if (movesSinceNoCheckOrNoPawn > 99) {
                     setStaleMated();
                     return true;
                 }
@@ -170,7 +170,7 @@ public class ChessGameState {
             }
         }
 
-        if(GeneralChessFunctions.isInsufiicientMaterial(newPosition.board)){
+        if (GeneralChessFunctions.isInsufiicientMaterial(newPosition.board)) {
             setStaleMated();
             return true;
         }
@@ -203,17 +203,17 @@ public class ChessGameState {
         whiteCastleRight = true;
         blackCastleRight = true;
 
-        whiteShortRookRight = true;
+        whiteKingSideRight = true;
 
-        whiteLongRookRight = true;
-        blackShortRookRight = true;
-        blackLongRookRight = true;
+        whiteQueenSideRight = true;
+        blackKingSideRight = true;
+        blackQueenSideRight = true;
         blackCastleIndx = 1000;
         whiteCastleIndx = 1000;
-        whiteShortRookIndx = 1000;
-        whiteLongRookIndx = 1000;
-        blackShortRookIndx = 1000;
-        blackLongRookIndx = 1000;
+        whiteKingSideIndx = 1000;
+        whiteQueenSideIndex = 1000;
+        blackKingSideIndx = 1000;
+        blackQueenSideIndx = 1000;
     }
 
     public ChessGameState cloneState() {
@@ -221,10 +221,10 @@ public class ChessGameState {
         Stack<Integer> clonedMovesWhenResetted = cloneStack(movesWhenResetted);
 
         return new ChessGameState(
-                whiteCastleRight, blackCastleRight, whiteShortRookRight, whiteLongRookRight,
-                blackShortRookRight, blackLongRookRight, blackCastleIndx, whiteCastleIndx,
-                whiteShortRookIndx, whiteLongRookIndx, blackShortRookIndx, blackLongRookIndx,
-                currentIndex, isCheckMated,checkMateIndex, isWhiteWin, isStaleMated,staleMateIndex, clonedPosMap, clonedMovesWhenResetted, movesSinceNoCheckOrNoPawn);
+                whiteCastleRight, blackCastleRight, whiteKingSideRight, whiteQueenSideRight,
+                blackKingSideRight, blackQueenSideRight, blackCastleIndx, whiteCastleIndx,
+                whiteKingSideIndx, whiteQueenSideIndex, blackKingSideIndx, blackQueenSideIndx,
+                currentIndex, isCheckMated, checkMateIndex, isWhiteWin, isStaleMated, staleMateIndex, clonedPosMap, clonedMovesWhenResetted, movesSinceNoCheckOrNoPawn);
     }
 
     private Stack<Integer> cloneStack(Stack<Integer> oldStack) {
@@ -268,20 +268,20 @@ public class ChessGameState {
         return blackCastleRight;
     }
 
-    public boolean isWhiteShortRookRight() {
-        return whiteShortRookRight;
+    public boolean isWhiteKingSideRight() {
+        return whiteKingSideRight;
     }
 
-    public boolean isWhiteLongRookRight() {
-        return whiteLongRookRight;
+    public boolean isWhiteQueenSideRight() {
+        return whiteQueenSideRight;
     }
 
-    public boolean isBlackShortRookRight() {
-        return blackShortRookRight;
+    public boolean isBlackKingSideRight() {
+        return blackKingSideRight;
     }
 
-    public boolean isBlackLongRookRight() {
-        return blackLongRookRight;
+    public boolean isBlackQueenSideRight() {
+        return blackQueenSideRight;
     }
 
 
@@ -289,10 +289,10 @@ public class ChessGameState {
         currentIndex = newMoveIndex;
         whiteCastleRight = newMoveIndex <= whiteCastleIndx;
         blackCastleRight = newMoveIndex <= blackCastleIndx;
-        whiteLongRookRight = newMoveIndex <= whiteLongRookIndx;
-        whiteShortRookRight = newMoveIndex <= whiteShortRookIndx;
-        blackLongRookRight = newMoveIndex <= blackLongRookIndx;
-        blackShortRookRight = newMoveIndex <= blackShortRookIndx;
+        whiteQueenSideRight = newMoveIndex <= whiteQueenSideIndex;
+        whiteKingSideRight = newMoveIndex <= whiteKingSideIndx;
+        blackQueenSideRight = newMoveIndex <= blackQueenSideIndx;
+        blackKingSideRight = newMoveIndex <= blackKingSideIndx;
         isCheckMated = newMoveIndex >= checkMateIndex;
         isStaleMated = newMoveIndex >= staleMateIndex;
     }
@@ -402,34 +402,66 @@ public class ChessGameState {
 
     }
 
+    public void removeRookRight(boolean isWhite, boolean isQueenSide) {
+        if (isWhite) {
+            if (isQueenSide) {
+                // if already false then we dont overwrite as we need to keep the earliest index
+                if (whiteQueenSideRight) {
+                    whiteQueenSideRight = false;
+                    whiteQueenSideIndex = currentIndex;
+                }
+            } else {
+                if (whiteKingSideRight) {
+                    whiteKingSideRight = false;
+                    whiteKingSideIndx = currentIndex;
+                }
+            }
+        }
+        else {
+            if (isQueenSide) {
+                if (blackQueenSideRight) {
+                    blackQueenSideRight = false;
+                    blackQueenSideIndx = currentIndex;
+                }
+            } else {
+                if (blackKingSideRight) {
+                    blackKingSideRight = false;
+                    blackKingSideIndx = currentIndex;
+                }
+            }
+
+
+        }
+
+    }
 
     public void checkRemoveRookMoveRight(int x, int y, boolean isWhite) {
-        boolean isShort = x == 7;
-        boolean isValidX = isShort || x == 0;
+        boolean isKingSide = x == 7;
+        boolean isValidX = isKingSide || x == 0;
         boolean isValidY = isWhite || y == 0;
         if (isValidX && isValidY) {
-            if (isShort) {
+            if (isKingSide) {
                 if (isWhite) {
-                    if (whiteShortRookRight) {
-                        whiteShortRookIndx = currentIndex;
-                        whiteShortRookRight = false;
+                    if (whiteKingSideRight) {
+                        whiteKingSideIndx = currentIndex;
+                        whiteKingSideRight = false;
                     }
                 } else {
-                    if (blackShortRookRight) {
-                        blackShortRookIndx = currentIndex;
-                        blackShortRookRight = false;
+                    if (blackKingSideRight) {
+                        blackKingSideIndx = currentIndex;
+                        blackKingSideRight = false;
                     }
                 }
             } else {
                 if (isWhite) {
-                    if (whiteLongRookRight) {
-                        whiteLongRookIndx = currentIndex;
-                        whiteLongRookRight = false;
+                    if (whiteQueenSideRight) {
+                        whiteQueenSideIndex = currentIndex;
+                        whiteQueenSideRight = false;
                     }
                 } else {
-                    if (blackLongRookRight) {
-                        blackLongRookIndx = currentIndex;
-                        blackLongRookRight = false;
+                    if (blackQueenSideRight) {
+                        blackQueenSideIndx = currentIndex;
+                        blackQueenSideRight = false;
                     }
                 }
             }
@@ -437,6 +469,43 @@ public class ChessGameState {
         }
 
     }
+
+    public void giveCastleRight(boolean isWhite){
+        if(isWhite){
+            whiteCastleRight = true;
+            whiteCastleIndx = 1000;
+        }
+        else{
+            blackCastleRight = true;
+            blackCastleIndx = 1000;
+        }
+    }
+
+    public void giveRookRight(boolean isWhite, boolean isQueenSide) {
+        if (isWhite) {
+            if (isQueenSide) {
+                whiteQueenSideRight = true;
+                whiteQueenSideIndex = 1000;
+            } else {
+                whiteKingSideRight = true;
+                whiteKingSideIndx = 1000;
+            }
+        }
+        else {
+            if (isQueenSide) {
+                blackQueenSideRight = true;
+                blackQueenSideIndx = 1000;
+            } else {
+                blackKingSideRight = true;
+                blackKingSideIndx = 1000;
+            }
+
+
+        }
+
+    }
+
+
 
 
     public void updateRightsBasedOnMove(ChessMove move) {
@@ -447,5 +516,18 @@ public class ChessGameState {
         } else if (move.isEating() && move.getEatingIndex() == ChessConstants.ROOKINDEX) {
             checkRemoveRookMoveRight(move.getNewX(), move.getNewY(), !move.isWhite());
         }
+    }
+
+    public void removeAllRightsInstantly() {
+        removeCastlingRight(true);
+        removeCastlingRight(false);
+        removeRookRight(true,true);
+        removeRookRight(true,false);
+        removeRookRight(false,true);
+        removeRookRight(false,false);
+    }
+
+    public void setMovesSinceNoCheckOrNoPawn(int movesSinceNoCheckOrNoPawn) {
+        this.movesSinceNoCheckOrNoPawn = movesSinceNoCheckOrNoPawn;
     }
 }

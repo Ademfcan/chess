@@ -15,4 +15,5 @@ public class Constants {
     public static final Background defaultBg = new Background(backgroundFillDefault);
     private static final BackgroundFill backgroundFillHighlight = new BackgroundFill(Color.LIGHTYELLOW, new CornerRadii(3), null);
     public static final Background highlightBg = new Background(backgroundFillHighlight);
+    public static final String puzzleFileLocation = "LargeFiles/lichess_db_puzzle.csv";
 }

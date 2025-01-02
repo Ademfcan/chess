@@ -380,6 +380,7 @@ public class StartScreenController implements Initializable {
         setupSandboxOptions();
         setupExplorerOptions();
         setupSimulationOptions();
+        setupPuzzleOptions();
 
         setUpMiscelaneus();
         setUpBindings();
@@ -390,6 +391,12 @@ public class StartScreenController implements Initializable {
         oldGames = loadGamesFromSave();
         setupOldGamesBox(oldGames);
         setupUserOldGamesBox(oldGames);
+    }
+
+    private void setupPuzzleOptions() {
+        enterPuzzleButton.setOnMouseClicked(e ->{
+            App.changeToMainScreenPuzzle();
+        });
     }
 
     public void setProfileInfo(ProfilePicture picture, String name, int elo, int uuid) {

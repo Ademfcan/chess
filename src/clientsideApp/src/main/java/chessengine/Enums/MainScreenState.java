@@ -16,6 +16,10 @@ public enum MainScreenState {
         return state == VIEWER || state == SIMULATION || state == SANDBOX;
     }
 
+    public static boolean isMovesPlayedShown(MainScreenState state){
+        return state != PUZZLE && state != SANDBOX;
+    }
+
 
     public static boolean cannotReset(MainScreenState state) {
         return state == ONLINE || state == PUZZLE || state == SIMULATION;

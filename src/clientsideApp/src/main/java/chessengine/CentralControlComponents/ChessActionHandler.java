@@ -43,6 +43,7 @@ import java.util.List;
 
 public class ChessActionHandler {
 
+    private final LineLabeler labeler = new LineLabeler();
     private final Label lineLabel;
     private final HBox movesPlayedBox;
     private final ScrollPane movesPlayedScrollpane;
@@ -349,7 +350,7 @@ public class ChessActionHandler {
 
     public void highlightMovesPlayedLine(int highlightIndex) {
         logger.debug("Highlighting moves played line");
-        if (highlightIndex > -1 && highlightIndex <= myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
+        if (highlightIndex >= 0 && highlightIndex <= myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
             int prevNumSpacers = highlightIndex / 2;
             int tot = highlightIndex + prevNumSpacers + 1;
 
@@ -410,7 +411,7 @@ public class ChessActionHandler {
         App.soundPlayer.playEffect(Effect.MESSAGE);
     }
 
-    private void updateTurnIndicators(boolean isWhiteTurn, boolean isPlayer1White, boolean updateTimeLabels) {
+    private void updateTurnIndicators(boolean isWhiteTurn, boolean isPlayer1White) {
         // todo figure out timers and diplay and centralized pulse etc
         VBox whiteIndicator = isPlayer1White ? p1Indicator : p2Indicator;
         VBox blackIndicator = isPlayer1White ? p2Indicator : p1Indicator;
@@ -420,19 +421,15 @@ public class ChessActionHandler {
         if (isWhiteTurn) {
             whiteIndicator.setBackground(Constants.whiteTurnActive);
             blackIndicator.setBackground(Constants.labelUnactive);
-            if (updateTimeLabels) {
-                whiteLabel.styleProperty().unbind();
-                App.bindingController.bindSmallText(whiteLabel, Window.Main, "Black");
-            }
+            whiteLabel.styleProperty().unbind();
+            App.bindingController.bindSmallText(whiteLabel, Window.Main, "Black");
 
 
         } else {
             whiteIndicator.setBackground(Constants.labelUnactive);
             blackIndicator.setBackground(Constants.blackTurnActive);
-            if (updateTimeLabels) {
-                blackLabel.styleProperty().unbind();
-                App.bindingController.bindSmallText(blackLabel, Window.Main, "White");
-            }
+            blackLabel.styleProperty().unbind();
+            App.bindingController.bindSmallText(blackLabel, Window.Main, "White");
         }
 
 
@@ -441,32 +438,38 @@ public class ChessActionHandler {
     public void makeBackendUpdate(MainScreenState currentState, boolean isNewMoveMade, boolean isInit) {
         // method called every time the board changes. Could be a move, or maybe changing to a previous move
         // extrainfo contains possible stuff to add
-        String gamePgn = myControl.gameHandler.gameWrapper.getGame().gameToPgn(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
-        currentGamePgn.setText(gamePgn);
 
+        // clearing all boxes
         bestmovesBox.getChildren().clear();
         myControl.chessBoardGUIHandler.clearArrows();
         currentlyShownSuggestedArrows.clear();
-        myControl.checkCacheNewIndex();
-        myControl.getCentralEvaluation();
-//        myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
-        highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
-        if (currentState != MainScreenState.SANDBOX) {
-            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented(), true); // web game will send time updates
-            if (myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > -1) {
-                lineLabel.setText(LineLabeler.getLineName(gamePgn));
-            }
+
+        if(MainScreenState.isEvalAllowed(currentState)){
+            myControl.checkCacheNewIndex();
+            myControl.getCentralEvaluation();
         }
-        if (currentState != MainScreenState.SANDBOX && (numLabels - 1) != myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
-            adjustMovesPlayed(myControl.gameHandler.gameWrapper.getGame().getMaxIndex());
+        // sandbox can have invalid pgn due to custom moves
+        if (currentState != MainScreenState.SANDBOX) {
+            highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
+
+            String gamePgn = myControl.gameHandler.gameWrapper.getGame().gameToPgn(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
+            String[] gamePgnArr = myControl.gameHandler.gameWrapper.getGame().gameToPgnArr(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
+            currentGamePgn.setText(gamePgn);
+            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented());
+
+            if (myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > myControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
+                lineLabel.setText(labeler.getLineName(gamePgnArr));
+            }
+
+            if ((numLabels - 1) != myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
+                adjustMovesPlayed(myControl.gameHandler.gameWrapper.getGame().getMaxIndex());
+            }
         }
         switch (currentState) {
             case SIMULATION -> {
                 if (isInit) {
 //                    System.out.println("Start sim");
                     myControl.asyncController.startSimPlay(); // start sim task
-                } else {
-//                    myControl.asyncController.evalTask.evalRequest();
                 }
             }
             case SANDBOX -> {
@@ -479,19 +482,8 @@ public class ChessActionHandler {
                 } else if (GeneralChessFunctions.getPieceCoords(board.getBlackPiecesBB()[5]).isEmpty()) {
                     // no black king but shouldnt trigger game over
                     myControl.mainScreenController.setEvalBar(10000000, -1, false);
-                } else {
-                    // both kings on the board so we can proceed as usuals
-//                    myControl.asyncController.evalTask.evalRequest();
-
                 }
 
-            }
-            case VIEWER -> {
-//                myControl.asyncController.evalTask.evalRequest();
-//                updateViewerSuggestions();
-//                if(isInit){
-//                    myControl.tryPreloadCentralEvaluations();
-//                }
             }
             case LOCAL -> {
                 // could be a new move pgn, or not
@@ -503,9 +495,6 @@ public class ChessActionHandler {
                     }
                 }
 
-
-            }
-            case ONLINE -> {
 
             }
             case CAMPAIGN -> {
@@ -803,10 +792,6 @@ public class ChessActionHandler {
     }
 
     public void handleSquareClick(int clickX, int clickY, boolean isHitPiece, boolean isWhiteHitPiece, MainScreenState currentState) {
-        System.out.println(myControl.gameHandler.gameWrapper.getGame().getGameState().toString());
-//        System.out.println(GeneralChessFunctions.getBoardDetailedString(myControl.gameHandler.currentGame.getCurrentPosition().board));
-//        Arrays.stream(myControl.gameHandler.currentGame.getCurrentPosition().board.getWhiteAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
-//        Arrays.stream(myControl.gameHandler.currentGame.getCurrentPosition().board.getBlackAttackTables()).forEach(m -> System.out.println(BitFunctions.getBitStr(m)));
         int backendY = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? clickY : 7 - clickY;
         int backendX = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? clickX : 7 - clickX;
         if (prevPeiceSelected && selectedPeiceInfo[0] == clickX && selectedPeiceInfo[1] == clickY) {
@@ -910,9 +895,6 @@ public class ChessActionHandler {
     }
 
     public void handleMakingMove(int startX, int startY, int endX, int endY, boolean isEating, boolean isWhitePiece, boolean isCastle, boolean isEnPassant, boolean isComputerMove, boolean isPawnPromoFinalized, int promoIndx, MainScreenState currentState, boolean isDragMove) {
-        if (isComputerMove) {
-            myControl.gameHandler.gameWrapper.moveToEndOfGame(App.userPreferenceManager.isNoAnimate());
-        }
         myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
         myControl.chessBoardGUIHandler.clearArrows();
 
@@ -921,7 +903,7 @@ public class ChessActionHandler {
         int endSquare = isWhitePiece ? 0 : 7;
         boolean isPawnPromo = boardIndex == ChessConstants.PAWNINDEX && endY == endSquare;
         boolean pawnPromoToggled = false;
-        ChessMove moveMade = null;
+        ChessMove moveMade;
 
         if (promoIndx == ChessConstants.EMPTYINDEX && !isPawnPromo) {
             // not promo
@@ -1004,6 +986,9 @@ public class ChessActionHandler {
                 }
 
 
+            }
+            case PUZZLE -> {
+                return myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() == myControl.gameHandler.gameWrapper.getGame().isWhiteTurn();
             }
             default -> {
                 logger.error("checkIfCanMakeMove default case called");

@@ -111,8 +111,7 @@ public class BackendChessPosition extends ChessPosition {
 
             }
             if (peiceType == ChessConstants.KINGINDEX) {
-                // update king location + remove castling right
-                board.setKingLocation(isWhite, new XYcoord(newX, newY));
+                //remove castling right
                 gameState.removeCastlingRight(isWhite);
 
             }
@@ -227,22 +226,12 @@ public class BackendChessPosition extends ChessPosition {
             if (isEating) {
                 // reverse eating enemyPeice
                 board.addPiece(newBitIndex, eatingIndex, enemyColor);
-
-
             }
-            if (peiceType == ChessConstants.KINGINDEX) {
-                // update king location to old pos
-                board.setKingLocation(isWhite, new XYcoord(oldX, oldY));
-
-            }
-
         } else {
             //undo en passant
             int backwardsDir = isWhite ? 1 : -1;
             // remove pawn
             board.addPiece(GeneralChessFunctions.positionToBitIndex(newX, newY + backwardsDir), ChessConstants.PAWNINDEX, enemyColor);
-
-
         }
 
 

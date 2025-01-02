@@ -7,7 +7,6 @@ import chessserver.Functions.PgnFunctions;
 import chessserver.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.AppenderRef;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,6 +19,8 @@ public class ChessGame {
     // castling etc
     private ChessGameState gameState;
     private ChessPosition currentPosition;
+    private int minIndex = -1; // limit the minimum index
+    private int maxSoFar = -1; // the max you go by making moves, unlike current index or maxindex, only goes up but only by making moves,
     private int curMoveIndex = -1;
     private int maxIndex = -1;
     private String blackPlayerName;
@@ -33,7 +34,10 @@ public class ChessGame {
     private boolean isWhiteOriented = true;
     private boolean isVsComputer;
     private List<ChessPosition> moves;
-    private final boolean isMainGame = false;
+    /**
+     * This is set to false in occasions like a puzzle where you dont begin from start position
+     **/
+    private boolean beginFromStart = true;
     private String gameName;
 
 
@@ -45,7 +49,7 @@ public class ChessGame {
     /**
      * Constructor for generating a game from a saved pgn (This version is exclusively used loading games from save
      **/
-    public static ChessGame createGameFromSaveLoad(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer,boolean isWhiteOriented, String gameHash) {
+    public static ChessGame createGameFromSaveLoad(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented, String gameHash) {
         ChessGame game = new ChessGame();
         game.gameState = new ChessGameState();
         if (pgn.trim().isEmpty()) {
@@ -84,7 +88,7 @@ public class ChessGame {
         game.maxIndex = -1;
         game.moves = new ArrayList<>();
         game.gameName = "Online " + gameType;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.whitePlayerName = whitePlayerName;
         game.whiteElo = whiteElo;
         game.whitePlayerPfpUrl = whitePlayerPfpUrl;
@@ -99,7 +103,7 @@ public class ChessGame {
      * This constructor creates a simple game with a name provided as a string
      **/
 
-    public static ChessGame createSimpleGameWithName(String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer,boolean isWhiteOriented) {
+    public static ChessGame createSimpleGameWithName(String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
         game.gameState = new ChessGameState();
@@ -116,7 +120,7 @@ public class ChessGame {
         game.whitePlayerPfpUrl = whitePlayerPfpUrl;
         game.blackPlayerPfpUrl = blackPlayerPfpUrl;
         game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
 
         return game;
 
@@ -126,7 +130,7 @@ public class ChessGame {
      * This constructor creates a simple game with no name provided. Instead, the name is {Player1Name} + ","  + {Player2Name}
      **/
 
-    public static ChessGame createSimpleGame(String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer,boolean isWhiteOriented) {
+    public static ChessGame createSimpleGame(String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
         ChessGame game = new ChessGame();
         game.moves = new ArrayList<>();
         game.gameState = new ChessGameState();
@@ -143,7 +147,7 @@ public class ChessGame {
         game.whitePlayerPfpUrl = whitePlayerPfpUrl;
         game.blackPlayerPfpUrl = blackPlayerPfpUrl;
         game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
 
         return game;
 
@@ -177,7 +181,7 @@ public class ChessGame {
         game.whitePlayerPfpUrl = whitePlayerPfpurl;
         game.blackPlayerPfpUrl = blackPlayerPfpUrl;
         game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
 
         return game;
@@ -211,7 +215,7 @@ public class ChessGame {
         game.blackElo = 0;
         game.whitePlayerPfpUrl = whitePfpUrl;
         game.blackPlayerPfpUrl = isVsComputer ? ProfilePicture.ROBOT.urlString : whitePfpUrl;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
         return game;
 
@@ -244,7 +248,7 @@ public class ChessGame {
         game.blackElo = 0;
         game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
         game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
 
         return game;
@@ -270,7 +274,7 @@ public class ChessGame {
         game.blackElo = 0;
         game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
         game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
 
         return game;
@@ -297,15 +301,57 @@ public class ChessGame {
         game.blackElo = 0;
         game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
         game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
 
         return game;
+    }
+
+    public static ChessGame getPuzzleGame(String puzzleFen, String[] uciChessMoves) {
+        ChessGame game = new ChessGame();
+        FullChessPosition positionInfo = PgnFunctions.FenToPosition(puzzleFen);
+        game.gameState = positionInfo.gameState();
+        game.moves = new ArrayList<>();
+        game.currentPosition = positionInfo.position();
+        game.isWhiteTurn = positionInfo.isWhiteTurn();
+        // start adding moves
+        for (String uciMove : uciChessMoves) {
+            ChessPosition gamePosition = new ChessPosition(game.currentPosition, game.gameState, PgnFunctions.uciToChessMove(uciMove, game.isWhiteTurn, game.currentPosition.board));
+            game.gameState.makeNewMoveAndCheckDraw(gamePosition);
+            game.moves.add(gamePosition);
+            game.currentPosition = gamePosition;
+            game.isWhiteTurn = !game.isWhiteTurn;
+        }
+        // now set the game back to its start position
+        game.currentPosition = game.moves.get(0);
+        // move the gamestate back to its start position
+        for (int i = game.moves.size() - 1; i >= 1; i--) {
+            game.gameState.moveBackward(game.moves.get(i));
+            // also handle iswhiteturn in same loop
+            game.isWhiteTurn = !game.isWhiteTurn;
+        }
+        game.minIndex = 0; // safety to avoid -1 index
+        game.maxSoFar = 0; // safety to avoid -1 index
+        game.curMoveIndex = 0;
+        game.maxIndex = game.moves.size() - 1;
+        game.beginFromStart = false; // flag to indicate game is not continous
+        game.isWhiteOriented = game.isWhiteTurn;
+        game.isVsComputer = false;
+        game.gameHash = String.valueOf(System.identityHashCode(game));
+        game.gameName = "Puzzle Game";
+        game.whitePlayerName = "";
+        game.blackPlayerName = "";
+        game.whiteElo = -1;
+        game.blackElo = -1;
+        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
+        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
+        return game;
+
     }
 
     /**
      * Method used exclusively for cloning chessgame instances Note: The game created is set to the start of the game
      **/
-    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessGameState gameStates, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer,boolean isWhiteOriented, int maxIndex) {
+    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessGameState gameStates, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented, int maxIndex) {
         ChessGame game = new ChessGame();
         game.moves = moves;
         game.gameState = gameStates;
@@ -322,7 +368,7 @@ public class ChessGame {
         game.blackElo = blackElo;
         game.whitePlayerPfpUrl = whitePlayerPfpUrl;
         game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.gameHash = String.valueOf(game.hashCode());
+        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
 
         return game;
@@ -336,7 +382,6 @@ public class ChessGame {
     public boolean isVsComputer() {
         return isVsComputer;
     }
-
 
 
     public String getGameName() {
@@ -375,12 +420,12 @@ public class ChessGame {
         return isWhiteTurn;
     }
 
-    public boolean isWhiteTurnAtMax() {
-        return (maxIndex+1) % 2 == 0;
-    }
-
     public void setWhiteTurn(boolean whiteTurn) {
         isWhiteTurn = whiteTurn;
+    }
+
+    public boolean isWhiteTurnAtMax() {
+        return (maxIndex + 1) % 2 == 0;
     }
 
     public boolean isWhiteTurn(int index) {
@@ -391,7 +436,7 @@ public class ChessGame {
 
     public ChessGame cloneGame() {
         List<ChessPosition> clonedMoves = new ArrayList<>(moves.stream().map(ChessPosition::clonePosition).toList());
-        return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(), gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePlayerPfpUrl, blackPlayerPfpUrl, isVsComputer,isWhiteOriented, maxIndex);
+        return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(), gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePlayerPfpUrl, blackPlayerPfpUrl, isVsComputer, isWhiteOriented, maxIndex);
     }
 
 
@@ -413,8 +458,8 @@ public class ChessGame {
 
     public void changeToDifferentMove(int dir) {
 //        System.out.println(GeneralChessFunctions.getBoardDetailedString(currentPosition.board));
-        int newIndex = curMoveIndex+dir;
-        if(dir != 0 &&  newIndex >= -1 && newIndex <= maxIndex){
+        int newIndex = curMoveIndex + dir;
+        if (dir != 0 && newIndex >= -1 && newIndex <= maxIndex) {
             int moveChange = Math.abs(dir % 2);
             // if not an even number the turn flips
             if (moveChange == 1) {
@@ -440,8 +485,7 @@ public class ChessGame {
             }
 
             currentPosition = newPos;
-        }
-        else{
+        } else {
             logger.error("Invalid move index provided: " + dir);
         }
     }
@@ -498,7 +542,7 @@ public class ChessGame {
         curMoveIndex = -1;
         maxIndex = -1;
         gameState.reset();
-        currentPosition = getPos(-1);;
+        currentPosition = getPos(-1);
         clearIndx(false);
 
 
@@ -509,9 +553,6 @@ public class ChessGame {
     }
 
 
-
-
-
     public ChessPosition getPos(int moveIndex) {
         if (moveIndex >= 0 && moveIndex < moves.size()) {
             ChessPosition newPos = moves.get(moveIndex);
@@ -519,7 +560,7 @@ public class ChessGame {
                 logger.error("NewPosNull");
             }
             return newPos;
-        } else if (moveIndex == -1) {
+        } else if (beginFromStart && moveIndex == -1) {
             // intial board state
             return ChessConstants.startBoardState;
         } else {
@@ -541,7 +582,6 @@ public class ChessGame {
         if (updateStates) {
             gameState.clearIndexes(curMoveIndex);
         }
-
 
 
     }
@@ -585,6 +625,7 @@ public class ChessGame {
         isWhiteTurn = !isWhiteTurn;
         maxIndex++;
         curMoveIndex++;
+        maxSoFar++;
         moves.add(newPosition);
         gameState.makeNewMoveAndCheckDraw(newPosition);
         if (AdvancedChessFunctions.isAnyNotMovePossible(!move.isWhite(), newPosition, gameState)) {
@@ -633,7 +674,7 @@ public class ChessGame {
 
         int x;
         int y;
-        int pieceType = PgnFunctions.turnPgnPieceToPieceIndex(pgn.charAt(0));
+        int pieceType = PgnFunctions.turnPieceCharacterToPieceIndex(pgn.charAt(0));
         int start = pieceType == ChessConstants.PAWNINDEX ? 0 : 1;
         boolean isEating = false;
         // store the x values found. At most there will be two with the first one being the ambiguity char, and the other being the move x coord
@@ -664,6 +705,8 @@ public class ChessGame {
 
 
             int OldY = AdvancedChessFunctions.getPawnColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
+            System.out.println(GeneralChessFunctions.getPieceType(pieceType));
+            GeneralChessFunctions.printBoardDetailed(currentPosition.board);
             return new ChessMove(x, OldY, x, y, ChessConstants.EMPTYINDEX, pieceType, isWhiteMove, false, false, ChessConstants.EMPTYINDEX, false, false);
 
 
@@ -674,7 +717,7 @@ public class ChessGame {
                     isEating = true;
                 } else if (c == '=') {
                     // Indicates a promotion
-                    promoIndex = PgnFunctions.turnPgnPieceToPieceIndex(pgn.charAt(i + 1)); // Get the promoted piece type
+                    promoIndex = PgnFunctions.turnPieceCharacterToPieceIndex(pgn.charAt(i + 1)); // Get the promoted piece type
                 } else if (c == '+') {
                     // Indicates a check
                 } else if (c == '#') {
@@ -799,6 +842,9 @@ public class ChessGame {
     }
 
     public String[] gameToPgnArr() {
+        return gameToPgnArr(this.maxIndex);
+    }
+    public String[] gameToPgnArr(int maxIndex) {
         if (maxIndex == -1) {
             // empty game
             return new String[]{};
@@ -902,5 +948,16 @@ public class ChessGame {
         this.isWhiteTurn = true;
         this.isWhiteOriented = isClientWhite;
 
+    }
+
+    public int getMinIndex() {
+        return minIndex;
+    }
+
+    public int getMaxSoFar(){
+        return maxSoFar;
+    }
+    public void incrementMaxSoFar(){
+        maxSoFar++;
     }
 }

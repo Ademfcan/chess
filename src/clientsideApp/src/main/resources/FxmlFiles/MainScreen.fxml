@@ -210,7 +210,7 @@
                         </HBox>
                         <VBox fx:id="gameControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" GridPane.rowIndex="1">
                            <children>
-                                    <Label fx:id="lineLabel" />
+                                    <Label fx:id="lineLabel" text="Label" />
                                     <ScrollPane fx:id="movesPlayed" prefHeight="45.0" prefWidth="574.0" vbarPolicy="NEVER">
                                        <content>
                                           <HBox fx:id="movesPlayedBox" alignment="CENTER_LEFT" prefHeight="33.0" prefWidth="207.0" spacing="5.0" />
@@ -299,6 +299,19 @@
                                                    </children>
                                                 </HBox>
                                                 <Label fx:id="simulationScore" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="puzzleControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0" visible="false">
+                                             <children>
+                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Label fx:id="puzzleElo" />
+                                                      <Slider fx:id="puzzleEloSlider" />
+                                                   </children>
+                                                </HBox>
+                                                <Button fx:id="nextPuzzleButton" mnemonicParsing="false" text="New Puzzle" />
+                                                <Label fx:id="puzzleTagsLabel" text="Puzzle Themes:" />
+                                                <VBox fx:id="puzzleTagsBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
                                              </children>
                                           </VBox>
                                  </children>

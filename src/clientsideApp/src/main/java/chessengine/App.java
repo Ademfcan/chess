@@ -3,6 +3,7 @@ package chessengine;
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.Window;
+import chessengine.Puzzle.PuzzleManager;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.Functions.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
@@ -83,9 +84,12 @@ public class App extends Application {
     private static WebSocketClient webclient;
     private static long lastFriendSynchroMS = -1;
 
+    public static PuzzleManager puzzleManager;
+
     public static WebSocketClient getWebclient() {
         return webclient;
     }
+
 
     public static void updateTheme(GlobalTheme newTheme) {
         globalTheme = newTheme;
@@ -216,6 +220,15 @@ public class App extends Application {
         updateTheme(globalTheme);
         mainScreenController.setupWithGame(loadedGame, state, isFirstLoad);
 
+
+    }
+
+    public static void changeToMainScreenPuzzle() {
+        isStartScreen = false;
+        currentWindow = Window.Main;
+        mainScene.setRoot(mainRoot);
+        updateTheme(globalTheme);
+        mainScreenController.setupPuzzle();
 
     }
 
@@ -626,6 +639,9 @@ public class App extends Application {
         userPreferenceManager = new UserPreferenceManager();
         campaignMessager = new CampaignMessageManager(ChessCentralControl);
 
+        notifyPreloader(new AppStateChangeNotification("Loading puzzles..."));
+        puzzleManager = new PuzzleManager();
+
 
     }
 
@@ -659,6 +675,7 @@ public class App extends Application {
         isStartScreen = true;
         currentWindow = Window.Start;
         primaryStage.setOnCloseRequest(e -> {
+            puzzleManager.close();
             mainScreenController.endAsync();
         });
 
@@ -708,9 +725,8 @@ public class App extends Application {
         stockfishForEval.stopEngine();
         mainScreenController.endAsync();
         if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && mainScreenController.currentState != MainScreenState.VIEWER && mainScreenController.currentState != MainScreenState.SANDBOX && mainScreenController.currentState != MainScreenState.SIMULATION) {
-            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
                 // if the game is not empty add it
-//                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
                 App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
             }
         }

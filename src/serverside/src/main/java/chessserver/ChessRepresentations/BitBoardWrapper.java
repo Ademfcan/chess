@@ -18,8 +18,6 @@ public class BitBoardWrapper {
     private long[] blackPiecesBB;
     private final long[] whiteAttackTables;
     private final long[] blackAttackTables;
-    private XYcoord whiteKingLocation;
-    private XYcoord blackKingLocation;
     private int whitePieceCount = 0;
     private int blackPieceCount = 0;
     private int tempOldIndex;
@@ -29,8 +27,8 @@ public class BitBoardWrapper {
     public BitBoardWrapper(long[] whitePiecesBB, long[] blackPiecesBB) {
         this.whitePiecesBB = whitePiecesBB;
         this.blackPiecesBB = blackPiecesBB;
-        this.whitePieces = new HashSet[6];
-        this.blackPieces = new HashSet[6];
+        this.whitePieces = new HashSet[ChessConstants.NUMPIECES];
+        this.blackPieces = new HashSet[ChessConstants.NUMPIECES];
         for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {
             int[] whitePieceLocations = GeneralChessFunctions.getAllPieceIndexes(whitePiecesBB[i]);
             int[] blackPieceLocations = GeneralChessFunctions.getAllPieceIndexes(blackPiecesBB[i]);
@@ -47,8 +45,6 @@ public class BitBoardWrapper {
                 blackPieces[i].add(index);
             }
         }
-        this.whiteKingLocation = GeneralChessFunctions.getPieceCoords(whitePiecesBB[5]).get(0);
-        this.blackKingLocation = GeneralChessFunctions.getPieceCoords(blackPiecesBB[5]).get(0);
         this.whiteAttackTables = new long[6];
         this.blackAttackTables = new long[6];
         for (int i = 0; i < whiteAttackTables.length; i++) {
@@ -59,20 +55,32 @@ public class BitBoardWrapper {
     }
 
     public BitBoardWrapper(HashSet<Integer>[] whitePieces, HashSet<Integer>[] blackPieces, long[] whitePiecesBB,
-                           long[] blackPiecesBB, long[] whiteAttackTables, long[] blackAttackTables, XYcoord whiteKingLocation,
-                           XYcoord blackKingLocation, int tempChange, int tempIndex, int tempBoardIndex, boolean tempIsWhite) {
+                           long[] blackPiecesBB, long[] whiteAttackTables, long[] blackAttackTables,
+                           int tempChange, int tempIndex, int tempBoardIndex, boolean tempIsWhite) {
         this.whitePieces = whitePieces;
         this.blackPieces = blackPieces;
         this.whitePiecesBB = whitePiecesBB;
         this.blackPiecesBB = blackPiecesBB;
         this.whiteAttackTables = whiteAttackTables;
         this.blackAttackTables = blackAttackTables;
-        this.whiteKingLocation = whiteKingLocation;
-        this.blackKingLocation = blackKingLocation;
         this.tempOldIndex = tempChange;
         this.tempNewIndex = tempIndex;
         this.tempIsWhite = tempIsWhite;
         this.tempBoardIndex = tempBoardIndex;
+    }
+    /**Constructs a Fully empty board**/
+    private BitBoardWrapper(){
+        this.whitePiecesBB = new long[ChessConstants.NUMPIECES];
+        this.blackPiecesBB = new long[ChessConstants.NUMPIECES];
+        this.whitePieces = new HashSet[ChessConstants.NUMPIECES];
+        this.blackPieces = new HashSet[ChessConstants.NUMPIECES];
+        for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {
+            whitePieces[i] = new HashSet<>();
+            blackPieces[i] = new HashSet<>();
+        }
+        this.whiteAttackTables = new long[6];
+        this.blackAttackTables = new long[6];
+        this.tempNewIndex = ChessConstants.EMPTYINDEX;
     }
 
     public int getWhitePieceCount() {
@@ -241,9 +249,6 @@ public class BitBoardWrapper {
                 whitePiecesBB[i] = Long.reverse(whitePiecesBB[i]);
                 blackPiecesBB[i] = Long.reverse(blackPiecesBB[i]);
             }
-            whiteKingLocation = new XYcoord(7 - whiteKingLocation.x, 7 - whiteKingLocation.y);
-            blackKingLocation = new XYcoord(7 - blackKingLocation.x, 7 - blackKingLocation.y);
-
         } else {
             logger.error("cannot flip board you are in a temp change!");
         }
@@ -254,7 +259,7 @@ public class BitBoardWrapper {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BitBoardWrapper that = (BitBoardWrapper) o;
-        return Arrays.equals(whitePiecesBB, that.whitePiecesBB) && Arrays.equals(blackPiecesBB, that.blackPiecesBB) && Objects.equals(whiteKingLocation, that.whiteKingLocation) && Objects.equals(blackKingLocation, that.blackKingLocation);
+        return Arrays.equals(whitePiecesBB, that.whitePiecesBB) && Arrays.equals(blackPiecesBB, that.blackPiecesBB);
     }
 
     public long[] getWhitePiecesBB() {
@@ -274,20 +279,14 @@ public class BitBoardWrapper {
     }
 
     public XYcoord getWhiteKingLocation() {
-        return whiteKingLocation;
+        return new XYcoord(GeneralChessFunctions.getFirstPieceIndex(whitePiecesBB[ChessConstants.KINGINDEX]));
     }
 
-    public void setWhiteKingLocation(XYcoord whiteKingLocation) {
-        this.whiteKingLocation = whiteKingLocation;
-    }
 
     public XYcoord getBlackKingLocation() {
-        return blackKingLocation;
+        return new XYcoord(GeneralChessFunctions.getFirstPieceIndex(blackPiecesBB[ChessConstants.KINGINDEX]));
     }
 
-    public void setBlackKingLocation(XYcoord blackKingLocation) {
-        this.blackKingLocation = blackKingLocation;
-    }
 
     public BitBoardWrapper cloneBoard() {
         HashSet<Integer>[] newWhitePieces = new HashSet[whitePieces.length];
@@ -299,16 +298,7 @@ public class BitBoardWrapper {
         return new BitBoardWrapper(newWhitePieces, newBlackPieces,
                 Arrays.copyOf(this.whitePiecesBB, this.whitePiecesBB.length), Arrays.copyOf(this.blackPiecesBB, this.blackPiecesBB.length),
                 Arrays.copyOf(this.whiteAttackTables, whiteAttackTables.length), Arrays.copyOf(this.blackAttackTables, blackAttackTables.length),
-                new XYcoord(this.whiteKingLocation.x, this.whiteKingLocation.y), new XYcoord(this.blackKingLocation.x, this.blackKingLocation.y),
                 tempOldIndex, tempNewIndex, tempBoardIndex, tempIsWhite);
-    }
-
-    public void setKingLocation(boolean isWhite, XYcoord kingLocation) {
-        if (isWhite) {
-            whiteKingLocation = kingLocation;
-        } else {
-            blackKingLocation = kingLocation;
-        }
     }
 
     public void makeTempChange(int oldX, int oldY, int newX, int newY, int boardIndex, boolean isWhiteBoard) {
@@ -356,5 +346,8 @@ public class BitBoardWrapper {
         return Arrays.hashCode(whitePiecesBB) + Arrays.hashCode(blackPiecesBB);
     }
 
+    public static BitBoardWrapper getEmptyBoard(){
+        return new BitBoardWrapper();
+    }
 
 }

@@ -172,6 +172,8 @@ public class MainScreenController implements Initializable {
     @FXML
     VBox simulationControls;
     @FXML
+    VBox puzzleControls;
+    @FXML
     VBox sandboxControls;
     @FXML
     VBox bestMovesBox;
@@ -269,6 +271,17 @@ public class MainScreenController implements Initializable {
     Label simulationScore;
 
     @FXML
+    Slider puzzleEloSlider;
+    @FXML
+    Label puzzleElo;
+    @FXML
+    Button nextPuzzleButton;
+    @FXML
+    Label puzzleTagsLabel;
+    @FXML
+    VBox puzzleTagsBox;
+
+    @FXML
     TextArea currentGamePgn;
     @FXML
     Label currentGamePgnLabel;
@@ -343,7 +356,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
                 chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
-                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn);
+                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,nextPuzzleButton,puzzleTagsBox);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
             // makes sure its always at the end
@@ -375,6 +388,7 @@ public class MainScreenController implements Initializable {
         setEvalBar(0, -1, false);
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
         ChessCentralControl.chessActionHandler.reset();
+        ChessCentralControl.puzzleGuiManager.init();
 
     }
 
@@ -444,16 +458,18 @@ public class MainScreenController implements Initializable {
 
         LeftReset.setOnMouseClicked(e -> {
             logger.debug("Left Reset clicked");
-            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > -1) {
-                changeToAbsoluteMoveIndex(-1);
+            int minIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex();
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > minIndex) {
+                changeToAbsoluteMoveIndex(minIndex);
 
             }
         });
 
         LeftButton.setOnMouseClicked(e -> {
             logger.debug("Left button clicked");
-            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() >= 0) {
-                changeMove(-1, false);
+            int minIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex();
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > minIndex) {
+                changeMove(-1, false,false);
 
             }
 
@@ -463,7 +479,7 @@ public class MainScreenController implements Initializable {
         RightButton.setOnMouseClicked(e -> {
             logger.debug("Right button clicked");
             if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() < ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
-                changeMove(1, false);
+                changeMove(1, false,false);
 
 
             }
@@ -471,15 +487,15 @@ public class MainScreenController implements Initializable {
 
         RightReset.setOnMouseClicked(e -> {
             logger.debug("right Reset clicked");
-            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() < ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
+            if (currentState != MainScreenState.PUZZLE && ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() < ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
                 changeToAbsoluteMoveIndex(ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex());
 
             }
         });
 
         reset.setOnMouseClicked(e -> {
-            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() != -1) {
-                changeMove(0, true);
+            if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() != ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
+                changeMove(0, true,false);
             }
         });
     }
@@ -502,7 +518,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl.asyncController.stopAll();
 
         // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
-        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > -1) {
+        if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
             App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.oldGamesPanelContent);
             App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.userOldGamesContent);
@@ -729,6 +745,9 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindSmallText(evalLabel,Window.Main);
         App.bindingController.bindSmallText(nMovesLabel,Window.Main);
         App.bindingController.bindSmallText(computerLabel,Window.Main);
+
+
+        App.bindingController.bindSmallText(puzzleTagsLabel,Window.Main);
     }
 
     // label hide ellipsis hack
@@ -765,6 +784,7 @@ public class MainScreenController implements Initializable {
         setMainControls(currentState, extraStuff);
         // some modes do not want an eval bar
         checkHideEvalBar(currentState);
+        checkHideMovesPlayed(currentState);
         checkHideResetButton(currentState);
         if (currentState == MainScreenState.LOCAL) {
             // since in campaign mode the diffiiculty might have been changed, when back to local set it to whatever selected
@@ -861,6 +881,10 @@ public class MainScreenController implements Initializable {
         setUp(extraStuff);
     }
 
+    public void setupPuzzle() {
+        ChessCentralControl.puzzleGuiManager.loadInNewPuzzle();
+    }
+
     public void preinitOnlineGame(String gameType,ChessGame onlinePreinit) {
         this.currentState = MainScreenState.ONLINE;
         // put loading icon
@@ -887,6 +911,12 @@ public class MainScreenController implements Initializable {
         evalBar.setVisible(MainScreenState.isEvalAllowed(currentState));
     }
 
+    private void checkHideMovesPlayed(MainScreenState currentState) {
+        // hidden as these are real games
+        movesPlayed.setVisible(MainScreenState.isMovesPlayedShown(currentState));
+        movesPlayed.setMouseTransparent(!MainScreenState.isMovesPlayedShown(currentState));
+    }
+
 
 
     public void setPlayerIcons(String player1Url, String player2Url, boolean isPlayer1White) {
@@ -899,8 +929,18 @@ public class MainScreenController implements Initializable {
     public void setPlayerLabels(String whitePlayerName, int whiteElo, String blackPlayerName, int blackElo,boolean isPlayer1White) {
         Label p1Label = isPlayer1White ? player1Label : player2Label;
         Label p2Label = isPlayer1White ? player2Label : player1Label;
-        p1Label.setText(whitePlayerName + " " + whiteElo);
-        p2Label.setText(blackPlayerName + " " + blackElo);
+        if(whiteElo >= 0){
+            p1Label.setText(whitePlayerName + " " + whiteElo);
+        }
+        else{
+            p1Label.setText(whitePlayerName);
+        }
+        if(blackElo >= 0){
+            p2Label.setText(blackPlayerName + " " + blackElo);
+        }
+        else{
+            p2Label.setText(blackPlayerName);
+        }
 
     }
 
@@ -995,6 +1035,10 @@ public class MainScreenController implements Initializable {
                 currentControls = simulationControls;
                 stateLabel.setText("Simulation Mode");
             }
+            case PUZZLE -> {
+                currentControls = puzzleControls;
+                stateLabel.setText("Puzzle Mode");
+            }
         }
         currentControls.setMouseTransparent(false);
         currentControls.setVisible(true);
@@ -1013,6 +1057,8 @@ public class MainScreenController implements Initializable {
         onlineControls.setVisible(false);
         sandboxControls.setMouseTransparent(true);
         sandboxControls.setVisible(false);
+        puzzleControls.setMouseTransparent(true);
+        puzzleControls.setVisible(false);
     }
 
     private void setPromoPeices(boolean isWhite) {
@@ -1057,7 +1103,17 @@ public class MainScreenController implements Initializable {
     }
 
     // change the board to a previosly saved position
-    private void changeMove(int direction, boolean isReset) {
+    private void changeMove(int direction, boolean isReset,boolean forceChange) {
+        // puzzle check
+        if(!forceChange && currentState == MainScreenState.PUZZLE){
+            int curIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex();
+            int maxSoFar = ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxSoFar();
+            System.out.println(maxSoFar);
+            if(direction > 0 && curIndex >= maxSoFar){
+                // making move will take you over the maxsofar
+                return;
+            }
+        }
         ChessCentralControl.chessBoardGUIHandler.clearAllHighlights();
         ChessCentralControl.chessBoardGUIHandler.clearArrows();
         logger.debug("Changing move by " + direction);
@@ -1077,6 +1133,13 @@ public class MainScreenController implements Initializable {
         updateSimpleAdvantageLabels();
         ChessCentralControl.chessActionHandler.makeBackendUpdate(currentState, false, false);
 
+    }
+
+    public void moveToNextPuzzleMove(){
+        // this also increases visisted index because its a forced change
+        ChessCentralControl.gameHandler.gameWrapper.getGame().incrementMaxSoFar();
+
+        changeMove(1,false,true);
     }
 
     private void clearSimpleAdvantageLabels() {
@@ -1246,6 +1309,8 @@ public class MainScreenController implements Initializable {
 
         });
     }
+
+
 
     // checks if square player wants to move is in the moves allowed for that peice
 

@@ -164,12 +164,22 @@ public class GeneralChessFunctions {
             long mask = 1L << z;
 
             if ((board & mask) != 0) {
-                indexes[cnt] = z;
-                cnt++;
+                indexes[cnt++] = z;
             }
         }
 
         return indexes;
+    }
+
+    public static int getFirstPieceIndex(long board) {
+        for (int z = 0; z < 64; z++) {
+            long mask = 1L << z;
+            if ((board & mask) != 0) {
+                return z;
+            }
+        }
+
+        return ChessConstants.EMPTYINDEX;
     }
 
 

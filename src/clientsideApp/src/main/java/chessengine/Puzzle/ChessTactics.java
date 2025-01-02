@@ -1,0 +1,78 @@
+package chessengine.Puzzle;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ChessTactics {
+
+    // Define a record to hold the name and description of each tactic
+    public record Tactic(String name, String description) {}
+
+    // Define the HashMap that holds the shorthand key and the corresponding Tactic record
+    public static final Map<String, Tactic> tactics = Map.<String, Tactic>ofEntries(
+            Map.entry("advancedPawn", new Tactic("Advanced Pawn", "One of your pawns is deep into the opponent position, maybe threatening to promote.")),
+            Map.entry("advantage", new Tactic("Advantage", "Seize your chance to get a decisive advantage. (200cp ≤ eval ≤ 600cp)")),
+            Map.entry("anastasiaMate", new Tactic("Anastasia's Mate", "A knight and rook or queen team up to trap the opposing king between the side of the board and a friendly piece.")),
+            Map.entry("arabianMate", new Tactic("Arabian Mate", "A knight and a rook team up to trap the opposing king on a corner of the board.")),
+            Map.entry("attackingF2F7", new Tactic("Attacking f2 or f7", "An attack focusing on the f2 or f7 pawn, such as in the fried liver opening.")),
+            Map.entry("attraction", new Tactic("Attraction", "An exchange or sacrifice encouraging or forcing an opponent piece to a square that allows a follow-up tactic.")),
+            Map.entry("backRankMate", new Tactic("Back Rank Mate", "Checkmate the king on the home rank, when it is trapped there by its own pieces.")),
+            Map.entry("bishopEndgame", new Tactic("Bishop Endgame", "An endgame with only bishops and pawns.")),
+            Map.entry("bodenMate", new Tactic("Boden's Mate", "Two attacking bishops on criss-crossing diagonals deliver mate to a king obstructed by friendly pieces.")),
+            Map.entry("castling", new Tactic("Castling", "Bring the king to safety, and deploy the rook for attack.")),
+            Map.entry("capturingDefender", new Tactic("Capture the Defender", "Removing a piece that is critical to defence of another piece, allowing the now undefended piece to be captured on a following move.")),
+            Map.entry("crushing", new Tactic("Crushing", "Spot the opponent blunder to obtain a crushing advantage. (eval ≥ 600cp)")),
+            Map.entry("doubleBishopMate", new Tactic("Double Bishop Mate", "Two attacking bishops on adjacent diagonals deliver mate to a king obstructed by friendly pieces.")),
+            Map.entry("dovetailMate", new Tactic("Dovetail Mate", "A queen delivers mate to an adjacent king, whose only two escape squares are obstructed by friendly pieces.")),
+            Map.entry("equality", new Tactic("Equality", "Come back from a losing position, and secure a draw or a balanced position. (eval ≤ 200cp)")),
+            Map.entry("kingsideAttack", new Tactic("Kingside Attack", "An attack of the opponent's king, after they castled on the king side.")),
+            Map.entry("clearance", new Tactic("Clearance", "A move, often with tempo, that clears a square, file or diagonal for a follow-up tactical idea.")),
+            Map.entry("defensiveMove", new Tactic("Defensive Move", "A precise move or sequence of moves that is needed to avoid losing material or another advantage.")),
+            Map.entry("deflection", new Tactic("Deflection", "A move that distracts an opponent piece from another duty that it performs, such as guarding a key square. Sometimes also called \"overloading\".")),
+            Map.entry("discoveredAttack", new Tactic("Discovered Attack", "Moving a piece (such as a knight), that previously blocked an attack by a long range piece (such as a rook), out of the way of that piece.")),
+            Map.entry("doubleCheck", new Tactic("Double Check", "Checking with two pieces at once, as a result of a discovered attack where both the moving piece and the unveiled piece attack the opponent's king.")),
+            Map.entry("endgame", new Tactic("Endgame", "A tactic during the last phase of the game.")),
+            Map.entry("enPassantDescription", new Tactic("En Passant", "A tactic involving the en passant rule, where a pawn can capture an opponent pawn that has bypassed it using its initial two-square move.")),
+            Map.entry("exposedKing", new Tactic("Exposed King", "A tactic involving a king with few defenders around it, often leading to checkmate.")),
+            Map.entry("fork", new Tactic("Fork", "A move where the moved piece attacks two opponent pieces at once.")),
+            Map.entry("hangingPiece", new Tactic("Hanging Piece", "A tactic involving an opponent piece being undefended or insufficiently defended and free to capture.")),
+            Map.entry("hookMate", new Tactic("Hook Mate", "Checkmate with a rook, knight, and pawn along with one enemy pawn to limit the enemy king's escape.")),
+            Map.entry("interference", new Tactic("Interference", "Moving a piece between two opponent pieces to leave one or both opponent pieces undefended, such as a knight on a defended square between two rooks.")),
+            Map.entry("intermezzo", new Tactic("Intermezzo", "Instead of playing the expected move, first interpose another move posing an immediate threat that the opponent must answer. Also known as \"Zwischenzug\" or \"In between\".")),
+            Map.entry("knightEndgame", new Tactic("Knight Endgame", "An endgame with only knights and pawns.")),
+            Map.entry("long", new Tactic("Long Puzzle", "Three moves to win.")),
+            Map.entry("master", new Tactic("Master Games", "Puzzles from games played by titled players.")),
+            Map.entry("masterVsMaster", new Tactic("Master vs Master Games", "Puzzles from games between two titled players.")),
+            Map.entry("mate", new Tactic("Checkmate", "Win the game with style.")),
+            Map.entry("mateIn1", new Tactic("Mate in 1", "Deliver checkmate in one move.")),
+            Map.entry("mateIn2", new Tactic("Mate in 2", "Deliver checkmate in two moves.")),
+            Map.entry("mateIn3", new Tactic("Mate in 3", "Deliver checkmate in three moves.")),
+            Map.entry("mateIn4", new Tactic("Mate in 4", "Deliver checkmate in four moves.")),
+            Map.entry("mateIn5", new Tactic("Mate in 5 or More", "Figure out a long mating sequence.")),
+            Map.entry("middlegame", new Tactic("Middlegame", "A tactic during the second phase of the game.")),
+            Map.entry("oneMove", new Tactic("One-Move Puzzle", "A puzzle that is only one move long.")),
+            Map.entry("opening", new Tactic("Opening", "A tactic during the first phase of the game.")),
+            Map.entry("pawnEndgame", new Tactic("Pawn Endgame", "An endgame with only pawns.")),
+            Map.entry("pin", new Tactic("Pin", "A tactic involving pins, where a piece is unable to move without revealing an attack on a higher value piece.")),
+            Map.entry("promotion", new Tactic("Promotion", "Promote one of your pawns to a queen or minor piece.")),
+            Map.entry("queenEndgame", new Tactic("Queen Endgame", "An endgame with only queens and pawns.")),
+            Map.entry("queenRookEndgame", new Tactic("Queen and Rook Endgame", "An endgame with only queens, rooks and pawns.")),
+            Map.entry("queensideAttack", new Tactic("Queenside Attack", "An attack of the opponent's king, after they castled on the queen side.")),
+            Map.entry("quietMove", new Tactic("Quiet Move", "A move that does neither make a check or capture, nor an immediate threat to capture, but does prepare a more hidden unavoidable threat for a later move.")),
+            Map.entry("rookEndgame", new Tactic("Rook Endgame", "An endgame with only rooks and pawns.")),
+            Map.entry("sacrifice", new Tactic("Sacrifice", "A tactic involving giving up material in the short-term, to gain an advantage again after a forced sequence of moves.")),
+            Map.entry("short", new Tactic("Short Puzzle", "Two moves to win.")),
+            Map.entry("skewer", new Tactic("Skewer", "A motif involving a high value piece being attacked, moving out the way, and allowing a lower value piece behind it to be captured or attacked, the inverse of a pin.")),
+            Map.entry("smotheredMate", new Tactic("Smothered Mate", "A checkmate delivered by a knight in which the mated king is unable to move because it is surrounded (or smothered) by its own pieces.")),
+            Map.entry("superGM", new Tactic("Super GM Games", "Puzzles from games played by the best players in the world.")),
+            Map.entry("trappedPiece", new Tactic("Trapped Piece", "A piece is unable to escape capture as it has limited moves.")),
+            Map.entry("underPromotion", new Tactic("Underpromotion", "Promotion to a knight, bishop, or rook.")),
+            Map.entry("veryLong", new Tactic("Very Long Puzzle", "Four moves or more to win.")),
+            Map.entry("xRayAttack", new Tactic("X-Ray Attack", "A piece attacks or defends a square, through an enemy piece.")),
+            Map.entry("zugzwang", new Tactic("Zugzwang", "The opponent is limited in the moves they can make, and all moves worsen their position.")),
+            Map.entry("mix", new Tactic("Healthy Mix", "A bit of everything. You don't know what to expect, so you remain ready for anything! Just like in real games.")),
+            Map.entry("playerGames", new Tactic("Player Game Puzzles", "Puzzles from games played by active and real-world players.")),
+            Map.entry("playerVsPlayer", new Tactic("Player vs Player Puzzles", "Puzzles from games between two players.")),
+            Map.entry("kingsideCastling", new Tactic("King-side Castling", "The tactic of castling on the kingside.")),
+            Map.entry("queensideCastling", new Tactic("Queen-side Castling", "The tactic of castling on the queenside."))
+    );
+}

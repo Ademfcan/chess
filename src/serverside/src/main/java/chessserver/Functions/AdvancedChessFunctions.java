@@ -522,8 +522,8 @@ public class AdvancedChessFunctions {
         long possibleMoves = 0L;
 //        ArrayList<XYcoord> moves = new ArrayList<>();
         boolean canCastle = isWhite ? gameState.isWhiteCastleRight() : gameState.isBlackCastleRight();
-        boolean shortRook = isWhite ? gameState.isWhiteShortRookRight() : gameState.isBlackShortRookRight();
-        boolean longRook = isWhite ? gameState.isWhiteLongRookRight() : gameState.isBlackLongRookRight();
+        boolean shortRook = isWhite ? gameState.isWhiteKingSideRight() : gameState.isBlackKingSideRight();
+        boolean longRook = isWhite ? gameState.isWhiteQueenSideRight() : gameState.isBlackQueenSideRight();
 
         if (canCastle && !isChecked(x, y, isWhite, board)) {
             // short castle // todo gamestates giving castle right even though xy is not at home location!!!
