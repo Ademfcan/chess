@@ -218,7 +218,7 @@
                                     </ScrollPane>
                               <StackPane fx:id="switchingOptions" prefHeight="150.0" prefWidth="200.0">
                                  <children>
-                                    <VBox fx:id="onlineControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                    <VBox fx:id="onlineControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="1.0" visible="false">
                                        <children>
                                           <VBox fx:id="chatArea" alignment="BOTTOM_CENTER" prefHeight="129.0" prefWidth="167.0">
                                              <children>
@@ -229,6 +229,7 @@
                                                       <Button fx:id="sendMessageButton" mnemonicParsing="false" text="-&gt;" />
                                                    </children>
                                                 </HBox>
+                                                      <HBox fx:id="emojiContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="2.0" />
                                                       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
                                                          <children>
                                                             <Button fx:id="resignButton" mnemonicParsing="false" text="Resign" />

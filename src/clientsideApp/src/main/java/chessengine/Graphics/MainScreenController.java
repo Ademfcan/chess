@@ -259,6 +259,8 @@ public class MainScreenController implements Initializable {
     @FXML
     Button sendMessageButton;
     @FXML
+    HBox emojiContainer;
+    @FXML
     Button resignButton;
     @FXML
     Button offerDrawButton;
@@ -354,7 +356,7 @@ public class MainScreenController implements Initializable {
         ChessCentralControl = App.ChessCentralControl;
 
         ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
-                arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
+                arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
                 chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
                 player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,nextPuzzleButton,puzzleTagsBox);
 //         small change to make sure moves play box is always focused on the very end
@@ -387,6 +389,7 @@ public class MainScreenController implements Initializable {
         setUpBindings();
         setEvalBar(0, -1, false);
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
+        ChessCentralControl.chessActionHandler.init();
         ChessCentralControl.chessActionHandler.reset();
         ChessCentralControl.puzzleGuiManager.init();
 
@@ -531,6 +534,7 @@ public class MainScreenController implements Initializable {
         }
         else if(ChessCentralControl.gameHandler.gameWrapper.isWebGame() && !ChessCentralControl.gameHandler.gameWrapper.isWebGameInitialized()){
             App.sendRequest(INTENT.LEAVEWAITINGPOOL,"",null,true);
+            App.messager.removeLoadingCircles(Window.Main);
         }
 
 
@@ -664,13 +668,19 @@ public class MainScreenController implements Initializable {
         App.bindingController.bindSmallText(campaignInfo, Window.Main, "Black");
 
         campaignInfo.prefHeightProperty().bind(switchingOptions.heightProperty());
+
+
         App.bindingController.bindSmallText(inGameInfo, Window.Main, "black");
-        inGameInfo.prefWidthProperty().bind(campaignInfo.widthProperty());
-        inGameInfo.prefHeightProperty().bind(campaignInfo.heightProperty().subtract(sendMessageButton.heightProperty()));
+        inGameInfo.prefWidthProperty().bind(onlineControls.widthProperty());
+        inGameInfo.prefHeightProperty().bind(switchingOptions.heightProperty().multiply(0.4));
+        sendMessageButton.prefHeightProperty().bind(switchingOptions.heightProperty().multiply(0.17));
         sendMessageButton.prefWidthProperty().bind(inGameInfo.widthProperty().divide(8));
         chatInput.prefWidthProperty().bind(inGameInfo.widthProperty().subtract(sendMessageButton.widthProperty()).subtract(5));
         chatInput.prefHeightProperty().bind(sendMessageButton.heightProperty());
-
+            resignButton.prefHeightProperty().bind(switchingOptions.heightProperty().multiply(.17));
+        offerDrawButton.prefHeightProperty().bind(switchingOptions.heightProperty().multiply(.17));
+        emojiContainer.prefWidthProperty().bind(onlineControls.widthProperty());
+        emojiContainer.prefHeightProperty().bind(switchingOptions.heightProperty().multiply(0.2));
 
         // side panel labels
 
@@ -777,6 +787,7 @@ public class MainScreenController implements Initializable {
      * Setup Steps that are called every game, regardless of campaign or not
      **/
     private void setUp(String extraStuff) {
+        App.messager.removeLoadingCircles(Window.Main);
         ChessCentralControl.clearForNewGame();
         ChessCentralControl.chessActionHandler.reset();
 

@@ -621,7 +621,6 @@ public class ChessGame {
     }
 
     public void MakeMove(ChessPosition newPosition, ChessMove move) {
-        GeneralChessFunctions.printBoardDetailed(newPosition.board);
         isWhiteTurn = !isWhiteTurn;
         maxIndex++;
         curMoveIndex++;
@@ -705,8 +704,6 @@ public class ChessGame {
 
 
             int OldY = AdvancedChessFunctions.getPawnColumnGivenFile(x, y, isWhiteMove, isWhiteMove ? currentPosition.board.getWhitePiecesBB()[pieceType] : currentPosition.board.getBlackPiecesBB()[pieceType]);
-            System.out.println(GeneralChessFunctions.getPieceType(pieceType));
-            GeneralChessFunctions.printBoardDetailed(currentPosition.board);
             return new ChessMove(x, OldY, x, y, ChessConstants.EMPTYINDEX, pieceType, isWhiteMove, false, false, ChessConstants.EMPTYINDEX, false, false);
 
 

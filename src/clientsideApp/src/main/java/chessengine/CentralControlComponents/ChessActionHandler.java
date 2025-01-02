@@ -58,6 +58,7 @@ public class ChessActionHandler {
     private final TextArea gameInfo;
     private final TextField chatInput;
     private final Button sendMessageButton;
+    private final HBox emojiContainer;
 
     private final VBox p1Indicator;
     private final VBox p2Indicator;
@@ -112,7 +113,7 @@ public class ChessActionHandler {
     private boolean isEatingPromo;
     private int numRedos = 0;
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -134,6 +135,10 @@ public class ChessActionHandler {
         this.currentGamePgn = currentGamePgn;
         this.resignButton = resignButton;
         this.offerDrawButton = offerDrawButton;
+        this.emojiContainer = emojiContainer;
+    }
+
+    public void init(){
         onlineInit();
         localInit();
         sandboxInit();
@@ -162,6 +167,20 @@ public class ChessActionHandler {
                 logger.debug("Not active web game");
             }
         });
+
+        final String[] emojis = new String[]{"😄","😐","😭","😡","👍","👎"};
+
+        for(String emoji : emojis){
+            Button emojiButton = new Button(emoji);
+            App.bindingController.bindSmallTextCustom(emojiButton,Window.Main,"-fx-border-radius: 25");
+            emojiButton.setOnMouseClicked(e->{
+                if (myControl.gameHandler.gameWrapper.isActiveWebGame() && myControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
+                    App.sendRequest(INTENT.SENDCHAT, emoji,null,true);
+                }
+            });
+
+            emojiContainer.getChildren().add(emojiButton);
+        }
 
         resignButton.setOnMouseClicked(e -> {
             if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
