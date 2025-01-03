@@ -7,7 +7,7 @@ public class PuzzleManager {
     private final int maxBinLen = 2000;
     private final int batchSize = (int) 1e6;
     private final PuzzleReader reader = new PuzzleReader();
-    private final Map<Integer, SequentialList<PuzzleEntry>> puzzleMap;
+    private final Map<Integer, RandomList<PuzzleEntry>> puzzleMap;
     public PuzzleManager() {
         puzzleMap = reader.readNewBatchBinned(batchSize, binSize, maxBinLen);
     }

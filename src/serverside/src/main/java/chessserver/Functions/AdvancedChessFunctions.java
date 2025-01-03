@@ -270,7 +270,7 @@ public class AdvancedChessFunctions {
         int eatX2 = x - 1;
 
         // en passant
-        if (!pos.equals(ChessConstants.startBoardState)) {
+        if (!pos.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
             // means we arent at the very beginning as there is not an actual move for the start position
             ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
             if (moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX) {

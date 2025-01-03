@@ -310,7 +310,7 @@
                                                       <Slider fx:id="puzzleEloSlider" />
                                                    </children>
                                                 </HBox>
-                                                <Button fx:id="nextPuzzleButton" mnemonicParsing="false" text="New Puzzle" />
+                                                <Button fx:id="hintButton" mnemonicParsing="false" text="Hint" />
                                                 <Label fx:id="puzzleTagsLabel" text="Puzzle Themes:" />
                                                 <VBox fx:id="puzzleTagsBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
                                              </children>

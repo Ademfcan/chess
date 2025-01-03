@@ -27,14 +27,14 @@ public class PuzzleReader {
      * The map will contain the lowerbound of each bin and up to lowerbound+binSize-1
      * Each list of puzzleentries will at most be binCap;
      * **/
-    public Map<Integer, SequentialList<PuzzleEntry>> readNewBatchBinned(int batchSize,int binSize,int binCap){
+    public Map<Integer, RandomList<PuzzleEntry>> readNewBatchBinned(int batchSize, int binSize, int binCap){
         return readNewBatchBinned(batchSize,binSize,binCap,false);
     }
 
-    private Map<Integer, SequentialList<PuzzleEntry>> readNewBatchBinned(int batchSize,int binSize,int binCap,boolean isRetry){
+    private Map<Integer, RandomList<PuzzleEntry>> readNewBatchBinned(int batchSize, int binSize, int binCap, boolean isRetry){
         if(fileReader != null){
             try {
-                Map<Integer,SequentialList<PuzzleEntry>> binnedMap = new HashMap<>();
+                Map<Integer, RandomList<PuzzleEntry>> binnedMap = new HashMap<>();
                 int numFailed = 0;
                 String[] chunk = fileReader.readChunk(batchSize);
                 for(String puzzleLine : chunk){
@@ -45,7 +45,7 @@ public class PuzzleReader {
                     }
                     // todo factor in stddev of puzzle
                     int binIdx = (puzzleEntry.puzzleRating/binSize)*binSize; // int cast will get lower bound
-                    SequentialList<PuzzleEntry> entryList = binnedMap.getOrDefault(binIdx,new SequentialList<>());
+                    RandomList<PuzzleEntry> entryList = binnedMap.getOrDefault(binIdx,new RandomList<>());
                     if(entryList.size() < binCap){
                         entryList.add(puzzleEntry);
                     }

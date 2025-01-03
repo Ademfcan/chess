@@ -150,7 +150,7 @@ public class ChessGameState {
             return true;
         }
         // next check 50 move rule
-        if (!newPosition.equals(ChessConstants.startBoardState)) {
+        if (!newPosition.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
             ChessMove moveThatCreated = newPosition.getMoveThatCreatedThis();
             // check that the move is not a pawn move or a check
             if (moveThatCreated.getBoardIndex() != ChessConstants.PAWNINDEX && !AdvancedChessFunctions.isAnyChecked(newPosition.board)) {

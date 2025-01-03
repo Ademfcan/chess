@@ -762,7 +762,7 @@ public class ChessGame {
                 // check if its an en passant move
                 if (GeneralChessFunctions.isValidCoord(x, y + backdir) && GeneralChessFunctions.checkIfContains(x, y + backdir, !isWhiteMove, currentPosition.board)) {
                     // if so this means that the pawn can have possibly gotten here from an en passant move
-                    if (!currentPosition.equals(ChessConstants.startBoardState)) {
+                    if (!currentPosition.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
                         // means we arent at the very beginning as there is not an actual move for the start position
                         ChessMove moveThatCreated = currentPosition.getMoveThatCreatedThis();
                         if (moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX) {
@@ -956,5 +956,9 @@ public class ChessGame {
     }
     public void incrementMaxSoFar(){
         maxSoFar++;
+    }
+
+    public boolean isAtEndOfGame() {
+        return curMoveIndex == maxIndex;
     }
 }

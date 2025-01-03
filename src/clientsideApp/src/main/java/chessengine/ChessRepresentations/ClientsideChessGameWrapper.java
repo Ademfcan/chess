@@ -4,6 +4,7 @@ import chessengine.App;
 import chessengine.Audio.Effect;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.MainScreenState;
+import chessengine.Misc.Constants;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.ChessRepresentations.ChessMove;
 import chessserver.ChessRepresentations.ChessPosition;
@@ -85,6 +86,7 @@ public class ClientsideChessGameWrapper {
     }
 
     public void loadInNewGame(ChessGame gameToWrap,boolean isWebGame,Gametype gametype){
+
         this.game = gameToWrap;
         this.isWebGame = isWebGame;
         this.webGameType = gametype;
@@ -127,41 +129,45 @@ public class ClientsideChessGameWrapper {
     }
 
     public void moveToEndOfGame(boolean animateIfPossible) {
+        centralControl.partialReset();
         if (game.getMaxIndex() != game.getCurMoveIndex()) {
             int dir = game.getMaxIndex()-game.getCurMoveIndex();
-            changeToDifferentMove(dir, animateIfPossible);
+            changeToDifferentMove(dir, animateIfPossible,true);
         } else {
             logger.debug("Already at end of game");
         }
     }
 
     public void moveToMoveIndexAbsolute(int absIndex, boolean animateIfPossible) {
+        centralControl.partialReset();
         if (absIndex <= game.getMaxIndex() && absIndex != game.getCurMoveIndex()) {
-            if (isMainGame) {
-                centralControl.chessBoardGUIHandler.clearAllHighlights();
-            }
             if (animateIfPossible) {
                 // we will move one back then we will move forward to give the impresison that you are animating the move that created that positon
                 int dirWithOneMore = absIndex - game.getCurMoveIndex() - 1;
                 if (game.getCurMoveIndex() + dirWithOneMore >= game.getMinIndex()) {
                     // means we wont go too far back so we can do it
-                    changeToDifferentMove(dirWithOneMore, true);
+                    changeToDifferentMove(dirWithOneMore, true,true);
                     // this call will animate it
-                    changeToDifferentMove(1, false);
+                    changeToDifferentMove(1, false,true);
                 } else {
-                    changeToDifferentMove(absIndex - game.getCurMoveIndex(), false);
+                    changeToDifferentMove(absIndex - game.getCurMoveIndex(), false,true);
                 }
             } else {
-                changeToDifferentMove(absIndex - game.getCurMoveIndex(), true);
+                changeToDifferentMove(absIndex - game.getCurMoveIndex(), true,true);
             }
             game.moveToMoveIndexAbsolute(absIndex);
         } else {
             logger.error("absolute index provided out of bounds!");
         }
     }
-
     public void changeToDifferentMove(int dir, boolean noAnimate) {
-//        System.out.println(GeneralChessFunctions.getBoardDetailedString(currentPosition.board));
+        changeToDifferentMove(dir,noAnimate,false);
+    }
+
+    private void changeToDifferentMove(int dir, boolean noAnimate,boolean internalCall) {
+        if(!internalCall){
+            centralControl.partialReset();
+        }
         int newIndex = game.getCurMoveIndex()+dir;
         if (dir != 0 && newIndex >= game.getMinIndex() && newIndex <= game.getMaxIndex() && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition || !centralControl.asyncController.simTask.isMakingMove())) {
             if (isMainGame) {
@@ -177,6 +183,9 @@ public class ClientsideChessGameWrapper {
                 // cannot try to animate move (actually can but not neccesary)
                 if (isMainGame) {
                     centralControl.chessBoardGUIHandler.updateChessBoardGui(newPos, game.getCurrentPosition(),game.isWhiteOriented());
+                    if(newPos.getMoveThatCreatedThis().equals(ChessConstants.startMove)){
+                        centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(), game.isWhiteOriented());
+                    }
                 }
             } else {
                 boolean isReverse = dir < 0;
@@ -202,11 +211,21 @@ public class ClientsideChessGameWrapper {
 
 
             }
-            // actuall change here
+            // actual backend change here
             game.changeToDifferentMove(dir);
 
             // setting eval bar if checkmated
-            if (isMainGame) {
+            if(centralControl.mainScreenController.currentState == MainScreenState.PUZZLE){
+                System.out.println(game.isAtEndOfGame() + " ?");
+                // show game over at end of puzzle
+                if(game.isAtEndOfGame()){
+                    centralControl.mainScreenController.showGameOver("Puzzle Complete");
+                }
+                else{
+                    centralControl.mainScreenController.hideGameOver();
+                }
+            }
+            else{
                 if (game.getGameState().isCheckMated()[0]) {
                     int eval = game.getGameState().isCheckMated()[1] ? 1000000 : -1000000;
                     centralControl.mainScreenController.setEvalBar(eval, -1, true);
@@ -217,9 +236,9 @@ public class ClientsideChessGameWrapper {
                 }
             }
 
+
             // playing sound effects
-            if (isMainGame) {
-                if (newPos != ChessConstants.startBoardState) {
+                if (!newPos.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
                     // this essentialy is checking to make sure you are not at the very start of the game as the start position does not have an actual move that created it
                     ChessMove move = newPos.getMoveThatCreatedThis();
                     App.soundPlayer.playMoveEffect(move, AdvancedChessFunctions.isChecked(!move.isWhite(), newPos.board), game.getGameState().isGameOver());
@@ -228,27 +247,21 @@ public class ClientsideChessGameWrapper {
                     // else play simple move sound
                     App.soundPlayer.playEffect(Effect.MOVE);
                 }
-            }
 
 
 
         } else {
             // wait for transition
             logger.error("Dir zero or no transition, so did not move to new index");
-//            App.messager.sendMessageQuick("Wait",false);
         }
     }
 
 
 
     public void reset() {
+        centralControl.fullReset();
         centralControl.chessBoardGUIHandler.updateChessBoardGui(game.getPos(game.getMinIndex()), game.getCurrentPosition(),game.isWhiteOriented());
-        centralControl.chessActionHandler.reset();
-        centralControl.chessBoardGUIHandler.resetEverything(game.isWhiteOriented());
-        centralControl.mainScreenController.hideGameOver();
         game.reset();
-
-
     }
 
     public void clearIndx(boolean updateStates) {
@@ -270,10 +283,10 @@ public class ClientsideChessGameWrapper {
     }
 
     // one called for all local moves
-    public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove,boolean animateIfPossible) {
-        if(centralControl.mainScreenController.currentState == MainScreenState.PUZZLE){
+    public void makeNewMove(ChessMove move, boolean isComputerMove, boolean isDragMove,boolean animateIfPossible,boolean comingFromPuzzle) {
+        if(!comingFromPuzzle && centralControl.mainScreenController.currentState == MainScreenState.PUZZLE){
             // for puzzles we dont actually make the move, we just check if its the right move or a checkmate and then move on
-            centralControl.puzzleGuiManager.handleMoveCheck(move);
+            centralControl.puzzleGuiManager.handleMoveCheck(move,isDragMove,animateIfPossible);
             return;
         }
         if (!isComputerMove) {
@@ -304,6 +317,7 @@ public class ClientsideChessGameWrapper {
     }
 
     private void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
+        centralControl.partialReset();
         ChessPosition currentPosition = game.getCurrentPosition();
         game.MakeMove(newPosition,move);
         if(isMainGame && centralControl.mainScreenController.currentState != MainScreenState.SANDBOX){
@@ -353,7 +367,6 @@ public class ClientsideChessGameWrapper {
     }
 
     public void clearGame() {
-        centralControl.chessBoardGUIHandler.resetEverything(true);
         game = null;
         webGameType = null;
         isWebGame = false;

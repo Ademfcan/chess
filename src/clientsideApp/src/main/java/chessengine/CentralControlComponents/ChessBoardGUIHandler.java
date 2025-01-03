@@ -11,7 +11,9 @@ import chessengine.Graphics.Arrow;
 import chessengine.Graphics.BindingController;
 import chessserver.Misc.ChessConstants;
 import chessserver.Enums.ChessboardTheme;
+import javafx.animation.KeyFrame;
 import javafx.animation.PathTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -35,7 +37,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChessBoardGUIHandler {
+public class ChessBoardGUIHandler implements Resettable{
     public final Pane chessPieceBoard;
     public final ImageView[][] piecesAtLocations;
     public final int pieceSize = 9;
@@ -138,7 +140,11 @@ public class ChessBoardGUIHandler {
         }
     }
 
-    public void clearArrows() {
+    public void clearRankings(){
+        arrowBoard.getChildren().removeIf(c -> c.getUserData().toString().equals("ranking"));
+    }
+
+    public void clearArrowsAndRankings() {
         arrows.clear();
         arrowBoard.getChildren().clear();
     }
@@ -196,8 +202,14 @@ public class ChessBoardGUIHandler {
         piece.layoutXProperty().bind(chessPieceBoard.widthProperty().divide(8).multiply(x).add(chessPieceBoard.widthProperty().divide(16).subtract(piece.fitWidthProperty().divide(2))));
         piece.layoutYProperty().bind(chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(piece.fitHeightProperty().divide(2))));
     }
+    /**Resets stuff from move to move, eg without resetting the whole board**/
+    public void partialReset(){
+        clearArrowsAndRankings();
+        clearAllHighlights();
+    }
 
-    public void resetEverything(boolean isWhiteOriented) {
+
+    public void fullReset() {
         // eaten pieces
         for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {
             eatenWhitesArr[i].getChildren().clear();
@@ -206,7 +218,8 @@ public class ChessBoardGUIHandler {
             eatenWhitesCountArr[i] = 0;
 
         }
-        reloadNewBoard(ChessConstants.startBoardState, isWhiteOriented);
+        reloadNewBoard(ChessConstants.startBoardState, true);
+        partialReset();
     }
 
     public ImageView createNewPiece(int brdIndex, boolean isWhite, boolean isEaten) {
@@ -702,7 +715,6 @@ public class ChessBoardGUIHandler {
     }
 
     public void addMoveRanking(ChessMove moveThatCreatedThis, MoveRanking ranking, boolean isWhiteOriented) {
-
         int rankingEndX = isWhiteOriented ? moveThatCreatedThis.getNewX() : 7 - moveThatCreatedThis.getNewX();
         int rankingEndY = isWhiteOriented ? moveThatCreatedThis.getNewY() : 7 - moveThatCreatedThis.getNewY();
         addRankingCircle(rankingEndX, rankingEndY, ranking.getColor(), ranking.getImage());
@@ -740,7 +752,6 @@ public class ChessBoardGUIHandler {
      **/
 
     public void makeChessMove(ChessMove move, boolean isReverse, ChessPosition currentPosition, ChessPosition newPos, boolean isWhiteOriented) {
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         if (move.isEating() && !isReverse) {
             // needs to be before move
             int eatenAddIndex = move.getEatingIndex();
@@ -811,4 +822,19 @@ public class ChessBoardGUIHandler {
 
     }
 
+    public void blinkSquare(int x, int y,Duration blinkTime,String color) {
+        highlightSquare(x,y,color);
+        Timeline timeline = new Timeline(
+                new KeyFrame(blinkTime.divide(3),e ->{
+                    removeHiglight(x,y);
+                }),
+                new KeyFrame(blinkTime.multiply(2).divide(3),e -> {
+                    highlightSquare(x,y,color);
+                }),
+                new KeyFrame(blinkTime,e->{
+                    removeHiglight(x,y);
+                })
+        );
+        timeline.play();
+    }
 }

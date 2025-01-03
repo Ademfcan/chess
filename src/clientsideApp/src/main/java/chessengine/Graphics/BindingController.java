@@ -164,11 +164,21 @@ public class BindingController {
         bindTextToParentMinwMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, " -fx-text-fill: "+ textColor);
     }
 
+    public void bindMediumTextCustom(Node text, Window window, String extraCss) {
+        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, extraCss);
+    }
+
     public void bindMediumText(Node text, Window window, String textColor) {
         Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
         bindTextToParentMinwMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, " -fx-text-fill: "+ textColor);
 
 
+    }
+
+    public void bindLargeTextCustom(Node text, Window window, String extraCss) {
+        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
+        bindTextToParentMinwMaxSizeCustomCss(parent, text, lgMaxSize, lgParentToTextSize, extraCss);
     }
 
     public void bindLargeText(Node text, Window window, String textColor) {

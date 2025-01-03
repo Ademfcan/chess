@@ -199,8 +199,6 @@ public class SimulationTask extends Task<Void> {
                 return;
             }
             Platform.runLater(() -> {
-                control.chessActionHandler.reset();
-                control.chessBoardGUIHandler.resetEverything(isPlayer1WhitePlayer);
                 control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION ,true);
                 control.gameHandler.gameWrapper.moveToEndOfGame(App.userPreferenceManager.isNoAnimate());
             });
@@ -272,7 +270,7 @@ public class SimulationTask extends Task<Void> {
                         return;
                     }
                     Platform.runLater(() -> {
-                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible);
+                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible,false);
                     });
                 } else {
                     logger.debug("Player 2 turn");
@@ -283,7 +281,7 @@ public class SimulationTask extends Task<Void> {
                         return;
                     }
                     Platform.runLater(() -> {
-                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible);
+                        control.gameHandler.gameWrapper.makeNewMove(move, true, false,animateIfPossible,false);
                     });
                 }
                 isPlayer1Turn = !isPlayer1Turn;
@@ -301,7 +299,7 @@ public class SimulationTask extends Task<Void> {
             if (moveUci != null) {
                 ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.getCurrentPosition().board);
                 Platform.runLater(() -> {
-                    control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userPreferenceManager.isNoAnimate());
+                    control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userPreferenceManager.isNoAnimate(),false);
                 });
             }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {

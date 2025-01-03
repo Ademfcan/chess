@@ -246,7 +246,7 @@ public class PgnFunctions {
         fenBuilder.append(" ");
         boolean isPassant = false;
         // now check enpassant
-        if (!pos.equals(ChessConstants.startBoardState)) {
+        if (!pos.getMoveThatCreatedThis().equals(ChessConstants.startMove)) {
             // means we arent at the very beginning as there is not an actual move for the start position
             ChessMove moveThatCreated = pos.getMoveThatCreatedThis();
             if (moveThatCreated.getBoardIndex() == ChessConstants.PAWNINDEX) {

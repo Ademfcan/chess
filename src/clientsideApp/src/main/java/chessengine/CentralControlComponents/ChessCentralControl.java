@@ -4,6 +4,7 @@ import chessengine.App;
 import chessengine.Computation.MultiSearcher;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
+import chessengine.Enums.Window;
 import chessengine.Graphics.MainScreenController;
 import chessserver.Misc.ChessConstants;
 import chessengine.Records.CachedPv;
@@ -22,7 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 
-public class ChessCentralControl {
+public class ChessCentralControl implements Resettable{
     private static final Logger logger = LogManager.getLogger("Chess_Central_Control_Logger");
     private final MultiSearcher searcher = new MultiSearcher();
     private final Set<Integer> currentlySearching = new HashSet<>();
@@ -54,13 +55,13 @@ public class ChessCentralControl {
                      GridPane chessMoveBoard, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel,
                      Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk,
                      Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector,
-                     TextArea currentGamePgn,Slider puzzleEloSlider,Label puzzleElo,Button nextPuzzleButton,VBox puzzleTagsBox) {
+                     TextArea currentGamePgn,Slider puzzleEloSlider,Label puzzleElo,Button hintButton,VBox puzzleTagsBox) {
         this.mainScreenController = mainScreenController;
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(this, chessPieceBoard, eatenWhites, eatenBlacks, piecesAtLocations, ArrowBoard, bgPanes, moveBoxes, highlightPanes, chessHighlightBoard, chessBgBoard, chessMoveBoard, localInfo);
         this.gameHandler = new ChessGameHandler(this);
         this.chessActionHandler = new ChessActionHandler(this, bestmovesBox, localInfo, sandboxPieces, gameInfo, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, movesPlayedBox,movesPlayedScrollpane, lineLabel, playPauseButton,timeSlider, p1Indicator, p2Indicator, p1moveClk, p2moveClk, player1SimSelector, player2SimSelector, currentGamePgn);
         this.asyncController = new ThreadController(this);
-        this.puzzleGuiManager = new PuzzleGuiManager(this,App.puzzleManager,puzzleEloSlider,puzzleElo,nextPuzzleButton,puzzleTagsBox);
+        this.puzzleGuiManager = new PuzzleGuiManager(this,App.puzzleManager,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
         this.cachedResults = new HashMap<>();
 
         isInit = true;
@@ -172,5 +173,22 @@ public class ChessCentralControl {
             }
 
         }
+    }
+    /**This reset is called every new game**/
+    public void fullReset(){
+        chessBoardGUIHandler.fullReset();
+        chessActionHandler.fullReset();
+        puzzleGuiManager.fullReset();
+        mainScreenController.fullReset();
+        clearForNewGame();
+
+    }
+    /**This reset is called every move**/
+    public void partialReset() {
+        chessBoardGUIHandler.partialReset();
+        chessActionHandler.partialReset();
+        puzzleGuiManager.partialReset();
+        mainScreenController.partialReset();
+        App.messager.removeLoadingCircles(Window.Main);
     }
 }
