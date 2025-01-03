@@ -183,7 +183,7 @@ public class ClientsideChessGameWrapper {
                 // cannot try to animate move (actually can but not neccesary)
                 if (isMainGame) {
                     centralControl.chessBoardGUIHandler.updateChessBoardGui(newPos, game.getCurrentPosition(),game.isWhiteOriented());
-                    if(newPos.getMoveThatCreatedThis().equals(ChessConstants.startMove)){
+                    if(!newPos.getMoveThatCreatedThis().equals(ChessConstants.startMove)){
                         centralControl.chessBoardGUIHandler.highlightMove(newPos.getMoveThatCreatedThis(), game.isWhiteOriented());
                     }
                 }

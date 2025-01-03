@@ -210,6 +210,15 @@ public class SimulationTask extends Task<Void> {
             }
             // set white turn based on starting position
             isPlayer1Turn = simGame.isWhiteTurn() == isPlayer1WhitePlayer;
+            int totalCount = numDraws + numPlayer1Wins + numPlayer2Wins;
+            int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numPlayer1Wins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
+            if (estimatedElo < 0) {
+                // no wins so formula breaks :(
+                estimatedElo = -1;
+            }
+            int finalEst = estimatedElo;
+            Platform.runLater(() -> control.mainScreenController.setSimScore(numPlayer1Wins, numPlayer2Wins, numDraws, finalEst));
+
         } else {
 
             if (currentSimGame.getGameState().isGameOver()) {
@@ -247,15 +256,7 @@ public class SimulationTask extends Task<Void> {
                 // set start for next game (flip first player)
                 isPlayer1WhitePlayer = !isPlayer1WhitePlayer;
                 isPlayer1Turn = isPlayer1WhitePlayer;
-                int totalCount = numDraws + numPlayer1Wins + numPlayer2Wins;
-                int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numPlayer1Wins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
-                if (estimatedElo < 0) {
-                    // no wins so formula breaks :(
-                    estimatedElo = -1;
-                }
-                int finalEst = estimatedElo;
                 // update info
-                Platform.runLater(() -> control.mainScreenController.setSimScore(numPlayer1Wins, numPlayer2Wins, numDraws, finalEst));
                 currentSimGame = null;
             } else {
                 // else just change turn as normall

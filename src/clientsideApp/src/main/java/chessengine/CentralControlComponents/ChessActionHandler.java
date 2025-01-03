@@ -286,6 +286,13 @@ public class ChessActionHandler implements Resettable{
     /**Reset called every move**/
     public void partialReset(){
         bestmovesBox.getChildren().clear();
+        updateCurrentlyShownArrows(false);
+        currentlyShownSuggestedArrows.clear();
+        if(suggestionArrow != null){
+            myControl.chessBoardGUIHandler.removeArrow(suggestionArrow);
+            suggestionArrow = null;
+        }
+
         clearPrevPiece(true);
 
     }
@@ -587,12 +594,12 @@ public class ChessActionHandler implements Resettable{
     }
 
     private void setPrevPieceMoves(int x, int y, boolean pieceIsWhite) {
-        boolean isPlayer1White = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
-        int backendY = isPlayer1White ? y : 7 - y;
-        int backendX = isPlayer1White ? x : 7 - x;
+        boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
+        int backendY = isWhiteOriented ? y : 7 - y;
+        int backendX = isWhiteOriented ? x : 7 - x;
         prevPieceMoves = AdvancedChessFunctions.getPossibleMoves(backendX, backendY, pieceIsWhite, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition(), myControl.gameHandler.gameWrapper.getGame().getGameState());
 
-        if (!isPlayer1White) {
+        if (!isWhiteOriented) {
             // invert y.s
             prevPieceMoves.forEach(c -> {
                 c.y = 7 - c.y;
@@ -742,8 +749,6 @@ public class ChessActionHandler implements Resettable{
         int[] newXY = myControl.chessBoardGUIHandler.turnLayoutXyintoBoardXy(e.getX(), e.getY());
         if (e.getButton() == MouseButton.PRIMARY) {
             if (selected != null && dragging) {
-                myControl.chessBoardGUIHandler.clearArrowsAndRankings();
-                myControl.chessBoardGUIHandler.clearUserCreatedHighlights();
                 int newX = newXY[0];
                 int newY = newXY[1];
                 int backendY = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? newY : 7 - newY;
@@ -823,6 +828,7 @@ public class ChessActionHandler implements Resettable{
             } else if (checkIfCanMakeAction(currentState)) {
                 if (!prevPeiceSelected && !isHitPiece) {
                     // nothing to do as empty square has been clicked with no previous selection
+                    return;
                 } else if (!prevPeiceSelected) {
                     // no prev selection, then we want to make sure you are picking a piece that is on your side
                     if (isWhiteHitPiece == myControl.gameHandler.gameWrapper.getGame().isWhiteTurn()) {
@@ -1076,11 +1082,12 @@ public class ChessActionHandler implements Resettable{
 //            logger.error("Invalid viewer update!");
 //        }
 //    }
-    private List<Arrow> currentlyShownSuggestedArrows = new ArrayList<>();
+    private final List<Arrow> currentlyShownSuggestedArrows = new ArrayList<>();
     public void addBestMovesToViewer(MultiResult results) {
         if (myControl.isInViewerActive()) {
+            updateCurrentlyShownArrows(false);
+            currentlyShownSuggestedArrows.clear();
             bestmovesBox.getChildren().clear();
-            myControl.chessBoardGUIHandler.clearArrowsAndRankings();
             int cnt = 0;
             int primeEvaluation = results.results()[0].evaluation();
             PVEntry[] bestPV = results.results()[0].pV();
@@ -1147,15 +1154,19 @@ public class ChessActionHandler implements Resettable{
         }
     }
 
+    private MoveArrow suggestionArrow = null;
     private void setupPVMouseOver(Label PV,ChessMove pvMove,ChessPosition movePreview){
         boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
         PV.setOnMouseEntered(e ->{
             myControl.chessBoardGUIHandler.reloadNewBoard(movePreview,isWhiteOriented);
-            myControl.chessBoardGUIHandler.toggleArrow(new MoveArrow(pvMove.getMoveWhiteOriented(isWhiteOriented),ChessConstants.arrowColor));
+            suggestionArrow = new MoveArrow(pvMove.getMoveWhiteOriented(isWhiteOriented),ChessConstants.arrowColor);
+            myControl.chessBoardGUIHandler.toggleArrow(suggestionArrow);
             updateCurrentlyShownArrows(false);
         });
         PV.setOnMouseExited(e->{
-            myControl.chessBoardGUIHandler.toggleArrow(new MoveArrow(pvMove.getMoveWhiteOriented(isWhiteOriented),ChessConstants.arrowColor));
+            if(suggestionArrow != null){
+                myControl.chessBoardGUIHandler.removeArrow(suggestionArrow);
+            }
         });
     }
     private void updateCurrentlyShownArrows(boolean isShow){

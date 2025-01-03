@@ -17,12 +17,14 @@ import javafx.application.Platform;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @ClientEndpoint
@@ -43,6 +45,7 @@ public class WebSocketClient {
         this.client = client;
         this.responseMap = Collections.synchronizedMap(new HashMap<>());
         ClientManager clientManager = ClientManager.createClient();
+        clientManager.getProperties().put(ClientProperties.HANDSHAKE_TIMEOUT, TimeUnit.SECONDS.toMillis(2));
         clientManager.connectToServer(this, serverUri);
     }
 

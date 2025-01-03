@@ -721,6 +721,12 @@ public class ChessBoardGUIHandler implements Resettable{
     }
 
     public void addRankingCircle(int rankingEndX, int rankingEndY, Paint color, Image image) {
+        // clip endx to avoid overlap with eval bar
+        if(rankingEndX > 6){
+            rankingEndX = 6;
+            rankingEndY++;
+        }
+
         if (lastMoveRank != null) {
             arrowBoard.getChildren().remove(lastMoveRank);
         }

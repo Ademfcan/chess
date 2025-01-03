@@ -348,6 +348,7 @@ public class MainScreenController implements Initializable, Resettable {
         arrowBoard.toFront();
         promotionScreen.toFront();
         gameoverMenu.toFront();
+        evalBar.setTranslateZ(-1);
 
         logger.debug("initializing Main Screen");
         setUpPiecesAndListeners();
@@ -882,6 +883,7 @@ public class MainScreenController implements Initializable, Resettable {
         // hidden as these are real games
         movesPlayed.setVisible(MainScreenState.isMovesPlayedShown(currentState));
         movesPlayed.setMouseTransparent(!MainScreenState.isMovesPlayedShown(currentState));
+        System.out.println("Is moves played visible: " + MainScreenState.isMovesPlayedShown(currentState));
     }
 
     private void setResetButtonFunctionality(MainScreenState currentState) {
