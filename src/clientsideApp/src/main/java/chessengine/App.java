@@ -311,7 +311,7 @@ public class App extends Application {
 
     public static void logout() {
         userManager.logout();
-        userPreferenceManager.resetToDefault();
+        userPreferenceManager.resetToDefault(true);
         startScreenController.setupOldGamesBox(new ArrayList<>());
         startScreenController.campaignManager.reset();
     }

@@ -94,7 +94,6 @@ public class SimulationTask extends Task<Void> {
     private ChessGame currentSimGame = null;
     private final Searcher searcher;
     private volatile boolean stop = false;
-    private final int baseWaitTime = 50;
 
     public SimulationTask(ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
@@ -211,13 +210,14 @@ public class SimulationTask extends Task<Void> {
             // set white turn based on starting position
             isPlayer1Turn = simGame.isWhiteTurn() == isPlayer1WhitePlayer;
             int totalCount = numDraws + numPlayer1Wins + numPlayer2Wins;
-            int estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numPlayer1Wins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
-            if (estimatedElo < 0) {
-                // no wins so formula breaks :(
+            int estimatedElo;
+            if(totalCount == 0){
                 estimatedElo = -1;
             }
-            int finalEst = estimatedElo;
-            Platform.runLater(() -> control.mainScreenController.setSimScore(numPlayer1Wins, numPlayer2Wins, numDraws, finalEst));
+            else{
+                estimatedElo = EloEstimator.estimateEloDiffOnWinProb((double) numPlayer1Wins / totalCount, (double) numDraws / totalCount, player2Difficulty.eloRange);
+            }
+            Platform.runLater(() -> control.mainScreenController.setSimScore(numPlayer1Wins, numPlayer2Wins, numDraws, estimatedElo));
 
         } else {
 
@@ -294,6 +294,7 @@ public class SimulationTask extends Task<Void> {
     }
 
     private ChessMove getMove(ComputerDifficulty currentPlayerDifficulty, ChessGame game, boolean isWhiteTurn) {
+        final int baseWaitTime = 25; // ms
         int waitTime = (int) (baseWaitTime * control.chessActionHandler.timeSlider.getValue());
         if (currentPlayerDifficulty.isStockfishBased) {
             String moveUci = App.getMoveStockfish.getBestMove(game.getCurrentFen(), currentPlayerDifficulty.stockfishElo, waitTime);
@@ -303,22 +304,33 @@ public class SimulationTask extends Task<Void> {
                     control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userPreferenceManager.isNoAnimate(),false);
                 });
             }
+            else{
+                logger.error("Stockfish null response!");
+            }
         } else if (currentPlayerDifficulty == ComputerDifficulty.MaxDifficulty) {
             SearchResult out = searcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), waitTime);
-            if(out == null || stop){
+            if(out == null){
+                logger.error("Max difficulty null response");
                 return null;
             }
             ChessMove move = out.move();
-            if (!searcher.wasForcedStop()) {
+            if (!stop && !searcher.wasForcedStop()) {
                 return move;
+            }
+            else{
+                logger.debug("Max difficulty was forced to stop!");
             }
         } else {
             ChessMove move = multiSearcher.search(game.getCurrentPosition().toBackend(game.getGameState(), isWhiteTurn), waitTime, 1).results()[0].move();
-            if (stop) {
+            if (move == null) {
+                logger.error("Multisearcher null response!");
                 return null;
             }
-            if (!multiSearcher.wasForcedStop()) {
+            if (!stop && !multiSearcher.wasForcedStop()) {
                 return move;
+            }
+            else{
+                logger.debug("Multisearcher was forced to stop");
             }
         }
         return null;

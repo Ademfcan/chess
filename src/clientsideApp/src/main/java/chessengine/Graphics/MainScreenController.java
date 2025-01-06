@@ -390,8 +390,8 @@ public class MainScreenController implements Initializable, Resettable {
         setEvalBar(0, -1, false);
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
         ChessCentralControl.chessActionHandler.init();
-        ChessCentralControl.chessActionHandler.fullReset();
         ChessCentralControl.puzzleGuiManager.init();
+        ChessCentralControl.fullReset();
 
     }
 
@@ -779,6 +779,7 @@ public class MainScreenController implements Initializable, Resettable {
 
 
     public void setupCampaign(String player1Name, int player1Elo, String player1PfpUrl, CampaignTier levelTier, int levelOfTier, int campaignDifficuly) {
+        ChessCentralControl.fullReset();
         String campaignOpponentName = levelTier.levelNames[levelOfTier];
         int campaignOpponentElo = levelTier.eloIndexes[levelOfTier];
         String pfpUrl2 = ProfilePicture.values()[levelTier.pfpIndexes[levelOfTier]].urlString;
@@ -811,6 +812,7 @@ public class MainScreenController implements Initializable, Resettable {
     }
 
     public void setupWithoutGame(boolean isVsComputer, boolean isPlayer1White, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
+        ChessCentralControl.fullReset();
         this.currentState = currentState;
 
         // ternary shit show
@@ -1196,7 +1198,12 @@ public class MainScreenController implements Initializable, Resettable {
 
 
     public void setSimScore(int numComputerWins, int numStockFishWins, int numDraws,int estimatedElo) {
-        simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d Estimated elo: %d", numComputerWins, numStockFishWins, numDraws,estimatedElo));
+        if(estimatedElo > 0){
+            simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d Estimated elo: %d", numComputerWins, numStockFishWins, numDraws,estimatedElo));
+        }
+        else{
+            simulationScore.setText(String.format("My C' Wins: %d S'Fish Wins: %d Draws: %d Estimated elo: --", numComputerWins, numStockFishWins, numDraws));
+        }
     }
 
 

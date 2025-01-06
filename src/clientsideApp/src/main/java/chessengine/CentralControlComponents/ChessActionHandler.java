@@ -216,7 +216,7 @@ public class ChessActionHandler implements Resettable{
             myControl.asyncController.toggleSimPlay();
         });
 
-        timeSlider.setMin(1);
+        timeSlider.setMin(5);
         timeSlider.setBlockIncrement(5);
         timeSlider.setMax(50);
         timeSlider.setValue(10);

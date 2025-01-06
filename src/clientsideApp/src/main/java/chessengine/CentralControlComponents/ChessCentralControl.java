@@ -68,7 +68,7 @@ public class ChessCentralControl implements Resettable{
 
     }
 
-    public void clearForNewGame() {
+    public void clearCache() {
         cachedResults.clear();
     }
 
@@ -180,7 +180,9 @@ public class ChessCentralControl implements Resettable{
         chessActionHandler.fullReset();
         puzzleGuiManager.fullReset();
         mainScreenController.fullReset();
-        clearForNewGame();
+        App.messager.removeLoadingCircles(Window.Main);
+        clearCache();
+        System.out.println("Full Reset");
 
     }
     /**This reset is called every move**/
@@ -189,6 +191,6 @@ public class ChessCentralControl implements Resettable{
         chessActionHandler.partialReset();
         puzzleGuiManager.partialReset();
         mainScreenController.partialReset();
-        App.messager.removeLoadingCircles(Window.Main);
+        System.out.println("Partial Reset");
     }
 }
