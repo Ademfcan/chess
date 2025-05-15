@@ -13,7 +13,7 @@ public enum MainScreenState {
         return state == LOCAL || state == ONLINE || state == CAMPAIGN;
     }
     public static boolean isEvalAllowed(MainScreenState state){
-        return state == VIEWER || state == SIMULATION || state == SANDBOX;
+        return state == VIEWER || state == SANDBOX;
     }
 
     public static boolean isMovesPlayedShown(MainScreenState state){
