@@ -172,12 +172,12 @@ public class PuzzleGuiManager implements Resettable{
         }
     }
 
-    public void fullReset() {
+    public void fullReset(boolean isWhiteOriented) {
         puzzleTagsBox.getChildren().clear();
-        partialReset();
+        partialReset(isWhiteOriented);
     }
 
-    public void partialReset(){
+    public void partialReset(boolean isWhiteOriented){
         resetHintState();
     }
 }

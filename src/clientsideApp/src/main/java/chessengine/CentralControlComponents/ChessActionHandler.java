@@ -284,7 +284,7 @@ public class ChessActionHandler implements Resettable{
     }
 
     /**Reset called every move**/
-    public void partialReset(){
+    public void partialReset(boolean isWhiteOriented){
         bestmovesBox.getChildren().clear();
         updateCurrentlyShownArrows(false);
         currentlyShownSuggestedArrows.clear();
@@ -297,7 +297,7 @@ public class ChessActionHandler implements Resettable{
 
     }
 
-    public void fullReset() {
+    public void fullReset(boolean isWhiteOriented) {
         movesPlayedBox.getChildren().clear();
         p1moveClk.setText("");
         p2moveClk.setText("");
@@ -306,7 +306,7 @@ public class ChessActionHandler implements Resettable{
         campaignInfo.clear();
         numLabels = 0;
         numRedos = 0;
-        partialReset();
+        partialReset(isWhiteOriented);
 
     }
 

@@ -203,13 +203,13 @@ public class ChessBoardGUIHandler implements Resettable{
         piece.layoutYProperty().bind(chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(piece.fitHeightProperty().divide(2))));
     }
     /**Resets stuff from move to move, eg without resetting the whole board**/
-    public void partialReset(){
+    public void partialReset(boolean isWhiteOriented){
         clearArrowsAndRankings();
         clearAllHighlights();
     }
 
 
-    public void fullReset() {
+    public void fullReset(boolean isWhiteOriented) {
         // eaten pieces
         for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {
             eatenWhitesArr[i].getChildren().clear();
@@ -218,8 +218,8 @@ public class ChessBoardGUIHandler implements Resettable{
             eatenWhitesCountArr[i] = 0;
 
         }
-        reloadNewBoard(ChessConstants.startBoardState, true);
-        partialReset();
+        reloadNewBoard(ChessConstants.startBoardState, isWhiteOriented);
+        partialReset(isWhiteOriented);
     }
 
     public ImageView createNewPiece(int brdIndex, boolean isWhite, boolean isEaten) {
@@ -263,6 +263,7 @@ public class ChessBoardGUIHandler implements Resettable{
         if (!isWhiteOriented) {
             y = 7 - y;
             x = 7 - x;
+            System.out.println("flipping!");
         }
         int fy = y;
         int fx = x;
@@ -477,9 +478,7 @@ public class ChessBoardGUIHandler implements Resettable{
             removeFromChessBoard(OldX, OldY, isWhite, isWhiteOriented);
             addToEatenPieces(brdRmvIndex, isWhite, isWhiteOriented);
 
-
             z++;
-
         }
         while (i < thingsToAdd.size()) {
             // edge case where you need to add more to the board
@@ -491,10 +490,7 @@ public class ChessBoardGUIHandler implements Resettable{
             addToChessBoard(NewX, NewY, brdAddIndex, isWhite, isWhiteOriented);
             removeFromEatenPeices(Integer.parseInt(Moveinfo[3]), isWhite == isWhiteOriented);
 
-
             i++;
-
-
         }
     }
 

@@ -391,7 +391,7 @@ public class MainScreenController implements Initializable, Resettable {
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
         ChessCentralControl.chessActionHandler.init();
         ChessCentralControl.puzzleGuiManager.init();
-        ChessCentralControl.fullReset();
+        ChessCentralControl.fullReset(true);
 
     }
 
@@ -779,7 +779,7 @@ public class MainScreenController implements Initializable, Resettable {
 
 
     public void setupCampaign(String player1Name, int player1Elo, String player1PfpUrl, CampaignTier levelTier, int levelOfTier, int campaignDifficuly) {
-        ChessCentralControl.fullReset();
+        ChessCentralControl.fullReset(true);
         String campaignOpponentName = levelTier.levelNames[levelOfTier];
         int campaignOpponentElo = levelTier.eloIndexes[levelOfTier];
         String pfpUrl2 = ProfilePicture.values()[levelTier.pfpIndexes[levelOfTier]].urlString;
@@ -811,8 +811,8 @@ public class MainScreenController implements Initializable, Resettable {
         setUp((levelTier.ordinal() + 1) + "," + levelOfTier + "," + campainDiffAsStr);
     }
 
-    public void setupWithoutGame(boolean isVsComputer, boolean isPlayer1White, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
-        ChessCentralControl.fullReset();
+    public void setupWithoutGame(boolean isVsComputer, boolean isWhiteOriented, String gameName, String player1Name, int player1Elo, String player1PfpUrl, MainScreenState currentState,boolean playAsWhite) {
+        ChessCentralControl.fullReset(isWhiteOriented);
         this.currentState = currentState;
 
         // ternary shit show
@@ -827,9 +827,9 @@ public class MainScreenController implements Initializable, Resettable {
 
 
         if (gameName.isEmpty()) {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGame(whitePlayerName,blackPlayerName, whiteElo,blackElo , whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
         } else {
-            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isPlayer1White));
+            ChessCentralControl.gameHandler.switchToNewGame(ChessGame.createSimpleGameWithName(gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePfpUrl, blackPfpUrl, isVsComputer, isWhiteOriented));
         }
         String extraInfo = "";
         if (currentState == MainScreenState.LOCAL) {
@@ -839,7 +839,7 @@ public class MainScreenController implements Initializable, Resettable {
     }
 
     public void setupWithGame(ChessGame gameToSetup, MainScreenState currentState, boolean isFirstLoad) {
-        ChessCentralControl.fullReset();
+        ChessCentralControl.fullReset(gameToSetup.isWhiteOriented());
         this.currentState = currentState;
         ChessCentralControl.gameHandler.switchToGame(gameToSetup, isFirstLoad);
         String extraStuff = "";
@@ -856,7 +856,7 @@ public class MainScreenController implements Initializable, Resettable {
     }
 
     public void preinitOnlineGame(String gameType,ChessGame onlinePreinit) {
-        ChessCentralControl.fullReset();
+        ChessCentralControl.fullReset(onlinePreinit.isWhiteOriented());
         this.currentState = MainScreenState.ONLINE;
         ChessCentralControl.gameHandler.switchToOnlineGame(onlinePreinit, Gametype.getType(gameType), true);
         App.messager.addLoadingCircle(Window.Main);
@@ -1098,7 +1098,7 @@ public class MainScreenController implements Initializable, Resettable {
 
     public void changeToAbsoluteMoveIndex(int absIndex) {
         logger.debug("Resetting to abs index:" + absIndex);
-        ChessCentralControl.partialReset();
+        ChessCentralControl.partialReset(ChessCentralControl.gameHandler.gameWrapper.getGame().isWhiteOriented());
         ChessCentralControl.gameHandler.gameWrapper.moveToMoveIndexAbsolute(absIndex, true);
 
         setMoveLabels(ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex(), ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex());
@@ -1318,7 +1318,7 @@ public class MainScreenController implements Initializable, Resettable {
         });
     }
 
-    public void fullReset() {
+    public void fullReset(boolean isWhiteOriented) {
         setEvalBar(0, -1, false);
         clearSimpleAdvantageLabels();
         hidePromo();
@@ -1328,10 +1328,10 @@ public class MainScreenController implements Initializable, Resettable {
         setMoveLabels(0,0);
         setTimeLabels(null);
         resetLabels();
-        partialReset();
+        partialReset(isWhiteOriented);
     }
 
-    public void partialReset(){
+    public void partialReset(boolean isWhiteOriented){
 
     }
 

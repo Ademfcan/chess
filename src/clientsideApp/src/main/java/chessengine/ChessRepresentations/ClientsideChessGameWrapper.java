@@ -12,6 +12,7 @@ import chessserver.Enums.Gametype;
 import chessserver.Enums.INTENT;
 import chessserver.Enums.ProfilePicture;
 import chessserver.Functions.AdvancedChessFunctions;
+import chessserver.Functions.GeneralChessFunctions;
 import chessserver.Functions.PgnFunctions;
 import chessserver.Misc.ChessConstants;
 import org.apache.logging.log4j.LogManager;
@@ -129,7 +130,7 @@ public class ClientsideChessGameWrapper {
     }
 
     public void moveToEndOfGame(boolean animateIfPossible) {
-        centralControl.partialReset();
+        centralControl.partialReset(game.isWhiteOriented());
         if (game.getMaxIndex() != game.getCurMoveIndex()) {
             int dir = game.getMaxIndex()-game.getCurMoveIndex();
             changeToDifferentMove(dir, animateIfPossible,true);
@@ -139,7 +140,7 @@ public class ClientsideChessGameWrapper {
     }
 
     public void moveToMoveIndexAbsolute(int absIndex, boolean animateIfPossible) {
-        centralControl.partialReset();
+        centralControl.partialReset(game.isWhiteOriented());
         if (absIndex <= game.getMaxIndex() && absIndex != game.getCurMoveIndex()) {
             if (animateIfPossible) {
                 // we will move one back then we will move forward to give the impresison that you are animating the move that created that positon
@@ -166,7 +167,7 @@ public class ClientsideChessGameWrapper {
 
     private void changeToDifferentMove(int dir, boolean noAnimate,boolean internalCall) {
         if(!internalCall){
-            centralControl.partialReset();
+            centralControl.partialReset(game.isWhiteOriented());
         }
         int newIndex = game.getCurMoveIndex()+dir;
         if (dir != 0 && newIndex >= game.getMinIndex() && newIndex <= game.getMaxIndex() && (!isMainGame || !centralControl.chessBoardGUIHandler.inTransition || !centralControl.asyncController.simTask.isMakingMove())) {
@@ -259,7 +260,7 @@ public class ClientsideChessGameWrapper {
 
 
     public void reset() {
-        centralControl.fullReset();
+        centralControl.fullReset(game.isWhiteOriented());
         centralControl.chessBoardGUIHandler.updateChessBoardGui(game.getPos(game.getMinIndex()), game.getCurrentPosition(),game.isWhiteOriented());
         game.reset();
     }
@@ -317,7 +318,7 @@ public class ClientsideChessGameWrapper {
     }
 
     private void MakeMove(ChessPosition newPosition, ChessMove move, boolean isWebMove, boolean isDragMove) {
-        centralControl.partialReset();
+        centralControl.partialReset(game.isWhiteOriented());
         ChessPosition currentPosition = game.getCurrentPosition();
         game.MakeMove(newPosition,move);
         if(isMainGame && centralControl.mainScreenController.currentState != MainScreenState.SANDBOX){

@@ -175,22 +175,22 @@ public class ChessCentralControl implements Resettable{
         }
     }
     /**This reset is called every new game**/
-    public void fullReset(){
-        chessBoardGUIHandler.fullReset();
-        chessActionHandler.fullReset();
-        puzzleGuiManager.fullReset();
-        mainScreenController.fullReset();
+    public void fullReset(boolean isWhiteOriented){
+        chessBoardGUIHandler.fullReset(isWhiteOriented);
+        chessActionHandler.fullReset(isWhiteOriented);
+        puzzleGuiManager.fullReset(isWhiteOriented);
+        mainScreenController.fullReset(isWhiteOriented);
         App.messager.removeLoadingCircles(Window.Main);
         clearCache();
         System.out.println("Full Reset");
 
     }
     /**This reset is called every move**/
-    public void partialReset() {
-        chessBoardGUIHandler.partialReset();
-        chessActionHandler.partialReset();
-        puzzleGuiManager.partialReset();
-        mainScreenController.partialReset();
+    public void partialReset(boolean isWhiteOriented) {
+        chessBoardGUIHandler.partialReset(isWhiteOriented);
+        chessActionHandler.partialReset(isWhiteOriented);
+        puzzleGuiManager.partialReset(isWhiteOriented);
+        mainScreenController.partialReset(isWhiteOriented);
         System.out.println("Partial Reset");
     }
 }
