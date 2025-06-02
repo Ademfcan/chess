@@ -2,6 +2,7 @@ package chessengine.Async;
 
 import chessengine.App;
 import chessengine.CentralControlComponents.ChessCentralControl;
+import chessengine.Computation.Computer;
 import chessserver.ChessRepresentations.ChessMove;
 import chessserver.ChessRepresentations.ChessPosition;
 import chessserver.ChessRepresentations.ChessGameState;
@@ -27,16 +28,15 @@ public class GetComputerMoveTask extends Task<Void> {
     private volatile boolean evaluationRequest = false;
     private boolean isCurrentlyEvaluating = false;
 
-    private final Searcher searcher;
-    private final CustomMultiSearcher multiSearcher;
+    private final Computer computer;
 
 
     public GetComputerMoveTask(ComputerDifficulty difficulty, ChessCentralControl control) {
         this.logger = LogManager.getLogger(this.toString());
         this.difficulty = difficulty;
         this.control = control;
-        this.searcher = new Searcher();
-        this.multiSearcher = new CustomMultiSearcher();
+
+        this.computer = new Computer(App.getMoveStockfish);
 
     }
 
@@ -79,34 +79,13 @@ public class GetComputerMoveTask extends Task<Void> {
 
     private void makeComputerMove() {
         logger.info("Starting a best move evaluation");
-        if (difficulty.isStockfishBased) {
-            logger.debug("Getting stockfish move");
-            String moveUci = App.getMoveStockfish.getBestMove(PgnFunctions.positionToFEN(currentPosition, currentGameState, currentIsWhite), difficulty.stockfishElo, ChessConstants.DefaultWaitTime);
-            if (isCurrentlyEvaluating && moveUci != null) {
-                Platform.runLater(() -> {
-                    control.mainScreenController.makeComputerMove(PgnFunctions.uciToChessMove(moveUci, currentIsWhite, currentPosition.board));
-                });
-            }
 
-        } else if (difficulty == ComputerDifficulty.MaxDifficulty) {
-            SearchResult searchResult = searcher.search(currentPosition.toBackend(currentGameState, currentIsWhite), ChessConstants.DefaultWaitTime);
-//            System.out.println(searchResult.evaluation());
-//            System.out.println(searchResult.depth());
-            if (isCurrentlyEvaluating && searchResult != null) {
-                Platform.runLater(() -> {
-                    control.mainScreenController.makeComputerMove(searchResult.move());
-                });
-            }
-        } else {
-            ChessMove bestMove = multiSearcher.search(currentPosition.toBackend(currentGameState, currentIsWhite), ChessConstants.DefaultWaitTime, 1, difficulty).results()[0].move();
-            if (isCurrentlyEvaluating && bestMove != null) {
-                Platform.runLater(() -> {
-                    control.mainScreenController.makeComputerMove(bestMove);
-                });
-            }
-
+        ChessMove move = computer.getMove(difficulty, currentPosition.toBackend(currentGameState, currentIsWhite));
+        if (isCurrentlyEvaluating && move != null) {
+            Platform.runLater(() -> {
+                control.mainScreenController.makeComputerMove(move);
+            });
         }
-
 
     }
 

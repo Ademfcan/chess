@@ -1,5 +1,7 @@
 package chessserver.Enums;
 
+import chessserver.Misc.RandomUtils;
+
 import java.util.concurrent.TimeUnit;
 
 public enum Gametype {
@@ -60,5 +62,9 @@ public enum Gametype {
 
     public String getStrVersion() {
         return strVersion;
+    }
+
+    public static Gametype random() {
+        return RandomUtils.getRandomElement(Gametype.values());
     }
 }

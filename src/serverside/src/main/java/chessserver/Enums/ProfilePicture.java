@@ -1,5 +1,7 @@
 package chessserver.Enums;
 
+import chessserver.Misc.RandomUtils;
+
 public enum ProfilePicture {
     DEFAULT("PlayerIcons/defaultpfp.png"),
     ACTRESS("PlayerIcons/actress.png"),
@@ -26,5 +28,9 @@ public enum ProfilePicture {
 
     ProfilePicture(String urlString) {
         this.urlString = urlString;
+    }
+
+    public static ProfilePicture random() {
+        return RandomUtils.getRandomElement(ProfilePicture.values());
     }
 }

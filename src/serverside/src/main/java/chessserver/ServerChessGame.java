@@ -42,7 +42,7 @@ public class ServerChessGame {
             ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
             ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
             if(client1TimeLeft <= 0){
-                handleTimeRunout();
+                handleTimeRunout(false);
             }
         }
         else{
@@ -50,19 +50,18 @@ public class ServerChessGame {
             ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
             ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
             if(client2TimeLeft <= 0){
-                handleTimeRunout();
+                handleTimeRunout(true);
             }
         }
     }
 
-    private void handleTimeRunout() {
-        boolean isClient1Win = !isClient1Turn;
+    private void handleTimeRunout(boolean isClient1Win) {
         boolean isDraw = false;
-        boolean[] otherSideInsufficientMaterial = GeneralChessFunctions.isTimedInsufiicientMaterial(game.getCurrentPosition().board);
+        boolean[] gameInsufficientMaterial = GeneralChessFunctions.isTimedInsufiicientMaterial(game.getCurrentPosition().board);
 
-        if(otherSideInsufficientMaterial[0]){
+        if(gameInsufficientMaterial[0]){
             // client won on time, but had insufficient material to checkmate. Thus this results in a draw
-            if(isClient1Win == otherSideInsufficientMaterial[1]){
+            if(isClient1Win == gameInsufficientMaterial[1]){
                 isDraw = true;
             }
         }
@@ -75,13 +74,12 @@ public class ServerChessGame {
             timeTickFuture = null;
         }
     }
+    
     private void resetTimeTick(){
         if(timeTickFuture != null) {
             timeTickFuture.cancel(true);
         }
         timeTickFuture = GameHandler.sceduleNewTimeTick(this::oneSecondtimeTick);
-
-
     }
 
     public void makeMove(String pgn, BackendClient player) {

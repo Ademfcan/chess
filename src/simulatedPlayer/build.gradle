@@ -1,0 +1,31 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.5'
+    implementation project(':serverside')
+    implementation project(':clientsideApp')
+
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(20)
+    }
+}
+
+
+application {
+    mainClass = 'simulatedplayer.main'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

@@ -1,5 +1,6 @@
 package chessserver.Enums;
 
+import chessserver.Misc.RandomUtils;
 import chessserver.Misc.ServerConstants;
 
 public enum ComputerDifficulty {
@@ -114,6 +115,10 @@ public enum ComputerDifficulty {
             }
         }
         return closestDifficulty;
+    }
+
+    public static ComputerDifficulty random(){
+        return RandomUtils.getRandomElement(ComputerDifficulty.values());
     }
 }
 
