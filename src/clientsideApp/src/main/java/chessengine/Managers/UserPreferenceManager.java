@@ -195,27 +195,8 @@ public class UserPreferenceManager {
     }
 
     public void setDefaultSelections() {
-        App.startScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.startScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
-        App.startScreenController.evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
-        App.startScreenController.nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
-        App.startScreenController.audioSliderBG.setValue(userPref.getBackgroundVolume());
-        App.startScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
-        App.startScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
-        App.startScreenController.pieceSelector.setValue(userPref.getPieceTheme().toString());
-        App.startScreenController.audioMuteBGButton.setText(userPref.isBackgroundmusic() ? "🔉" : "✖");
-        App.startScreenController.audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
-
-
-        App.mainScreenController.themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
-        App.mainScreenController.computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
-        App.mainScreenController.evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
-        App.mainScreenController.nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
-        App.mainScreenController.audioSliderEff.setValue(userPref.getEffectVolume());
-        App.mainScreenController.bgColorSelector.setValue(userPref.getChessboardTheme().toString());
-        App.mainScreenController.pieceSelector.setValue(userPref.getPieceTheme().toString());
-        App.mainScreenController.audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
-
+        App.startScreenController.setDefaultSelections(userPref);
+        App.mainScreenController.setDefaultSelections(userPref);
     }
 
     public void setBackgroundmusic(boolean isBackgroundMusic) {

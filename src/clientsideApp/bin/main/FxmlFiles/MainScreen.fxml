@@ -117,8 +117,8 @@
             </VBox>
             <VBox alignment="CENTER" prefHeight="400.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
                <children>
-                  <HBox fx:id="eatenBlacks" prefHeight="100.0" prefWidth="200.0" />
-                  <HBox fx:id="eatenWhites" prefHeight="100.0" prefWidth="200.0" />
+                  <HBox fx:id="topEatenContainer" prefHeight="100.0" prefWidth="200.0" />
+                  <HBox fx:id="bottomEatenContainer" prefHeight="100.0" prefWidth="200.0" />
                   <Label fx:id="victoryLabel" />
                   <ComboBox fx:id="bgColorSelector" prefHeight="36.0" prefWidth="50.0" promptText="⚙" />
                   <HBox alignment="CENTER" prefHeight="63.0" prefWidth="250.0" spacing="25.0">
@@ -134,12 +134,12 @@
                   </Button>
                   <AnchorPane prefHeight="117.0" prefWidth="144.0">
                      <children>
-                        <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="⬅" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0">
+                        <Button fx:id="MoveBackButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="⬅" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0">
                            <font>
                               <Font name="Impact" size="24.0" />
                            </font>
                         </Button>
-                        <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="➡" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0">
+                        <Button fx:id="MoveForwardButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="➡" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0">
                            <font>
                               <Font size="24.0" />
                            </font>

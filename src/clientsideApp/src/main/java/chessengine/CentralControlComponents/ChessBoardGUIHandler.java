@@ -43,7 +43,6 @@ public class ChessBoardGUIHandler implements Resettable{
     public final int pieceSize = 9;
     private final Pane arrowBoard;
     private final GridPane chessHighlightBoard;
-    private final GridPane chessMoveBoard;
     private final GridPane chessBgBoard;
     private final HBox eatenWhitesContainer;
     private final HBox eatenBlacksContainer;
@@ -68,7 +67,7 @@ public class ChessBoardGUIHandler implements Resettable{
     ChessCentralControl myControl;
     private Circle lastMoveRank = null;
 
-    public ChessBoardGUIHandler(ChessCentralControl myControl, Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, GridPane chessMoveBoard, TextArea localInfo) {
+    public ChessBoardGUIHandler(ChessCentralControl myControl, Pane chessPieceBoard, HBox eatenWhites, HBox eatenBlacks, ImageView[][] piecesAtLocations, Pane ArrowBoard, VBox[][] bgPanes, VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessHighlightBoard, GridPane chessBgBoard, TextArea localInfo) {
         this.myControl = myControl;
         this.chessPieceBoard = chessPieceBoard;
         this.eatenWhitesContainer = eatenWhites;
@@ -79,7 +78,6 @@ public class ChessBoardGUIHandler implements Resettable{
         this.bgPanes = bgPanes;
         this.highlightPanes = highlightPanes;
         this.chessHighlightBoard = chessHighlightBoard;
-        this.chessMoveBoard = chessMoveBoard;
         this.chessBgBoard = chessBgBoard;
         this.moveBoxes = moveBoxes;
         this.localInfo = localInfo;
@@ -644,7 +642,7 @@ public class ChessBoardGUIHandler implements Resettable{
             VBox bg = (VBox) n;
 //            App.bindingController.bindRegionWithCustomStyles(bg,App.mainScreenController.fullScreen.widthProperty(),new String[]{"-fx-background-radius:"},new double[]{.0025},"-fx-background-color:" + curr);
             bg.styleProperty().unbind();
-            BindingController.bindRegionToStyle(bg, App.mainScreenController.fullScreen.widthProperty(), "-fx-background-radius:", .0025, "-fx-background-color:" + curr);
+            BindingController.bindRegionToStyle(bg, App.mainScreenController.getWindowWidth(), "-fx-background-radius:", .0025, "-fx-background-color:" + curr);
 
             // currBgColors[count] = curr;
             if (count % 8 == 0) {
@@ -657,12 +655,12 @@ public class ChessBoardGUIHandler implements Resettable{
     }
 
     public void removeHiglightBorder(int x, int y) {
-        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.fullScreen.widthProperty(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactor, "-fx-border-color:black");
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getWindowWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactor, "-fx-border-color:black");
 
     }
 
     public void higlightBorder(int x, int y) {
-        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.fullScreen.widthProperty(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactorExp, "-fx-border-color:white");
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getWindowWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactorExp, "-fx-border-color:white");
 
     }
 

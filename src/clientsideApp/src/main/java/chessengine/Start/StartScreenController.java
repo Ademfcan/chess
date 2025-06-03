@@ -17,6 +17,7 @@ import chessserver.Enums.INTENT;
 import chessserver.Enums.ProfilePicture;
 import chessserver.Friends.FriendDataResponse;
 import chessserver.Communication.DatabaseEntry;
+import chessserver.User.UserPreferences;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
@@ -1236,5 +1237,18 @@ public class StartScreenController implements Initializable {
         } else {
             logger.error("Getting username present response without correct last values!");
         }
+    }
+
+    public void setDefaultSelections(UserPreferences userPref) {
+        themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
+        computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
+        evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
+        nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
+        audioSliderBG.setValue(userPref.getBackgroundVolume());
+        audioSliderEff.setValue(userPref.getEffectVolume());
+        bgColorSelector.setValue(userPref.getChessboardTheme().toString());
+        pieceSelector.setValue(userPref.getPieceTheme().toString());
+        audioMuteBGButton.setText(userPref.isBackgroundmusic() ? "🔉" : "✖");
+        audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
     }
 }

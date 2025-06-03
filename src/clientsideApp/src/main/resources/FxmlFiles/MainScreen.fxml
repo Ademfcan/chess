@@ -21,349 +21,202 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.MainScreenController">
+<StackPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.MainScreenController">
    <children>
-      <GridPane fx:id="content" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
-    <columnConstraints>
-      <ColumnConstraints minWidth="10.0" percentWidth="5.0" prefWidth="100.0" />
-        <ColumnConstraints percentWidth="60.0" />
-        <ColumnConstraints percentWidth="30.0" />
-    </columnConstraints>
-    <rowConstraints>
-        <RowConstraints percentHeight="8.0" vgrow="ALWAYS" />
-        <RowConstraints percentHeight="86.0" vgrow="ALWAYS" />
-      <RowConstraints percentHeight="8.0" vgrow="ALWAYS" />
-    </rowConstraints>
-   <children>
-      <HBox fx:id="chessBoardAndEvalContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
-         <StackPane fx:id="chessBoardContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="300.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
-            <children>
-                     <GridPane fx:id="chessMoveBoard" alignment="CENTER">
-                        <columnConstraints>
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                        </columnConstraints>
-                        <rowConstraints>
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                        </rowConstraints>
-                     </GridPane>
-                     <GridPane fx:id="chessHighlightBoard">
-                        <columnConstraints>
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                        </columnConstraints>
-                        <rowConstraints>
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                        </rowConstraints>
-                     </GridPane>
-                     <GridPane fx:id="chessBgBoard" alignment="CENTER">
-                        <columnConstraints>
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                           <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-                        </columnConstraints>
-                        <rowConstraints>
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                           <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
-                        </rowConstraints>
-                     </GridPane>
-                     <Pane fx:id="chessPieceBoard" />
-                     <Pane fx:id="arrowBoard" />
-                     <Pane fx:id="promotionScreen">
-                        <children>
-                           <VBox fx:id="promoContainer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: lightgray; -fx-border-width: 2; -fx-border-color: black;" />
-                        </children>
-                     </Pane>
-                     <VBox fx:id="gameoverMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
-                        <children>
-                           <Label fx:id="gameoverTitle" text="Game Over">
-                              <font>
-                                 <Font size="31.0" />
-                              </font>
-                              <VBox.margin>
-                                 <Insets bottom="20.0" />
-                              </VBox.margin>
-                           </Label>
-                           <Label fx:id="victoryLabel" text="label" />
-                           <Button fx:id="gameoverHomebutton" mnemonicParsing="false" text="Home" />
-                        </children>
-                     </VBox>
-                  </children>
-         </StackPane>
-         <VBox fx:id="evalBar" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="332.0" prefWidth="20.0">
-            <children>
-               <StackPane fx:id="evalContainer" prefHeight="335.0" prefWidth="20.0">
-                  <children>
-                     <VBox prefHeight="200.0" prefWidth="100.0">
-                        <children>
-                           <Rectangle fx:id="blackadvantage" arcHeight="5.0" arcWidth="5.0" height="160.0" stroke="BLACK" strokeType="INSIDE" width="20.0" />
-                           <Rectangle fx:id="whiteadvantage" arcHeight="5.0" arcWidth="5.0" fill="#f5f5f5" height="160.0" stroke="BLACK" strokeType="INSIDE" width="20.0" />
-                        </children>
-                     </VBox>
-                     <VBox fx:id="evalLabelBox" alignment="CENTER" prefHeight="335.0" prefWidth="20.0">
-                        <children>
-                           <Label fx:id="blackEval" alignment="TOP_CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff">
-                              <font>
-                                 <Font size="8.0" />
-                              </font>
-                           </Label>
-                           <Label fx:id="whiteEval" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff">
-                              <font>
-                                 <Font size="8.0" />
-                              </font>
-                           </Label>
-                           <Label fx:id="evalDepth" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER">
-                              <font>
-                                 <Font size="8.0" />
-                              </font>
-                           </Label>
-                        </children>
-                     </VBox>
-                  </children>
-               </StackPane>
-            </children>
-         </VBox>
-      </HBox>
-
-      <HBox fx:id="eatenBlacks" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-      <HBox fx:id="eatenWhites" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" />
-      <HBox fx:id="sideAreaFull" alignment="CENTER" prefHeight="338.0" prefWidth="192.0" spacing="3.0" GridPane.columnIndex="2" GridPane.rowSpan="3">
+      <HBox fx:id="content" alignment="CENTER_LEFT" spacing="5.0">
          <children>
-            <StackPane fx:id="sidePanel" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="207.0">
+            <VBox fx:id="gameContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0">
                <children>
-                        <GridPane fx:id="mainSidePanel">
-                          <columnConstraints>
-                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                          </columnConstraints>
-                          <rowConstraints>
-                            <RowConstraints minHeight="10.0" percentHeight="11.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" percentHeight="80.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                            <RowConstraints minHeight="10.0" percentHeight="11.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                          </rowConstraints>
+                  <HBox fx:id="chessBoardTop" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label fx:id="topAdvantage" text="Label" />
+                        <HBox fx:id="topEatenContainer" prefHeight="100.0" prefWidth="200.0" />
+                        <HBox fx:id="topPlayerBox" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="15.0">
                            <children>
-                        <HBox fx:id="topRightPlayer2" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="31.0" prefWidth="211.0" spacing="15.0">
-                           <children>
-                              <ImageView fx:id="player2Select" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
-                                 </image>
-                              </ImageView>
-                              <Label fx:id="player2Label" prefHeight="31.0" prefWidth="83.0" text="label" />
-                                    <VBox fx:id="player2TurnIndicator" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="100.0">
-                                       <children>
-                                          <Label fx:id="player2MoveClock" />
-                                       </children>
-                                    </VBox>
-                           </children>
-                        </HBox>
-                        <HBox fx:id="bottomRightPlayer1" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="15.0" GridPane.rowIndex="2">
-                           <children>
-                              <ImageView fx:id="player1Select" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
-                                 </image>
-                              </ImageView>
-                              <Label fx:id="player1Label" text="Label" />
-                                    <VBox fx:id="player1TurnIndicator" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="100.0">
-                                       <children>
-                                          <Label fx:id="player1MoveClock" />
-                                       </children>
-                                    </VBox>
-                           </children>
-                        </HBox>
-                        <VBox fx:id="gameControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" GridPane.rowIndex="1">
-                           <children>
-                                    <Label fx:id="lineLabel" text="Label" />
-                                    <ScrollPane fx:id="movesPlayed" prefHeight="45.0" prefWidth="574.0" vbarPolicy="NEVER">
-                                       <content>
-                                          <HBox fx:id="movesPlayedBox" alignment="CENTER_LEFT" prefHeight="33.0" prefWidth="207.0" spacing="5.0" />
-                                       </content>
-                                    </ScrollPane>
-                              <StackPane fx:id="switchingOptions" prefHeight="150.0" prefWidth="200.0">
+                              <HBox fx:id="topPlayerTurnContainer" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                                  <children>
-                                    <VBox fx:id="onlineControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="1.0" visible="false">
+                                    <VBox fx:id="topPlayerTurnIndicator" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="100.0">
                                        <children>
-                                          <VBox fx:id="chatArea" alignment="BOTTOM_CENTER" prefHeight="129.0" prefWidth="167.0">
-                                             <children>
-                                                <TextArea fx:id="inGameInfo" editable="false" prefHeight="68.0" prefWidth="167.0" />
-                                                <HBox prefHeight="30.0" prefWidth="167.0" spacing="5.0">
-                                                   <children>
-                                                      <TextField fx:id="chatInput" prefHeight="31.0" prefWidth="167.0" promptText="message" />
-                                                      <Button fx:id="sendMessageButton" mnemonicParsing="false" text="-&gt;" />
-                                                   </children>
-                                                </HBox>
-                                                      <HBox fx:id="emojiContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="2.0" />
-                                                      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
-                                                         <children>
-                                                            <Button fx:id="resignButton" mnemonicParsing="false" text="Resign" />
-                                                            <Button fx:id="offerDrawButton" mnemonicParsing="false" text="Offer Draw" />
-                                                         </children>
-                                                      </HBox>
-                                             </children>
-                                          </VBox>
+                                          <Label fx:id="topPlayerTurnTime" />
                                        </children>
                                     </VBox>
-                                    <VBox fx:id="viewerControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
-                                       <children>
-                                          <VBox fx:id="bestMovesBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                                       </children>
-                                    </VBox>
-                                    <VBox fx:id="sandboxControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
-                                       <children>
-                                          <GridPane fx:id="sandboxPieces" prefHeight="164.0" prefWidth="183.0">
-                                            <columnConstraints>
-                                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                            </columnConstraints>
-                                            <rowConstraints>
-                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                            </rowConstraints>
-                                          </GridPane>
-                                       </children>
-                                    </VBox>
-                                    <VBox fx:id="localControls" prefHeight="200.0" prefWidth="100.0" visible="false">
-                                             <children>
-                                                <HBox fx:id="evalOverTimeBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" />
-                                             </children></VBox>
-                                          <VBox fx:id="campaignControls" prefHeight="200.0" prefWidth="100.0" visible="false">
-                                             <children>
-                                                <TextArea fx:id="campaignInfo" editable="false" prefHeight="153.0" prefWidth="183.0" />
-                                             </children>
-                                          </VBox>
-                                          <VBox fx:id="simulationControls" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" spacing="2.0" visible="false">
-                                             <children>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
-                                                   <children>
-                                                      <Button fx:id="playPauseButton" mnemonicParsing="false" text="pause" />
-                                                      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                                         <children>
-                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                               <children>
-                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                                                     <children>
-                                                                        <Label fx:id="player1SimLabel" text="Player1" />
-                                                                        <ComboBox fx:id="player1SimSelector" prefWidth="150.0" />
-                                                                     </children>
-                                                                  </VBox>
-                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                                                     <children>
-                                                                        <Label fx:id="player2SimLabel" text="Player2" />
-                                                                        <ComboBox fx:id="player2SimSelector" prefWidth="150.0" />
-                                                                     </children>
-                                                                  </VBox>
-                                                               </children>
-                                                            </HBox>
-                                                            <Slider fx:id="timeSlider" />
-                                                         </children>
-                                                      </VBox>
-                                                   </children>
-                                                </HBox>
-                                                <Label fx:id="simulationScore" />
-                                             </children>
-                                          </VBox>
-                                          <VBox fx:id="puzzleControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0" visible="false">
-                                             <children>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Label fx:id="puzzleElo" />
-                                                      <Slider fx:id="puzzleEloSlider" />
-                                                   </children>
-                                                </HBox>
-                                                <Button fx:id="hintButton" mnemonicParsing="false" text="Hint" />
-                                                <Label fx:id="puzzleTagsLabel" text="Puzzle Themes:" />
-                                                <VBox fx:id="puzzleTagsBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
-                                             </children>
-                                          </VBox>
                                  </children>
-                              </StackPane>
-                              <VBox fx:id="bottomControls" alignment="CENTER" prefHeight="160.0" prefWidth="160.0" spacing="5.0">
+                              </HBox>
+                              <Label fx:id="topPlayerName" text="label" />
+                              <ImageView fx:id="topPlayerIcon" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
+                                 </image>
+                              </ImageView>
+                           </children>
+                        </HBox>
+                        <HBox fx:id="topRightSpacer" prefHeight="100.0" prefWidth="200.0">
+                           <children>
+                              <Button fx:id="openSidePanel" mnemonicParsing="false" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="chessBoardAndEvalContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <StackPane fx:id="chessBoardContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="300.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+                           <children>
+                              <GridPane fx:id="chessMoveBoard" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                 </rowConstraints>
+                              </GridPane>
+                              <GridPane fx:id="chessHighlightBoard" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                 </rowConstraints>
+                              </GridPane>
+                              <GridPane fx:id="chessBgBoard" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                    <RowConstraints minHeight="10.0" prefHeight="100.0" vgrow="ALWAYS" />
+                                 </rowConstraints>
+                              </GridPane>
+                              <Pane fx:id="chessPieceBoard" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                              <Pane fx:id="arrowBoard" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" />
+                              <Pane fx:id="promotionScreen" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
                                  <children>
-                                    <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="13.0">
-                                       <children>
-                                          <Button fx:id="reset" mnemonicParsing="false" prefHeight="33.0" prefWidth="102.0" text="Reset">
-                                             <font>
-                                                <Font name="Gabriola" size="24.0" />
-                                             </font>
-                                          </Button>
-                                          <Label fx:id="saveIndicator" text="0/0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="10.0">
-                                       <children>
-                                                <Button fx:id="LeftReset" alignment="CENTER" contentDisplay="CENTER" layoutX="48.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&lt;&lt;">
-                                                   <font>
-                                                      <Font name="Gabriola" size="24.0" />
-                                                   </font>
-                                                </Button>
-                                          <Button fx:id="LeftButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&lt;">
-                                             <font>
-                                                <Font name="Gabriola" size="24.0" />
-                                             </font>
-                                          </Button>
-                                          <Button fx:id="RightButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&gt;">
-                                             <font>
-                                                <Font name="Gabriola" size="24.0" />
-                                             </font>
-                                          </Button>
-                                                <Button fx:id="RightReset" alignment="CENTER" contentDisplay="CENTER" layoutX="162.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0" text="&gt;&gt;">
-                                                   <font>
-                                                      <Font name="Gabriola" size="24.0" />
-                                                   </font>
-                                                </Button>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="31.0" prefWidth="183.0">
-                                       <children>
-                                          <Label fx:id="stateLabel" text="Label" />
-                                       </children>
-                                    </HBox>
+                                    <VBox fx:id="promoContainer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: lightgray; -fx-border-width: 2; -fx-border-color: black;" />
+                                 </children>
+                              </Pane>
+                              <VBox fx:id="gameoverMenu" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0">
+                                 <children>
+                                    <Label fx:id="gameoverTitle" text="Game Over">
+                                       <font>
+                                          <Font size="31.0" />
+                                       </font>
+                                       <VBox.margin>
+                                          <Insets bottom="20.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <Label fx:id="victoryLabel" text="label" />
+                                    <Button fx:id="gameoverHomebutton" mnemonicParsing="false" text="Home" />
                                  </children>
                               </VBox>
                            </children>
-                        </VBox>
+                        </StackPane>
+                        <VBox fx:id="evalBar" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="332.0" prefWidth="20.0">
+                           <children>
+                              <StackPane fx:id="evalContainer" prefHeight="335.0" prefWidth="20.0">
+                                 <children>
+                                    <VBox fx:id="evalLabelBox" alignment="CENTER" prefHeight="335.0" prefWidth="20.0">
+                                       <children>
+                                          <Label fx:id="blackEval" alignment="TOP_CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff">
+                                             <font>
+                                                <Font size="8.0" />
+                                             </font>
+                                          </Label>
+                                          <Label fx:id="whiteEval" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff">
+                                             <font>
+                                                <Font size="8.0" />
+                                             </font>
+                                          </Label>
+                                          <Label fx:id="evalDepth" alignment="CENTER" prefHeight="17.0" prefWidth="21.0" textAlignment="CENTER" textFill="#c6d4ff">
+                                             <font>
+                                                <Font size="8.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                    </VBox>
+                                    <VBox prefHeight="200.0" prefWidth="100.0">
+                                       <children>
+                                          <Rectangle fx:id="blackadvantage" arcHeight="5.0" arcWidth="5.0" height="160.0" stroke="BLACK" strokeType="INSIDE" width="20.0" />
+                                          <Rectangle fx:id="whiteadvantage" arcHeight="5.0" arcWidth="5.0" fill="#f5f5f5" height="160.0" stroke="BLACK" strokeType="INSIDE" width="20.0" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </StackPane>
                            </children>
-                        </GridPane>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="chessBoardBottom" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <Label fx:id="bottomAdvantage" text="Label" />
+                        <HBox fx:id="bottomEatenContainer" prefHeight="100.0" prefWidth="200.0" />
+                        <HBox fx:id="bottomPlayerBox" alignment="CENTER_RIGHT" spacing="15.0">
+                           <children>
+                              <HBox fx:id="bottomPlayerTurnContainer" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                                 <children>
+                                    <VBox fx:id="bottomPlayerTurnIndicator" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="100.0">
+                                       <children>
+                                          <Label fx:id="bottomPlayerTurnTime" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                              <Label fx:id="bottomPlayerName" text="Label" />
+                              <ImageView fx:id="bottomPlayerIcon" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                 <image>
+                                    <Image url="@../ChessAssets/JohnPablok%20Cburnett%20Chess%20set/PNGs/No%20shadow/2x/square%20gray%20light%20_2x_ns.png" />
+                                 </image>
+                              </ImageView>
+                           </children>
+                        </HBox>
+                        <HBox fx:id="bottomRightSpacer" prefHeight="100.0" prefWidth="200.0" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+            <VBox fx:id="sidePanelInline" prefHeight="200.0" prefWidth="100.0">
+               <children>
+                  <StackPane fx:id="sidePanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                     <children>
                         <ScrollPane fx:id="settingsScroller" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS" visible="false">
                            <content>
                               <VBox fx:id="settingsScreen" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
@@ -432,43 +285,206 @@
                                           <Button fx:id="pgnSaveButton" mnemonicParsing="false" text="Save" />
                                        </children>
                                     </HBox>
+                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                       <children>
+                                          <Button fx:id="hideSettings" mnemonicParsing="false">
+                                             <font>
+                                                <Font name="Gabriola" size="24.0" />
+                                             </font>
+                                          </Button>
+                                       </children>
+                                    </HBox>
                                  </children>
                               </VBox>
                            </content>
                         </ScrollPane>
+                        <VBox fx:id="gameMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                           <children>
+                              <VBox fx:id="gameControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                                 <children>
+                                    <Label fx:id="lineLabel" text="Label" />
+                                    <ScrollPane fx:id="movesPlayed" prefHeight="45.0" prefWidth="574.0" vbarPolicy="NEVER">
+                                       <content>
+                                          <HBox fx:id="movesPlayedBox" alignment="CENTER_LEFT" prefHeight="33.0" prefWidth="207.0" spacing="5.0" />
+                                       </content>
+                                    </ScrollPane>
+                                    <StackPane fx:id="switchingOptions" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <VBox fx:id="onlineControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="1.0" visible="false">
+                                             <children>
+                                                <TextArea fx:id="inGameInfo" editable="false" prefHeight="68.0" prefWidth="167.0" />
+                                                <HBox prefHeight="30.0" prefWidth="167.0" spacing="5.0">
+                                                   <children>
+                                                      <TextField fx:id="chatInput" prefHeight="31.0" prefWidth="167.0" promptText="message" />
+                                                      <Button fx:id="sendMessageButton" mnemonicParsing="false" text="-&gt;" />
+                                                   </children>
+                                                </HBox>
+                                                <HBox fx:id="emojiContainer" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="2.0" />
+                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
+                                                   <children>
+                                                      <Button fx:id="resignButton" mnemonicParsing="false" text="Resign" />
+                                                      <Button fx:id="offerDrawButton" mnemonicParsing="false" text="Offer Draw" />
+                                                   </children>
+                                                </HBox>
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="viewerControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                             <children>
+                                                <VBox fx:id="bestMovesBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="sandboxControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                             <children>
+                                                <GridPane fx:id="sandboxPieces" prefHeight="164.0" prefWidth="183.0">
+                                                   <columnConstraints>
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                   </columnConstraints>
+                                                   <rowConstraints>
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                                   </rowConstraints>
+                                                </GridPane>
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="localControls" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                             <children>
+                                                <HBox fx:id="evalOverTimeBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="campaignControls" prefHeight="200.0" prefWidth="100.0" visible="false">
+                                             <children>
+                                                <TextArea fx:id="campaignInfo" editable="false" prefHeight="153.0" prefWidth="183.0" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="simulationControls" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" spacing="2.0" visible="false">
+                                             <children>
+                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="5.0">
+                                                   <children>
+                                                      <Button fx:id="playPauseButton" mnemonicParsing="false" text="pause" />
+                                                      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                         <children>
+                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                               <children>
+                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                                     <children>
+                                                                        <Label fx:id="player1SimLabel" text="Player1" />
+                                                                        <ComboBox fx:id="player1SimSelector" prefWidth="150.0" />
+                                                                     </children>
+                                                                  </VBox>
+                                                                  <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                                                                     <children>
+                                                                        <Label fx:id="player2SimLabel" text="Player2" />
+                                                                        <ComboBox fx:id="player2SimSelector" prefWidth="150.0" />
+                                                                     </children>
+                                                                  </VBox>
+                                                               </children>
+                                                            </HBox>
+                                                            <Slider fx:id="timeSlider" />
+                                                         </children>
+                                                      </VBox>
+                                                   </children>
+                                                </HBox>
+                                                <Label fx:id="simulationScore" />
+                                             </children>
+                                          </VBox>
+                                          <VBox fx:id="puzzleControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0" visible="false">
+                                             <children>
+                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Label fx:id="puzzleElo" />
+                                                      <Slider fx:id="puzzleEloSlider" />
+                                                   </children>
+                                                </HBox>
+                                                <Button fx:id="hintButton" mnemonicParsing="false" text="Hint" />
+                                                <Label fx:id="puzzleTagsLabel" text="Puzzle Themes:" />
+                                                <VBox fx:id="puzzleTagsBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" />
+                                             </children>
+                                          </VBox>
+                                       </children>
+                                    </StackPane>
+                                    <VBox fx:id="bottomControls" alignment="CENTER" prefHeight="160.0" prefWidth="160.0" spacing="5.0">
+                                       <children>
+                                          <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="13.0">
+                                             <children>
+                                                <Button fx:id="reset" mnemonicParsing="false" prefHeight="33.0" prefWidth="102.0" text="Reset">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                                <Label fx:id="saveIndicator" text="0/0" />
+                                             </children>
+                                          </HBox>
+                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="144.0" spacing="10.0">
+                                             <children>
+                                                <Button fx:id="StartOfGameButton" alignment="CENTER" contentDisplay="CENTER" layoutX="48.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                                <Button fx:id="MoveBackButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                                <Button fx:id="MoveForwardButton" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                                <Button fx:id="EndOfGameButton" alignment="CENTER" contentDisplay="CENTER" layoutX="162.0" layoutY="17.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="56.0">
+                                                   <font>
+                                                      <Font name="Gabriola" size="24.0" />
+                                                   </font>
+                                                </Button>
+                                             </children>
+                                          </HBox>
+                                          <HBox alignment="CENTER" prefHeight="31.0" prefWidth="183.0">
+                                             <children>
+                                                <Label fx:id="stateLabel" text="Label" />
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </VBox>
+                              <HBox fx:id="navigation" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                 <children>
+                                    <Button fx:id="homeButton" mnemonicParsing="false">
+                                       <font>
+                                          <Font name="Gabriola" size="24.0" />
+                                       </font>
+                                    </Button>
+                                    <Button fx:id="settingsButton" mnemonicParsing="false">
+                                       <font>
+                                          <Font name="Gabriola" size="24.0" />
+                                       </font>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </StackPane>
                </children>
-            </StackPane>
+            </VBox>
+         </children>
+         <StackPane.margin>
+            <Insets />
+         </StackPane.margin>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </HBox>
+      <Pane fx:id="mainRef" prefHeight="200.0" prefWidth="200.0" />
+      <HBox fx:id="sidePanelPopup" alignment="TOP_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="100.0" StackPane.alignment="TOP_RIGHT">
+         <children>
+            <Button fx:id="hideSidePanel" mnemonicParsing="false" />
+            <VBox fx:id="sidePanelPopupContent" alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0" />
          </children>
       </HBox>
-            <VBox fx:id="leftSideSpacer" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1">
-               <children>
-                  <VBox fx:id="topControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
-                     <children>
-                        <Button fx:id="settingsButton" mnemonicParsing="false" text="⚙">
-                           <font>
-                              <Font name="Gabriola" size="24.0" />
-                           </font>
-                        </Button>
-                        <Button fx:id="homeButton" mnemonicParsing="false" text="↩">
-                           <font>
-                              <Font name="Gabriola" size="24.0" />
-                           </font>
-                        </Button>
-                     </children>
-                  </VBox>
-               </children></VBox>
-            <VBox fx:id="leftTopAdvBox" alignment="CENTER_RIGHT" prefHeight="200.0" prefWidth="100.0">
-               <children>
-            <Label fx:id="BlackNumericalAdv" />
-               </children>
-            </VBox>
-            <VBox fx:id="rightTopAdvBox" alignment="CENTER_RIGHT" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="2">
-               <children>
-            <Label fx:id="WhiteNumericalAdv" />
-               </children>
-            </VBox>
-   </children>
-</GridPane>
-      <Pane fx:id="mainRef" prefHeight="200.0" prefWidth="200.0" />
    </children>
 </StackPane>

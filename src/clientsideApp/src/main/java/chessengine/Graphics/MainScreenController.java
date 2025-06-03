@@ -15,8 +15,10 @@ import chessserver.Functions.GeneralChessFunctions;
 import chessengine.Managers.UserPreferenceManager;
 import chessserver.Misc.ChessConstants;
 import chessserver.User.UserPreferences;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
@@ -34,224 +36,201 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ResourceBundle;
 
-public class MainScreenController implements Initializable, Resettable {
+public class MainScreenController implements Initializable, Resettable, AppWindow {
 
-    private final ImageView[][] peicesAtLocations = new ImageView[8][8];
-    public UserPreferences initPreferences = null;
     @FXML
-    public Pane chessPieceBoard;
+    StackPane fullScreen;
+    public ReadOnlyDoubleProperty getWindowWidth() {
+        return fullScreen.widthProperty();
+    }
+    public ReadOnlyDoubleProperty getWindowHeight() {
+        return fullScreen.heightProperty();
+    }
+    public Region getWindow(){
+        return fullScreen;
+    }
+
     @FXML
-    public VBox gameoverMenu;
+    Pane mainRef;
+
+    public Pane getMessageBoard() {
+        return mainRef;
+    }
+
     @FXML
-    public Label gameoverTitle;
+    HBox sidePanelPopup;
     @FXML
-    public Button gameoverHomebutton;
+    VBox sidePanelPopupContent;
     @FXML
-    public Label saveIndicator;
+    Button hideSidePanel;
     @FXML
-    public Button reset;
-    // methods called every new game
-    public MainScreenState currentState;
-    VBox[][] Bgpanes = new VBox[8][8];
-    StackPane[][] highlightPanes = new StackPane[8][8];
-    VBox[][] moveBoxes = new VBox[8][8];
+    Button openSidePanel;
+
+
     @FXML
-    public StackPane fullScreen;
+    HBox content;
     @FXML
-    public GridPane content;
+    VBox gameContainer;
     @FXML
-    HBox sideAreaFull;
-    @FXML
-    VBox leftSideSpacer;
-    @FXML
-    VBox leftTopAdvBox;
-    @FXML
-    VBox rightTopAdvBox;
-    @FXML
-    HBox topRightPlayer2;
-    @FXML
-    HBox bottomRightPlayer1;
-    @FXML
-    public Pane mainRef;
-    @FXML
-    Button LeftReset;
-    @FXML
-    Button LeftButton;
-    @FXML
-    Button RightButton;
-    @FXML
-    Button RightReset;
-    @FXML
-    Label stateLabel;
-    @FXML
-    Button settingsButton;
-    @FXML
-    StackPane chessBoardContainer;
+    VBox sidePanelInline;
+
+    /* Chess board and eval bar*/
     @FXML
     HBox chessBoardAndEvalContainer;
+
+    /* Chessboard Top */
     @FXML
-    GridPane chessHighlightBoard;
+    HBox chessBoardTop;
+    // eaten pieces
     @FXML
-    GridPane chessBgBoard;
+    Label topAdvantage;
+    @FXML
+    HBox topEatenContainer;
+    // player box
+    @FXML
+    HBox topPlayerBox;
+    @FXML
+    ImageView topPlayerIcon;
+    @FXML
+    Label topPlayerName;
+    @FXML
+    HBox topPlayerTurnContainer;
+    @FXML
+    VBox topPlayerTurnIndicator;
+    @FXML
+    Label topPlayerTurnTime;
+
+    @FXML
+    HBox topRightSpacer;
+
+
+
+    /* Chessboard Bottom */
+    @FXML
+    HBox chessBoardBottom;
+    // eaten pieces
+    @FXML
+    Label bottomAdvantage;
+    @FXML
+    HBox bottomEatenContainer;
+    // player box
+    @FXML
+    HBox bottomPlayerBox;
+    @FXML
+    ImageView bottomPlayerIcon;
+    @FXML
+    Label bottomPlayerName;
+    @FXML
+    HBox bottomPlayerTurnContainer;
+    @FXML
+    VBox bottomPlayerTurnIndicator;
+    @FXML
+    Label bottomPlayerTurnTime;
+
+    @FXML
+    HBox bottomRightSpacer;
+
+
+
+    /* Inner chess board */
+    @FXML
+    StackPane chessBoardContainer;
+
+    // grid based overlays that display over squares
+    // move ranking circles
     @FXML
     GridPane chessMoveBoard;
+    // highlight squares
+    @FXML
+    GridPane chessHighlightBoard;
+    // interaction squares, and the background itself
+    @FXML
+    GridPane chessBgBoard;
+
+    // overlays that display items
+    // chess pieces
+    @FXML
+    Pane chessPieceBoard;
+    // move arrows
     @FXML
     Pane arrowBoard;
+    // promotion interactions
     @FXML
     Pane promotionScreen;
     @FXML
-    HBox evalOverTimeBox;
+    VBox promoContainer;
+    // game over interactions
+    @FXML
+    VBox gameoverMenu;
+    @FXML
+    Label gameoverTitle;
+    @FXML
+    Button gameoverHomebutton;
+    @FXML
+    Label victoryLabel;
+
+    /* Inner Eval bar*/
     @FXML
     VBox evalBar;
     @FXML
     StackPane evalContainer;
-    @FXML
-    VBox evalLabelBox;
+    // rectangles that compose the bar
     @FXML
     Rectangle blackadvantage;
     @FXML
-    Label blackEval;
-    @FXML
     Rectangle whiteadvantage;
+    // eval labels
+    @FXML
+    VBox evalLabelBox;
+    @FXML
+    Label blackEval;
     @FXML
     Label whiteEval;
     @FXML
     Label evalDepth;
-    @FXML
-    Label victoryLabel;
-    @FXML
-    HBox eatenWhites;
-    @FXML
-    HBox eatenBlacks;
-    @FXML
-    Button homeButton;
-    @FXML
-    VBox promoContainer;
 
+    /* Side panel */
     @FXML
-    public Label lineLabel; //  current game line
+    StackPane sidePanel;
 
-    // moves played area
+    public ReadOnlyDoubleProperty getSidePanelWidth() {
+        return sidePanel.widthProperty();
+    }
+    public ReadOnlyDoubleProperty getSidePanelHeight() {
+        return sidePanel.heightProperty();
+    }
 
+    /* Game Menu */
+    @FXML
+    VBox gameMenu;
+
+    /* Game Controls*/
+    @FXML
+    VBox gameControls;
+
+    // current game line
+    @FXML
+    Label lineLabel;
+
+    // moves played overgame
+    @FXML
+    ScrollPane movesPlayed;
+    @FXML
+    HBox movesPlayedBox;
+
+    // switching options based on gamemode
     @FXML
     StackPane switchingOptions;
 
-    @FXML
-    Label player1SimLabel;
-    @FXML
-    Label player2SimLabel;
-
-    @FXML
-    ComboBox<Integer> player1SimSelector;
-
-    @FXML
-    ComboBox<Integer> player2SimSelector;
-
-    @FXML
-    HBox movesPlayedBox;
-    @FXML
-    ScrollPane movesPlayed;
-    // setting screen
-    @FXML
-    ScrollPane settingsScroller;
-    @FXML
-    VBox settingsScreen;
+    // online games
     @FXML
     VBox onlineControls;
-    @FXML
-    VBox viewerControls;
-    @FXML
-    VBox localControls;
-    @FXML
-    VBox campaignControls;
-    @FXML
-    VBox simulationControls;
-    @FXML
-    VBox puzzleControls;
-    @FXML
-    VBox sandboxControls;
-    @FXML
-    VBox bestMovesBox;
-    @FXML
-    GridPane sandboxPieces;
-    @FXML
-    TextArea campaignInfo;
-    @FXML
-    ImageView player1Select;
-    @FXML
-    ImageView player2Select;
-    @FXML
-    VBox player1TurnIndicator;
-    @FXML
-    VBox player2TurnIndicator;
-    @FXML
-    Label player1MoveClock;
-    @FXML
-    Label player2MoveClock;
-    @FXML
-    GridPane mainSidePanel;
-    @FXML
-    VBox gameControls;
-    @FXML
-    public StackPane sidePanel;
-    @FXML
-    VBox topControls;
-
-
-    // settings screen
-    @FXML
-    VBox bottomControls;
-    @FXML
-    Label themeLabel;
-    @FXML
-    public ChoiceBox<String> themeSelection;
-    @FXML
-    Label bgLabel;
-    @FXML
-    public ComboBox<String> bgColorSelector;
-    @FXML
-    Label pieceLabel;
-    @FXML
-    public ComboBox<String> pieceSelector;
-    @FXML
-    Label audioMuteEff;
-    @FXML
-    public Button audioMuteEffButton;
-    @FXML
-    Label audioLabelEff;
-    @FXML
-    public Slider audioSliderEff;
-    @FXML
-    Label evalLabel;
-    @FXML
-    public ComboBox<String> evalOptions;
-
-    @FXML
-    Label nMovesLabel;
-    @FXML
-    public ComboBox<String> nMovesOptions;
-
-    @FXML
-    Label computerLabel;
-    @FXML
-    public ComboBox<String> computerOptions;
-    @FXML
-    Label pgnSaveLabel;
-    @FXML
-    Button pgnSaveButton;
-    @FXML
-    Label player1Label;
-    @FXML
-    Label player2Label;
-    @FXML
-    Label BlackNumericalAdv;
-    @FXML
-    Label WhiteNumericalAdv;
     @FXML
     TextArea inGameInfo;
     @FXML
@@ -264,14 +243,43 @@ public class MainScreenController implements Initializable, Resettable {
     Button resignButton;
     @FXML
     Button offerDrawButton;
-    // simulation controls
+
+    // viewer games (just "watching")
+    @FXML
+    VBox viewerControls;
+    @FXML
+    VBox bestMovesBox;
+
+
+    @FXML
+    VBox localControls;
+    @FXML
+    HBox evalOverTimeBox;
+
+    @FXML
+    VBox campaignControls;
+    @FXML
+    TextArea campaignInfo;
+
+    @FXML
+    VBox simulationControls;
     @FXML
     Button playPauseButton;
     @FXML
     Slider timeSlider;
     @FXML
+    Label player1SimLabel;
+    @FXML
+    Label player2SimLabel;
+    @FXML
+    ComboBox<Integer> player1SimSelector;
+    @FXML
+    ComboBox<Integer> player2SimSelector;
+    @FXML
     Label simulationScore;
 
+    @FXML
+    VBox puzzleControls;
     @FXML
     Slider puzzleEloSlider;
     @FXML
@@ -284,12 +292,109 @@ public class MainScreenController implements Initializable, Resettable {
     VBox puzzleTagsBox;
 
     @FXML
+    VBox sandboxControls;
+    @FXML
+    GridPane sandboxPieces;
+
+
+
+    /* Bottom Controls */
+    @FXML
+    Button reset;
+    @FXML
+    Label saveIndicator;
+
+    @FXML
+    Button StartOfGameButton;
+    @FXML
+    Button MoveBackButton;
+    @FXML
+    Button MoveForwardButton;
+    @FXML
+    Button EndOfGameButton;
+
+    @FXML
+    Label stateLabel;
+
+
+    /* Navigation */
+
+    @FXML
+    Button homeButton;
+    @FXML
+    Button settingsButton;
+
+
+    // settings screen
+    @FXML
+    ScrollPane settingsScroller;
+    @FXML
+    VBox settingsScreen;
+
+    @FXML
+    Label themeLabel;
+    @FXML
+    ChoiceBox<String> themeSelection;
+
+    @FXML
+    Label bgLabel;
+    @FXML
+    ComboBox<String> bgColorSelector;
+
+    @FXML
+    Label pieceLabel;
+    @FXML
+    ComboBox<String> pieceSelector;
+
+    @FXML
+    Label audioMuteEff;
+    @FXML
+    Button audioMuteEffButton;
+
+    @FXML
+    Label audioLabelEff;
+    @FXML
+    Slider audioSliderEff;
+
+    @FXML
+    Label evalLabel;
+    @FXML
+    ComboBox<String> evalOptions;
+
+    @FXML
+    Label nMovesLabel;
+    @FXML
+    ComboBox<String> nMovesOptions;
+
+    @FXML
+    Label computerLabel;
+    @FXML
+    ComboBox<String> computerOptions;
+
+    @FXML
     TextArea currentGamePgn;
     @FXML
     Label currentGamePgnLabel;
 
+    @FXML
+    Label pgnSaveLabel;
+    @FXML
+    Button pgnSaveButton;
+
+    @FXML
+    Button hideSettings;
+
+    private final ImageView[][] peicesAtLocations = new ImageView[8][8];
+    public UserPreferences initPreferences = null;
+    public MainScreenState currentState;
+    VBox[][] Bgpanes = new VBox[8][8];
+    StackPane[][] highlightPanes = new StackPane[8][8];
+    VBox[][] moveBoxes = new VBox[8][8];
+
     // change promotion peice colors if needed
     boolean lastPromoWhite = false;
+    boolean isSidePanelInline = true;
+    boolean isSidePanelToggled = false;
     private Logger logger;
     private ChessCentralControl ChessCentralControl;
     private VBox currentControls;
@@ -308,11 +413,7 @@ public class MainScreenController implements Initializable, Resettable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-
-
         currentGamePgn.setEditable(false);
-
 
         // some elements need mouse transparency because they are on top of control elements
         mainRef.setMouseTransparent(true);
@@ -354,10 +455,10 @@ public class MainScreenController implements Initializable, Resettable {
         setUpPiecesAndListeners();
         ChessCentralControl = App.ChessCentralControl;
 
-        ChessCentralControl.init(this, chessPieceBoard, eatenWhites, eatenBlacks, peicesAtLocations, inGameInfo,
+        ChessCentralControl.init(this, chessPieceBoard, bottomEatenContainer, topEatenContainer, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
-                chessBgBoard, chessHighlightBoard, chessMoveBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, player1TurnIndicator,
-                player2TurnIndicator, player1MoveClock, player2MoveClock,player1SimSelector,player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
+                chessBgBoard, chessHighlightBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, bottomPlayerTurnIndicator,
+                topPlayerTurnIndicator, bottomPlayerTurnTime, topPlayerTurnTime,player1SimSelector,player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
 
@@ -381,12 +482,18 @@ public class MainScreenController implements Initializable, Resettable {
         // game over menu config
         gameoverMenu.setBackground(Constants.gameOverBackground);
 
+        hideSidePanelPopup();
+        sidePanelPopupContent.getStyleClass().add("root");
+
+        handleSidePanelChange();
+
 
     }
 
     public void oneTimeSetup() {
         // called after app's classes are initialized
-        setUpBindings();
+        setUpLayout();
+        setupIcons();
         setEvalBar(0, -1, false);
         UserPreferenceManager.setupUserSettingsScreen(themeSelection, bgColorSelector, pieceSelector, null, null, audioMuteEffButton, audioSliderEff, evalOptions,nMovesOptions,computerOptions, Window.Start);
         ChessCentralControl.chessActionHandler.init();
@@ -458,8 +565,11 @@ public class MainScreenController implements Initializable, Resettable {
         settingsButton.setOnMouseClicked(e -> {
             toggleSettingsAndGameControls();
         });
+        hideSettings.setOnMouseClicked(e ->{
+            toggleSettingsAndGameControls();
+        });
 
-        LeftReset.setOnMouseClicked(e -> {
+        StartOfGameButton.setOnMouseClicked(e -> {
             logger.debug("Left Reset clicked");
             int minIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex();
             if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > minIndex) {
@@ -468,7 +578,7 @@ public class MainScreenController implements Initializable, Resettable {
             }
         });
 
-        LeftButton.setOnMouseClicked(e -> {
+        MoveBackButton.setOnMouseClicked(e -> {
             logger.debug("Left button clicked");
             int minIndex = ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex();
             if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > minIndex) {
@@ -479,7 +589,7 @@ public class MainScreenController implements Initializable, Resettable {
 
         });
 
-        RightButton.setOnMouseClicked(e -> {
+        MoveForwardButton.setOnMouseClicked(e -> {
             logger.debug("Right button clicked");
             if (ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() < ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
                 changeMove(1, false,false,false);
@@ -488,12 +598,20 @@ public class MainScreenController implements Initializable, Resettable {
             }
         });
 
-        RightReset.setOnMouseClicked(e -> {
+        EndOfGameButton.setOnMouseClicked(e -> {
             logger.debug("right Reset clicked");
             if (currentState != MainScreenState.PUZZLE && ChessCentralControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() < ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
                 changeToAbsoluteMoveIndex(ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex());
 
             }
+        });
+
+        openSidePanel.setOnMouseClicked(e -> {
+            showSidePanelPopup();
+        });
+
+        hideSidePanel.setOnMouseClicked(e -> {
+            hideSidePanelPopup();
         });
 
     }
@@ -581,57 +699,96 @@ public class MainScreenController implements Initializable, Resettable {
 
     // for campaign only
 
-    public void setUpBindings() {
-        App.bindingController.bindSmallText(currentGamePgnLabel,Window.Main,"Black");
-        App.bindingController.bindSmallText(currentGamePgn,Window.Main,"Black");
-        currentGamePgn.prefWidthProperty().bind(settingsScreen.widthProperty());
+    public void setUpLayout() {
+        // game container
+        gameContainer.prefHeightProperty().bind(getWindowHeight());
+        gameContainer.prefWidthProperty().bind(chessBoardAndEvalContainer.widthProperty());
 
-        // moves played
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, movesPlayedBox, 50, .3);
+        chessBoardAndEvalContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty().add(evalBar.widthProperty()));
+        chessBoardAndEvalContainer.prefHeightProperty().bind(chessBoardContainer.heightProperty());
 
-        // pawn  promo
-        promoContainer.prefWidthProperty().bind(chessPieceBoard.widthProperty().divide(8));
-        promoContainer.prefHeightProperty().bind(chessPieceBoard.heightProperty().divide(2));
-        promoContainer.spacingProperty().bind(promoContainer.heightProperty().divide(4).subtract(chessPieceBoard.heightProperty().divide(ChessCentralControl.chessBoardGUIHandler.pieceSize)).divide(4));
+        // chessboard Top
+        topPlayerIcon.fitHeightProperty().bind(chessBoardTop.heightProperty().multiply(.8));
+        topPlayerIcon.fitWidthProperty().bind(topPlayerIcon.fitHeightProperty());
+        topPlayerTurnIndicator.prefHeightProperty().bind(chessBoardTop.heightProperty());
+        App.bindingController.bindSmallText(topPlayerName, Window.Main);
+        topPlayerName.setTextOverrun(OverrunStyle.CLIP);
+        TextUtils.addTooltipOnElipsis(topPlayerName);
+        // chessboard Bottom
+        bottomPlayerIcon.fitHeightProperty().bind(chessBoardBottom.heightProperty().multiply(.8));
+        bottomPlayerIcon.fitWidthProperty().bind(bottomPlayerIcon.fitHeightProperty());
+        bottomPlayerTurnIndicator.prefHeightProperty().bind(chessBoardBottom.heightProperty());
+        App.bindingController.bindSmallText(bottomPlayerName, Window.Main);
+        bottomPlayerName.setTextOverrun(OverrunStyle.CLIP);
+        TextUtils.addTooltipOnElipsis(bottomPlayerName);
 
-        // chess board
-        content.prefWidthProperty().bind(fullScreen.widthProperty());
-        content.prefHeightProperty().bind(fullScreen.heightProperty());
 
-        chessBoardContainer.prefWidthProperty().bind(Bindings.min(fullScreen.widthProperty().subtract(evalBar.widthProperty()).subtract(sideAreaFull.widthProperty()).subtract(leftSideSpacer.widthProperty()), fullScreen.heightProperty().subtract(eatenBlacks.heightProperty().multiply(2))));
+
+        // fixed square chess board
+        chessBoardContainer.prefWidthProperty().bind(Bindings.min(
+                getWindowWidth()
+                    .subtract(evalBar.widthProperty()),
+                getWindowHeight()
+                    .subtract(chessBoardTop.heightProperty())
+                    .subtract(chessBoardBottom.heightProperty())));
         chessBoardContainer.prefHeightProperty().bind(chessBoardContainer.widthProperty());
-        chessPieceBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        chessPieceBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        arrowBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        arrowBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        chessHighlightBoard.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        chessHighlightBoard.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        promotionScreen.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        promotionScreen.prefHeightProperty().bind(chessBoardContainer.heightProperty());
+
+        chessBoardTop.prefWidthProperty().bind(gameContainer.widthProperty());
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(gameContainer, chessBoardTop, 75, .10);
+        chessBoardBottom.prefWidthProperty().bind(gameContainer.widthProperty());
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(gameContainer, chessBoardBottom, 75, .10);
 
 
-        // side panel
-        // simulation controls
-        App.bindingController.bindSmallText(simulationScore, Window.Main, "Black");
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, playPauseButton, 200, .3);
-        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sideAreaFull, playPauseButton, 180, .2);
+        topEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        App.bindingController.bindSmallText(topAdvantage, Window.Main);
+        bottomEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        App.bindingController.bindSmallText(bottomAdvantage, Window.Main);
+
+
         // eval bar related
         evalBar.prefHeightProperty().bind(chessBoardContainer.heightProperty());
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(chessBoardContainer, evalBar, 75, .1);
         evalContainer.prefHeightProperty().bind(chessBoardContainer.heightProperty());
-        evalLabelBox.spacingProperty().bind(evalLabelBox.heightProperty().divide(3));
-        // default heights
+        evalLabelBox.spacingProperty().bind((evalLabelBox.heightProperty()
+                .subtract(whiteEval.heightProperty())
+                .subtract(blackEval.heightProperty())
+                .subtract(evalDepth.heightProperty()))
+                .divide(3));
+        // eval bar rectangle default heights
         whiteadvantage.heightProperty().bind(chessBoardContainer.heightProperty().divide(2));
         blackadvantage.heightProperty().bind(chessBoardContainer.heightProperty().divide(2));
 
-        eatenBlacks.prefWidthProperty().bind(chessBoardContainer.widthProperty());
-        eatenWhites.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        // side panel
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(gameContainer, sidePanel, 300, 0.6);
+        sidePanel.prefHeightProperty().bind(getWindowHeight());
+
+        sidePanelInline.prefHeightProperty().bind(getWindowHeight());
+        sidePanelInline.prefWidthProperty().bind(getWindowWidth().subtract(gameContainer.widthProperty()));
+
+        // configure inline side panel visibility
+        sidePanelInline.visibleProperty().bind(getWindowWidth().greaterThan(gameContainer.widthProperty().add(sidePanel.prefWidthProperty())));
+        sidePanelInline.managedProperty().bind(sidePanelInline.visibleProperty());
+
+        openSidePanel.visibleProperty().bind(sidePanelInline.visibleProperty().not().and(sidePanelPopup.visibleProperty().not()));
+        openSidePanel.managedProperty().bind(openSidePanel.visibleProperty());
+
+        getWindowWidth().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(this::handleSidePanelChange);
+        });
+        getWindowHeight().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(this::handleSidePanelChange);
+        });
+
+        sidePanelPopup.prefWidthProperty().bind(sidePanel.widthProperty().add(hideSidePanel.widthProperty()));
+
+
+        // simulation controls
+        App.bindingController.bindSmallText(simulationScore, Window.Main, "Black");
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, playPauseButton, 200, .3);
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sidePanel, playPauseButton, 180, .2);
+
+
         // sidepanel stuff
-        sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessBoardAndEvalContainer.widthProperty()).subtract(leftSideSpacer.widthProperty()));
-        sidePanel.prefHeightProperty().bind(content.heightProperty());
-
-        switchingOptions.prefHeightProperty().bind(gameControls.heightProperty().subtract(bottomControls.heightProperty().subtract(lineLabel.heightProperty()).subtract(movesPlayed.heightProperty()).subtract(gameControls.heightProperty().divide(4))));
-
         App.bindingController.bindSmallText(player1SimLabel,Window.Main,"Black");
         App.bindingController.bindSmallText(player2SimLabel,Window.Main,"Black");
 
@@ -642,10 +799,23 @@ public class MainScreenController implements Initializable, Resettable {
 //        evalOverTimeBox.prefHeightProperty().bind(localInfo.heightProperty());
 //        evalOverTimeBox.prefWidthProperty().bind(localInfo.widthProperty());
 
+        App.bindingController.bindSmallText(currentGamePgnLabel,Window.Main,"Black");
+        App.bindingController.bindSmallText(currentGamePgn,Window.Main,"Black");
+        currentGamePgn.prefWidthProperty().bind(settingsScreen.widthProperty());
+
+        // moves played
+        App.bindingController.bindChildHeightToParentHeightWithMaxSize(sidePanel, movesPlayedBox, 50, .3);
+
+        // pawn  promo
+        promoContainer.prefWidthProperty().bind(chessPieceBoard.widthProperty().divide(8));
+        promoContainer.prefHeightProperty().bind(chessPieceBoard.heightProperty().divide(2));
+        promoContainer.spacingProperty().bind(promoContainer.heightProperty().divide(4).subtract(chessPieceBoard.heightProperty().divide(ChessCentralControl.chessBoardGUIHandler.pieceSize)).divide(4));
+
+
 
         // moves played box
         movesPlayed.setFitToHeight(true);
-        movesPlayed.prefWidthProperty().bind(sidePanel.widthProperty());
+        movesPlayed.prefWidthProperty().bind(getSidePanelWidth());
 
         // all the different side panels
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, campaignInfo, 100, .8);
@@ -670,10 +840,9 @@ public class MainScreenController implements Initializable, Resettable {
 
         App.bindingController.bindSmallText(stateLabel, Window.Main);
         App.bindingController.bindLargeText(victoryLabel, Window.Main, "White");
-        App.bindingController.bindSmallText(player1Label, Window.Main);
-        App.bindingController.bindSmallText(player2Label, Window.Main);
-        App.bindingController.bindSmallText(WhiteNumericalAdv, Window.Main);
-        App.bindingController.bindSmallText(BlackNumericalAdv, Window.Main);
+
+
+
 //        reset.prefWidthProperty().bind(chessPieceBoard.widthProperty().subtract(whiteadvantage.widthProperty().multiply(2)));
 //        LeftButton.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()).divide(3));
 //        LeftButton.prefHeightProperty().bind(LeftButton.widthProperty());
@@ -683,28 +852,9 @@ public class MainScreenController implements Initializable, Resettable {
 //        topControls.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()));
 //        bottomControls.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()));
 //        RightButton.prefHeightProperty().bind(RightButton.widthProperty());
-        player1Select.fitHeightProperty().bind(eatenBlacks.heightProperty().multiply(.8));
-        player1Select.fitWidthProperty().bind(player1Select.fitHeightProperty().multiply(.8));
-        player2Select.fitHeightProperty().bind(eatenBlacks.heightProperty().multiply(.8));
-        player2Select.fitWidthProperty().bind(player2Select.fitHeightProperty().multiply(.8));
 
-        player1TurnIndicator.prefHeightProperty().bind(player1Select.fitHeightProperty().multiply(.8));
-        player2TurnIndicator.prefHeightProperty().bind(player1Select.fitHeightProperty().multiply(.8));
-        player1TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
-        player2TurnIndicator.prefWidthProperty().bind(player1Select.fitWidthProperty().multiply(1.2));
-//        player1MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
-//            @Override
-//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//                updateTextVisibility(player1MoveClock, true);
-//            }
-//        });
-//
-//        player2MoveClock.widthProperty().addListener(new ChangeListener<Number>() {
-//            @Override
-//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//                updateTextVisibility(player2MoveClock, false);
-//            }
-//        });
+
+
 
 //        sidePanel.prefWidthProperty().bind(fullScreen.widthProperty().subtract(chessPieceBoard.widthProperty()).subtract(whiteadvantage.widthProperty()));
 //        initLabelBindings(bgLabel);
@@ -712,10 +862,10 @@ public class MainScreenController implements Initializable, Resettable {
 //        initLabelBindings(evalLabel);
 
         // setting screen
-        settingsScroller.prefWidthProperty().bind(sidePanel.widthProperty());
-        settingsScroller.prefHeightProperty().bind(sidePanel.heightProperty());
+        settingsScroller.prefWidthProperty().bind(getSidePanelWidth());
+        settingsScroller.prefHeightProperty().bind(getSidePanelWidth());
 
-        settingsScreen.prefWidthProperty().bind(sidePanel.widthProperty());
+        settingsScreen.prefWidthProperty().bind(getSidePanelWidth());
 
         // game over menu
         App.bindingController.bindXLargeText(gameoverTitle, Window.Main, "White");
@@ -724,17 +874,17 @@ public class MainScreenController implements Initializable, Resettable {
         // miscelaneus buttons
         App.bindingController.bindMediumText(settingsButton, Window.Main,"Black");
         App.bindingController.bindMediumText(homeButton, Window.Main,"Black");
-        App.bindingController.bindMediumText(LeftButton, Window.Main);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftButton, 110, .32);
-        App.bindingController.bindMediumText(RightButton, Window.Main);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightButton, 110, .32);
-        App.bindingController.bindMediumText(LeftReset, Window.Main);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, LeftReset, 140, .36);
-        App.bindingController.bindMediumText(RightReset, Window.Main);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, RightReset, 140, .36);
+        App.bindingController.bindMediumText(MoveBackButton, Window.Main);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, MoveBackButton, 110, .32);
+        App.bindingController.bindMediumText(MoveForwardButton, Window.Main);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, MoveForwardButton, 110, .32);
+        App.bindingController.bindMediumText(StartOfGameButton, Window.Main);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, StartOfGameButton, 140, .36);
+        App.bindingController.bindMediumText(EndOfGameButton, Window.Main);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, EndOfGameButton, 140, .36);
         App.bindingController.bindSmallText(saveIndicator, Window.Main);
         App.bindingController.bindMediumText(reset, Window.Main);
-        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sideAreaFull, reset, 240, .45);
+        App.bindingController.bindChildWidthToParentWidthWithMaxSize(sidePanel, reset, 240, .45);
 //
         App.bindingController.bindSmallText(evalLabel,Window.Main);
         App.bindingController.bindSmallText(nMovesLabel,Window.Main);
@@ -742,6 +892,69 @@ public class MainScreenController implements Initializable, Resettable {
 
 
         App.bindingController.bindSmallText(puzzleTagsLabel,Window.Main);
+    }
+
+    public void handleSidePanelChange(){
+
+        boolean newSidePanelInline = getWindowWidth().doubleValue() > gameContainer.getPrefWidth() + sidePanel.getPrefWidth();
+        if(newSidePanelInline == isSidePanelInline){
+            return;
+        }
+
+        // new state
+        isSidePanelInline = newSidePanelInline;
+
+        if (isSidePanelInline) {
+
+            // move to inline version
+            if(isSidePanelToggled){
+                hideSidePanelPopup();
+            }
+            // by default the child might already be non-empty
+            if(sidePanelInline.getChildren().isEmpty()){
+                sidePanelInline.getChildren().add(sidePanel);
+            }
+            sidePanelPopupContent.getChildren().remove(sidePanel);
+
+        }
+        else{
+            // move to popup version
+            sidePanelInline.getChildren().remove(sidePanel);
+            sidePanelPopupContent.getChildren().add(sidePanel);
+            showSidePanelPopup();
+
+        }
+    }
+
+    public void setupIcons(){
+        homeButton.setGraphic(new FontIcon("fas-house-user"));
+        settingsButton.setGraphic(new FontIcon("fas-sliders-h"));
+        hideSettings.setGraphic(new FontIcon("fas-arrow-left"));
+
+        StartOfGameButton.setGraphic(new FontIcon("fas-fast-backward"));
+        MoveBackButton.setGraphic(new FontIcon("fas-step-backward"));
+        MoveForwardButton.setGraphic(new FontIcon("fas-step-forward"));
+        EndOfGameButton.setGraphic(new FontIcon("fas-fast-forward"));
+
+        openSidePanel.setGraphic(openIcon);
+        hideSidePanel.setGraphic(closeIcon);
+    }
+
+
+    FontIcon closeIcon = new FontIcon("fas-arrow-right");
+    FontIcon openIcon = new FontIcon("fas-arrow-left");
+
+    public void hideSidePanelPopup(){
+        isSidePanelToggled = false;
+        sidePanelPopup.setVisible(false);
+        sidePanelPopup.setMouseTransparent(true);
+    }
+
+    public void showSidePanelPopup(){
+
+        isSidePanelToggled = true;
+        sidePanelPopup.setVisible(true);
+        sidePanelPopup.setMouseTransparent(false);
     }
 
 
@@ -927,15 +1140,16 @@ public class MainScreenController implements Initializable, Resettable {
 
 
     public void setPlayerIcons(String player1Url, String player2Url, boolean isPlayer1White) {
-        ImageView player1 = isPlayer1White ? player1Select : player2Select;
-        ImageView player2 = isPlayer1White ? player2Select : player1Select;
+        ImageView player1 = isPlayer1White ? bottomPlayerIcon : topPlayerIcon;
+        ImageView player2 = isPlayer1White ? topPlayerIcon : bottomPlayerIcon;
         player1.setImage(new Image(player1Url));
         player2.setImage(new Image(player2Url));
     }
 
     public void setPlayerLabels(String whitePlayerName, int whiteElo, String blackPlayerName, int blackElo,boolean isPlayer1White) {
-        Label p1Label = isPlayer1White ? player1Label : player2Label;
-        Label p2Label = isPlayer1White ? player2Label : player1Label;
+        Label p1Label = isPlayer1White ? bottomPlayerName : topPlayerName;
+        Label p2Label = isPlayer1White ? topPlayerName : bottomPlayerName;
+        System.out.println(whitePlayerName + " " + whiteElo + " " + blackPlayerName + " " + blackElo);
         if(whiteElo >= 0){
             p1Label.setText(whitePlayerName + " " + whiteElo);
         }
@@ -998,8 +1212,8 @@ public class MainScreenController implements Initializable, Resettable {
     private void toggleSettingsAndGameControls() {
         settingsScroller.setMouseTransparent(!settingsScroller.isMouseTransparent());
         settingsScroller.setVisible(!settingsScroller.isVisible());
-        mainSidePanel.setVisible(!mainSidePanel.isVisible());
-        mainSidePanel.setMouseTransparent(!mainSidePanel.isMouseTransparent());
+        gameMenu.setVisible(!gameMenu.isVisible());
+        gameMenu.setMouseTransparent(!gameMenu.isMouseTransparent());
 
     }
 
@@ -1008,9 +1222,9 @@ public class MainScreenController implements Initializable, Resettable {
         settingsScroller.setVisible(false);
     }
 
-    private void showGameControlls() {
-        mainSidePanel.setMouseTransparent(false);
-        mainSidePanel.setVisible(true);
+    private void showGameControls() {
+        gameMenu.setMouseTransparent(false);
+        gameMenu.setVisible(true);
     }
 
     private void setMainControls(MainScreenState currentState, String gameName) {
@@ -1141,14 +1355,14 @@ public class MainScreenController implements Initializable, Resettable {
     }
 
     private void clearSimpleAdvantageLabels() {
-        WhiteNumericalAdv.setText("");
-        BlackNumericalAdv.setText("");
+        bottomAdvantage.setText("");
+        topAdvantage.setText("");
     }
 
     public void updateSimpleAdvantageLabels() {
         boolean isPlayer1White = ChessCentralControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
-        Label whiteLabel = isPlayer1White ? WhiteNumericalAdv : BlackNumericalAdv;
-        Label blackLabel = !isPlayer1White ? WhiteNumericalAdv : BlackNumericalAdv;
+        Label whiteLabel = isPlayer1White ? bottomAdvantage : topAdvantage;
+        Label blackLabel = !isPlayer1White ? bottomAdvantage : topAdvantage;
         clearSimpleAdvantageLabels();
         int simpleAdvantage = AdvancedChessFunctions.getSimpleAdvantage(ChessCentralControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board);
         if (simpleAdvantage > 0) {
@@ -1187,12 +1401,12 @@ public class MainScreenController implements Initializable, Resettable {
     }
     public void setTimeLabels(Gametype gametype) {
         if(gametype == null){
-            player1MoveClock.setText("");
-            player2MoveClock.setText("");
+            bottomPlayerTurnTime.setText("");
+            topPlayerTurnTime.setText("");
             return;
         }
-        player1MoveClock.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
-        player2MoveClock.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
+        bottomPlayerTurnTime.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
+        topPlayerTurnTime.setText(ChessConstants.formatSeconds((int) gametype.getTimeUnit().toSeconds(gametype.getLength())));
     }
 
 
@@ -1323,7 +1537,7 @@ public class MainScreenController implements Initializable, Resettable {
         clearSimpleAdvantageLabels();
         hidePromo();
         hideSettings();
-        showGameControlls();
+        showGameControls();
         hideGameOver();
         setMoveLabels(0,0);
         setTimeLabels(null);
@@ -1342,13 +1556,20 @@ public class MainScreenController implements Initializable, Resettable {
         whiteEval.setText("");
         victoryLabel.setText("");
         lineLabel.setText("");
-        player1Label.setText("");
-        player2Label.setText("");
+        bottomPlayerName.setText("");
+        topPlayerName.setText("");
         simulationScore.setText("");
 
     }
 
-
-
-
+    public void setDefaultSelections(UserPreferences userPref) {
+        themeSelection.getSelectionModel().select(userPref.getGlobalTheme().toString());
+        computerOptions.getSelectionModel().select(userPref.getComputerMoveDiff().eloRange + (userPref.getComputerMoveDiff().isStockfishBased ? "(S*)" : ""));
+        evalOptions.getSelectionModel().select(userPref.getEvalStockfishBased() ? "Stockfish" : "My Computer");
+        nMovesOptions.getSelectionModel().select(userPref.getNMovesStockfishBased() ? "Stockfish" : "My Computer");
+        audioSliderEff.setValue(userPref.getEffectVolume());
+        bgColorSelector.setValue(userPref.getChessboardTheme().toString());
+        pieceSelector.setValue(userPref.getPieceTheme().toString());
+        audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
+    }
 }

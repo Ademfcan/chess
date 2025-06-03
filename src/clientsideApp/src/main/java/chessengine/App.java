@@ -670,7 +670,7 @@ public class App extends Application {
         notifyPreloader(new ProgressNotification(0.7));
         notifyPreloader(new AppStateChangeNotification("Setting up graphics..."));
 
-        messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.mainRef);
+        messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.getMessageBoard());
         mainScene = new Scene(startRoot);
         isStartScreen = true;
         currentWindow = Window.Start;
@@ -687,7 +687,7 @@ public class App extends Application {
             }
         });
 
-        bindingController = new BindingController(mainScreenController.content, startScreenController.content);
+        bindingController = new BindingController(mainScreenController.getWindow(), startScreenController.content);
         userPreferenceManager.init();
         startScreenController.setup();
         userManager.init(startScreenController);

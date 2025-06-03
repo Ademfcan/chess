@@ -21,6 +21,14 @@ dependencies {
     implementation 'org.datavec:datavec-api:1.0.0-beta7'
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.5'
 
+    // icons
+    // Ikonli core
+    implementation 'org.kordamp.ikonli:ikonli-core:12.3.1'
+    // JavaFX binding for Ikonli
+    implementation 'org.kordamp.ikonli:ikonli-javafx:12.3.1'
+    // FontAwesome5 icon pack
+    implementation 'org.kordamp.ikonli:ikonli-fontawesome5-pack:12.3.1'
+
 
     implementation project(':serverside')
 }

@@ -247,7 +247,7 @@ public class ChessActionHandler implements Resettable{
                 ImageView piece = new ImageView(myControl.chessBoardGUIHandler.createPiecePath(j, isWhite));
                 StackPane pieceBg = new StackPane(piece);
                 pieceBg.setUserData(i + "," + j);
-                piece.fitWidthProperty().bind(myControl.mainScreenController.sidePanel.widthProperty().divide(9));
+                piece.fitWidthProperty().bind(myControl.mainScreenController.getSidePanelWidth().divide(9));
                 piece.fitHeightProperty().bind(piece.fitWidthProperty());
                 pieceBg.prefWidthProperty().bind(piece.fitWidthProperty());
                 pieceBg.prefHeightProperty().bind(piece.fitWidthProperty());
@@ -323,7 +323,7 @@ public class ChessActionHandler implements Resettable{
         pgnDescriptor.setAlignment(Pos.CENTER);
         int pgnLen = pgn.length();
 //    }
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
+        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.getWindowWidth().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -338,7 +338,7 @@ public class ChessActionHandler implements Resettable{
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
             numSeparator.setAlignment(Pos.CENTER);
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.fullScreen.widthProperty().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
+            numSeparator.minWidthProperty().bind(myControl.mainScreenController.getWindowWidth().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
             App.bindingController.bindSmallText(numSeparator, Window.Main, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 
