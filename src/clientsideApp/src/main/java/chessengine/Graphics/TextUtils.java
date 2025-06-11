@@ -8,13 +8,19 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 
 public class TextUtils{
+    public static void addTooltipOnElipsis(Labeled... textElements){
+        for(Labeled textElement : textElements){
+            addTooltipOnElipsis(textElement);
+        }
+    }
+
     public static void addTooltipOnElipsis(Labeled textElement){
         textElement.needsLayoutProperty().addListener((observable, oldP, newP) -> {
             String originalString = textElement.getText();
             Text textNode = (Text) textElement.lookup(".text"); // "text" is the style class of Text
             String actualString = textNode.getText();
 
-            boolean clipped = !actualString.isEmpty() && !originalString.equals(actualString);
+            boolean clipped = !originalString.equals(actualString);
 
             if(clipped){
                 Tooltip tp = new Tooltip(originalString);

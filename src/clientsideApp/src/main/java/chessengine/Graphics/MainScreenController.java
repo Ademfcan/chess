@@ -46,13 +46,13 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
     @FXML
     StackPane fullScreen;
-    public ReadOnlyDoubleProperty getWindowWidth() {
+    public ReadOnlyDoubleProperty getRootWidth() {
         return fullScreen.widthProperty();
     }
-    public ReadOnlyDoubleProperty getWindowHeight() {
+    public ReadOnlyDoubleProperty getRootHeight() {
         return fullScreen.heightProperty();
     }
-    public Region getWindow(){
+    public Region getRoot(){
         return fullScreen;
     }
 
@@ -69,14 +69,24 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
     VBox sidePanelPopupContent;
     @FXML
     Button hideSidePanel;
-    @FXML
-    Button openSidePanel;
 
 
     @FXML
     HBox content;
     @FXML
     VBox gameContainer;
+    public ReadOnlyDoubleProperty getGameContainerWidth() {
+        return gameContainer.widthProperty();
+    }
+    public ReadOnlyDoubleProperty getGameContainerHeight() {
+        return gameContainer.heightProperty();
+    }
+    public ReadOnlyDoubleProperty getGameContainerLayoutX(){
+        return gameContainer.layoutXProperty();
+    }
+
+
+
     @FXML
     VBox sidePanelInline;
 
@@ -100,14 +110,14 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
     @FXML
     Label topPlayerName;
     @FXML
-    HBox topPlayerTurnContainer;
-    @FXML
-    VBox topPlayerTurnIndicator;
+    HBox topPlayerLabels;
     @FXML
     Label topPlayerTurnTime;
 
     @FXML
     HBox topRightSpacer;
+    @FXML
+    Button openSidePanel;
 
 
 
@@ -127,14 +137,14 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
     @FXML
     Label bottomPlayerName;
     @FXML
-    HBox bottomPlayerTurnContainer;
-    @FXML
-    VBox bottomPlayerTurnIndicator;
+    HBox bottomPlayerLabels;
     @FXML
     Label bottomPlayerTurnTime;
 
     @FXML
     HBox bottomRightSpacer;
+    @FXML
+    Button inlineHomeButton;
 
 
 
@@ -142,6 +152,9 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
     @FXML
     StackPane chessBoardContainer;
 
+    public Region getChessBoard() {
+        return chessBoardContainer;
+    }
     // grid based overlays that display over squares
     // move ranking circles
     @FXML
@@ -331,6 +344,10 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
     @FXML
     VBox settingsScreen;
 
+    public VBox getSettingsWrapper(){
+        return settingsScreen;
+    }
+
     @FXML
     Label themeLabel;
     @FXML
@@ -457,8 +474,8 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
         ChessCentralControl.init(this, chessPieceBoard, bottomEatenContainer, topEatenContainer, peicesAtLocations, inGameInfo,
                 arrowBoard, bestMovesBox, campaignInfo, sandboxPieces, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, Bgpanes, moveBoxes, highlightPanes,
-                chessBgBoard, chessHighlightBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, bottomPlayerTurnIndicator,
-                topPlayerTurnIndicator, bottomPlayerTurnTime, topPlayerTurnTime,player1SimSelector,player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
+                chessBgBoard, chessHighlightBoard, movesPlayedBox,movesPlayed, lineLabel,playPauseButton,timeSlider, bottomPlayerTurnTime, topPlayerTurnTime,player1SimSelector,
+                player2SimSelector,currentGamePgn,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
 //         small change to make sure moves play box is always focused on the very end
         movesPlayedBox.getChildren().addListener((ListChangeListener<Node>) change -> {
 
@@ -614,6 +631,10 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
             hideSidePanelPopup();
         });
 
+        inlineHomeButton.setOnMouseClicked(e -> {
+            HomeReset();
+        });
+
     }
 
     /** Clears current game, performs cleanup and then goes back to start screen**/
@@ -625,8 +646,7 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
         // if the game we are viewing is here for its first time and is not an empty game (maxindex > -1) then we save it)
         if (ChessCentralControl.gameHandler.currentlyGameActive() && ChessCentralControl.gameHandler.isCurrentGameFirstSetup() && MainScreenState.isSaveableState(currentState) && ChessCentralControl.gameHandler.gameWrapper.getGame().getMaxIndex() > ChessCentralControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
 //                PersistentSaveManager.appendGameToAppData(ChessCentralControl.gameHandler.currentGame);
-            App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.oldGamesPanelContent);
-            App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame(),App.startScreenController.userOldGamesContent);
+            App.startScreenController.AddNewGameToSaveGui(ChessCentralControl.gameHandler.gameWrapper.getGame());
             App.userManager.saveUserGame(ChessCentralControl.gameHandler.gameWrapper.getGame());
         }
         // need to leave online game if applicable
@@ -701,7 +721,7 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
     public void setUpLayout() {
         // game container
-        gameContainer.prefHeightProperty().bind(getWindowHeight());
+        gameContainer.prefHeightProperty().bind(getRootHeight());
         gameContainer.prefWidthProperty().bind(chessBoardAndEvalContainer.widthProperty());
 
         chessBoardAndEvalContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty().add(evalBar.widthProperty()));
@@ -710,25 +730,25 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
         // chessboard Top
         topPlayerIcon.fitHeightProperty().bind(chessBoardTop.heightProperty().multiply(.8));
         topPlayerIcon.fitWidthProperty().bind(topPlayerIcon.fitHeightProperty());
-        topPlayerTurnIndicator.prefHeightProperty().bind(chessBoardTop.heightProperty());
+
         App.bindingController.bindSmallText(topPlayerName, Window.Main);
-        topPlayerName.setTextOverrun(OverrunStyle.CLIP);
+//        topPlayerName.setTextOverrun(OverrunStyle.CLIP);
         TextUtils.addTooltipOnElipsis(topPlayerName);
         // chessboard Bottom
         bottomPlayerIcon.fitHeightProperty().bind(chessBoardBottom.heightProperty().multiply(.8));
         bottomPlayerIcon.fitWidthProperty().bind(bottomPlayerIcon.fitHeightProperty());
-        bottomPlayerTurnIndicator.prefHeightProperty().bind(chessBoardBottom.heightProperty());
+
         App.bindingController.bindSmallText(bottomPlayerName, Window.Main);
-        bottomPlayerName.setTextOverrun(OverrunStyle.CLIP);
+//        bottomPlayerName.setTextOverrun(OverrunStyle.CLIP);
         TextUtils.addTooltipOnElipsis(bottomPlayerName);
 
 
 
         // fixed square chess board
         chessBoardContainer.prefWidthProperty().bind(Bindings.min(
-                getWindowWidth()
+                getRootWidth()
                     .subtract(evalBar.widthProperty()),
-                getWindowHeight()
+                getRootHeight()
                     .subtract(chessBoardTop.heightProperty())
                     .subtract(chessBoardBottom.heightProperty())));
         chessBoardContainer.prefHeightProperty().bind(chessBoardContainer.widthProperty());
@@ -738,11 +758,19 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
         chessBoardBottom.prefWidthProperty().bind(gameContainer.widthProperty());
         App.bindingController.bindChildHeightToParentHeightWithMaxSize(gameContainer, chessBoardBottom, 75, .10);
 
-
-        topEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+//        topPlayerLabels.spacingProperty().bind(topPlayerLabels.widthProperty().subtract(topPlayerTurnTime.widthProperty()).subtract(topAdvantage.widthProperty()));
+//        bottomPlayerLabels.spacingProperty().bind(bottomPlayerLabels.widthProperty().subtract(bottomPlayerTurnTime.widthProperty()).subtract(bottomAdvantage.widthProperty()));
+        App.bindingController.bindSmallText(topPlayerTurnTime, Window.Main);
         App.bindingController.bindSmallText(topAdvantage, Window.Main);
-        bottomEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty());
+        App.bindingController.bindSmallText(bottomPlayerTurnTime, Window.Main);
         App.bindingController.bindSmallText(bottomAdvantage, Window.Main);
+
+//        topEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty().divide(2));
+        topRightSpacer.prefWidthProperty().bind(evalBar.widthProperty());
+//        bottomEatenContainer.prefWidthProperty().bind(chessBoardContainer.widthProperty().divide(2));
+        bottomRightSpacer.prefWidthProperty().bind(evalBar.widthProperty());
+
+
 
 
         // eval bar related
@@ -760,22 +788,24 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
         // side panel
         App.bindingController.bindChildWidthToParentWidthWithMaxSize(gameContainer, sidePanel, 300, 0.6);
-        sidePanel.prefHeightProperty().bind(getWindowHeight());
+        sidePanel.prefHeightProperty().bind(getRootHeight());
 
-        sidePanelInline.prefHeightProperty().bind(getWindowHeight());
-        sidePanelInline.prefWidthProperty().bind(getWindowWidth().subtract(gameContainer.widthProperty()));
+        sidePanelInline.prefWidthProperty().bind(sidePanel.prefWidthProperty());
 
         // configure inline side panel visibility
-        sidePanelInline.visibleProperty().bind(getWindowWidth().greaterThan(gameContainer.widthProperty().add(sidePanel.prefWidthProperty())));
+        sidePanelInline.visibleProperty().bind(getRootWidth().greaterThan(gameContainer.widthProperty().add(sidePanel.prefWidthProperty())));
         sidePanelInline.managedProperty().bind(sidePanelInline.visibleProperty());
 
         openSidePanel.visibleProperty().bind(sidePanelInline.visibleProperty().not().and(sidePanelPopup.visibleProperty().not()));
         openSidePanel.managedProperty().bind(openSidePanel.visibleProperty());
 
-        getWindowWidth().addListener((obs, oldVal, newVal) -> {
+        inlineHomeButton.visibleProperty().bind(openSidePanel.visibleProperty());
+        inlineHomeButton.managedProperty().bind(openSidePanel.visibleProperty());
+
+        getRootWidth().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(this::handleSidePanelChange);
         });
-        getWindowHeight().addListener((obs, oldVal, newVal) -> {
+        getRootHeight().addListener((obs, oldVal, newVal) -> {
             Platform.runLater(this::handleSidePanelChange);
         });
 
@@ -896,7 +926,7 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
     public void handleSidePanelChange(){
 
-        boolean newSidePanelInline = getWindowWidth().doubleValue() > gameContainer.getPrefWidth() + sidePanel.getPrefWidth();
+        boolean newSidePanelInline = getRootWidth().doubleValue() > gameContainer.getPrefWidth() + sidePanel.getPrefWidth();
         if(newSidePanelInline == isSidePanelInline){
             return;
         }
@@ -928,6 +958,8 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
     public void setupIcons(){
         homeButton.setGraphic(new FontIcon("fas-house-user"));
+        inlineHomeButton.setGraphic(new FontIcon("fas-house-user"));
+
         settingsButton.setGraphic(new FontIcon("fas-sliders-h"));
         hideSettings.setGraphic(new FontIcon("fas-arrow-left"));
 
@@ -1337,6 +1369,7 @@ public class MainScreenController implements Initializable, Resettable, AppWindo
 
         if (isReset) {
             // resets the backend chessgame
+            ChessCentralControl.fullReset(true);
             ChessCentralControl.gameHandler.gameWrapper.reset();
         } else {
             ChessCentralControl.gameHandler.gameWrapper.changeToDifferentMove(direction, App.userPreferenceManager.isNoAnimate() || noAnimate);

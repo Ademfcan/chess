@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 
 public class UserInfoManager {
     private static final Logger logger = LogManager.getLogger("User_Info_Manager");
-    private StartScreenController controller;
+    private final StartScreenController controller;
     private UserInfoState currentUserInfoState;
     private UserInfo currentUserShown;
     public UserInfoManager(StartScreenController startScreenController,UserInfoState currentUserInfoState){

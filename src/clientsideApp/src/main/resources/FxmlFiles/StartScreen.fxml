@@ -14,7 +14,6 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -24,416 +23,20 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="fullscreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Start.StartScreenController">
+<StackPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Start.StartScreenController">
    <children>
-      <GridPane fx:id="content" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
+      <GridPane fx:id="content" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
          <columnConstraints>
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="447.0" minWidth="10.0" percentWidth="20.0" prefWidth="447.0" />
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="447.0" minWidth="10.0" percentWidth="80.0" prefWidth="447.0" />
-            <ColumnConstraints hgrow="SOMETIMES" maxWidth="295.0" minWidth="10.0" percentWidth="22.0" prefWidth="153.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" percentWidth="20.0" prefWidth="100.0" />
+            <ColumnConstraints maxWidth="-Infinity" minWidth="-Infinity" percentWidth="80.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity" percentWidth="22.0" prefWidth="100.0" />
          </columnConstraints>
          <rowConstraints>
-            <RowConstraints minHeight="10.0" percentHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" percentHeight="90.0" prefHeight="30.0" vgrow="SOMETIMES" />
-            <RowConstraints minHeight="10.0" percentHeight="1.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" percentHeight="10.0" prefHeight="100.0" />
+            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" percentHeight="90.0" prefHeight="100.0" valignment="CENTER" />
          </rowConstraints>
          <children>
-            <HBox fx:id="bottomSpacer" prefHeight="100.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowSpan="2">
-               <children>
-                  <VBox fx:id="mainAreaTopSpacer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="16.0" prefWidth="389.0" />
-                  <VBox fx:id="mainAreaReference" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="396.0" prefWidth="392.0">
-                     <children>
-                        <StackPane fx:id="mainArea" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="350.0" prefWidth="394.0">
-                           <children>
-                              <VBox fx:id="campaignScreen" prefHeight="200.0" prefWidth="100.0">
-                                 <children>
-                                    <StackPane fx:id="campaignStack" prefHeight="351.0" prefWidth="394.0">
-                                       <children>
-                                          <ImageView fx:id="campaignBackground" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-                                          <ImageView fx:id="campaignBackground2" fitHeight="150.0" fitWidth="200.0" layoutX="107.0" layoutY="111.0" pickOnBounds="true" preserveRatio="true" />
-                                          <ScrollPane fx:id="campaignScroller" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="222.0" prefWidth="394.0">
-                                             <content>
-                                                <StackPane fx:id="levelContainer" prefHeight="201.0" prefWidth="388.0">
-                                                   <children>
-                                                      <Pane fx:id="levelContainerElements" prefHeight="200.0" prefWidth="200.0" />
-                                                      <Pane fx:id="levelContainerPath" prefHeight="200.0" prefWidth="200.0" />
-                                                   </children>
-                                                </StackPane>
-                                             </content>
-                                          </ScrollPane>
-                                       </children>
-                                    </StackPane>
-                                 </children>
-                              </VBox>
-                              <HBox fx:id="mainSelectionScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
-                                       <children>
-                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                             <children>
-                                                <Label text="CHESS">
-                                                   <font>
-                                                      <Font name="Franklin Gothic Medium" size="92.0" />
-                                                   </font>
-                                                </Label>
-                                             </children>
-                                          </HBox>
-                                          <Button fx:id="vsComputer" mnemonicParsing="false" styleClass="title-2" text="Play Computer">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                          <Button fx:id="vsPlayer" mnemonicParsing="false" styleClass="title-2" text="Play Another Person">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                          <ToggleButton fx:id="playAsWhite" mnemonicParsing="false" text="Play As White" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="pgnSelectionScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" visible="false">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="273.0">
-                                       <children>
-                                          <Label text="Input Pgn">
-                                             <font>
-                                                <Font size="17.0" />
-                                             </font>
-                                          </Label>
-                                          <TextArea fx:id="pgnTextArea" prefHeight="200.0" prefWidth="200.0" />
-                                          <Button fx:id="pgnLoadGame" mnemonicParsing="false" text="Load Pgn" />
-                                       </children>
-                                    </VBox>
-                                    <AnchorPane prefHeight="200.0" prefWidth="200.0">
-                                       <children>
-                                          <Label layoutX="12.0" layoutY="20.0" text="PvP/Computer:">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Label>
-                                          <RadioButton fx:id="pvpRadioButton" layoutX="30.0" layoutY="75.0" mnemonicParsing="false" text="PVP" />
-                                          <RadioButton fx:id="computerRadioButton" layoutX="30.0" layoutY="109.0" mnemonicParsing="false" text="Computer" />
-                                       </children>
-                                    </AnchorPane>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="multiplayerSelectionScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" visible="false">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="360.0" prefWidth="435.0" spacing="10.0">
-                                       <children>
-                                          <Label text="join a game">
-                                             <font>
-                                                <Font size="22.0" />
-                                             </font>
-                                          </Label>
-                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                             <children>
-                                                <Label fx:id="poolCount" text="number of players in pool: " />
-                                                <Button fx:id="reconnectButton" mnemonicParsing="false" text="🔄" />
-                                             </children>
-                                          </HBox>
-                                          <ComboBox fx:id="gameTypes" prefWidth="150.0" />
-                                          <Button fx:id="multiplayerStart" mnemonicParsing="false" text="Start Game" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="userSettingScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
-                                 <children>
-                                    <StackPane fx:id="userSettingsStack" prefHeight="350.0" prefWidth="395.0">
-                                       <children>
-                                          <VBox fx:id="accountCreationPage" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                             <children>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Label fx:id="createUsernameLabel" text="Username" />
-                                                      <TextField fx:id="createUsername" />
-                                                   </children>
-                                                </HBox>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Label fx:id="createPasswordLabel" text="Password" />
-                                                      <TextField fx:id="createPassword" />
-                                                   </children>
-                                                </HBox>
-                                                <Button fx:id="createAccountButton" mnemonicParsing="false" text="Create Account" />
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Hyperlink fx:id="loginInsteadButton" text="Login" />
-                                                      <Hyperlink fx:id="backToUserInfo" text="Back" />
-                                                   </children>
-                                                </HBox>
-                                             </children></VBox>
-                                          <VBox fx:id="loginPage" alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
-                                             <children>
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Label fx:id="loginTitle" prefHeight="61.0" prefWidth="313.0" text="Profile Options">
-                                                         <font>
-                                                            <Font name="Franklin Gothic Medium" size="52.0" />
-                                                         </font>
-                                                      </Label>
-                                                   </children>
-                                                </HBox>
-                                                <Label fx:id="nameLabel" text="Name" />
-                                                <TextField fx:id="nameInput" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="36.0" prefWidth="237.0" />
-                                                <Label fx:id="eloLabel" layoutX="234.0" layoutY="235.0" text="password" />
-                                                <TextField fx:id="passwordInput" layoutX="10.0" layoutY="212.0" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="36.0" prefWidth="231.0" />
-                                                <Button fx:id="loginButton" mnemonicParsing="false" text="Login" />
-                                                <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <Hyperlink fx:id="signUpInsteadButton" text="Sign Up" />
-                                                      <Hyperlink fx:id="backToUserInfo1" text="Back" />
-                                                   </children>
-                                                </HBox>
-                                             </children>
-                                          </VBox>
-                                          <VBox fx:id="userInfoPage" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
-                                             <children>
-                                                <HBox fx:id="topUserInfoBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
-                                                   <children>
-                                                      <VBox fx:id="topUserInfoLeftBox" alignment="CENTER_LEFT" prefHeight="200.0" prefWidth="100.0">
-                                                         <children>
-                                                            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
-                                                               <children>
-                                                                  <ImageView fx:id="userInfoPfp" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-                                                                  <VBox fx:id="topUserInfoRightBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0">
-                                                                     <children>
-                                                                        <Label fx:id="userInfoUUID" text="Label" />
-                                                                        <Label fx:id="userInfoUserElo" text="Elo: _" />
-                                                                        <Label fx:id="userInfoRank" text="Rank: _" />
-                                                                     </children>
-                                                                  </VBox>
-                                                               </children>
-                                                            </HBox>
-                                                            <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
-                                                               <children>
-                                                                  <VBox fx:id="userInfoUsernameSpacer" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
-                                                                  <Label fx:id="userInfoUserName" text="Label" />
-                                                               </children>
-                                                            </HBox>
-                                                         </children>
-                                                      </VBox>
-                                                   </children>
-                                                </HBox>
-                                                <HBox fx:id="bottomUserInfoBox" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="2.0">
-                                                   <children>
-                                                      <VBox fx:id="userOldGamesContainer" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="5.0">
-                                                         <children>
-                                                            <Label fx:id="userOldGamesLabel" text="Past Games:" />
-                                                            <ScrollPane fx:id="userOldGamesScrollpane" prefHeight="200.0" prefWidth="200.0">
-                                                               <content>
-                                                                  <VBox fx:id="userOldGamesContent" alignment="TOP_CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" />
-                                                               </content>
-                                                            </ScrollPane>
-                                                         </children>
-                                                      </VBox>
-                                                      <VBox alignment="BOTTOM_CENTER" prefHeight="200.0" prefWidth="100.0">
-                                                         <children>
-                                                            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                                               <children>
-                                                                  <Button fx:id="FriendsButton" mnemonicParsing="false" text="Friends" />
-                                                                  <Button fx:id="RequestsButton" mnemonicParsing="false" text="Requests" />
-                                                                  <Button fx:id="SuggestedFriendsButton" mnemonicParsing="false" text="Suggested" />
-                                                                  <Button fx:id="friendsLookupButton" mnemonicParsing="false" text="Search" />
-                                                               </children>
-                                                            </HBox>
-                                                            <ScrollPane fx:id="FriendsPanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0">
-                                                               <content>
-                                                                  <StackPane fx:id="FriendsStackpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="200.0">
-                                                                     <children>
-                                                                        <VBox fx:id="friendsContent" alignment="TOP_CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="2.0" />
-                                                                        <VBox fx:id="friendsLookup" alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
-                                                                           <children>
-                                                                              <TextField fx:id="friendsLookupInput" promptText="Search Here" />
-                                                                              <VBox fx:id="friendsLookupContent" alignment="TOP_CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="2.0" />
-                                                                           </children>
-                                                                        </VBox>
-                                                                     </children>
-                                                                  </StackPane>
-                                                               </content>
-                                                            </ScrollPane>
-                                                         </children>
-                                                      </VBox>
-                                                   </children>
-                                                </HBox>
-                                                <StackPane fx:id="bottomInfoNav" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="150.0" prefWidth="200.0">
-                                                   <children>
-                                                      <HBox fx:id="hyperlinkBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
-                                                         <children>
-                                                            <Hyperlink fx:id="SignUpPage" text="Sign Up" />
-                                                            <Hyperlink fx:id="LoginPage" text="Login" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="backButtonBox" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
-                                                         <children>
-                                                            <Hyperlink fx:id="userInfoBackButton" text="Back" />
-                                                         </children>
-                                                      </HBox>
-                                                   </children>
-                                                </StackPane>
-                                             </children>
-                                          </VBox>
-                                       </children>
-                                    </StackPane>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="extraModesScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
-                                 <children>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
-                                       <children>
-                                          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-                                             <children>
-                                                <Label text="Extra options">
-                                                   <font>
-                                                      <Font name="Franklin Gothic Medium" size="92.0" />
-                                                   </font>
-                                                </Label>
-                                             </children>
-                                          </HBox>
-                                          <Button fx:id="enterSandboxButton" mnemonicParsing="false" styleClass="title-2" text="Enter Sandbox">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                          <Button fx:id="enterSimulationButton" mnemonicParsing="false" styleClass="title-2" text="Enter Simulation">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                          <Button fx:id="enterExplorerButton" mnemonicParsing="false" styleClass="title-2" text="Enter Explorer">
-                                             <font>
-                                                <Font size="23.0" />
-                                             </font>
-                                          </Button>
-                                          <Button fx:id="enterPuzzleButton" layoutX="116.0" layoutY="159.0" mnemonicParsing="false" text="Play Puzzles">
-                                             <font>
-                                                <Font name="System Bold" size="23.0" />
-                                             </font>
-                                          </Button>
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
-                              <HBox fx:id="generalSettingsScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
-                                 <children>
-                                    <ScrollPane fx:id="generalSettingsScrollpane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="360.0" prefWidth="325.0">
-                                       <content>
-                                          <VBox fx:id="generalSettingsReference" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                             <children>
-                                                <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="940.0" prefWidth="323.0" spacing="5.0">
-                                                   <children>
-                                                      <HBox fx:id="settingSpacer" alignment="CENTER" layoutX="72.0" layoutY="-142.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" />
-                                                      <HBox fx:id="s1" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="themeLabel" text="Theme: " />
-                                                            <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="s2" alignment="CENTER" layoutX="72.0" layoutY="-73.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
-                                                               <font>
-                                                                  <Font size="13.0" />
-                                                               </font>
-                                                            </Label>
-                                                            <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="s3" alignment="CENTER" layoutX="72.0" layoutY="1036.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="pieceLabel" text="Piece Type: " />
-                                                            <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="s4" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="audioMuteBG" text="BG Audo:" />
-                                                            <Button fx:id="audioMuteBGButton" mnemonicParsing="false" text="Button" />
-                                                         </children>
-                                                      </HBox>
-                                                      <VBox fx:id="s5" alignment="CENTER" layoutX="122.0" layoutY="833.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
-                                                         <children>
-                                                            <Label fx:id="audioLabelBG" text="Bg Volume" />
-                                                            <Slider fx:id="audioSliderBG" value="100.0" />
-                                                         </children>
-                                                      </VBox>
-                                                      <HBox fx:id="s6" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="audioMuteEff" text="Effect Volume" />
-                                                            <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
-                                                         </children>
-                                                      </HBox>
-                                                      <VBox fx:id="s7" alignment="CENTER" layoutX="122.0" layoutY="869.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="100.0" spacing="8.0">
-                                                         <children>
-                                                            <Label fx:id="audioLabelEff" text="Effect Volume" />
-                                                            <Slider fx:id="audioSliderEff" value="100.0" />
-                                                         </children>
-                                                      </VBox>
-                                                      <HBox fx:id="s8" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="evalLabel" text="Eval Bar Generator:" />
-                                                            <ComboBox fx:id="evalOptions" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="s9" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="nMovesLabel" text="Best Move Generator:" />
-                                                            <ComboBox fx:id="nMovesOptions" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox fx:id="s10" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="7.0">
-                                                         <children>
-                                                            <Label fx:id="computerLabel" text="Computer Depth" />
-                                                            <ComboBox fx:id="computerOptions" prefWidth="150.0" />
-                                                         </children>
-                                                      </HBox>
-                                                   </children>
-                                                </VBox>
-                                             </children>
-                                          </VBox>
-                                       </content>
-                                    </ScrollPane>
-                                 </children>
-                              </HBox>
-                           </children>
-                        </StackPane>
-                     </children>
-                  </VBox>
-               </children>
-            </VBox>
-            <VBox fx:id="sideButtons" alignment="CENTER" prefHeight="360.0" prefWidth="98.0" spacing="10.0" GridPane.rowIndex="1">
-               <children>
-                  <Button fx:id="campaignButton" layoutX="29.0" layoutY="90.0" mnemonicParsing="false" text="Campaign" />
-                  <Button fx:id="localButton" mnemonicParsing="false" text="Local" />
-                  <Button fx:id="multiplayerButton" layoutX="10.0" layoutY="46.0" mnemonicParsing="false" text="Online" />
-                  <Button fx:id="pgnButton" layoutX="31.0" layoutY="101.0" mnemonicParsing="false" text="Pgn" />
-                  <Button fx:id="settingsButton" layoutX="10.0" layoutY="82.0" mnemonicParsing="false" text="⚙" />
-                  <Button fx:id="backgroundAudioButton" layoutX="10.0" layoutY="118.0" mnemonicParsing="false" text="🔉" />
-                  <Button fx:id="extraModesButton" layoutX="31.0" layoutY="124.0" mnemonicParsing="false" text="Extra" />
-               </children>
-            </VBox>
-            <VBox fx:id="rightSidePanel" prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-               <children>
-                  <ScrollPane fx:id="oldGamesPanel" hbarPolicy="NEVER" prefHeight="301.0" prefWidth="120.0" styleClass="oldGamesBar" vbarPolicy="ALWAYS">
-                     <content>
-                        <VBox fx:id="oldGamesPanelContent" />
-                     </content>
-                  </ScrollPane>
-               </children>
-            </VBox>
-            <HBox alignment="CENTER" prefHeight="44.0" prefWidth="120.0" spacing="10.0" GridPane.columnIndex="2">
-               <children>
-                  <Label fx:id="oldGamesLabel" text="Saved Games" />
-               </children>
-               <padding>
-                  <Insets right="10.0" />
-               </padding>
-            </HBox>
-            <HBox fx:id="profileBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+            <HBox fx:id="profileBox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnSpan="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
                <children>
                   <ImageView fx:id="profileButton" fitHeight="40.0" fitWidth="74.0" pickOnBounds="true" preserveRatio="true">
                      <image>
@@ -450,10 +53,472 @@
                      </children>
                   </VBox>
                </children>
+               <padding>
+                  <Insets left="15.0" />
+               </padding>
             </HBox>
+            <HBox fx:id="topRightSpacer" alignment="CENTER" prefHeight="44.0" prefWidth="120.0" spacing="10.0" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+               <children>
+                  <Label fx:id="oldGamesLabel" text="Saved Games" />
+               </children>
+               <padding>
+                  <Insets right="10.0" />
+               </padding>
+            </HBox>
+            <VBox fx:id="rightSidePanel" GridPane.columnIndex="2" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+               <children>
+                  <ScrollPane fx:id="oldGamesPanel" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" styleClass="oldGamesBar" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+                     <content>
+                        <VBox fx:id="oldGamesPanelContent" />
+                     </content>
+                  </ScrollPane>
+               </children>
+            </VBox>
+            <VBox fx:id="sideButtons" alignment="CENTER" spacing="10.0" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
+               <children>
+                  <Button fx:id="campaignButton" layoutX="29.0" layoutY="90.0" mnemonicParsing="false" text="Campaign" />
+                  <Button fx:id="localButton" mnemonicParsing="false" text="Local" />
+                  <Button fx:id="multiplayerButton" layoutX="10.0" layoutY="46.0" mnemonicParsing="false" text="Online" />
+                  <Button fx:id="pgnButton" layoutX="31.0" layoutY="101.0" mnemonicParsing="false" text="Pgn" />
+                  <Button fx:id="settingsButton" layoutX="10.0" layoutY="82.0" mnemonicParsing="false" text="⚙" />
+                  <Button fx:id="backgroundAudioButton" layoutX="10.0" layoutY="118.0" mnemonicParsing="false" text="🔉" />
+                  <Button fx:id="extraModesButton" layoutX="31.0" layoutY="124.0" mnemonicParsing="false" text="Extra" />
+               </children>
+            </VBox>
+            <StackPane fx:id="mainArea" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="320.0" prefWidth="480.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.valignment="CENTER" GridPane.vgrow="NEVER">
+               <children>
+                  <HBox fx:id="mainSelectionScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
+                     <children>
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
+                           <children>
+                              <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                 <children>
+                                    <Label fx:id="mainTitle" text="CHESS">
+                                       <font>
+                                          <Font name="Franklin Gothic Medium" size="92.0" />
+                                       </font>
+                                    </Label>
+                                 </children>
+                              </HBox>
+                              <Button fx:id="vsComputer" mnemonicParsing="false" styleClass="title-2" text="Play Computer">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                              <Button fx:id="vsPlayer" mnemonicParsing="false" styleClass="title-2" text="Play Another Person">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                              <ToggleButton fx:id="playAsWhite" mnemonicParsing="false" text="Play As White" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <VBox fx:id="campaignScreen" prefHeight="200.0" prefWidth="100.0" visible="false">
+                     <children>
+                        <StackPane fx:id="campaignStack" prefHeight="351.0" prefWidth="394.0">
+                           <children>
+                              <ImageView fx:id="campaignBackground" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
+                              <ImageView fx:id="campaignBackground2" fitHeight="150.0" fitWidth="200.0" layoutX="107.0" layoutY="111.0" pickOnBounds="true" preserveRatio="true" />
+                              <ScrollPane fx:id="campaignScroller" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="222.0" prefWidth="394.0">
+                                 <content>
+                                    <StackPane fx:id="levelContainer" prefHeight="201.0" prefWidth="388.0">
+                                       <children>
+                                          <Pane fx:id="levelContainerElements" prefHeight="200.0" prefWidth="200.0" />
+                                          <Pane fx:id="levelContainerPath" prefHeight="200.0" prefWidth="200.0" />
+                                       </children>
+                                    </StackPane>
+                                 </content>
+                              </ScrollPane>
+                           </children>
+                        </StackPane>
+                     </children>
+                  </VBox>
+                  <VBox fx:id="pgnSelectionScreen" alignment="CENTER" prefHeight="200.0" prefWidth="273.0" visible="false">
+                     <children>
+                        <Label fx:id="pgnTitle" text="Pgn Game">
+                           <font>
+                              <Font size="35.0" />
+                           </font>
+                        </Label>
+                        <Label text="Input Pgn:">
+                           <font>
+                              <Font size="17.0" />
+                           </font>
+                        </Label>
+                        <TextArea fx:id="pgnTextArea" promptText="1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. c4 e6 6. Nc3 Be7" />
+                        <HBox alignment="CENTER" spacing="15.0" VBox.vgrow="NEVER">
+                           <children>
+                              <Label text="Load as:" />
+                              <RadioButton fx:id="pvpRadioButton" mnemonicParsing="false" text="Pvp Game" />
+                              <RadioButton fx:id="computerRadioButton" mnemonicParsing="false" text="Computer Game" />
+                           </children>
+                        </HBox>
+                        <Button fx:id="pgnLoadGame" mnemonicParsing="false" text="Load Pgn" />
+                     </children>
+                  </VBox>
+                  <StackPane fx:id="multiplayerSelectionScreen" prefHeight="150.0" prefWidth="200.0" visible="false">
+                     <children>
+                        <VBox fx:id="connectedScreen" alignment="TOP_CENTER" spacing="10.0">
+                           <children>
+                              <Label fx:id="multiplayerTitle" text="Multiplayer">
+                                 <font>
+                                    <Font size="50.0" />
+                                 </font>
+                              </Label>
+                              <VBox fx:id="multiplayerInfo" alignment="TOP_CENTER" />
+                              <Label text="Join a game">
+                                 <font>
+                                    <Font size="22.0" />
+                                 </font>
+                              </Label>
+                              <HBox alignment="CENTER">
+                                 <children>
+                                    <Label fx:id="poolCount" text="number of players in pool: " />
+                                 </children>
+                              </HBox>
+                              <ComboBox fx:id="gameTypes" prefWidth="150.0" />
+                              <Button fx:id="multiplayerStart" mnemonicParsing="false" text="Start Game" />
+                           </children>
+                        </VBox>
+                        <VBox fx:id="disconnectedScreen" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" visible="false">
+                           <children>
+                              <Label text="Disconnected from multiplayer....">
+                                 <font>
+                                    <Font name="Franklin Gothic Medium" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Button fx:id="reconnectButton" mnemonicParsing="false" text="recconect" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </StackPane>
+                  <HBox fx:id="profileScreen" alignment="CENTER" spacing="25.0">
+                     <children>
+                        <StackPane fx:id="userSettingsStack">
+                           <children>
+                              <VBox fx:id="accountCreationPage" alignment="CENTER" spacing="10.0" visible="false">
+                                 <children>
+                                    <HBox alignment="CENTER">
+                                       <children>
+                                          <Label fx:id="createAccountTitle" text="Create Account">
+                                             <font>
+                                                <Font name="Franklin Gothic Medium" size="68.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets bottom="50.0" />
+                                       </VBox.margin>
+                                    </HBox>
+                                    <GridPane alignment="CENTER">
+                                       <columnConstraints>
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                       </columnConstraints>
+                                       <rowConstraints>
+                                          <RowConstraints vgrow="SOMETIMES" />
+                                       </rowConstraints>
+                                       <children>
+                                          <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
+                                             <children>
+                                                <VBox alignment="CENTER">
+                                                   <children>
+                                                      <Label fx:id="createUsernameLabel" text="Username:" />
+                                                      <Label fx:id="createPasswordLabel" text="Password: " />
+                                                   </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                                                   <children>
+                                                      <TextField fx:id="createUsername" promptText="enter username" />
+                                                      <TextField fx:id="createPassword" promptText="enter password" />
+                                                   </children>
+                                                </VBox>
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </GridPane>
+                                    <Button fx:id="createAccountButton" mnemonicParsing="false" text="Create Account" />
+                                    <HBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <Hyperlink fx:id="loginInsteadButton" text="Login" />
+                                          <Hyperlink fx:id="backToUserInfo" text="Back" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              <VBox fx:id="loginPage" alignment="CENTER" spacing="10.0" visible="false">
+                                 <children>
+                                    <HBox alignment="CENTER">
+                                       <children>
+                                          <Label fx:id="loginTitle" text="Login">
+                                             <font>
+                                                <Font name="Franklin Gothic Medium" size="58.0" />
+                                             </font>
+                                          </Label>
+                                       </children>
+                                       <padding>
+                                          <Insets bottom="50.0" />
+                                       </padding>
+                                    </HBox>
+                                    <GridPane>
+                                      <columnConstraints>
+                                          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" prefWidth="100.0" />
+                                      </columnConstraints>
+                                      <rowConstraints>
+                                        <RowConstraints maxHeight="1.7976931348623157E308" vgrow="SOMETIMES" />
+                                      </rowConstraints>
+                                       <children>
+                                          <HBox alignment="CENTER" spacing="5.0" GridPane.columnIndex="1">
+                                             <children>
+                                                <VBox alignment="CENTER">
+                                                   <children>
+                                                      <Label fx:id="nameLabel" text="Username:" />
+                                                      <Label fx:id="passwordLabel" text="Password: " />
+                                                   </children>
+                                                </VBox>
+                                                <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                                                   <children>
+                                                      <TextField fx:id="nameInput" promptText="enter username" />
+                                                      <TextField fx:id="passwordInput" promptText="enter password" />
+                                                   </children>
+                                                </VBox>
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </GridPane>
+                                    <VBox alignment="CENTER">
+                                       <children>
+                                          <Button fx:id="loginButton" mnemonicParsing="false" text="Login" />
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets top="5.0" />
+                                       </VBox.margin>
+                                    </VBox>
+                                    <HBox alignment="BOTTOM_CENTER" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <Hyperlink fx:id="signUpInsteadButton" text="Sign Up" />
+                                          <Hyperlink fx:id="backToUserInfo1" text="Back" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              <VBox fx:id="userInfoPage" alignment="TOP_CENTER">
+                                 <children>
+                                    <HBox fx:id="topUserInfoBox" alignment="CENTER_LEFT">
+                                       <children>
+                                          <ImageView fx:id="userInfoPfp" fitHeight="109.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../PlayerIcons/defaultpfp.png" />
+                                             </image>
+                                          </ImageView>
+                                          <VBox fx:id="topUserInfoRightBox" alignment="CENTER" HBox.hgrow="ALWAYS">
+                                             <children>
+                                                <Label fx:id="userInfoUserName" text="[Name] " />
+                                                <Label fx:id="userInfoUUID" text="[UUID]" />
+                                                <Label fx:id="userInfoUserElo" text="[Elo]" />
+                                                <Label fx:id="userInfoRank" text="[Rank]" />
+                                             </children>
+                                          </VBox>
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="midUserInfoBox" alignment="BOTTOM_CENTER" disable="true" spacing="2.0" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <VBox fx:id="userOldGamesContainer" alignment="BOTTOM_CENTER" spacing="5.0" HBox.hgrow="ALWAYS">
+                                             <children>
+                                                <HBox fx:id="userOldGamesLabelContainer" alignment="CENTER" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="20.0" VBox.vgrow="ALWAYS">
+                                                   <children>
+                                                      <Label fx:id="userOldGamesLabel" text="Past Games:" />
+                                                   </children>
+                                                </HBox>
+                                                <ScrollPane fx:id="userOldGamesScrollpane" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                                                   <content>
+                                                      <VBox fx:id="userOldGamesContent" alignment="TOP_CENTER" spacing="1.0">
+                                                         <children>
+                                                            <Label text="Label" />
+                                                         </children>
+                                                      </VBox>
+                                                   </content>
+                                                </ScrollPane>
+                                             </children>
+                                          </VBox>
+                                          <StackPane fx:id="optionalUserInfoBox" HBox.hgrow="ALWAYS">
+                                             <children>
+                                                <VBox fx:id="loggedInFriendsBox" alignment="BOTTOM_CENTER">
+                                                   <children>
+                                                      <HBox fx:id="friendsNavBar" alignment="CENTER">
+                                                         <children>
+                                                            <Button fx:id="FriendsButton" mnemonicParsing="false" text="Friends" />
+                                                            <Button fx:id="RequestsButton" mnemonicParsing="false" text="Requests" />
+                                                            <Button fx:id="SuggestedFriendsButton" mnemonicParsing="false" text="Suggested" />
+                                                            <Button fx:id="friendsLookupButton" mnemonicParsing="false" text="Search" />
+                                                         </children>
+                                                      </HBox>
+                                                      <ScrollPane fx:id="FriendsPanel" fitToHeight="true" fitToWidth="true" VBox.vgrow="ALWAYS">
+                                                         <content>
+                                                            <StackPane fx:id="FriendsStackpane">
+                                                               <children>
+                                                                  <VBox fx:id="friendsContent" alignment="TOP_CENTER" spacing="2.0" />
+                                                                  <VBox fx:id="friendsLookup" alignment="TOP_CENTER">
+                                                                     <children>
+                                                                        <TextField fx:id="friendsLookupInput" promptText="Search Here" />
+                                                                        <VBox fx:id="friendsLookupContent" alignment="TOP_CENTER" spacing="2.0" VBox.vgrow="ALWAYS" />
+                                                                     </children>
+                                                                  </VBox>
+                                                               </children>
+                                                            </StackPane>
+                                                         </content>
+                                                      </ScrollPane>
+                                                   </children>
+                                                </VBox>
+                                                <HBox fx:id="loggedOutFriendsBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
+                                                   <children>
+                                                      <Label text="Please log in" />
+                                                   </children>
+                                                </HBox>
+                                             </children>
+                                          </StackPane>
+                                       </children>
+                                    </HBox>
+                                    <StackPane fx:id="bottomInfoNav" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <HBox fx:id="hyperlinkBox" alignment="BOTTOM_CENTER">
+                                             <children>
+                                                <Hyperlink fx:id="SignUpPage" text="Sign Up" />
+                                                <Hyperlink fx:id="LoginPage" text="Login" />
+                                             </children>
+                                          </HBox>
+                                          <HBox fx:id="backButtonBox" alignment="BOTTOM_CENTER">
+                                             <children>
+                                                <Hyperlink fx:id="userInfoBackButton" text="Back" />
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </StackPane>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </StackPane>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="extraModesScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
+                     <children>
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="628.0" spacing="10.0">
+                           <children>
+                              <Label text="Extra options">
+                                 <font>
+                                    <Font name="Franklin Gothic Medium" size="49.0" />
+                                 </font>
+                              </Label>
+                              <Button fx:id="enterSandboxButton" mnemonicParsing="false" styleClass="title-2" text="Enter Sandbox">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                              <Button fx:id="enterSimulationButton" mnemonicParsing="false" styleClass="title-2" text="Enter Simulation">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                              <Button fx:id="enterExplorerButton" mnemonicParsing="false" styleClass="title-2" text="Enter Explorer">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                              <Button fx:id="enterPuzzleButton" layoutX="116.0" layoutY="159.0" mnemonicParsing="false" text="Play Puzzles">
+                                 <font>
+                                    <Font size="23.0" />
+                                 </font>
+                              </Button>
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+                  <HBox fx:id="generalSettingsScreen" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="25.0" visible="false">
+                     <children>
+                        <ScrollPane fx:id="generalSettingsScrollpane" fitToHeight="true" fitToWidth="true">
+                           <content>
+                              <VBox fx:id="generalSettingsVbox" alignment="CENTER" fillWidth="false" spacing="5.0">
+                                 <children>
+                                    <HBox fx:id="s1" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="themeLabel" text="Theme: " />
+                                          <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="s2" alignment="CENTER" layoutX="72.0" layoutY="-73.0" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
+                                             <font>
+                                                <Font size="13.0" />
+                                             </font>
+                                          </Label>
+                                          <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="s3" alignment="CENTER" layoutX="72.0" layoutY="1036.0" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="pieceLabel" text="Piece Type: " />
+                                          <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="s4" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="audioMuteBG" text="BG Audo:" />
+                                          <Button fx:id="audioMuteBGButton" mnemonicParsing="false" text="Button" />
+                                       </children>
+                                    </HBox>
+                                    <VBox fx:id="s5" alignment="CENTER" layoutX="122.0" layoutY="833.0" spacing="8.0">
+                                       <children>
+                                          <Label fx:id="audioLabelBG" text="Bg Volume" />
+                                          <Slider fx:id="audioSliderBG" value="100.0" />
+                                       </children>
+                                    </VBox>
+                                    <HBox fx:id="s6" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="audioMuteEff" text="Effect Volume" />
+                                          <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
+                                       </children>
+                                    </HBox>
+                                    <VBox fx:id="s7" alignment="CENTER" layoutX="122.0" layoutY="869.0" spacing="8.0">
+                                       <children>
+                                          <Label fx:id="audioLabelEff" text="Effect Volume" />
+                                          <Slider fx:id="audioSliderEff" value="100.0" />
+                                       </children>
+                                    </VBox>
+                                    <HBox fx:id="s8" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="evalLabel" text="Eval Bar Generator:" />
+                                          <ComboBox fx:id="evalOptions" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="s9" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="nMovesLabel" text="Best Move Generator:" />
+                                          <ComboBox fx:id="nMovesOptions" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                    <HBox fx:id="s10" alignment="CENTER" spacing="7.0">
+                                       <children>
+                                          <Label fx:id="computerLabel" text="Computer Depth" />
+                                          <ComboBox fx:id="computerOptions" prefWidth="150.0" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                           </content>
+                        </ScrollPane>
+                     </children>
+                  </HBox>
+               </children>
+            </StackPane>
          </children>
       </GridPane>
-      <Pane fx:id="startRef" prefHeight="200.0" prefWidth="200.0">
+      <Pane fx:id="startRef">
          <StackPane.margin>
             <Insets />
          </StackPane.margin>

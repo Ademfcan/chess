@@ -3,7 +3,9 @@ package chessengine;
 import chessengine.Audio.SoundPlayer;
 import chessengine.CentralControlComponents.ChessCentralControl;
 import chessengine.Enums.Window;
+import chessengine.Graphics.*;
 import chessengine.Puzzle.PuzzleManager;
+import chessengine.Settings.SettingsManager;
 import chessserver.ChessRepresentations.ChessGame;
 import chessserver.Functions.MagicBitboardGenerator;
 import chessengine.Computation.Stockfish;
@@ -11,10 +13,6 @@ import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
 import chessengine.Enums.MainScreenState;
 import chessengine.Functions.UserHelperFunctions;
-import chessengine.Graphics.AppStateChangeNotification;
-import chessengine.Graphics.BindingController;
-import chessengine.Graphics.GlobalMessager;
-import chessengine.Graphics.MainScreenController;
 import chessengine.Managers.CampaignMessageManager;
 import chessengine.Managers.ClientManager;
 import chessengine.Managers.UserPreferenceManager;
@@ -30,7 +28,6 @@ import chessserver.User.UserPreferences;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.application.Preloader;
 import javafx.application.Preloader.ProgressNotification;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
@@ -54,10 +51,17 @@ import java.util.function.Consumer;
 public class App extends Application {
 
     public final static double referenceDpi = 100;
+
     private final static String startUrl = "/FxmlFiles/StartScreen.fxml";
     private final static String mainUrl = "/FxmlFiles/MainScreen.fxml";
     private final static String startCss = "/CSSFiles/StartScreenCss.css";
     private final static String mainCss = "/CSSFiles/MainScreenCss.css";
+
+    public final String MAINSETTINGS = "main";
+    public final String STARTSETTINGS = "start";
+    private final String startSettingsPath = "/Settings/start-settings.yaml";
+    private final String mainSettingsPath = "/Settings/main-settings.yaml";
+
     private static final long MaxTimeDeltaBetweenSynchrosMS = TimeUnit.SECONDS.toMillis(10); // 10s
     public static Logger appLogger = LogManager.getLogger("App_Logger");
     public static MainScreenController mainScreenController;
@@ -71,13 +75,13 @@ public class App extends Application {
     public static BindingController bindingController;
     public static UserPreferenceManager userPreferenceManager;
     public static CampaignMessageManager campaignMessager;
+    public static SettingsManager settingsManager;
     public static chessengine.CentralControlComponents.ChessCentralControl ChessCentralControl;
     public static double dpi;
     public static double dpiScaleFactor;
     public static Stockfish stockfishForEval;
     public static Stockfish getMoveStockfish;
     public static MagicBitboardGenerator magicBitboardGenerator;
-    private static Stage mainStage;
     private static Scene mainScene;
     private static Parent startRoot;
     private static Parent mainRoot;
@@ -157,16 +161,15 @@ public class App extends Application {
     }
 
     public static void adjustGameToUserPreferences(UserPreferences preferences) {
+        App.startScreenController.setDefaultSelections(preferences);
+        App.mainScreenController.setDefaultSelections(preferences);
+
         if (!preferences.isBackgroundmusic()) {
-            App.startScreenController.backgroundAudioButton.setText("✖");
-            App.startScreenController.audioMuteBGButton.setText("✖");
             soundPlayer.pauseSong(true);
         } else {
-            App.startScreenController.backgroundAudioButton.setText("🔉");
-            App.startScreenController.audioMuteBGButton.setText("🔉");
             soundPlayer.playSong(true);
         }
-        App.startScreenController.audioMuteEffButton.setText(preferences.isEffectSounds() ? "🔉" : "✖");
+
         soundPlayer.changeVolumeBackground(preferences.getBackgroundVolume());
         soundPlayer.changeVolumeEffects(preferences.getEffectVolume());
         soundPlayer.setEffectsMuted(!preferences.isEffectSounds());
@@ -580,7 +583,6 @@ public class App extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-        // load app
 
         notifyPreloader(new ProgressNotification(0.1));
         notifyPreloader(new AppStateChangeNotification("Loading stockfish..."));
@@ -643,13 +645,20 @@ public class App extends Application {
         puzzleManager = new PuzzleManager();
 
 
+
+
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         notifyPreloader(new ProgressNotification(0.6));
+        notifyPreloader(new AppStateChangeNotification("Loading Settings Layout..."));
+        settingsManager = new SettingsManager();
+        settingsManager.load(mainSettingsPath, MAINSETTINGS);
+        settingsManager.load(startSettingsPath, STARTSETTINGS);
+
+
         notifyPreloader(new AppStateChangeNotification("Loading graphics..."));
-        mainStage = primaryStage;
 
         try {
 
@@ -670,7 +679,7 @@ public class App extends Application {
         notifyPreloader(new ProgressNotification(0.7));
         notifyPreloader(new AppStateChangeNotification("Setting up graphics..."));
 
-        messager.Init(startMessageBoard, mainMessageBoard, startScreenController.startRef, mainScreenController.getMessageBoard());
+        messager.Init(startMessageBoard, mainMessageBoard, startScreenController.getMessageBoard(), mainScreenController.getMessageBoard());
         mainScene = new Scene(startRoot);
         isStartScreen = true;
         currentWindow = Window.Start;
@@ -687,7 +696,10 @@ public class App extends Application {
             }
         });
 
-        bindingController = new BindingController(mainScreenController.getWindow(), startScreenController.content);
+        bindingController = new BindingController(mainScreenController.getRoot(), startScreenController.getRoot());
+        mainScreenController.addRootBinding(mainScene);
+        startScreenController.addRootBinding(mainScene);
+
         userPreferenceManager.init();
         startScreenController.setup();
         userManager.init(startScreenController);
@@ -705,6 +717,9 @@ public class App extends Application {
 
         ((StackPane) startRoot).getChildren().add(startMessageBoard);
         ((StackPane) mainRoot).getChildren().add(mainMessageBoard);
+
+        settingsManager.populateSettingsWrapper(MAINSETTINGS, mainScreenController.getSettingsWrapper());
+        settingsManager.populateSettingsWrapper(STARTSETTINGS, startScreenController.getSettingsWrapper());
 
 
         primaryStage.setScene(mainScene);

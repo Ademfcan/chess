@@ -4,6 +4,9 @@ import chessengine.App;
 import chessengine.Enums.Window;
 import javafx.animation.*;
 import javafx.application.Platform;
+import javafx.beans.binding.NumberExpression;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -15,6 +18,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
@@ -22,6 +26,7 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.util.*;
@@ -567,6 +572,56 @@ public class GlobalMessager {
         }
         Pane ref = window == Window.Start ? this.startRef : this.mainRef;
         ref.setMouseTransparent(!greaterThanZero); // if there are any popups (ie greaterthanzero) the pane should NOT be mouse transparent
+    }
+
+    private Rectangle lastHighlight = null;
+
+    public void highlightSide(boolean isWhiteTurn, boolean isWhiteOriented, int moveTimeS){
+        boolean isBottom = isWhiteOriented == isWhiteTurn;
+
+        Rectangle higlight = new Rectangle();
+        App.bindingController.bindCustom(mainRef.heightProperty(), higlight.heightProperty(), 3, 0.03);
+        higlight.widthProperty()
+                .bind(App.mainScreenController.getGameContainerWidth().divide(2));
+
+        if(isWhiteTurn){
+            higlight.setFill(Paint.valueOf("white"));
+        }
+        else{
+            higlight.setFill(Paint.valueOf("black"));
+        }
+
+
+        // when the highlight may get scaled down, make sure it is still clipped to the right side of the screen
+        higlight.layoutXProperty().bind(App.mainScreenController.getGameContainerLayoutX()
+                .subtract(higlight.scaleXProperty().multiply(-1).add(1).divide(2).multiply(higlight.widthProperty())));
+
+        if(isBottom){
+            higlight.layoutYProperty().bind(mainRef.heightProperty().subtract(higlight.heightProperty()));
+        }
+        else{
+            higlight.layoutYProperty().bind(new ReadOnlyDoubleWrapper(0));
+        }
+
+        //  if movetime > 0 add shrinking timeline transition (time left 'shrinking')
+        if(moveTimeS > 0){
+            ScaleTransition st = new ScaleTransition(Duration.seconds(moveTimeS), higlight);
+            st.setFromX(1);
+            st.setToX(0);
+
+            st.play();
+
+
+        }
+
+
+        if(lastHighlight != null){
+            mainRef.getChildren().remove(lastHighlight);
+        }
+        lastHighlight = higlight;
+        mainRef.getChildren().add(higlight);
+
+
     }
 
 

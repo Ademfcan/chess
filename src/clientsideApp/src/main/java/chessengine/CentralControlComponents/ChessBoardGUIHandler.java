@@ -82,9 +82,12 @@ public class ChessBoardGUIHandler implements Resettable{
         this.moveBoxes = moveBoxes;
         this.localInfo = localInfo;
         arrows = new ArrayList<>();
-        chessPieceBoard.layoutBoundsProperty().addListener(e -> {
-            redrawArrows();
+        myControl.mainScreenController.getChessBoard().boundsInParentProperty().addListener((observable, oldValue, newValue) -> {
+            Platform.runLater(this::redrawArrows);
+        });
 
+        myControl.mainScreenController.getChessBoard().localToSceneTransformProperty().addListener((observable, oldValue, newValue) -> {
+            Platform.runLater(this::redrawArrows);
         });
         setUpEatenArrays(true);
         setUpEatenArrays(false);
@@ -172,9 +175,10 @@ public class ChessBoardGUIHandler implements Resettable{
     }
 
     private void drawArrow(Arrow arrow) {
-        SVGPath path = arrow.generateSvg(arrowBoard.getPrefHeight(), arrowBoard.getPrefWidth());
+        SVGPath path = arrow.generateSvg(arrowBoard.getWidth(), arrowBoard.getHeight());
         arrowBoard.getChildren().add(path);
         path.setUserData(arrow.toString());
+
 
 //        System.out.println("Adding arrow: " + path.getContent());
     }
@@ -642,7 +646,7 @@ public class ChessBoardGUIHandler implements Resettable{
             VBox bg = (VBox) n;
 //            App.bindingController.bindRegionWithCustomStyles(bg,App.mainScreenController.fullScreen.widthProperty(),new String[]{"-fx-background-radius:"},new double[]{.0025},"-fx-background-color:" + curr);
             bg.styleProperty().unbind();
-            BindingController.bindRegionToStyle(bg, App.mainScreenController.getWindowWidth(), "-fx-background-radius:", .0025, "-fx-background-color:" + curr);
+            BindingController.bindRegionToStyle(bg, App.mainScreenController.getRootWidth(), "-fx-background-radius:", .0025, "-fx-background-color:" + curr);
 
             // currBgColors[count] = curr;
             if (count % 8 == 0) {
@@ -655,12 +659,12 @@ public class ChessBoardGUIHandler implements Resettable{
     }
 
     public void removeHiglightBorder(int x, int y) {
-        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getWindowWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactor, "-fx-border-color:black");
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getRootWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactor, "-fx-border-color:black");
 
     }
 
     public void higlightBorder(int x, int y) {
-        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getWindowWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactorExp, "-fx-border-color:white");
+        BindingController.bindRegionTo2Styles(moveBoxes[x][y], App.mainScreenController.getRootWidth(), "-fx-border-radius:", "-fx-border-width:", ChessConstants.borderRadFactor, ChessConstants.borderWidthFactorExp, "-fx-border-color:white");
 
     }
 

@@ -260,9 +260,8 @@ public class ClientsideChessGameWrapper {
 
 
     public void reset() {
-        centralControl.fullReset(game.isWhiteOriented());
-        centralControl.chessBoardGUIHandler.updateChessBoardGui(game.getPos(game.getMinIndex()), game.getCurrentPosition(),game.isWhiteOriented());
         game.reset();
+        centralControl.chessBoardGUIHandler.reloadNewBoard(game.getCurrentPosition() ,game.isWhiteOriented());
     }
 
     public void clearIndx(boolean updateStates) {
