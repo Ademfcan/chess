@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -21,11 +21,11 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="fullScreen" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.MainScreenController">
+<StackPane fx:id="fullScreen" xmlns="http://javafx.com/javafx/24" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.MainP.MainScreenController">
    <children>
       <HBox fx:id="content" alignment="CENTER" spacing="5.0">
          <children>
-            <VBox fx:id="gameContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" HBox.hgrow="ALWAYS">
+            <VBox fx:id="gameContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" style="-fx-background-color: red;" HBox.hgrow="ALWAYS">
                <children>
                   <HBox fx:id="chessBoardTop" alignment="BOTTOM_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="257.0" spacing="5.0" VBox.vgrow="ALWAYS">
                      <children>
@@ -210,100 +210,37 @@
             </VBox>
             <VBox fx:id="sidePanelInline" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="183.0" HBox.hgrow="NEVER">
                <children>
-                  <StackPane fx:id="sidePanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                  <StackPane fx:id="sidePanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="200.0" style="-fx-background-color: teal;" VBox.vgrow="ALWAYS">
                      <children>
                         <ScrollPane fx:id="settingsScroller" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS" visible="false" StackPane.alignment="CENTER">
                            <content>
-                              <VBox fx:id="settingsScreen" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                              <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="2.0">
                                  <children>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                                    <VBox fx:id="settingsScreen" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-background-color: tan;" VBox.vgrow="ALWAYS" />
+                                    <VBox prefHeight="200.0" prefWidth="100.0">
                                        <children>
-                                          <Label fx:id="themeLabel" text="Theme: " />
-                                          <ChoiceBox fx:id="themeSelection" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
-                                       <children>
-                                          <Label fx:id="bgLabel" prefHeight="19.0" prefWidth="82.0" text="Bg Color:">
-                                             <font>
-                                                <Font size="13.0" />
-                                             </font>
-                                          </Label>
-                                          <ComboBox fx:id="bgColorSelector" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
-                                       <children>
-                                          <Label fx:id="pieceLabel" text="Piece Type: " />
-                                          <ComboBox fx:id="pieceSelector" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Label fx:id="audioMuteEff" text="Effect Volume" />
-                                          <Button fx:id="audioMuteEffButton" mnemonicParsing="false" text="Button" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Label fx:id="audioLabelEff" text="Effect Volume" />
-                                          <Slider fx:id="audioSliderEff" value="100.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Label fx:id="evalLabel" text="Eval Bar Generator:" />
-                                          <ComboBox fx:id="evalOptions" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Label fx:id="nMovesLabel" text="Best Move Generator:" />
-                                          <ComboBox fx:id="nMovesOptions" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Label fx:id="computerLabel" text="Computer Depth" />
-                                          <ComboBox fx:id="computerOptions" prefWidth="150.0" />
-                                       </children>
-                                    </HBox>
-                                    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-                                       <children>
-                                          <Label fx:id="currentGamePgnLabel" text="PGN:" />
+                                          <Label fx:id="currentGamePgnLabel" text="Current pgn:" />
                                           <TextArea fx:id="currentGamePgn" prefHeight="200.0" prefWidth="200.0" />
+                                          <Label fx:id="pgnSaveLabel" text="Save pgn to file" />
+                                          <Button fx:id="pgnSaveButton" mnemonicParsing="false" text="Save" />
+                                          <Button fx:id="hideSettings" mnemonicParsing="false" />
                                        </children>
                                     </VBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0">
-                                       <children>
-                                          <Label fx:id="pgnSaveLabel" text="Save current pgn" />
-                                          <Button fx:id="pgnSaveButton" mnemonicParsing="false" text="Save" />
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-                                       <children>
-                                          <Button fx:id="hideSettings" mnemonicParsing="false">
-                                             <font>
-                                                <Font name="Gabriola" size="24.0" />
-                                             </font>
-                                          </Button>
-                                       </children>
-                                    </HBox>
                                  </children>
                               </VBox>
                            </content>
                         </ScrollPane>
                         <VBox fx:id="gameMenu" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                            <children>
-                              <VBox fx:id="gameControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                              <VBox fx:id="gameControls" alignment="CENTER" spacing="2.0" VBox.vgrow="ALWAYS">
                                  <children>
                                     <Label fx:id="lineLabel" text="Label" />
-                                    <ScrollPane fx:id="movesPlayed" prefHeight="45.0" prefWidth="574.0" vbarPolicy="NEVER">
+                                    <ScrollPane fx:id="movesPlayed" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: green;">
                                        <content>
-                                          <HBox fx:id="movesPlayedBox" alignment="CENTER_LEFT" prefHeight="33.0" prefWidth="207.0" spacing="5.0" />
+                                          <VBox fx:id="movesPlayedBox" alignment="TOP_CENTER" spacing="2.0" />
                                        </content>
                                     </ScrollPane>
-                                    <StackPane fx:id="switchingOptions" VBox.vgrow="ALWAYS">
+                                    <StackPane fx:id="switchingOptions" style="-fx-background-color: black;">
                                        <children>
                                           <VBox fx:id="onlineControls" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="1.0" visible="false">
                                              <children>
@@ -401,7 +338,7 @@
                                           </VBox>
                                        </children>
                                     </StackPane>
-                                    <VBox fx:id="bottomControls" alignment="CENTER" prefHeight="160.0" prefWidth="160.0" spacing="5.0">
+                                    <VBox fx:id="bottomControls" alignment="CENTER" spacing="5.0">
                                        <children>
                                           <HBox alignment="CENTER" layoutX="10.0" layoutY="60.0" prefHeight="100.0" prefWidth="144.0" spacing="13.0">
                                              <children>
@@ -446,7 +383,7 @@
                                     </VBox>
                                  </children>
                               </VBox>
-                              <HBox fx:id="navigation" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+                              <HBox fx:id="navigation" alignment="CENTER" spacing="10.0" VBox.vgrow="NEVER">
                                  <children>
                                     <Button fx:id="homeButton" mnemonicParsing="false">
                                        <font>
@@ -475,6 +412,7 @@
          </padding>
       </HBox>
       <Pane fx:id="mainRef" prefHeight="200.0" prefWidth="200.0" />
+      <Group fx:id="mainGroup" />
       <HBox fx:id="sidePanelPopup" alignment="TOP_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="100.0" StackPane.alignment="TOP_RIGHT">
          <children>
             <Button fx:id="hideSidePanel" mnemonicParsing="false" />

@@ -1,19 +1,14 @@
 package chessserver.Misc;
 
-import chessserver.ChessRepresentations.BitBoardWrapper;
-import chessserver.ChessRepresentations.ChessMove;
-import chessserver.ChessRepresentations.ChessPosition;
-import chessserver.ChessRepresentations.XYcoord;
+import chessserver.ChessRepresentations.*;
 import chessserver.Enums.*;
-import chessserver.User.CampaignProgress;
-import chessserver.User.FrontendClient;
+import chessserver.User.Client;
 import chessserver.User.UserInfo;
-import chessserver.User.UserPreferences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Random;
+import java.util.UUID;
 
 public class ChessConstants {
     public static final XYcoord whiteKingStart = new XYcoord(4, 7);
@@ -36,8 +31,8 @@ public class ChessConstants {
     public static final int BLACKCHECKMATEVALUE = -1000000;
     public static final String DEFAULTEMAIL = "no-email";
     public static final String DEFAULTUSERNAME = "anonymous";
-    public static final UserPreferences defaultPreferences = new UserPreferences(true, .50, true, .75, false, false, ComputerDifficulty.MaxDifficulty, GlobalTheme.Dark, ChessboardTheme.TRADITIONAL, ChessPieceTheme.TRADITIONAL);
-    public static final FrontendClient defaultClient = new FrontendClient(new UserInfo(DEFAULTUSERNAME, 0, DEFAULTEMAIL,Integer.MAX_VALUE, new CampaignProgress(123), ProfilePicture.DEFAULT,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new ArrayList<>()));
+    public static final UUID DEFAULTUUID = new UUID(0, 0);
+    public static final Client defaultClient = new Client(UserInfo.getPartiallyDefaultUserInfo(DEFAULTUSERNAME, DEFAULTEMAIL, DEFAULTUUID));
     public static final double borderRadFactor = .0025;
     public static final double borderWidthFactor = .0005;
     public static final double borderWidthFactorExp = .0015;
@@ -77,6 +72,12 @@ public class ChessConstants {
             secondsStr = "0" + secondsStr;
         }
         return String.format("%d:%s",minutes,secondsStr);
+    }
+
+    public static PlayerInfo computerPlayerInfoBEST = getComputerPlayerInfoWElo(ComputerEloEstimate);
+
+    public static PlayerInfo getComputerPlayerInfoWElo(int elo){
+        return new PlayerInfo(UUID.nameUUIDFromBytes("Computer".getBytes()), "Computer", elo, ProfilePicture.ROBOT.urlString);
     }
 
 

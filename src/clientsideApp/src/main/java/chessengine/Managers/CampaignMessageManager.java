@@ -188,9 +188,9 @@ public class CampaignMessageManager {
     }
 
     private String getName() {
-        if (centralControl.gameHandler.currentlyGameActive() && centralControl.mainScreenController.currentState == MainScreenState.CAMPAIGN) {
-            CampaignTier currentTier = centralControl.gameHandler.getCampaignTier();
-            int currentTierLevel = centralControl.gameHandler.getLevelOfCampaignTier();
+        if (centralControl.gameHandler.isActiveGame() && centralControl.mainScreenController.currentState == MainScreenState.CAMPAIGN) {
+            CampaignTier currentTier = centralControl.gameHandler.getCampaignAttempt().levelAttempted().tier();
+            int currentTierLevel = centralControl.gameHandler.getCampaignAttempt().levelAttempted().levelOfTier();
             return currentTier.levelNames[currentTierLevel];
         } else {
             logger.error("Not in a campaign game, cannot create message");

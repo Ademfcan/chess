@@ -67,7 +67,7 @@
 //                evalRequest = false;
 //                endEval = false;
 //                c.clearFlags();
-//                if(App.userPreferenceManager.getNMovesStockfishBased()){
+//                if(App.userManager.userPreferenceManager.getNMovesStockfishBased()){
 //                    if(!endEval && myControl.gameHandler.currentGame != null){
 //                        lastIndex = myControl.gameHandler.currentGame.getCurMoveIndex();
 //                        MoveOutput[] moveOutputs = App.stockfishForEval.getBestNMoves(myControl.gameHandler.currentGame.getCurrentFen(),myControl.gameHandler.currentGame.isWhiteTurn(),myControl.gameHandler.currentGame.getCurrentPosition().board, ChessConstants.DefaultWaitTime,ChessConstants.NMOVES);

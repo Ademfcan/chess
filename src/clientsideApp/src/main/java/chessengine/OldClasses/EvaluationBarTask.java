@@ -54,7 +54,7 @@
 //                evalRequest = false;
 //                endEval = false;
 //                c.clearFlags();
-//                if (App.userPreferenceManager.getEvalStockfishBased()) {
+//                if (App.userManager.userPreferenceManager.getEvalStockfishBased()) {
 //                    for (int i = 1; i <= iterCount; i++) {
 //                        if (endEval || myControl.gameHandler.currentGame == null) {
 //                            break;

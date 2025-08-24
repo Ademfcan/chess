@@ -1,18 +1,20 @@
 package chessserver.Friends;
 
+import java.util.UUID;
+
 public class FriendInfo extends Friend {
     int numWins;
     int numLosses;
     int numDraws;
 
-    public FriendInfo(int UUID, String currentUsername, int numWins, int numLosses, int numDraws) {
-        super(currentUsername, UUID);
+    public FriendInfo(UUID uuid, String currentUsername, int numWins, int numLosses, int numDraws) {
+        super(currentUsername, uuid);
         this.numWins = numWins;
         this.numLosses = numLosses;
         this.numDraws = numDraws;
     }
-    public FriendInfo(String currentUsername,int UUID) {
-        super(currentUsername, UUID);
+    public FriendInfo(String currentUsername,UUID uuid) {
+        super(currentUsername, uuid);
         this.numWins = 0;
         this.numLosses = 0;
         this.numDraws = 0;
@@ -21,8 +23,6 @@ public class FriendInfo extends Friend {
     public FriendInfo() {
 
     }
-
-
 
     public int getNumWins() {
         return numWins;

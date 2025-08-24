@@ -5,7 +5,7 @@ plugins {
 }
 
 javafx {
-    version = "20"
+    version = "23"
     modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.media' ]
 }
 
@@ -32,12 +32,15 @@ dependencies {
     // yaml reader
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.3'
 
+    // annotation scanner
+    implementation 'io.github.classgraph:classgraph:4.8.180'
+
     implementation project(':serverside')
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(20)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 }
 
@@ -57,24 +60,6 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-//jar {
-//    archiveClassifier.set('fat')
-//    manifest {
-//        attributes(
-//                'Main-Class': 'chessengine.Main',
-//                'Class-Path': configurations.runtimeClasspath.asFileTree.files.collect { "lib/${it.name}" }.join(' '),
-//                'Application-Args': '-Dprism.allowhidpi=false -Dsun.java2d.dpiaware=false','-Djavafx.preloader=chessengine.SplashScreen'
-//        )
-//    }
-//    from {
-//        configurations.runtimeClasspath.asFileTree.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//    archiveFileName = 'chessengine-fat.jar'
-//
-//    from sourceSets.main.output
-//
-//}
 
 jar {
     archiveClassifier.set('fat')

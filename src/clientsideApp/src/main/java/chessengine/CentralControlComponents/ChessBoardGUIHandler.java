@@ -37,7 +37,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChessBoardGUIHandler implements Resettable{
+public class ChessBoardGUIHandler implements ResettableGame {
     public final Pane chessPieceBoard;
     public final ImageView[][] piecesAtLocations;
     public final int pieceSize = 9;
@@ -205,12 +205,14 @@ public class ChessBoardGUIHandler implements Resettable{
         piece.layoutYProperty().bind(chessPieceBoard.heightProperty().divide(8).multiply(y).add(chessPieceBoard.heightProperty().divide(16).subtract(piece.fitHeightProperty().divide(2))));
     }
     /**Resets stuff from move to move, eg without resetting the whole board**/
+    @Override
     public void partialReset(boolean isWhiteOriented){
         clearArrowsAndRankings();
         clearAllHighlights();
     }
 
 
+    @Override
     public void fullReset(boolean isWhiteOriented) {
         // eaten pieces
         for (int i = 0; i <= ChessConstants.KINGINDEX; i++) {

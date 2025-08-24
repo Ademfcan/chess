@@ -1,13 +1,20 @@
 package chessserver;
 
 import chessserver.ChessRepresentations.ChessGame;
-import chessserver.ClientHandling.ClientHandler;
+import chessserver.ChessRepresentations.GameInfo;
+import chessserver.ChessRepresentations.PlayerInfo;
 import chessserver.ClientHandling.GameHandler;
 import chessserver.Enums.Gametype;
-import chessserver.Enums.ServerResponseType;
 import chessserver.Functions.GeneralChessFunctions;
+import chessserver.Net.Message;
+import chessserver.Net.MessageConfig;
+import chessserver.Net.MessageTypes.ChessGameMessageTypes;
+import chessserver.Net.Payload;
+import chessserver.Net.PayloadTypes.ChessGamePayloadTypes;
 import chessserver.User.BackendClient;
 
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.concurrent.ScheduledFuture;
 
 public class ServerChessGame {
@@ -28,8 +35,20 @@ public class ServerChessGame {
         this.client1TimeLeft = (int) gametype.getTimeUnit().toSeconds(gametype.getLength());
         this.client2TimeLeft = (int) gametype.getTimeUnit().toSeconds(gametype.getLength());
         game = ChessGame.createServerFollowerGame();
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ENTEREDGAME, client2.getInfo().getUserName() + "," + client2.getInfo().getUserelo() + "," + client2.getInfo().getProfilePictureUrl() + "," + isClient1Turn,Integer.MAX_VALUE);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ENTEREDGAME, client1.getInfo().getUserName() + "," + client1.getInfo().getUserelo() + "," + client1.getInfo().getProfilePictureUrl() + "," + !isClient1Turn,Integer.MAX_VALUE);
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                    new Message(ChessGameMessageTypes.ServerRequest.ENTEREDGAME,
+                    new ChessGamePayloadTypes.GameStartPayload(PlayerInfo.fromUser(client2.getClientInfo()), isClient1Turn)
+                )).to(client1.getClientSession())
+        );
+
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                new Message(ChessGameMessageTypes.ServerRequest.ENTEREDGAME,
+                        new ChessGamePayloadTypes.GameStartPayload(PlayerInfo.fromUser(client1.getClientInfo()), !isClient1Turn)
+                )).to(client2.getClientSession())
+        );
+
         timeTickFuture = GameHandler.sceduleNewTimeTick(this::oneSecondtimeTick);
         client1.setCurrentGame(this);
         client2.setCurrentGame(this);
@@ -37,22 +56,39 @@ public class ServerChessGame {
     }
 
     private void oneSecondtimeTick(){
+        int timeLeft;
         if(isClient1Turn){
             client1TimeLeft--;
-            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
-            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client1TimeLeft),Integer.MAX_VALUE);
+            timeLeft = client1TimeLeft;
+
             if(client1TimeLeft <= 0){
                 handleTimeRunout(false);
+                return;
             }
         }
         else{
             client2TimeLeft--;
-            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
-            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.TIMETICK, Integer.toString(client2TimeLeft),Integer.MAX_VALUE);
+            timeLeft = client2TimeLeft;
+
             if(client2TimeLeft <= 0){
                 handleTimeRunout(true);
+                return;
             }
         }
+
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                        new Message(ChessGameMessageTypes.ServerRequest.TIMETICK,
+                        new Payload.IntegerPayload(timeLeft)))
+                .to(client1.getClientSession())
+        );
+
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                        new Message(ChessGameMessageTypes.ServerRequest.TIMETICK,
+                                new Payload.IntegerPayload(timeLeft)))
+                        .to(client2.getClientSession())
+        );
     }
 
     private void handleTimeRunout(boolean isClient1Win) {
@@ -89,10 +125,16 @@ public class ServerChessGame {
         if (turn.equals(player)) {
             BackendClient send = isClient1Turn ? client2 : client1;
             isClient1Turn = !isClient1Turn;
-            ClientHandler.sendMessage(send.getClientSession(), ServerResponseType.GAMEMOVEFROMOPPONENT, pgn,Integer.MAX_VALUE);
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(
+                    new Message(ChessGameMessageTypes.ServerRequest.GAMEMOVEFROMOPPONENT, new Payload.StringPayload(pgn)))
+                    .to(send.getClientSession()));
         } else {
-            ClientHandler.sendMessage(player.getClientSession(), ServerResponseType.INVALIDOPERATION, "not your turn!",Integer.MAX_VALUE);
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(
+                    new Message(ChessGameMessageTypes.ServerRequest.INVALIDREQUEST, new Payload.StringPayload("not your turn!")))
+                    .to(player.getClientSession()));
         }
+
+
         if(game.getGameState().isGameOver()){
             handleGameEnd(client1,game.getGameState().isCheckMated()[1],game.getGameState().isStaleMated(),false);
         }
@@ -105,7 +147,9 @@ public class ServerChessGame {
 
     public void sendChat(String message, BackendClient sender) {
         BackendClient receiever = sender.equals(client1) ? client2 : client1;
-        ClientHandler.sendMessage(receiever.getClientSession(), ServerResponseType.CHATFROMOPPONENT, message,Integer.MAX_VALUE);
+
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message(ChessGameMessageTypes.ServerRequest.SENDCHAT,
+                        new Payload.StringPayload(message))).to(receiever.getClientSession()));
     }
 
     public void handleGameEnd(BackendClient player, boolean isClient1Winner, boolean isDraw, boolean isEarlyExit) {
@@ -114,30 +158,46 @@ public class ServerChessGame {
         int[] finalElos;
         if (isEarlyExit) {
             // if a client quits the game early, the other player automatically wins and the game is forfeited
-            finalElos = calcEloWin(client1.getInfo().getUserelo(), client2.getInfo().getUserelo(), !isClient1Request, false);
+            finalElos = calcEloWin(client1.getClientInfo().getUserelo(), client2.getClientInfo().getUserelo(), !isClient1Request, false);
         } else {
-            finalElos = calcEloWin(client1.getInfo().getUserelo(), client2.getInfo().getUserelo(), isClient1Winner, isDraw);
+            finalElos = calcEloWin(client1.getClientInfo().getUserelo(), client2.getClientInfo().getUserelo(), isClient1Winner, isDraw);
         }
 
-        String requester = isClient1Request ? client1.getInfo().getUserName() : client2.getInfo().getUserName();
-        String opponent = isClient1Request ? client2.getInfo().getUserName() : client1.getInfo().getUserName();
-        String winner = isEarlyExit ? (opponent) : (isClient1Winner ? client1.getInfo().getUserName() : client2.getInfo().getUserName());
+        String requester = isClient1Request ? client1.getClientInfo().getUserName() : client2.getClientInfo().getUserName();
+        String opponent = isClient1Request ? client2.getClientInfo().getUserName() : client1.getClientInfo().getUserName();
+        String winner = isEarlyExit ? (opponent) : (isClient1Winner ? client1.getClientInfo().getUserName() : client2.getClientInfo().getUserName());
 
         if(isEarlyExit){
             // update clients about game closing
-            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMECLOSED, requester + " closed the game early",Integer.MAX_VALUE);
-            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMECLOSED, requester + " closed the game early",Integer.MAX_VALUE);
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.GAMECLOSED,
+                            new Payload.StringPayload(requester + " closed the game early"))).to(client1.getClientSession()));
+
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.GAMECLOSED,
+                    new Payload.StringPayload(requester + " closed the game early"))).to(client2.getClientSession()));
         }
         else {
             String extraInfo = isDraw ? "Tie game" :  winner + " won the game";
-            ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.GAMEFINISHED, extraInfo,Integer.MAX_VALUE);
-            ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.GAMEFINISHED, extraInfo,Integer.MAX_VALUE);
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.GAMEFINISHED,
+                    new Payload.StringPayload(extraInfo))).to(client1.getClientSession()));
+
+            ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.GAMEFINISHED,
+                    new Payload.StringPayload(extraInfo))).to(client2.getClientSession()));
         }
 
         // update clients about how much elo they won/lost
-        ClientHandler.sendMessage(client1.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[0]),Integer.MAX_VALUE);
-        ClientHandler.sendMessage(client2.getClientSession(), ServerResponseType.ELOUPDATE, Integer.toString(finalElos[1]),Integer.MAX_VALUE);
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.ELOUPDATE,
+                new Payload.IntegerPayload(finalElos[0]))).to(client1.getClientSession()));
 
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(new MessageConfig(new Message( ChessGameMessageTypes.ServerRequest.ELOUPDATE,
+                new Payload.IntegerPayload(finalElos[1]))).to(client2.getClientSession()));
+
+        // add game to database
+        try {
+            ChessEndpoint.serverDatabaseMessageHandler.addSavedGame(GameInfo.fromChessGame(game), false);
+        }
+        catch (SQLException e){
+            e.printStackTrace(System.err);
+        }
 
     }
 
@@ -175,17 +235,17 @@ public class ServerChessGame {
     }
 
     public void handleDrawRequest(BackendClient requester) {
-        if(requester.equals(client1)){
-            ClientHandler.sendMessage(client2.getClientSession(),ServerResponseType.ASKINGFORDRAW,"",Integer.MAX_VALUE);
-        }
-        else{
-            ClientHandler.sendMessage(client1.getClientSession(),ServerResponseType.ASKINGFORDRAW,"",Integer.MAX_VALUE);
-        }
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                        new Message(ChessGameMessageTypes.ServerRequest.ASKINGFORDRAW))
+                            .to((requester.equals(client1) ? client2 : client1).getClientSession()));
     }
 
     public void handleDrawUpdate(BackendClient updater,boolean isDraw) {
-        BackendClient otherPlayer = updater.equals(client1) ? client2 : client1;
-        ClientHandler.sendMessage(otherPlayer.getClientSession(),ServerResponseType.DRAWACCEPTANCEUPDATE,Boolean.toString(isDraw),Integer.MAX_VALUE);
+        ChessEndpoint.serverChessGameMessageHandler.sendMessage(
+                new MessageConfig(
+                        new Message(ChessGameMessageTypes.ServerRequest.DRAWACCEPTANCEUPDATE, new Payload.BooleanPayload(isDraw)))
+                        .to((updater.equals(client1) ? client2 : client1).getClientSession()));
         if(isDraw){
             handleGameEnd(updater,false,true,false);
         }

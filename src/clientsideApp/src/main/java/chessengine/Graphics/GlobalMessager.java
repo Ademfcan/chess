@@ -4,8 +4,6 @@ import chessengine.App;
 import chessengine.Enums.Window;
 import javafx.animation.*;
 import javafx.application.Platform;
-import javafx.beans.binding.NumberExpression;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleWrapper;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
@@ -17,8 +15,6 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
@@ -26,9 +22,7 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.w3c.dom.css.Rect;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -118,17 +112,20 @@ public class GlobalMessager {
     }
 
     private int numFloatingMessages = 0;
+    public void sendMessage(String message) {
+        for(Window window : Window.values()){
+            sendMessage(message, window);
+        }
+    }
     public void sendMessage(String message, Window window) {
         sendMessage(message, window, Duration.seconds(2),Duration.seconds(2));
-
-
     }
 
     private void sendMessage(String message, Window window, Duration pauseDuration,Duration fadeAwayDuration) {
         if (isInit) {
             Label messageL = new Label(message);
             messageL.setFont(Font.font("Bold"));
-            App.bindingController.bindSmallText(messageL,window);
+            BindingController.bindSmallText(messageL);
             Pane ref = window == Window.Start ? startRef : mainRef;
             messageL.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(messageL.widthProperty().divide(2)));
             if(numFloatingMessages == 0){
@@ -145,12 +142,12 @@ public class GlobalMessager {
             fadetransition.setToValue(.1);
             fadetransition.setOnFinished(e ->{
                 ref.getChildren().remove(messageL);
+                numFloatingMessages--;
             });
             numFloatingMessages++;
 
 
             pause.setOnFinished(event -> {
-                numFloatingMessages--;
                 fadetransition.play();
             });
 
@@ -333,10 +330,10 @@ public class GlobalMessager {
         background.layoutYProperty().bind(ref.heightProperty().multiply(percentCenterY).subtract(background.heightProperty().divide(2)));
 
         Label titleLabel = new Label(title);
-        App.bindingController.bindMediumText(titleLabel, window, "Black");
+        BindingController.bindMediumText(titleLabel, "Black");
 
         Text content = new Text(information);
-        App.bindingController.bindSmallTextCustom(content, window, "-fx-text-fill: Black;-fx-text-alignment: center;");
+        BindingController.bindSmallTextCustom(content, "-fx-text-fill: Black;-fx-text-alignment: center;");
         background.getChildren().addAll(titleLabel, content);
 
         ref.getChildren().add(background);
@@ -412,11 +409,11 @@ public class GlobalMessager {
         Button yes = new Button(yesPrompt);
         yes.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
         yes.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
-        App.bindingController.bindSmallText(yes, window);
+        BindingController.bindSmallText(yes);
         Button no = new Button(noPrompt);
         no.prefWidthProperty().bind(customAction.widthProperty().divide(2.5));
         no.prefHeightProperty().bind(customAction.heightProperty().multiply(0.7));
-        App.bindingController.bindSmallText(no, window);
+        BindingController.bindSmallText(no);
         customAction.getChildren().addAll(yes,no);
         VBox popup = createBasePopupWindow(prompt,customAction, window,isSkippable,popupIdx,ifFail);
         yes.setOnMouseClicked(e->{
@@ -447,7 +444,7 @@ public class GlobalMessager {
         top.prefHeightProperty().bind(popupBox.heightProperty().multiply(.3));
 
         Label promptLabel = new Label(prompt);
-        App.bindingController.bindSmallText(promptLabel, window,"Black");
+        BindingController.bindSmallText(promptLabel, "Black");
         top.getChildren().add(promptLabel);
 
         HBox bottom = new HBox();
@@ -465,7 +462,7 @@ public class GlobalMessager {
             cancelButton.prefWidthProperty().bind(bottom.prefWidthProperty().divide(3));
             cancelButton.prefHeightProperty().bind(bottom.prefHeightProperty());
 
-            App.bindingController.bindXSmallText(cancelButton, window); // uses ismain
+            BindingController.bindXSmallText(cancelButton); // uses ismain
             bottom.getChildren().add(cancelButton);
         }
 
@@ -474,8 +471,8 @@ public class GlobalMessager {
         popupBox.getChildren().addAll(top,customAction,bottom);
 
         Pane ref = window == Window.Start ? this.startRef : this.mainRef;
-        App.bindingController.bindCustom(ref.widthProperty(),popupBox.prefWidthProperty(),350,0.4);
-        App.bindingController.bindCustom(ref.heightProperty(),popupBox.prefHeightProperty(),220,0.4);
+        BindingController.bindCustom(ref.widthProperty(),popupBox.prefWidthProperty(),350,0.4);
+        BindingController.bindCustom(ref.heightProperty(),popupBox.prefHeightProperty(),220,0.4);
         popupBox.layoutXProperty().bind(ref.widthProperty().divide(2).subtract(popupBox.widthProperty().divide(2)));
         popupBox.layoutYProperty().bind(ref.heightProperty().divide(2).subtract(popupBox.heightProperty().divide(2)));
         addPopup(window,isSkippable,popupBox,popupIdx,ifFail);
@@ -580,7 +577,7 @@ public class GlobalMessager {
         boolean isBottom = isWhiteOriented == isWhiteTurn;
 
         Rectangle higlight = new Rectangle();
-        App.bindingController.bindCustom(mainRef.heightProperty(), higlight.heightProperty(), 3, 0.03);
+        BindingController.bindCustom(mainRef.heightProperty(), higlight.heightProperty(), 3, 0.03);
         higlight.widthProperty()
                 .bind(App.mainScreenController.getGameContainerWidth().divide(2));
 

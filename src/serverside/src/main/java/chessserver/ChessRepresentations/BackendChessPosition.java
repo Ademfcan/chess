@@ -29,7 +29,7 @@ public class BackendChessPosition extends ChessPosition {
         this.gameState = pos.gameState;
         this.isDraw = gameState.makeNewMoveAndCheckDraw(this);
         this.movesThatCreated = cloneStack(pos.movesThatCreated);
-        // remove the saved entry now
+        // remove the saved dataEntry now
         pos.movesThatCreated.pop();
         zobristKey = zobristHasher.computeHash(this.board);
 

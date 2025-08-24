@@ -3,7 +3,7 @@ package chessengine.CentralControlComponents;
 import chessengine.App;
 import chessengine.Audio.Effect;
 import chessengine.Enums.MainScreenState;
-import chessengine.Enums.Window;
+import chessengine.Graphics.BindingController;
 import chessengine.Graphics.MoveArrow;
 import chessengine.Puzzle.ChessTactics;
 import chessengine.Puzzle.PuzzleEntry;
@@ -18,7 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Paint;
 import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class PuzzleGuiManager implements Resettable{
+public class PuzzleGuiManager implements ResettableGame {
     private static final Logger logger = LogManager.getLogger("Puzzle_GUI_Manager");
     private PuzzleManager puzzleManager;
     private ChessCentralControl centralControl;
@@ -50,7 +49,7 @@ public class PuzzleGuiManager implements Resettable{
     }
 
     public void init(){
-        App.bindingController.bindSmallText(puzzleElo, Window.Main);
+        BindingController.bindSmallText(puzzleElo);
         puzzleEloSlider.valueProperty().addListener((o,oldValue,newValue) ->{
             this.puzzleElo.setText(format.format(newValue));
         });
@@ -59,7 +58,7 @@ public class PuzzleGuiManager implements Resettable{
             updateHintState();
         });
 
-        puzzleEloSlider.setValue(Math.min(Math.max(App.userManager.getUserElo(),puzzleManager.getMinBin()),puzzleManager.getMaxBin()));
+        puzzleEloSlider.setValue(Math.min(Math.max(App.userManager.userInfoManager.getUserElo(),puzzleManager.getMinBin()),puzzleManager.getMaxBin()));
 
         puzzleElo.setText(format.format(puzzleEloSlider.getValue()));
     }
@@ -71,7 +70,7 @@ public class PuzzleGuiManager implements Resettable{
             return;
         }
         ChessGame currentPuzzleGame = newPuzzle.getPuzzleGame();
-        centralControl.mainScreenController.setupWithGame(currentPuzzleGame, MainScreenState.PUZZLE,false);
+        centralControl.mainScreenController.setupWithGame(currentPuzzleGame, false, MainScreenState.PUZZLE,false);
         puzzleTagsBox.getChildren().clear();
         for(String theme : newPuzzle.getConciseThemes()){
             ChessTactics.Tactic themeDescription = ChessTactics.tactics.get(theme);
@@ -79,7 +78,7 @@ public class PuzzleGuiManager implements Resettable{
             Tooltip tooltip = new Tooltip(themeDescription.description());
             tooltip.setShowDelay(Duration.millis(10));
             Tooltip.install(themeLabel,tooltip);
-            App.bindingController.bindMediumTextCustom(themeLabel,Window.Main,"-fx-border-width: 2px;-fx-border-radius: 15;-fx-border-style: solid;-fx-border-color: black;-fx-border-insets: 2;-fx-background-color: gray;-fx-background-radius: 15");
+            BindingController.bindMediumTextCustom(themeLabel, "-fx-border-width: 2px;-fx-border-radius: 15;-fx-border-style: solid;-fx-border-color: black;-fx-border-insets: 2;-fx-background-color: gray;-fx-background-radius: 15");
             puzzleTagsBox.getChildren().add(themeLabel);
         }
     }
@@ -172,11 +171,13 @@ public class PuzzleGuiManager implements Resettable{
         }
     }
 
+    @Override
     public void fullReset(boolean isWhiteOriented) {
         puzzleTagsBox.getChildren().clear();
         partialReset(isWhiteOriented);
     }
 
+    @Override
     public void partialReset(boolean isWhiteOriented){
         resetHintState();
     }

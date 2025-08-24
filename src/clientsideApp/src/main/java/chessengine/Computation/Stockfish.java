@@ -1,5 +1,8 @@
 package chessengine.Computation;
 
+import chessengine.AutoRegister;
+import chessengine.TriggerRegistry;
+import chessengine.Triggers.Closable;
 import chessserver.ChessRepresentations.BitBoardWrapper;
 import chessserver.ChessRepresentations.ChessMove;
 import chessserver.Functions.PgnFunctions;
@@ -13,7 +16,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Stockfish {
+public class Stockfish implements Closable {
     private static final String ENGINE_PATH = "stockfish/stockfish-windows-x86-64-avx2.exe";
     private static final Logger logger = LogManager.getLogger("Stockfish Logger");
     private final int minStockfishLen = 23;
@@ -22,6 +25,10 @@ public class Stockfish {
     private Process engineProcess;
     private BufferedReader engineReader;
     private OutputStreamWriter processWriter;
+
+    public Stockfish() {
+        TriggerRegistry.addTriggerable(this);
+    }
 
     public boolean isCalling() {
         return isCalling;
@@ -259,4 +266,11 @@ public class Stockfish {
     }
 
 
+    @Override
+    public void onClose() {
+        System.out.println("c");
+        stopEngine();
+
+        System.out.println("Stockfish engine closed.");
+    }
 }

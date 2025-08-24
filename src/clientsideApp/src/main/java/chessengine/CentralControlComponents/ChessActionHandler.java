@@ -6,8 +6,8 @@ import chessengine.Computation.MoveGenerator;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
 import chessengine.Enums.Window;
+import chessengine.Graphics.BindingController;
 import chessengine.Misc.Constants;
-import chessserver.Enums.INTENT;
 import chessserver.Functions.AdvancedChessFunctions;
 import chessserver.Functions.GeneralChessFunctions;
 import chessengine.Functions.LineLabeler;
@@ -20,7 +20,10 @@ import chessengine.Records.PVEntry;
 import chessengine.Records.SearchResult;
 import chessserver.ChessRepresentations.*;
 import chessserver.Enums.ComputerDifficulty;
-import javafx.geometry.Bounds;
+import chessserver.Net.Message;
+import chessserver.Net.MessageConfig;
+import chessserver.Net.MessageTypes.ChessGameMessageTypes;
+import chessserver.Net.Payload;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -41,11 +44,11 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class ChessActionHandler implements Resettable {
+public class ChessActionHandler implements ResettableGame {
 
     private final LineLabeler labeler = new LineLabeler();
     private final Label lineLabel;
-    private final HBox movesPlayedBox;
+    private final VBox movesPlayedBox;
     private final ScrollPane movesPlayedScrollpane;
     private final ChessCentralControl myControl;
     // viewer controls
@@ -111,7 +114,7 @@ public class ChessActionHandler implements Resettable {
     private int numRedos = 0;
 
     public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo,
-                              TextField chatInput, Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,
+                              TextField chatInput, Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, VBox movesPlayedBox,
                               ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, Label p1moveClk, Label p2moveClk,
                               ComboBox<Integer> player1SimSelector,  ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
@@ -170,10 +173,10 @@ public class ChessActionHandler implements Resettable {
 
         for(String emoji : emojis){
             Button emojiButton = new Button(emoji);
-            App.bindingController.bindSmallTextCustom(emojiButton,Window.Main,"-fx-border-radius: 25");
+            BindingController.bindSmallTextCustom(emojiButton, "-fx-border-radius: 25");
             emojiButton.setOnMouseClicked(e->{
                 if (myControl.gameHandler.gameWrapper.isActiveWebGame() && myControl.gameHandler.gameWrapper.isCurrentWebGameInitialized()) {
-                    App.sendRequest(INTENT.SENDCHAT, emoji,null,true);
+                    App.authenticatedMessageSender.sendAuthenticatedRetryableMessage(new MessageConfig(new Message(ChessGameMessageTypes.ClientRequest.SENDCHAT, new Payload.StringPayload(emoji))));
                 }
             });
 
@@ -192,7 +195,8 @@ public class ChessActionHandler implements Resettable {
         });
         offerDrawButton.setOnMouseClicked(e->{
             if(myControl.gameHandler.gameWrapper.isActiveWebGame()){
-                App.sendRequest(INTENT.REQUESTDRAW,"",null,true);
+                App.authenticatedMessageSender.sendAuthenticatedRetryableMessage(new MessageConfig(new Message(ChessGameMessageTypes.ClientRequest.REQUESTDRAW,
+                        new Payload.Empty())));
             }
             else{
                 logger.debug("Not active web game");
@@ -282,6 +286,7 @@ public class ChessActionHandler implements Resettable {
     }
 
     /**Reset called every move**/
+    @Override
     public void partialReset(boolean isWhiteOriented){
         bestmovesBox.getChildren().clear();
         updateCurrentlyShownArrows(false);
@@ -295,6 +300,7 @@ public class ChessActionHandler implements Resettable {
 
     }
 
+    @Override
     public void fullReset(boolean isWhiteOriented) {
         movesPlayedBox.getChildren().clear();
         p1moveClk.setText("");
@@ -316,12 +322,12 @@ public class ChessActionHandler implements Resettable {
         Label pgnDescriptor = new Label(pgn);
         pgnDescriptor.setBackground(Constants.defaultBg);
 
-        App.bindingController.bindSmallText(pgnDescriptor, Window.Main, "Black");
+        BindingController.bindMediumText(pgnDescriptor, "Black");
         pgnDescriptor.setUserData(numLabels);
         pgnDescriptor.setAlignment(Pos.CENTER);
         int pgnLen = pgn.length();
 //    }
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
+//        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -329,49 +335,70 @@ public class ChessActionHandler implements Resettable {
         });
 
 
-        // also add a move number if the pgn needs it. This is found by seeing if the child count is even before adding
-        // the effect is: (Without): e4 e5 d6 bb5 (With) 1. e4 e5 2. d6 bb5
+        // also add a move line if the pgn needs it. This is found by seeing if the child count is even before adding
+        // the effect is: (Without): e4 e5 d6 bb5 (With) 1. e4 e5
+        //                                               2. d6 bb5
         if (numLabels % 2 == 0) {
-            // ready for a number
+            // ready for a new moveline
+            HBox moveLine = new HBox();
+            moveLine.setAlignment(Pos.CENTER);
+            moveLine.setSpacing(4);
+
+            // move number
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
             numSeparator.setAlignment(Pos.CENTER);
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
-            App.bindingController.bindSmallText(numSeparator, Window.Main, "White");
-            movesPlayedBox.getChildren().add(numSeparator);
+//            numSeparator.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
+            BindingController.bindMediumText(numSeparator, "White");
+
+            // add the number and first pgn descriptor
+            moveLine.getChildren().addAll(numSeparator, pgnDescriptor);
+            movesPlayedBox.getChildren().add(moveLine);
 
         }
+        else{
+            // just append to current moveline
+            HBox moveLine = (HBox) movesPlayedBox.getChildren().get(movesPlayedBox.getChildren().size()-1);
+            moveLine.getChildren().add(pgnDescriptor);
+        }
 
-        movesPlayedBox.getChildren().add(pgnDescriptor);
         numLabels++;
     }
 
-    public void clearMovesPlayedUpToIndex(int curMoveIndex) {
+    public void clearMovesPlayedFromIndex(int curMoveIndex) {
+        // exclusive
         if (curMoveIndex == -1) {
             numLabels = 0;
             clearMovesPlayed();
         } else {
-            numLabels = curMoveIndex + 1;
-            int to = movesPlayedBox.getChildren().size();
-            int prevNumSpacers = (numLabels + 1) / 2;
-            if (to > numLabels + prevNumSpacers) {
-//                logger.debug(String.format("Clearing moves played from %d", curMoveIndex + 1));
 
+            int curmoveLineIndex = (curMoveIndex) / 2;
+            if(curmoveLineIndex < movesPlayedBox.getChildren().size()){
+                // remove any labels above moveline
+                movesPlayedBox.getChildren().subList(curmoveLineIndex+1, movesPlayedBox.getChildren().size()).clear();
 
-                movesPlayedBox.getChildren().subList(numLabels + prevNumSpacers, to).clear();
-            } else {
-                logger.error("Clear moves played out of bounds");
+                if(curMoveIndex % 2 == 0){ // curMoveIndex + 1 % 2 == 1 simplified
+                    HBox moveLine = (HBox) movesPlayedBox.getChildren().get(curmoveLineIndex);
+                    moveLine.getChildren().remove(2); // like removing the e5 in 1. e4 [e5]
+                }
+
             }
+            else{
+                logger.warn("movesPlayedUpToIndex: index out of bounds");
+            }
+
+            numLabels = curMoveIndex+1;
         }
 
     }
 
     private void adjustMovesPlayed(int currentMoveIndex) {
         if (currentMoveIndex < numLabels - 1) {
-            clearMovesPlayedUpToIndex(currentMoveIndex);
+            clearMovesPlayedFromIndex(currentMoveIndex);
         } else {
             String[] pgn = myControl.gameHandler.gameWrapper.getGame().gameToPgnArr();
             for (int i = numLabels; i <= currentMoveIndex; i++) {
+                System.out.println(pgn[i]);
                 addToMovesPlayed(pgn[i]);
             }
         }
@@ -380,19 +407,19 @@ public class ChessActionHandler implements Resettable {
     public void highlightMovesPlayedLine(int highlightIndex) {
         logger.debug("Highlighting moves played line");
         if (highlightIndex >= 0 && highlightIndex <= myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
-            int prevNumSpacers = highlightIndex / 2;
-            int tot = highlightIndex + prevNumSpacers + 1;
 
-            if (tot < movesPlayedBox.getChildren().size()) {
+            int moveLineIndex = highlightIndex / 2;
+
+            if (moveLineIndex < movesPlayedBox.getChildren().size()) {
                 if (lastHighlight != null) {
                     lastHighlight.setBackground(Constants.defaultBg);
                 }
-                lastHighlight = (Label) movesPlayedBox.getChildren().get(tot);
+
+                HBox moveLine = (HBox) movesPlayedBox.getChildren().get(moveLineIndex);
+                int moveIndex = highlightIndex % 2;
+                lastHighlight = (Label) moveLine.getChildren().get(1+moveIndex); // move num label is first child
+
                 lastHighlight.setBackground(Constants.highlightBg);
-                Bounds contentBounds = lastHighlight.localToParent(lastHighlight.getBoundsInLocal());
-                double scrollPosition = (Math.max(contentBounds.getMinX()-contentBounds.getWidth()/2,0)) /
-                        (movesPlayedScrollpane.getContent().getBoundsInLocal().getWidth() - movesPlayedScrollpane.getViewportBounds().getWidth());
-                movesPlayedScrollpane.setHvalue(scrollPosition);
             } else {
                 logger.error("Should not be here, highlight index past total size h: {}", highlightIndex);
             }
@@ -422,7 +449,7 @@ public class ChessActionHandler implements Resettable {
 //    }
 
     public void appendNewMessageToChat(String message) {
-        if(myControl.gameHandler.currentlyGameActive()){
+        if(myControl.gameHandler.isActiveGame()){
             gameInfo.appendText(message + "\n");
         }
         else{
@@ -453,7 +480,6 @@ public class ChessActionHandler implements Resettable {
         }
         // sandbox can have invalid pgn due to custom moves
         if (currentState != MainScreenState.SANDBOX) {
-            highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
 
             String gamePgn = myControl.gameHandler.gameWrapper.getGame().gameToPgn(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
             String[] gamePgnArr = myControl.gameHandler.gameWrapper.getGame().gameToPgnArr(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
@@ -466,6 +492,7 @@ public class ChessActionHandler implements Resettable {
 
             if ((numLabels - 1) != myControl.gameHandler.gameWrapper.getGame().getMaxIndex()) {
                 adjustMovesPlayed(myControl.gameHandler.gameWrapper.getGame().getMaxIndex());
+                highlightMovesPlayedLine(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
             }
         }
         switch (currentState) {
@@ -491,7 +518,7 @@ public class ChessActionHandler implements Resettable {
             case LOCAL -> {
                 // could be a new move pgn, or not
                 if (isNewMoveMade || isInit) {
-                    if (!myControl.gameHandler.gameWrapper.getGame().getGameState().isGameOver() && myControl.gameHandler.gameWrapper.getGame().isVsComputer() && !myControl.gameHandler.gameWrapper.getGame().isWhiteTurn() == myControl.gameHandler.gameWrapper.getGame().isWhiteOriented()) {
+                    if (!myControl.gameHandler.gameWrapper.getGame().getGameState().isGameOver() && myControl.gameHandler.gameWrapper.isVsComputer() && !myControl.gameHandler.gameWrapper.getGame().isWhiteTurn() == myControl.gameHandler.gameWrapper.getGame().isWhiteOriented()) {
 //                        GeneralChessFunctions.printBoardDetailed(myControl.gameHandler.currentGame.getCurrentPosition().board);
                         updateCompThread();
                         myControl.asyncController.computerTask.evaluationRequest(); //todo
@@ -738,7 +765,7 @@ public class ChessActionHandler implements Resettable {
                     // for sandbox we dont care about rules, we just move wherever we want
                     myControl.gameHandler.gameWrapper.makeNewMove(new ChessMove(oldbackendX, oldbackendY, backendX, backendY, ChessConstants.EMPTYINDEX,
                             oldDragPieceIndex, oldIsWhite, false, GeneralChessFunctions.checkIfContains(backendX, backendY, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board, "nut")[0],
-                            ChessConstants.EMPTYINDEX, false, false), false, true,App.userPreferenceManager.isNoAnimate(),false);
+                            ChessConstants.EMPTYINDEX, false, false), false, true,App.userManager.userPreferenceManager.isAnimationsOff(),false);
                     placePiece(selected, newX, newY);
                 } else {
                     // all we have to do is check to see if where the piece has been released is a valid square
@@ -885,7 +912,7 @@ public class ChessActionHandler implements Resettable {
                     clearPrevPiece(true);
                     boolean isEating = GeneralChessFunctions.checkIfContains(clickX, clickY, prevPeiceIsWhite, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board);
                     int eatingIndex = GeneralChessFunctions.getBoardWithPiece(clickX, clickY, !prevPeiceIsWhite, myControl.gameHandler.gameWrapper.getGame().getCurrentPosition().board);
-                    myControl.gameHandler.gameWrapper.makeNewMove(new ChessMove(oldX, oldY, clickX, clickY, ChessConstants.EMPTYINDEX, pieceSelectedIndex, prevPeiceIsWhite, false, isEating, eatingIndex, false, false), false, false,App.userPreferenceManager.isNoAnimate(),false);
+                    myControl.gameHandler.gameWrapper.makeNewMove(new ChessMove(oldX, oldY, clickX, clickY, ChessConstants.EMPTYINDEX, pieceSelectedIndex, prevPeiceIsWhite, false, isEating, eatingIndex, false, false), false, false,App.userManager.userPreferenceManager.isAnimationsOff(),false);
 
                 } else {
                     // adding a piece custom
@@ -909,12 +936,12 @@ public class ChessActionHandler implements Resettable {
         if (promoIndx == ChessConstants.EMPTYINDEX && !isPawnPromo) {
             // not promo
             moveMade = new ChessMove(startX, startY, endX, endY, ChessConstants.EMPTYINDEX, boardIndex, isWhitePiece, isCastle, isEating, eatingIndex, isEnPassant, false);
-            myControl.gameHandler.gameWrapper.makeNewMove(moveMade, isComputerMove, isDragMove,App.userPreferenceManager.isNoAnimate(),false);
+            myControl.gameHandler.gameWrapper.makeNewMove(moveMade, isComputerMove, isDragMove,App.userManager.userPreferenceManager.isAnimationsOff(),false);
 
         } else if (isComputerMove || isPawnPromoFinalized) {
             // computer promoting or player chose their piece to promote
             moveMade = new ChessMove(startX, startY, endX, endY, promoIndx, boardIndex, isWhitePiece, false, isEating, eatingIndex, isEnPassant, false);
-            myControl.gameHandler.gameWrapper.makeNewMove(moveMade, isComputerMove, isDragMove,App.userPreferenceManager.isNoAnimate(),false);
+            myControl.gameHandler.gameWrapper.makeNewMove(moveMade, isComputerMove, isDragMove,App.userManager.userPreferenceManager.isAnimationsOff(),false);
 
         } else {
             pawnPromoToggled = true;
@@ -954,7 +981,7 @@ public class ChessActionHandler implements Resettable {
             }
             case LOCAL -> {
                 // either in 1v1 its the players turn or its whites turn
-                if (myControl.gameHandler.gameWrapper.getGame().isVsComputer()) {
+                if (myControl.gameHandler.gameWrapper.isVsComputer()) {
                     return myControl.gameHandler.gameWrapper.getGame().isWhiteTurn() == myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
                 } else {
                     return true;
@@ -972,7 +999,7 @@ public class ChessActionHandler implements Resettable {
                 } else {
                     // in campaign mode you can conditionaly redo moves
                     // easy = infinite redos, medium = 3 redos, hard  = no redos
-                    switch (myControl.gameHandler.getGameDifficulty()) {
+                    switch (myControl.gameHandler.getCampaignAttempt().difficulty()) {
                         case 1:
                             // unlimited redos
                             return myControl.gameHandler.gameWrapper.getGame().isWhiteTurn();
@@ -1042,9 +1069,9 @@ public class ChessActionHandler implements Resettable {
 //                myControl.chessBoardGUIHandler.addArrow(moveArrow);
 //                String advStr = formatter.format(adv);
 //                Label expectedAdvantage = new Label(advStr);
-//                App.bindingController.bindSmallText(moveNumber, true);
-//                App.bindingController.bindSmallText(moveAsPgn, true);
-//                App.bindingController.bindSmallText(expectedAdvantage, true);
+//                BindingController.bindSmallText(moveNumber, true);
+//                BindingController.bindSmallText(moveAsPgn, true);
+//                BindingController.bindSmallText(expectedAdvantage, true);
 //                moveGui.prefWidthProperty().bind(bestmovesBox.widthProperty());
 //                moveGui.getChildren().addAll(moveNumber, moveAsPgn, expectedAdvantage);
 //                moveGui.setOnMouseClicked(e -> {
@@ -1090,7 +1117,7 @@ public class ChessActionHandler implements Resettable {
                     ChessMove pvMove = pv[i].pvMove();
                     testPos = new ChessPosition(testPos, testState, pvMove);
                     Label movePVPGN = new Label(PgnFunctions.moveToPgn(pvMove, testPos, testState));
-                    App.bindingController.bindSmallText(movePVPGN, Window.Main);
+                    BindingController.bindSmallText(movePVPGN);
                     pvsBox.getChildren().add(movePVPGN);
                     setupPVMouseOver(movePVPGN,pvMove,testPos.clonePosition());
                 }
@@ -1103,12 +1130,12 @@ public class ChessActionHandler implements Resettable {
                 currentlyShownSuggestedArrows.add(moveArrow);
                 String advStr = formatter.format(adv);
                 Label expectedAdvantage = new Label(advStr);
-                App.bindingController.bindSmallText(moveNumber, Window.Main);
-                App.bindingController.bindSmallText(expectedAdvantage, Window.Main);
+                BindingController.bindSmallText(moveNumber);
+                BindingController.bindSmallText(expectedAdvantage);
                 moveGui.prefWidthProperty().bind(bestmovesBox.widthProperty());
                 moveGui.getChildren().addAll(moveNumber, pvsBox, expectedAdvantage);
                 moveGui.setOnMouseClicked(e -> {
-                    myControl.gameHandler.gameWrapper.makeNewMove(move, false, false,App.userPreferenceManager.isNoAnimate(),false);
+                    myControl.gameHandler.gameWrapper.makeNewMove(move, false, false,App.userManager.userPreferenceManager.isAnimationsOff(),false);
                 });
                 int curIndex = myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex();
                 boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
@@ -1167,7 +1194,7 @@ public class ChessActionHandler implements Resettable {
     }
 
     public void timeTick(int timeLeft) {
-        if(myControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
+        if(myControl.gameHandler.isActiveGame() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
             boolean currentIsWhite = myControl.gameHandler.gameWrapper.getGame().isWhiteTurnAtMax();
             boolean isWhiteOriented = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented();
 
@@ -1180,14 +1207,14 @@ public class ChessActionHandler implements Resettable {
     }
 
     public void handleDrawRequest() {
-        if(App.ChessCentralControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
+        if(App.chessCentralControl.gameHandler.isActiveGame() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
             String opponentName = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? myControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() : myControl.gameHandler.gameWrapper.getGame().getBlackPlayerName();
             App.messager.createBooleanPopup(opponentName + " is offering a draw","Accept","Reject",Window.Main,true,2,
                 () ->{
-                    App.sendRequest(INTENT.DRAWACCEPTANCEUPDATE,"true",null,true);
+                App.authenticatedMessageSender.sendAuthenticatedRetryableMessage(new MessageConfig(new Message(ChessGameMessageTypes.ClientRequest.DRAWACCEPTANCEUPDATE, new Payload.BooleanPayload(true))));
                 },
                 () -> {
-                    App.sendRequest(INTENT.DRAWACCEPTANCEUPDATE,"false",null,true);
+                    App.authenticatedMessageSender.sendAuthenticatedRetryableMessage(new MessageConfig(new Message(ChessGameMessageTypes.ClientRequest.DRAWACCEPTANCEUPDATE, new Payload.BooleanPayload(false))));
                 });
         }
         else{

@@ -7,6 +7,7 @@ import chessserver.ChessRepresentations.ChessMove;
 import chessengine.Computation.CustomMultiSearcher;
 import chessengine.Computation.Searcher;
 import chessengine.Enums.MainScreenState;
+import chessserver.ChessRepresentations.PlayerInfo;
 import chessserver.Functions.PgnFunctions;
 import chessengine.Misc.EloEstimator;
 import chessengine.Records.SearchResult;
@@ -18,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Random;
+import java.util.UUID;
 
 public class SimulationTask extends Task<Void> {
 
@@ -111,7 +113,7 @@ public class SimulationTask extends Task<Void> {
         return evaluating;
     }
 
-    public boolean isMakingMove() {
+    public boolean isSimulationUpdating() {
         return isMakingMove;
     }
 
@@ -193,13 +195,15 @@ public class SimulationTask extends Task<Void> {
             // start new game
             // start from random opening as to make the sim different
             String randomOpening = top50Openings[random.nextInt(top50Openings.length)];
-            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), !isPlayer1WhitePlayer ? player1Difficulty.name() : player2Difficulty.name(), isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, !isPlayer1WhitePlayer ? player1Difficulty.eloRange : player2Difficulty.eloRange, ProfilePicture.ROBOT.urlString, ProfilePicture.ROBOT.urlString, true, isPlayer1WhitePlayer);
+            PlayerInfo p1 =  new PlayerInfo(UUID.nameUUIDFromBytes(player1Difficulty.name().getBytes()), player1Difficulty.name(), player1Difficulty.eloRange, ProfilePicture.ROBOT.urlString);
+            PlayerInfo p2 =  new PlayerInfo(UUID.nameUUIDFromBytes(player2Difficulty.name().getBytes()), player2Difficulty.name(), player2Difficulty.eloRange, ProfilePicture.ROBOT.urlString);
+            ChessGame simGame = ChessGame.createSimpleGameWithNameAndPgn(randomOpening, "Sim Game", isPlayer1WhitePlayer ? p1 : p2, isPlayer1WhitePlayer ? p2 : p1, isPlayer1WhitePlayer);
             if (stop) {
                 return;
             }
             Platform.runLater(() -> {
-                control.mainScreenController.setupWithGame(simGame, MainScreenState.SIMULATION ,true);
-                control.gameHandler.gameWrapper.moveToEndOfGame(App.userPreferenceManager.isNoAnimate());
+                control.mainScreenController.setupWithGame(simGame, false, MainScreenState.SIMULATION ,true);
+                control.gameHandler.gameWrapper.moveToEndOfGame(App.userManager.userPreferenceManager.isAnimationsOff());
             });
             currentSimGame = simGame;
             try {
@@ -261,7 +265,7 @@ public class SimulationTask extends Task<Void> {
             } else {
                 // else just change turn as normall
                 boolean isWhiteTurn = isPlayer1Turn == isPlayer1WhitePlayer;
-                boolean animateIfPossible = App.userPreferenceManager.isNoAnimate();
+                boolean animateIfPossible = App.userManager.userPreferenceManager.isAnimationsOff();
                 if (isPlayer1Turn) {
                     logger.debug("Player 1 turn");
                     ChessMove move = getMove(player1Difficulty, currentSimGame, isWhiteTurn);
@@ -301,7 +305,7 @@ public class SimulationTask extends Task<Void> {
             if (moveUci != null) {
                 ChessMove move = PgnFunctions.uciToChessMove(moveUci, game.isWhiteTurn(), game.getCurrentPosition().board);
                 Platform.runLater(() -> {
-                    control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userPreferenceManager.isNoAnimate(),false);
+                    control.gameHandler.gameWrapper.makeNewMove(move, true, false,App.userManager.userPreferenceManager.isAnimationsOff(),false);
                 });
             }
             else{

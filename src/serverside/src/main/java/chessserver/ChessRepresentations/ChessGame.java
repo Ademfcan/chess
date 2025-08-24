@@ -11,69 +11,67 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 public class ChessGame {
     private static final Logger logger = LogManager.getLogger("Chess_Game_Logger");
-
     private final boolean firstTurnDefault = true; // true means player 1 goes first by default
-    // castling etc
-    private ChessGameState gameState;
-    private ChessPosition currentPosition;
+
+    private final UUID gameID = UUID.randomUUID();
+    private final String gameName;
+    // game indexes
+    // puzzles dont begin from start pos
+    private boolean beginFromStart = true;
+
     private int minIndex = -1; // limit the minimum index
     private int maxSoFar = -1; // the max you go by making moves, unlike current index or maxindex, only goes up but only by making moves,
     private int curMoveIndex = -1;
     private int maxIndex = -1;
-    private String blackPlayerName;
-    private String whitePlayerName;
-    private String whitePlayerPfpUrl;
-    private String blackPlayerPfpUrl;
-    private int whiteElo;
-    private int blackElo;
-    private String gameHash;
-    private boolean isWhiteTurn;
-    private boolean isWhiteOriented = true;
-    private boolean isVsComputer;
-    private List<ChessPosition> moves;
-    /**
-     * This is set to false in occasions like a puzzle where you dont begin from start position
-     **/
-    private boolean beginFromStart = true;
-    private String gameName;
 
 
-    private ChessGame() {
-        // empty constructor
-        // public constructors are all static
+    // storing states, like castle rights etc
+    private ChessGameState gameState = new ChessGameState();
+
+    private boolean isWhiteOriented;
+    private boolean isWhiteTurn = firstTurnDefault;
+
+    private ChessPosition currentPosition;
+    private List<ChessPosition> moves = new ArrayList<>();
+
+
+    private PlayerInfo whitePlayer;
+    private PlayerInfo blackPlayer;
+
+
+
+
+    // bare minimum private constructor
+    // public constructors are all static
+    private ChessGame(String gameName, PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented) {
+        this.gameName = gameName;
+
+        this.currentPosition = getPos(getCurMoveIndex());
+
+        this.whitePlayer = whitePlayer;
+        this.blackPlayer = blackPlayer;
+
+        this.isWhiteOriented = isWhiteOriented;
     }
 
     /**
      * Constructor for generating a game from a saved pgn (This version is exclusively used loading games from save
      **/
-    public static ChessGame createGameFromSaveLoad(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented, String gameHash) {
-        ChessGame game = new ChessGame();
-        game.gameState = new ChessGameState();
-        if (pgn.trim().isEmpty()) {
-            game.moves = new ArrayList<>();
-        } else {
+    public static ChessGame createGameFromSaveLoad(String pgn, String gameName, PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented) {
+        ChessGame game = new ChessGame(gameName, whitePlayer, blackPlayer, isWhiteOriented);
+        if (!pgn.trim().isEmpty()) {
             String[] splitPgn = PgnFunctions.splitPgn(pgn);
             String moveText = splitPgn[1];
             moveText = moveText.replaceAll("\\n", " ");
             game.moves = game.parseMoveText(moveText);
         }
-        game.isWhiteOriented = isWhiteOriented;
-        game.isVsComputer = isVsComputer;
-        game.curMoveIndex = -1;
+
         game.maxIndex = game.moves.size() - 1;
         game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.gameName = gameName;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = isVsComputer ? "Computer" : blackPlayerName;
-        game.whiteElo = whiteElo;
-        game.blackElo = blackElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpUrl;
-        game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = gameHash;
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
 
         return game;
@@ -82,202 +80,46 @@ public class ChessGame {
     /**
      * This Constructor is only part of creating a online game. The latter half is created after a second client is connected
      **/
-    public static ChessGame getOnlinePreInit(String gameType, String whitePlayerName, int whiteElo, String whitePlayerPfpUrl) {
-        ChessGame game = new ChessGame();
-        game.curMoveIndex = -1;
-        game.maxIndex = -1;
-        game.moves = new ArrayList<>();
-        game.gameName = "Online " + gameType;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.whitePlayerName = whitePlayerName;
-        game.whiteElo = whiteElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpUrl;
-        game.blackPlayerName = "";
-        game.blackElo = 0;
-        game.gameState = new ChessGameState();
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        return game;
+    public static ChessGame getOnlinePreInit(String gameType, PlayerInfo currentPlayerInfo) {
+        return new ChessGame("Online " + gameType, currentPlayerInfo, null, true);
     }
 
     /**
      * This constructor creates a simple game with a name provided as a string
      **/
 
-    public static ChessGame createSimpleGameWithName(String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
-        ChessGame game = new ChessGame();
-        game.moves = new ArrayList<>();
-        game.gameState = new ChessGameState();
-        game.curMoveIndex = -1;
-        game.maxIndex = -1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.isVsComputer = isVsComputer;
-        game.isWhiteOriented = isWhiteOriented;
-        game.gameName = gameName;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = blackPlayerName;
-        game.whiteElo = whiteElo;
-        game.blackElo = blackElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpUrl;
-        game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-
-        return game;
-
+    public static ChessGame createSimpleGameWithName(String gameName, PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented) {
+        return new ChessGame(gameName, whitePlayer, blackPlayer, isWhiteOriented);
     }
 
     /**
      * This constructor creates a simple game with no name provided. Instead, the name is {Player1Name} + ","  + {Player2Name}
      **/
 
-    public static ChessGame createSimpleGame(String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
-        ChessGame game = new ChessGame();
-        game.moves = new ArrayList<>();
-        game.gameState = new ChessGameState();
-        game.curMoveIndex = -1;
-        game.maxIndex = -1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.isVsComputer = isVsComputer;
-        game.isWhiteOriented = isWhiteOriented;
-        game.gameName = whitePlayerName + " vs " + blackPlayerName;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = blackPlayerName;
-        game.whiteElo = whiteElo;
-        game.blackElo = blackElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpUrl;
-        game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-
-        return game;
-
+    public static ChessGame createSimpleGame(PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented) {
+        return new ChessGame(whitePlayer.playerName() + " vs " + blackPlayer.playerName(), whitePlayer, blackPlayer, isWhiteOriented);
     }
 
     /**
      * This constructor creates a simple game with a name and pgn.
      **/
 
-    public static ChessGame createSimpleGameWithNameAndPgn(String pgn, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpurl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
-        ChessGame game = new ChessGame();
-        game.gameState = new ChessGameState();
-        if (pgn.trim().isEmpty()) {
-            game.moves = new ArrayList<>();
-        } else {
-            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-            String moveText = splitPgn[1];
-            moveText = moveText.replaceAll("\\n", " ");
-            game.moves = game.parseMoveText(moveText);
-        }
-        game.curMoveIndex = -1;
-        game.maxIndex = game.moves.size() - 1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.isVsComputer = isVsComputer;
-        game.isWhiteOriented = isWhiteOriented;
-        game.gameName = gameName;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = blackPlayerName;
-        game.whiteElo = whiteElo;
-        game.blackElo = blackElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpurl;
-        game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.setGameStateToAbsIndex(game.getCurMoveIndex());
-
-        return game;
-
-    }
-
-    /**
-     * This constructor creates a game from pgn and simple things known about the player (Needs to be changed as true pgn is is only represented as a string. Right now it is only parsing pgn as movetext
-     **/
-    public static ChessGame gameFromPgnLimitedInfo(String pgn, String gameName, String whitePlayerName, int whiteElo, String whitePfpUrl, boolean isVsComputer, boolean isWhiteOriented) {
-        ChessGame game = new ChessGame();
-        game.gameState = new ChessGameState();
-        if (pgn.trim().isEmpty()) {
-            game.moves = new ArrayList<>();
-        } else {
-            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-            String moveText = splitPgn[1];
-            moveText = moveText.replaceAll("\\n", " ");
-            game.moves = game.parseMoveText(moveText);
-        }
-        game.isVsComputer = isVsComputer;
-        game.isWhiteOriented = isWhiteOriented;
-        game.curMoveIndex = -1;
-        game.maxIndex = game.moves.size() - 1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.gameName = gameName;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = isVsComputer ? "Computer" : "Player 2";
-        game.whiteElo = whiteElo;
-        game.blackElo = 0;
-        game.whitePlayerPfpUrl = whitePfpUrl;
-        game.blackPlayerPfpUrl = isVsComputer ? ProfilePicture.ROBOT.urlString : whitePfpUrl;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.setGameStateToAbsIndex(game.getCurMoveIndex());
-        return game;
-
+    public static ChessGame createSimpleGameWithNameAndPgn(String pgn, String gameName, PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented) {
+        return createGameFromSaveLoad(pgn, gameName, whitePlayer, blackPlayer, isWhiteOriented);
     }
 
     /**
      * This method is pretty much exclusively called from tests. All vars with user information/Graphical Features are not expected to be used
      **/
     public static ChessGame createTestGame(String pgn) {
-        ChessGame game = new ChessGame();
-        game.gameState = new ChessGameState();
-        if (pgn.trim().isEmpty()) {
-            game.moves = new ArrayList<>();
-        } else {
-            String[] splitPgn = PgnFunctions.splitPgn(pgn);
-            String moveText = splitPgn[1];
-            moveText = moveText.replaceAll("\\n", " ");
-            game.moves = game.parseMoveText(moveText);
-        }
-        game.isVsComputer = false;
-        game.isWhiteOriented = true;
-        game.curMoveIndex = -1;
-        game.maxIndex = game.moves.size() - 1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.gameName = "Test Game";
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.whitePlayerName = "Test Player";
-        game.blackPlayerName = "Test Player";
-        game.whiteElo = 0;
-        game.blackElo = 0;
-        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.setGameStateToAbsIndex(game.getCurMoveIndex());
-
-        return game;
+        return createSimpleGameWithNameAndPgn(pgn, "Test", PlayerInfo.defaultInfo, PlayerInfo.defaultInfo, true);
     }
 
     /**
      * This method is pretty much exclusively called from tests. All vars with user information/Graphical Features are not expected to be used
      **/
     public static ChessGame createServerFollowerGame() {
-        ChessGame game = new ChessGame();
-        game.gameState = new ChessGameState();
-        game.moves = new ArrayList<>();
-        game.isVsComputer = false;
-        game.isWhiteOriented = true;
-        game.curMoveIndex = -1;
-        game.maxIndex = -1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.gameName = "Server follower game";
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.whitePlayerName = "P1";
-        game.blackPlayerName = "P2";
-        game.whiteElo = 0;
-        game.blackElo = 0;
-        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.setGameStateToAbsIndex(game.getCurMoveIndex());
-
-        return game;
+        return createSimpleGameWithName("Server follower game", PlayerInfo.defaultInfo, PlayerInfo.defaultInfo, true);
     }
 
     /**
@@ -285,34 +127,18 @@ public class ChessGame {
      */
 
     public static ChessGame createEmptyExplorer() {
-        ChessGame game = new ChessGame();
-        game.isVsComputer = false;
-        game.isWhiteOriented = true;
-        game.gameState = new ChessGameState();
-        game.moves = new ArrayList<>();
-        game.curMoveIndex = -1;
-        game.maxIndex = -1;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.gameName = "Explorer Game";
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.whitePlayerName = "Explorer";
-        game.blackPlayerName = "Explorer";
-        game.whiteElo = 0;
-        game.blackElo = 0;
-        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-
-        return game;
+        return createSimpleGameWithName("Explorer", PlayerInfo.defaultInfo, PlayerInfo.defaultInfo, true);
     }
 
     public static ChessGame getPuzzleGame(String puzzleFen, String[] uciChessMoves) {
-        ChessGame game = new ChessGame();
+
         FullChessPosition positionInfo = PgnFunctions.FenToPosition(puzzleFen);
+
+        ChessGame game = new ChessGame("Puzzle Game", PlayerInfo.defaultInfo, PlayerInfo.defaultInfo, positionInfo.isWhiteTurn());
         game.gameState = positionInfo.gameState();
-        game.moves = new ArrayList<>();
         game.currentPosition = positionInfo.position();
         game.isWhiteTurn = positionInfo.isWhiteTurn();
+
         // start adding moves
         for (String uciMove : uciChessMoves) {
             ChessPosition gamePosition = new ChessPosition(game.currentPosition, game.gameState, PgnFunctions.uciToChessMove(uciMove, game.isWhiteTurn, game.currentPosition.board));
@@ -321,29 +147,22 @@ public class ChessGame {
             game.currentPosition = gamePosition;
             game.isWhiteTurn = !game.isWhiteTurn;
         }
+
         // now set the game back to its start position
         game.currentPosition = game.moves.get(0);
         // move the gamestate back to its start position
-        for (int i = game.moves.size() - 1; i >= 1; i--) {
-            game.gameState.moveBackward(game.moves.get(i));
-            // also handle iswhiteturn in same loop
-            game.isWhiteTurn = !game.isWhiteTurn;
-        }
+        game.setGameStateToAbsIndex(0);
+
+        game.isWhiteTurn = positionInfo.isWhiteTurn();
+
+
+
         game.minIndex = 0; // safety to avoid -1 index
         game.maxSoFar = 0; // safety to avoid -1 index
         game.curMoveIndex = 0;
         game.maxIndex = game.moves.size() - 1;
         game.beginFromStart = false; // flag to indicate game is not continous
-        game.isWhiteOriented = game.isWhiteTurn;
-        game.isVsComputer = false;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
-        game.gameName = "Puzzle Game";
-        game.whitePlayerName = "";
-        game.blackPlayerName = "";
-        game.whiteElo = -1;
-        game.blackElo = -1;
-        game.whitePlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
-        game.blackPlayerPfpUrl = ProfilePicture.DEFAULT.urlString;
+
         return game;
 
     }
@@ -351,26 +170,13 @@ public class ChessGame {
     /**
      * Method used exclusively for cloning chessgame instances Note: The game created is set to the start of the game
      **/
-    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessGameState gameStates, String gameName, String whitePlayerName, String blackPlayerName, int whiteElo, int blackElo, String whitePlayerPfpUrl, String blackPlayerPfpUrl, boolean isVsComputer, boolean isWhiteOriented, int maxIndex) {
-        ChessGame game = new ChessGame();
+    private static ChessGame getClonedGame(List<ChessPosition> moves, ChessGameState gameStates, String gameName, PlayerInfo whitePlayer, PlayerInfo blackPlayer, boolean isWhiteOriented, int maxIndex) {
+        ChessGame game = new ChessGame(gameName, whitePlayer, blackPlayer, isWhiteOriented);
         game.moves = moves;
         game.gameState = gameStates;
-        game.curMoveIndex = -1;
         game.maxIndex = maxIndex;
-        game.currentPosition = game.getPos(game.getCurMoveIndex());
-        game.isVsComputer = isVsComputer;
-        game.isWhiteOriented = isWhiteOriented;
-        game.gameName = gameName;
-        game.isWhiteTurn = game.firstTurnDefault;
-        game.whitePlayerName = whitePlayerName;
-        game.blackPlayerName = blackPlayerName;
-        game.whiteElo = whiteElo;
-        game.blackElo = blackElo;
-        game.whitePlayerPfpUrl = whitePlayerPfpUrl;
-        game.blackPlayerPfpUrl = blackPlayerPfpUrl;
-        game.gameHash = String.valueOf(System.identityHashCode(game));
         game.setGameStateToAbsIndex(game.getCurMoveIndex());
-
+        game.currentPosition = game.getPos(game.getCurMoveIndex());
         return game;
 
     }
@@ -379,49 +185,48 @@ public class ChessGame {
         return isWhiteOriented;
     }
 
-    public boolean isVsComputer() {
-        return isVsComputer;
-    }
-
-
     public String getGameName() {
         return gameName;
     }
 
+    public PlayerInfo getWhitePlayer() {
+        return whitePlayer;
+    }
+
+    public PlayerInfo getBlackPlayer() {
+        return blackPlayer;
+    }
+
     public String getWhitePlayerName() {
-        return whitePlayerName;
+        return whitePlayer.playerName();
     }
 
     public String getBlackPlayerName() {
-        return blackPlayerName;
+        return blackPlayer.playerName();
     }
 
     public int getWhiteElo() {
-        return whiteElo;
+        return whitePlayer.playerElo();
     }
 
     public int getBlackElo() {
-        return blackElo;
+        return blackPlayer.playerElo();
     }
 
     public String getWhitePlayerPfpUrl() {
-        return whitePlayerPfpUrl;
+        return whitePlayer.playerPfpUrl();
     }
 
     public String getBlackPlayerPfpUrl() {
-        return blackPlayerPfpUrl;
+        return blackPlayer.playerPfpUrl();
     }
 
-    public String getGameHash() {
-        return gameHash;
+    public UUID getGameID() {
+        return gameID;
     }
 
     public boolean isWhiteTurn() {
         return isWhiteTurn;
-    }
-
-    public void setWhiteTurn(boolean whiteTurn) {
-        isWhiteTurn = whiteTurn;
     }
 
     public boolean isWhiteTurnAtMax() {
@@ -436,7 +241,7 @@ public class ChessGame {
 
     public ChessGame cloneGame() {
         List<ChessPosition> clonedMoves = new ArrayList<>(moves.stream().map(ChessPosition::clonePosition).toList());
-        return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(), gameName, whitePlayerName, blackPlayerName, whiteElo, blackElo, whitePlayerPfpUrl, blackPlayerPfpUrl, isVsComputer, isWhiteOriented, maxIndex);
+        return ChessGame.getClonedGame(clonedMoves, gameState.cloneState(), gameName, whitePlayer, blackPlayer, isWhiteOriented, maxIndex);
     }
 
 
@@ -928,21 +733,13 @@ public class ChessGame {
         return gameState;
     }
 
-    public void updateInfoFromPartialInit(String onlinePlayerName, int onlineElo, String onlinePfpUrl, boolean isClientWhite) {
+    public void updateInfoFromPartialInit(PlayerInfo onlinePlayerInfo, boolean isClientWhite) {
         // white fields used as temporary storage until online match was found
-        String tempClientName = whitePlayerName;
-        int tempClientElo = whiteElo;
-        String tempClientPfpUrl = whitePlayerPfpUrl;
+        PlayerInfo tempClientName = whitePlayer;
 
-        whitePlayerName = isClientWhite ? tempClientName : onlinePlayerName;
-        whiteElo = isClientWhite ? tempClientElo : onlineElo;
-        whitePlayerPfpUrl = isClientWhite ? tempClientPfpUrl : onlinePfpUrl;
+        whitePlayer = isClientWhite ? tempClientName : onlinePlayerInfo;
+        blackPlayer = isClientWhite ? onlinePlayerInfo : tempClientName;
 
-        blackPlayerName = isClientWhite ? onlinePlayerName : tempClientName;
-        blackElo = isClientWhite ? onlineElo : tempClientElo;
-        blackPlayerPfpUrl = isClientWhite ? onlinePfpUrl : tempClientPfpUrl;
-
-        this.isWhiteTurn = true;
         this.isWhiteOriented = isClientWhite;
 
     }
@@ -961,4 +758,5 @@ public class ChessGame {
     public boolean isAtEndOfGame() {
         return curMoveIndex == maxIndex;
     }
+    public boolean isEmpty(){return minIndex == maxIndex;}
 }

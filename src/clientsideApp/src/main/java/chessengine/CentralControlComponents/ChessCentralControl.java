@@ -5,11 +5,17 @@ import chessengine.Computation.MultiSearcher;
 import chessengine.Enums.MainScreenState;
 import chessengine.Enums.MoveRanking;
 import chessengine.Enums.Window;
-import chessengine.Graphics.MainScreenController;
+import chessengine.Graphics.UserConfigurable;
+import chessengine.MainP.MainScreenController;
+import chessengine.TriggerRegistry;
+import chessengine.Triggers.Closable;
+import chessengine.Triggers.Loginable;
 import chessserver.Misc.ChessConstants;
 import chessengine.Records.CachedPv;
 import chessengine.Records.MultiResult;
 import chessengine.Records.SearchResult;
+import chessserver.User.UserPreferences;
+import chessserver.User.UserWGames;
 import javafx.application.Platform;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -22,12 +28,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-
-public class ChessCentralControl implements Resettable{
+public class ChessCentralControl implements ResettableGame, Closable, Loginable, UserConfigurable {
     private static final Logger logger = LogManager.getLogger("Chess_Central_Control_Logger");
     private final MultiSearcher searcher = new MultiSearcher();
     private final Set<Integer> currentlySearching = new HashSet<>();
-//    public ChessboardMoveMaker chessboardMoveMaker;
     public MainScreenController mainScreenController;
     public ChessBoardGUIHandler chessBoardGUIHandler;
     public PuzzleGuiManager puzzleGuiManager;
@@ -38,8 +42,7 @@ public class ChessCentralControl implements Resettable{
     private boolean isInit = false;
 
     public ChessCentralControl() {
-
-
+        TriggerRegistry.addTriggerable(this);
     }
 
     public boolean isInit() {
@@ -50,12 +53,12 @@ public class ChessCentralControl implements Resettable{
     public void init(MainScreenController mainScreenController, Pane chessPieceBoard, HBox eatenWhites,
                      HBox eatenBlacks, ImageView[][] piecesAtLocations, TextArea gameInfo, Pane ArrowBoard,
                      VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextField chatInput,
-                     Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, VBox[][] bgPanes,
+                     Button sendMessageButton, HBox emojiContainer, Button resignButton, Button offerDrawButton, VBox[][] bgPanes,
                      VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessBgBoard, GridPane chessHighlightBoard,
-                     HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel,
-                     Button playPauseButton,Slider timeSlider, Label p1moveClk,
+                     VBox movesPlayedBox, ScrollPane movesPlayedScrollpane, Label lineLabel,
+                     Button playPauseButton, Slider timeSlider, Label p1moveClk,
                      Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector,
-                     TextArea currentGamePgn,Slider puzzleEloSlider,Label puzzleElo,Button hintButton,VBox puzzleTagsBox) {
+                     TextArea currentGamePgn, Slider puzzleEloSlider, Label puzzleElo, Button hintButton, VBox puzzleTagsBox) {
         this.mainScreenController = mainScreenController;
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(this, chessPieceBoard, eatenWhites, eatenBlacks, piecesAtLocations, ArrowBoard, bgPanes, moveBoxes, highlightPanes, chessHighlightBoard, chessBgBoard, localInfo);
         this.gameHandler = new ChessGameHandler(this);
@@ -163,19 +166,21 @@ public class ChessCentralControl implements Resettable{
     }
 
     public boolean isInValidActiveGame(){
-        return !App.isStartScreen && mainScreenController.currentState != MainScreenState.SIMULATION && gameHandler.currentlyGameActive() && !gameHandler.gameWrapper.getGame().getGameState().isGameOver();
+        return !App.isStartScreen && mainScreenController.currentState != MainScreenState.SIMULATION && gameHandler.isActiveGame() && !gameHandler.gameWrapper.getGame().getGameState().isGameOver();
     }
 
 
     public void tryPreloadCentralEvaluations() {
-        if(gameHandler.currentlyGameActive()){
+        if(gameHandler.isActiveGame()){
             for(int i = 0;i<gameHandler.gameWrapper.getGame().getMaxIndex();i++){
                 addSearchRequest(i);
             }
 
         }
     }
+
     /**This reset is called every new game**/
+    @Override
     public void fullReset(boolean isWhiteOriented){
         chessBoardGUIHandler.fullReset(isWhiteOriented);
         chessActionHandler.fullReset(isWhiteOriented);
@@ -186,12 +191,54 @@ public class ChessCentralControl implements Resettable{
         System.out.println("Full Reset");
 
     }
+
     /**This reset is called every move**/
+    @Override
     public void partialReset(boolean isWhiteOriented) {
         chessBoardGUIHandler.partialReset(isWhiteOriented);
         chessActionHandler.partialReset(isWhiteOriented);
         puzzleGuiManager.partialReset(isWhiteOriented);
         mainScreenController.partialReset(isWhiteOriented);
         System.out.println("Partial Reset");
+    }
+
+    public void adjustToUserPreferences(UserPreferences preferences) {
+        if(isInit()){
+            asyncController.setComputerDifficulty(preferences.getComputerMoveDiff());
+            chessBoardGUIHandler.changeChessBg(preferences.getChessboardTheme().toString());
+            // todo pieces theme
+
+        }
+        else {
+            throw new IllegalStateException("Called adjustToUserPreferences before chesscentralcontrol isInit()");
+        }
+    }
+
+    @Override
+    public void onClose() {
+
+        System.out.println("a");
+        asyncController.killAll();
+
+        if (MainScreenState.isSaveableState(mainScreenController.currentState) && gameHandler.shouldSaveGame()){
+            App.saveGame(gameHandler.gameWrapper.getGame(), gameHandler.gameWrapper.isWebGame());
+        }
+
+        System.out.println("ChessCentralControl closed");
+    }
+
+    @Override
+    public void onLogin() {
+        fullReset(true);
+    }
+
+    @Override
+    public void onLogout() {
+        fullReset(true);
+    }
+
+    @Override
+    public void updateWithUser(UserWGames userWGames) {
+        adjustToUserPreferences(userWGames.user().preferences());
     }
 }
