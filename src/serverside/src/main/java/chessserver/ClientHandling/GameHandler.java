@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class GameHandler {
-    public final static ScheduledExecutorService timeTickExecutor = Executors.newScheduledThreadPool(4);
+    public final static ScheduledExecutorService timeTickExecutor = Executors.newSingleThreadScheduledExecutor();
 
 
     public static ScheduledFuture<?> sceduleNewTimeTick(Runnable timeTick){

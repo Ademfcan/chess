@@ -2,16 +2,23 @@ package chessserver.User;
 
 import chessserver.ServerChessGame;
 
-import javax.websocket.Session;
+import jakarta.websocket.Session;
+
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-public class BackendClient extends Client {
-    private ServerChessGame currentGame;
-    private Session clientSession;
+public class BackendClient implements Comparable<BackendClient>{
+    private ServerChessGame currentGame = null;
+    private final UUID clientUUID;
+    private final Session clientSession;
+    private final UserInfo clientInfo;
 
-    public BackendClient(UserInfo info) {
-        super(info);
-        this.currentGame = null;
+
+    public BackendClient(UUID clientUUID, Session clientSession, UserInfo clientInfo) {
+        this.clientUUID = clientUUID;
+        this.clientSession = clientSession;
+        this.clientInfo = clientInfo;
     }
 
     public boolean isInGame() {
@@ -33,23 +40,20 @@ public class BackendClient extends Client {
     public Session getClientSession() {
         return clientSession;
     }
+    public UserInfo getClientInfo() {return clientInfo;}
 
-    public void setClientSession(Session clientSession) {
-        this.clientSession = clientSession;
-
-    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BackendClient client = (BackendClient) o;
-        return Objects.equals(this.clientSession, client.clientSession);
+        BackendClient other = (BackendClient) o;
+        return Objects.equals(this.clientUUID, other.clientUUID);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientSession);
+        return Objects.hash(clientUUID);
     }
 
     public void handleDrawRequest() {
@@ -58,5 +62,10 @@ public class BackendClient extends Client {
 
     public void handleDrawUpdate(boolean isDraw) {
         currentGame.handleDrawUpdate(this,isDraw);
+    }
+
+    @Override
+    public int compareTo(BackendClient o) {
+        return this.clientInfo.getUserelo() - o.clientInfo.getUserelo();
     }
 }

@@ -24,7 +24,7 @@ public enum ProfilePicture {
     SPORTSMAN("PlayerIcons/sportsman.png"),
     STEWARDESS("PlayerIcons/stewardess.png"),
     TEACHER("PlayerIcons/teacher.png");
-    public String urlString;
+    public final String urlString;
 
     ProfilePicture(String urlString) {
         this.urlString = urlString;
