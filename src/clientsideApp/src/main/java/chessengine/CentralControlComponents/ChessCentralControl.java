@@ -53,13 +53,14 @@ public class ChessCentralControl implements Resettable{
                      Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, VBox[][] bgPanes,
                      VBox[][] moveBoxes, StackPane[][] highlightPanes, GridPane chessBgBoard, GridPane chessHighlightBoard,
                      HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel,
-                     Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk,
+                     Button playPauseButton,Slider timeSlider, Label p1moveClk,
                      Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector,
                      TextArea currentGamePgn,Slider puzzleEloSlider,Label puzzleElo,Button hintButton,VBox puzzleTagsBox) {
         this.mainScreenController = mainScreenController;
         this.chessBoardGUIHandler = new ChessBoardGUIHandler(this, chessPieceBoard, eatenWhites, eatenBlacks, piecesAtLocations, ArrowBoard, bgPanes, moveBoxes, highlightPanes, chessHighlightBoard, chessBgBoard, localInfo);
         this.gameHandler = new ChessGameHandler(this);
-        this.chessActionHandler = new ChessActionHandler(this, bestmovesBox, localInfo, sandboxPieces, gameInfo, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, movesPlayedBox,movesPlayedScrollpane, lineLabel, playPauseButton,timeSlider, p1Indicator, p2Indicator, p1moveClk, p2moveClk, player1SimSelector, player2SimSelector, currentGamePgn);
+        this.chessActionHandler = new ChessActionHandler(this, bestmovesBox, localInfo, sandboxPieces, gameInfo, chatInput, sendMessageButton,emojiContainer,resignButton,offerDrawButton, movesPlayedBox,movesPlayedScrollpane,
+                lineLabel, playPauseButton,timeSlider, p1moveClk, p2moveClk, player1SimSelector, player2SimSelector, currentGamePgn);
         this.asyncController = new ThreadController(this);
         this.puzzleGuiManager = new PuzzleGuiManager(this,App.puzzleManager,puzzleEloSlider,puzzleElo,hintButton,puzzleTagsBox);
         this.cachedResults = new HashMap<>();

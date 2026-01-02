@@ -2,6 +2,8 @@ package chessengine.Start;
 
 import chessengine.App;
 import chessengine.Enums.Window;
+import chessengine.Graphics.AppWindow;
+import chessengine.Graphics.CommonIcons;
 import chessserver.ChessRepresentations.ChessGame;
 import chessengine.Crypto.CryptoUtils;
 import chessengine.Crypto.KeyManager;
@@ -20,9 +22,11 @@ import chessserver.Communication.DatabaseEntry;
 import chessserver.User.UserPreferences;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -34,6 +38,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.kordamp.ikonli.javafx.FontIcon;
 import org.nd4j.shade.jackson.core.JsonProcessingException;
 
 import java.net.URL;
@@ -43,116 +48,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class StartScreenController implements Initializable {
+public class StartScreenController implements Initializable, AppWindow {
+    // root node
+    @FXML
+    StackPane fullScreen;
 
-    private final Logger logger = LogManager.getLogger("Start_Screen_Controller");
-    private final Image trashIcon = new Image("/StartScreenIcons/trash.png");
-    private final Image computerIconUrl = new Image("/StartScreenIcons/robot.png");
-    private final Image openIcon = new Image("/StartScreenIcons/openGame.png");
-    public CampaignManager campaignManager;
+    public ReadOnlyDoubleProperty getRootWidth() {
+        return fullScreen.widthProperty();
+    }
+    public ReadOnlyDoubleProperty getRootHeight() {
+        return fullScreen.heightProperty();
+    }
+    public Region getRoot(){
+        return fullScreen;
+    }
+    // main content wrapper
     @FXML
-    public GridPane content;
-    @FXML
-    public Pane startRef;
-    @FXML
-    public Button backgroundAudioButton;
-    @FXML
-    public Label poolCount;
-    @FXML
-    public ChoiceBox<String> themeSelection;
-    @FXML
-    public ComboBox<String> bgColorSelector;
-    @FXML
-    public ComboBox<String> pieceSelector;
-    @FXML
-    public Button audioMuteBGButton;
-    @FXML
-    public Slider audioSliderBG;
-    @FXML
-    public Button audioMuteEffButton;
-    // user settings
-    @FXML
-    public Slider audioSliderEff;
-    @FXML
-    public ComboBox<String> evalOptions;
-    @FXML
-    public ComboBox<String> nMovesOptions;
-    @FXML
-    public ComboBox<String> computerOptions;
-    @FXML
-    StackPane fullscreen;
+    GridPane content;
+
+    // top left profile container
     @FXML
     HBox profileBox;
     @FXML
-    VBox rightSidePanel;
+    ImageView profileButton;
     @FXML
-    HBox bottomSpacer;
+    Label nameProfileLabel;
     @FXML
-    Button vsPlayer;
+    Label eloProfileLabel;
+
+    // top right spacer with old games label
     @FXML
-    Button vsComputer;
-    @FXML
-    ToggleButton playAsWhite;
-    // main area screens
-    @FXML
-    VBox campaignScreen;
-    @FXML
-    HBox pgnSelectionScreen;
-    @FXML
-    HBox mainSelectionScreen;
-    @FXML
-    HBox multiplayerSelectionScreen;
-    @FXML
-    HBox userSettingScreen;
-    @FXML
-    HBox generalSettingsScreen;
-    @FXML
-    HBox extraModesScreen;
-    @FXML
-    Button enterSandboxButton;
-    @FXML
-    Button enterSimulationButton;
-    @FXML
-    Button enterExplorerButton;
-    @FXML
-    Button enterPuzzleButton;
-    // campaign screen
-    @FXML
-    StackPane levelContainer;
-    @FXML
-    Pane levelContainerPath;
-    // pgn screen
-    @FXML
-    Pane levelContainerElements;
-    @FXML
-    ScrollPane campaignScroller;
-    @FXML
-    StackPane campaignStack;
-    @FXML
-    ImageView campaignBackground;
-    @FXML
-    ImageView campaignBackground2;
-    @FXML
-    TextArea pgnTextArea;
-    @FXML
-    Button pgnLoadGame;
-    @FXML
-    RadioButton pvpRadioButton;
-    @FXML
-    RadioButton computerRadioButton;
+    HBox topRightSpacer;
     @FXML
     Label oldGamesLabel;
+
+    // mid right old games panel
+    @FXML
+    VBox rightSidePanel;
     @FXML
     ScrollPane oldGamesPanel;
     @FXML
-    public VBox oldGamesPanelContent;
-    @FXML
-    VBox mainAreaTopSpacer;
-    @FXML
-    VBox mainAreaReference;
-    @FXML
-    StackPane mainArea;
-    // side panel stuff
+    VBox oldGamesPanelContent;
+
+    // mid left side navigation buttons
     @FXML
     VBox sideButtons;
     @FXML
@@ -160,90 +98,96 @@ public class StartScreenController implements Initializable {
     @FXML
     Button localButton;
     @FXML
-    Button pgnButton;
-    @FXML
     Button multiplayerButton;
+    @FXML
+    Button pgnButton;
     @FXML
     Button settingsButton;
     @FXML
+    Button backgroundAudioButton;
+    @FXML
     Button extraModesButton;
-    // multiplayer options
+
+    // center main content, with a bunch of stackable screens
+    @FXML
+    StackPane mainArea;
+
+    // "main" screen
+    @FXML
+    HBox mainSelectionScreen;
+    @FXML
+    Label mainTitle;
+    @FXML
+    Button vsPlayer;
+    @FXML
+    Button vsComputer;
+    @FXML
+    ToggleButton playAsWhite;
+
+
+    // campaign screen
+    @FXML
+    VBox campaignScreen;
+    @FXML
+    StackPane campaignStack;
+    @FXML
+    ImageView campaignBackground;
+    @FXML
+    ImageView campaignBackground2;
+    @FXML
+    ScrollPane campaignScroller;
+    @FXML
+    StackPane levelContainer;
+    @FXML
+    Pane levelContainerElements;
+    @FXML
+    Pane levelContainerPath;
+
+    // pgn screen
+    @FXML
+    VBox pgnSelectionScreen;
+    @FXML
+    Label pgnTitle;
+    @FXML
+    TextArea pgnTextArea;
+    @FXML
+    RadioButton pvpRadioButton;
+    @FXML
+    RadioButton computerRadioButton;
+    @FXML
+    Button pgnLoadGame;
+
+    // multiplayer
+    @FXML
+    StackPane multiplayerSelectionScreen;
+    @FXML
+    VBox connectedScreen;
+    @FXML
+    Label multiplayerTitle;
+    @FXML
+    VBox multiplayerInfo;
+    @FXML
+    Label poolCount;
     @FXML
     ComboBox<String> gameTypes;
     @FXML
     Button multiplayerStart;
     @FXML
+    VBox disconnectedScreen;
+    @FXML
     Button reconnectButton;
-    // general settings
-    @FXML
-    ScrollPane generalSettingsScrollpane;
-    @FXML
-    VBox generalSettingsVbox;
-    @FXML
-    Label themeLabel;
-    @FXML
-    Label bgLabel;
-    @FXML
-    Label pieceLabel;
-    @FXML
-    Label audioMuteBG;
-    @FXML
-    Label audioLabelBG;
-    @FXML
-    Label audioMuteEff;
-    @FXML
-    Label audioLabelEff;
-    @FXML
-    Label evalLabel;
-    @FXML
-    Label nMovesLabel;
-    @FXML
-    Label computerLabel;
 
-
-
+    // profile screen w 3 pages
+    @FXML
+    HBox profileScreen;
     @FXML
     StackPane userSettingsStack;
-    @FXML
-    HBox topUserInfoBox;
-    @FXML
-    VBox topUserInfoLeftBox;
-    @FXML
-    VBox topUserInfoRightBox;
 
-    @FXML
-    HBox bottomUserInfoBox;
-    @FXML
-    StackPane bottomInfoNav;
-    // login page
-    @FXML
-    HBox backButtonBox;
-    @FXML
-    Hyperlink userInfoBackButton;
-
-    @FXML
-    VBox loginPage;
-    @FXML
-    Label loginTitle;
-    @FXML
-    Label nameLabel;
-    @FXML
-    TextField nameInput;
-    @FXML
-    Label eloLabel;
-    @FXML
-    TextField passwordInput;
-    @FXML
-    HBox hyperlinkBox;
-    @FXML
-    Hyperlink signUpInsteadButton;
-    @FXML
-    Hyperlink backToUserInfo;
-
-    // sign up page
-
+    // account creation
     @FXML
     VBox accountCreationPage;
+    @FXML
+    Label createAccountTitle;
     @FXML
     Label createUsernameLabel;
     @FXML
@@ -259,52 +203,59 @@ public class StartScreenController implements Initializable {
     @FXML
     Hyperlink backToUserInfo1;
 
-
-    // profile
+    // login page
     @FXML
-    ImageView profileButton;
+    VBox loginPage;
     @FXML
-    Label nameProfileLabel;
+    Label loginTitle;
     @FXML
-    Label eloProfileLabel;
+    Label nameLabel;
+    @FXML
+    TextField nameInput;
+    @FXML
+    Label passwordLabel;
+    @FXML
+    TextField passwordInput;
     @FXML
     Button loginButton;
 
     @FXML
+    Hyperlink signUpInsteadButton;
+    @FXML
+    Hyperlink backToUserInfo;
+
+    // main profile page
+    @FXML
     VBox userInfoPage;
+    @FXML
+    HBox topUserInfoBox;
     @FXML
     ImageView userInfoPfp;
     @FXML
-    Label userInfoUserName;
+    VBox topUserInfoRightBox;
+
     @FXML
-    VBox userInfoUsernameSpacer;
+    HBox userOldGamesLabelContainer;
+    @FXML
+    Label userInfoUserName;
     @FXML
     Label userInfoUUID;
     @FXML
     Label userInfoUserElo;
     @FXML
     Label userInfoRank;
-    @FXML
-    Hyperlink SignUpPage;
-    @FXML
-    Hyperlink LoginPage;
-
 
     @FXML
     VBox userOldGamesContainer;
     @FXML
-    ScrollPane userOldGamesScrollpane;
-    @FXML
     Label userOldGamesLabel;
     @FXML
-    public VBox userOldGamesContent;
+    ScrollPane userOldGamesScrollpane;
+    @FXML
+    VBox userOldGamesContent;
 
     @FXML
-    TextField friendsLookupInput;
-    @FXML
-    VBox friendsLookup;
-    @FXML
-    public VBox friendsLookupContent;
+    HBox friendsNavBar;
     @FXML
     Button FriendsButton;
     @FXML
@@ -313,54 +264,152 @@ public class StartScreenController implements Initializable {
     Button SuggestedFriendsButton;
     @FXML
     Button friendsLookupButton;
+
     @FXML
     ScrollPane FriendsPanel;
     @FXML
     StackPane FriendsStackpane;
-
     @FXML
     VBox friendsContent;
-
-
-
+    @FXML
+    VBox friendsLookup;
+    @FXML
+    TextField friendsLookupInput;
+    @FXML
+    VBox friendsLookupContent;
 
     @FXML
-    HBox settingSpacer;
+    StackPane bottomInfoNav;
+
+    @FXML
+    HBox hyperlinkBox;
+    @FXML
+    Hyperlink SignUpPage;
+    @FXML
+    Hyperlink LoginPage;
+
+    @FXML
+    HBox backButtonBox;
+    @FXML
+    Hyperlink userInfoBackButton;
+
+    // extra options
+    @FXML
+    HBox extraModesScreen;
+    @FXML
+    Button enterSandboxButton;
+    @FXML
+    Button enterSimulationButton;
+    @FXML
+    Button enterExplorerButton;
+    @FXML
+    Button enterPuzzleButton;
+
+    // settings screen
+    @FXML
+    HBox generalSettingsScreen;
+    @FXML
+    ScrollPane generalSettingsScrollpane;
+    @FXML
+    VBox generalSettingsVbox;
+
+    public VBox getSettingsWrapper(){
+        return generalSettingsVbox;
+    }
 
     @FXML
     HBox s1;
+    @FXML
+    Label themeLabel;
+    @FXML
+    ChoiceBox<String> themeSelection;
 
     @FXML
     HBox s2;
+    @FXML
+    Label bgLabel;
+    @FXML
+    ComboBox<String> bgColorSelector;
 
     @FXML
     HBox s3;
+    @FXML
+    Label pieceLabel;
+    @FXML
+    ComboBox<String> pieceSelector;
 
     @FXML
     HBox s4;
+    @FXML
+    Label audioMuteBG;
+    @FXML
+    Button audioMuteBGButton;
 
     @FXML
     VBox s5;
+    @FXML
+    Label audioLabelBG;
+    @FXML
+    Slider audioSliderBG;
 
     @FXML
     HBox s6;
+    @FXML
+    Label audioMuteEff;
+    @FXML
+    Button audioMuteEffButton;
 
     @FXML
     VBox s7;
+    @FXML
+    Label audioLabelEff;
+    @FXML
+    Slider audioSliderEff;
 
     @FXML
     HBox s8;
+    @FXML
+    Label evalLabel;
+    @FXML
+    ComboBox<String> evalOptions;
 
     @FXML
     HBox s9;
+    @FXML
+    Label nMovesLabel;
+    @FXML
+    ComboBox<String> nMovesOptions;
 
     @FXML
     HBox s10;
+    @FXML
+    Label computerLabel;
+    @FXML
+    ComboBox<String> computerOptions;
+
+    // start screen reference
+    @FXML
+    Pane startRef;
+
+    public Pane getMessageBoard(){
+        return startRef;
+    }
+
+
+
+
+
+
+
     List<ChessGame> oldGames;
     private StartScreenState currentState;
     private StartScreenState lastStateBeforeUserSettings;
     private HashMap<String,ClientsideFriendDataResponse> lookupCache;
     public UserInfoManager userInfoManager;
+    private final Logger logger = LogManager.getLogger("Start_Screen_Controller");
+    public CampaignManager campaignManager;
+
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
@@ -497,10 +546,10 @@ public class StartScreenController implements Initializable {
             boolean isCurPaused = !App.userPreferenceManager.isBackgroundMusic();
             if (isCurPaused) {
                 // unpause so change to playing icon
-                backgroundAudioButton.setText("🔉");
+                backgroundAudioButton.setGraphic(CommonIcons.unmutedAudio);
             } else {
                 // pause so make not playing icon
-                backgroundAudioButton.setText("✖");
+                backgroundAudioButton.setGraphic(CommonIcons.mutedAudio);
 
             }
             // muted = opposite of is bg music
@@ -709,89 +758,35 @@ public class StartScreenController implements Initializable {
         });
 
         // bindings
-        App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
-        App.bindingController.bindCustom(fullscreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
 
-        userSettingScreen.prefWidthProperty().bind(mainArea.widthProperty());
-        userSettingScreen.prefHeightProperty().bind(mainArea.heightProperty());
+        // keep user bottom user info box symmetric
+        userOldGamesLabelContainer.prefHeightProperty().bind(friendsNavBar.heightProperty());
 
-        userSettingsStack.prefWidthProperty().bind(userSettingScreen.widthProperty());
-        userSettingsStack.prefHeightProperty().bind(userSettingScreen.heightProperty());
+        // bind top left profile icon
+        App.bindingController.bindCustom(fullScreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
+        App.bindingController.bindCustom(fullScreen.widthProperty(),profileButton.fitWidthProperty(),150,.08);
 
-        userInfoPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
-        userInfoPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
+        App.bindingController.bindCustom(topUserInfoBox.heightProperty(),userInfoPfp.fitHeightProperty(),150,1);
+        userInfoPfp.fitWidthProperty().bind(userInfoPfp.fitHeightProperty());
 
-        accountCreationPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
-        accountCreationPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
-
-        loginPage.prefWidthProperty().bind(userSettingsStack.widthProperty());
-        loginPage.prefHeightProperty().bind(userSettingsStack.heightProperty());
-
-        App.bindingController.bindCustom(userSettingsStack.widthProperty(),userInfoPfp.fitWidthProperty(),150,.3);
-        App.bindingController.bindCustom(userSettingsStack.heightProperty(),userInfoPfp.fitHeightProperty(),150,.3);
-
+        // text size/color bindings
         App.bindingController.bindSmallText(friendsLookupInput,Window.Start,"Black");
         App.bindingController.bindSmallText(FriendsButton,Window.Start,"Black");
         App.bindingController.bindSmallText(RequestsButton,Window.Start,"Black");
         App.bindingController.bindSmallText(SuggestedFriendsButton,Window.Start,"Black");
         App.bindingController.bindSmallText(friendsLookupButton,Window.Start,"Black");
-
-
-
-        // user info page
-
-        // top box
         App.bindingController.bindMediumText(userInfoUserName,Window.Start,"Black");
         App.bindingController.bindSmallText(userInfoUUID,Window.Start,"Black");
         App.bindingController.bindSmallText(userInfoUserElo,Window.Start,"Black");
         App.bindingController.bindSmallText(userInfoRank,Window.Start,"Black");
-
-        App.bindingController.bindCustom(userSettingScreen.prefHeightProperty(),topUserInfoBox.prefHeightProperty(),400,.3);
-        topUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
-        userInfoPfp.fitHeightProperty().bind(topUserInfoBox.heightProperty().subtract(userInfoUserName.heightProperty()));
-        userInfoPfp.fitWidthProperty().bind(userInfoPfp.fitHeightProperty());
-        userInfoUsernameSpacer.prefWidthProperty().bind(userInfoPfp.fitWidthProperty().divide(2).subtract(userInfoUserName.widthProperty().divide(2)));
-        topUserInfoRightBox.prefWidthProperty().bind(topUserInfoBox.prefWidthProperty().subtract(userInfoPfp.fitWidthProperty()));
-        topUserInfoRightBox.prefHeightProperty().bind(userInfoPfp.fitHeightProperty());
-
-        // bottom box
         App.bindingController.bindSmallText(userOldGamesLabel,Window.Start,"Black");
-        bottomUserInfoBox.prefHeightProperty().bind(userSettingScreen.prefHeightProperty().subtract(topUserInfoBox.heightProperty()).subtract(bottomInfoNav.heightProperty()));
-        bottomUserInfoBox.prefWidthProperty().bind(userSettingScreen.prefWidthProperty());
-
-        userOldGamesContainer.prefHeightProperty().bind(bottomUserInfoBox.heightProperty());
-        userOldGamesContainer.prefWidthProperty().bind(userSettingScreen.widthProperty().subtract(FriendsPanel.widthProperty()));
-
-        App.bindingController.bindCustom(bottomUserInfoBox.heightProperty().subtract(FriendsButton.heightProperty()),FriendsPanel.prefHeightProperty(),600,1);
-        FriendsPanel.prefWidthProperty().bind(userSettingScreen.prefWidthProperty().multiply(.6));
-
-        App.bindingController.bindCustom(userOldGamesContainer.heightProperty().subtract(userOldGamesLabel.heightProperty()),userOldGamesScrollpane.prefHeightProperty(),600,1);
-        userOldGamesScrollpane.prefWidthProperty().bind(userOldGamesContainer.widthProperty());
-        userOldGamesContent.prefWidthProperty().bind(userOldGamesScrollpane.widthProperty());
-        userOldGamesContent.minHeightProperty().bind(userOldGamesScrollpane.heightProperty());
-        userOldGamesContent.setStyle("-fx-background-color: gray");
-
-        FriendsStackpane.prefWidthProperty().bind(FriendsPanel.widthProperty());
-        FriendsStackpane.prefHeightProperty().bind(Bindings.max(friendsLookup.heightProperty(), friendsContent.heightProperty()));
-
-        friendsLookup.prefWidthProperty().bind(FriendsStackpane.widthProperty());
-        friendsLookup.setStyle("-fx-background-color: gray");
-        friendsLookup.minHeightProperty().bind(FriendsPanel.heightProperty());
-        friendsLookupContent.prefWidthProperty().bind(friendsLookup.prefWidthProperty());
-
-        friendsContent.prefWidthProperty().bind(FriendsStackpane.widthProperty());
-        friendsContent.setStyle("-fx-background-color: gray");
-        friendsContent.minHeightProperty().bind(FriendsPanel.heightProperty());
-        // hyperlink box
-//        bottomInfoNav.prefHeightProperty().bind(LoginPage.heightProperty());
-//        bottomInfoNav.prefWidthProperty().bind(userSettingScreen.widthProperty());
-//        hyperlinkBox.prefHeightProperty().bind(bottomInfoNav.heightProperty());
-//        hyperlinkBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
-//        backButtonBox.prefHeightProperty().bind(bottomInfoNav.heightProperty());
-//        backButtonBox.prefWidthProperty().bind(userSettingScreen.widthProperty());
         App.bindingController.bindSmallText(LoginPage,Window.Start,"Black");
         App.bindingController.bindSmallText(SignUpPage,Window.Start,"Black");
         App.bindingController.bindSmallText(userInfoBackButton,Window.Start,"Black");
+
+        userOldGamesContent.setStyle("-fx-background-color: gray");
+        friendsLookup.setStyle("-fx-background-color: gray");
+        friendsContent.setStyle("-fx-background-color: gray");
 
         setUserInfoNav(0);
     }
@@ -874,8 +869,6 @@ public class StartScreenController implements Initializable {
 
         generalSettingsVbox.prefWidthProperty().bind(generalSettingsScrollpane.widthProperty());
 
-        settingSpacer.prefHeightProperty().bind(fullscreen.heightProperty().multiply(.02));
-
         s1.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
         s2.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
         s3.prefWidthProperty().bind(generalSettingsVbox.widthProperty().divide(2));
@@ -922,6 +915,7 @@ public class StartScreenController implements Initializable {
         } else {
             enableMultioptions(false);
         }
+        reconnectButton.setGraphic(new FontIcon("fas-sync"));
         reconnectButton.setOnMouseClicked(e -> {
             boolean isSucess = App.attemptReconnection();
             if (isSucess) {
@@ -1012,24 +1006,21 @@ public class StartScreenController implements Initializable {
     }
 
     private void setUpBindings() {
+        content.prefWidthProperty().bind(fullScreen.widthProperty());
+        content.prefHeightProperty().bind(fullScreen.heightProperty());
 
+        mainArea.prefWidthProperty().bind(fullScreen.widthProperty().subtract(rightSidePanel.widthProperty()).subtract(sideButtons.widthProperty()));
+        mainArea.prefHeightProperty().bind(fullScreen.heightProperty().subtract(profileBox.heightProperty()));
 
         // top left profile info
         App.bindingController.bindSmallText(nameProfileLabel, Window.Start);
         App.bindingController.bindSmallText(eloProfileLabel, Window.Start);
-        mainAreaTopSpacer.prefHeightProperty().bind(content.heightProperty().multiply(0.01));
-        content.prefWidthProperty().bind(fullscreen.widthProperty());
-        content.prefHeightProperty().bind(fullscreen.heightProperty());
-        sideButtons.prefHeightProperty().bind(content.heightProperty().subtract(profileBox.heightProperty()).subtract(bottomSpacer.heightProperty()));
-        mainAreaReference.prefWidthProperty().bind(content.widthProperty().subtract(sideButtons.widthProperty()).subtract(rightSidePanel.widthProperty()));
-        mainAreaReference.prefHeightProperty().bind(content.heightProperty().subtract(mainAreaTopSpacer.heightProperty()).subtract(bottomSpacer.heightProperty()));
-        mainArea.prefWidthProperty().bind(mainAreaReference.widthProperty());
-        mainArea.prefHeightProperty().bind(mainAreaReference.heightProperty());
+        sideButtons.prefHeightProperty().bind(content.heightProperty().subtract(profileBox.heightProperty()));
 
         // profile options
         App.bindingController.bindLargeText(loginTitle, Window.Start, "black");
         App.bindingController.bindMediumText(nameLabel, Window.Start, "black");
-        App.bindingController.bindMediumText(eloLabel, Window.Start, "black");
+        App.bindingController.bindMediumText(passwordLabel, Window.Start, "black");
 
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, passwordInput, 350, .45);
         App.bindingController.bindChildWidthToParentHeightWithMaxSize(mainArea, nameInput, 350, .45);
@@ -1067,8 +1058,8 @@ public class StartScreenController implements Initializable {
         multiplayerSelectionScreen.setVisible(false);
         multiplayerSelectionScreen.setMouseTransparent(true);
 //        multiplayerButton.setBackground(buttonUnSelectedBg);
-        userSettingScreen.setVisible(false);
-        userSettingScreen.setMouseTransparent(true);
+        profileScreen.setVisible(false);
+        profileScreen.setMouseTransparent(true);
 //        settingsButton.setBackground(buttonUnSelectedBg);
         generalSettingsScreen.setVisible(false);
         generalSettingsScreen.setMouseTransparent(true);
@@ -1102,8 +1093,8 @@ public class StartScreenController implements Initializable {
             }
             case USERSETTINGS -> {
                 lastStateBeforeUserSettings = currentState;
-                userSettingScreen.setVisible(true);
-                userSettingScreen.setMouseTransparent(false);
+                profileScreen.setVisible(true);
+                profileScreen.setMouseTransparent(false);
 //                profileButton.setStyle("-fx-border-style: 1px black");
             }
             case GENERALSETTINGS -> {
@@ -1126,8 +1117,12 @@ public class StartScreenController implements Initializable {
 
 
     }
+    public void AddNewGameToSaveGui(ChessGame newGame){
+        AddNewGameToSaveGui(newGame,oldGamesPanelContent);
+        AddNewGameToSaveGui(newGame,userOldGamesContent);
+    }
 
-    public void AddNewGameToSaveGui(ChessGame newGame, VBox gamesContainer) {
+    private void AddNewGameToSaveGui(ChessGame newGame, Pane gamesContainer) {
         HBox gameContainer = new HBox();
 
         gameContainer.setAlignment(Pos.CENTER);
@@ -1162,10 +1157,7 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindCustom(gameContainer.widthProperty(), deleteButton.prefWidthProperty(), 30, .2);
         deleteButton.prefHeightProperty().bind(deleteButton.prefWidthProperty().multiply(1.2));
         App.bindingController.bindSmallText(deleteButton,Window.Start);
-        ImageView trashIconView = new ImageView(trashIcon);
-        trashIconView.setPreserveRatio(true);
-        trashIconView.fitWidthProperty().bind(deleteButton.prefWidthProperty());
-        deleteButton.setGraphic(trashIconView);
+        deleteButton.setGraphic(new FontIcon("fas-trash"));
 
 
         Button openGame = new Button();
@@ -1180,10 +1172,7 @@ public class StartScreenController implements Initializable {
         App.bindingController.bindCustom(gameContainer.widthProperty(), openGame.prefWidthProperty(), 30, .2);
         openGame.prefHeightProperty().bind(openGame.prefWidthProperty().multiply(1.2));
         App.bindingController.bindSmallText(openGame,Window.Start);
-        ImageView playerIconView = new ImageView(openIcon);
-        playerIconView.setPreserveRatio(true);
-        playerIconView.fitWidthProperty().bind(openGame.prefWidthProperty());
-        openGame.setGraphic(playerIconView);
+        openGame.setGraphic(new FontIcon("fas-folder-open"));
 
         gameContainer.getChildren().add(gameInfo);
         gameContainer.getChildren().add(openGame);
@@ -1204,8 +1193,6 @@ public class StartScreenController implements Initializable {
     }
 
     private List<ChessGame> loadGamesFromSave() {
-
-//        return PersistentSaveManager.readGamesFromAppData();
         return App.userManager.readSavedGames();
     }
 
@@ -1216,6 +1203,7 @@ public class StartScreenController implements Initializable {
         }
     }
     public void setupUserOldGamesBox(List<ChessGame> gamesToLoad) {
+        System.out.println("A\nA\nA\nA\nA\nA\nA\nA\nA\nA\n");
         userOldGamesContent.getChildren().clear();
         for (ChessGame g : gamesToLoad) {
             AddNewGameToSaveGui(g,userOldGamesContent);
@@ -1248,7 +1236,7 @@ public class StartScreenController implements Initializable {
         audioSliderEff.setValue(userPref.getEffectVolume());
         bgColorSelector.setValue(userPref.getChessboardTheme().toString());
         pieceSelector.setValue(userPref.getPieceTheme().toString());
-        audioMuteBGButton.setText(userPref.isBackgroundmusic() ? "🔉" : "✖");
-        audioMuteEffButton.setText(userPref.isEffectSounds() ? "🔉" : "✖");
+        audioMuteBGButton.setGraphic(userPref.isBackgroundmusic() ? CommonIcons.unmutedAudio : CommonIcons.mutedAudio);
+        audioMuteEffButton.setGraphic(userPref.isEffectSounds() ? CommonIcons.unmutedAudio : CommonIcons.mutedAudio);
     }
 }

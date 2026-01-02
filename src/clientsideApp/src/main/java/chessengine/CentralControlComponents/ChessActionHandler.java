@@ -41,7 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class ChessActionHandler implements Resettable{
+public class ChessActionHandler implements Resettable {
 
     private final LineLabeler labeler = new LineLabeler();
     private final Label lineLabel;
@@ -59,9 +59,6 @@ public class ChessActionHandler implements Resettable{
     private final TextField chatInput;
     private final Button sendMessageButton;
     private final HBox emojiContainer;
-
-    private final VBox p1Indicator;
-    private final VBox p2Indicator;
 
     private final Label p1moveClk;
     private final Label p2moveClk;
@@ -113,7 +110,10 @@ public class ChessActionHandler implements Resettable{
     private boolean isEatingPromo;
     private int numRedos = 0;
 
-    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo, TextField chatInput, Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, VBox p1Indicator, VBox p2Indicator, Label p1moveClk, Label p2moveClk, ComboBox<Integer> player1SimSelector, ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
+    public ChessActionHandler(ChessCentralControl myControl, VBox bestmovesBox, TextArea localInfo, GridPane sandboxPieces, TextArea gameInfo,
+                              TextField chatInput, Button sendMessageButton,HBox emojiContainer,Button resignButton,Button offerDrawButton, HBox movesPlayedBox,
+                              ScrollPane movesPlayedScrollpane, Label lineLabel, Button playPauseButton,Slider timeSlider, Label p1moveClk, Label p2moveClk,
+                              ComboBox<Integer> player1SimSelector,  ComboBox<Integer> player2SimSelector, TextArea currentGamePgn) {
         this.myControl = myControl;
         this.bestmovesBox = bestmovesBox;
         this.campaignInfo = localInfo;
@@ -126,8 +126,6 @@ public class ChessActionHandler implements Resettable{
         this.movesPlayedScrollpane = movesPlayedScrollpane;
         this.playPauseButton = playPauseButton;
         this.timeSlider = timeSlider;
-        this.p1Indicator = p1Indicator;
-        this.p2Indicator = p2Indicator;
         this.p1moveClk = p1moveClk;
         this.p2moveClk = p2moveClk;
         this.player1SimSelector = player1SimSelector;
@@ -323,7 +321,7 @@ public class ChessActionHandler implements Resettable{
         pgnDescriptor.setAlignment(Pos.CENTER);
         int pgnLen = pgn.length();
 //    }
-        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.getWindowWidth().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
+        pgnDescriptor.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(245).add(10).multiply(pgnLen+.2).multiply(App.dpiScaleFactor));
         pgnDescriptor.setOnMouseClicked(e -> {
             int absIndexToGo = (int) pgnDescriptor.getUserData();
             myControl.mainScreenController.changeToAbsoluteMoveIndex(absIndexToGo);
@@ -338,7 +336,7 @@ public class ChessActionHandler implements Resettable{
             int moveNum = (numLabels / 2) + 1; // so not zero indexed
             Label numSeparator = new Label(moveNum + ".");
             numSeparator.setAlignment(Pos.CENTER);
-            numSeparator.minWidthProperty().bind(myControl.mainScreenController.getWindowWidth().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
+            numSeparator.minWidthProperty().bind(myControl.mainScreenController.getRootWidth().divide(160).add(12).multiply(Math.log10(moveNum)+0.5).multiply(App.dpiScaleFactor));
             App.bindingController.bindSmallText(numSeparator, Window.Main, "White");
             movesPlayedBox.getChildren().add(numSeparator);
 
@@ -396,10 +394,10 @@ public class ChessActionHandler implements Resettable{
                         (movesPlayedScrollpane.getContent().getBoundsInLocal().getWidth() - movesPlayedScrollpane.getViewportBounds().getWidth());
                 movesPlayedScrollpane.setHvalue(scrollPosition);
             } else {
-                logger.error("Should not be here, highlight index past total size h: " + highlightIndex);
+                logger.error("Should not be here, highlight index past total size h: {}", highlightIndex);
             }
         } else {
-            logger.debug("Invalid highlight index passed to highlight moves played line h: " + highlightIndex);
+            logger.debug("Invalid highlight index passed to highlight moves played line h: {}", highlightIndex);
         }
 
     }
@@ -442,28 +440,9 @@ public class ChessActionHandler implements Resettable{
         App.soundPlayer.playEffect(Effect.MESSAGE);
     }
 
-    private void updateTurnIndicators(boolean isWhiteTurn, boolean isPlayer1White) {
+    private void updateTurnIndicators(boolean isWhiteTurn, boolean isPlayer1White, int moveTimeS) {
         // todo figure out timers and diplay and centralized pulse etc
-        VBox whiteIndicator = isPlayer1White ? p1Indicator : p2Indicator;
-        VBox blackIndicator = isPlayer1White ? p2Indicator : p1Indicator;
-        Label whiteLabel = isPlayer1White ? p1moveClk : p2moveClk;
-        Label blackLabel = isPlayer1White ? p2moveClk : p1moveClk;
-        // white on bottom(so p1)
-        if (isWhiteTurn) {
-            whiteIndicator.setBackground(Constants.whiteTurnActive);
-            blackIndicator.setBackground(Constants.labelUnactive);
-            whiteLabel.styleProperty().unbind();
-            App.bindingController.bindSmallText(whiteLabel, Window.Main, "Black");
-
-
-        } else {
-            whiteIndicator.setBackground(Constants.labelUnactive);
-            blackIndicator.setBackground(Constants.blackTurnActive);
-            blackLabel.styleProperty().unbind();
-            App.bindingController.bindSmallText(blackLabel, Window.Main, "White");
-        }
-
-
+        App.messager.highlightSide(isWhiteTurn, isPlayer1White, moveTimeS);
     }
 
     public void makeBackendUpdate(MainScreenState currentState, boolean isNewMoveMade, boolean isInit) {
@@ -479,7 +458,7 @@ public class ChessActionHandler implements Resettable{
             String gamePgn = myControl.gameHandler.gameWrapper.getGame().gameToPgn(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
             String[] gamePgnArr = myControl.gameHandler.gameWrapper.getGame().gameToPgnArr(myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex());
             currentGamePgn.setText(gamePgn);
-            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented());
+            updateTurnIndicators(myControl.gameHandler.gameWrapper.getGame().isWhiteTurn(), myControl.gameHandler.gameWrapper.getGame().isWhiteOriented(), -1);
 
             if (myControl.gameHandler.gameWrapper.getGame().getCurMoveIndex() > myControl.gameHandler.gameWrapper.getGame().getMinIndex()) {
                 lineLabel.setText(labeler.getLineName(gamePgnArr));
@@ -1203,7 +1182,7 @@ public class ChessActionHandler implements Resettable{
     public void handleDrawRequest() {
         if(App.ChessCentralControl.gameHandler.currentlyGameActive() && myControl.gameHandler.gameWrapper.isActiveWebGame()){
             String opponentName = myControl.gameHandler.gameWrapper.getGame().isWhiteOriented() ? myControl.gameHandler.gameWrapper.getGame().getWhitePlayerName() : myControl.gameHandler.gameWrapper.getGame().getBlackPlayerName();
-            App.messager.createBooleanPopup(opponentName + " is offering a draw","Accept","Regect",Window.Main,true,2,
+            App.messager.createBooleanPopup(opponentName + " is offering a draw","Accept","Reject",Window.Main,true,2,
                 () ->{
                     App.sendRequest(INTENT.DRAWACCEPTANCEUPDATE,"true",null,true);
                 },
