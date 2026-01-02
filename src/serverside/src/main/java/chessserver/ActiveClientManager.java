@@ -1,3 +1,4 @@
+package chessserver;
 
 import chessserver.User.BackendClient;
 import chessserver.User.UserInfo;
