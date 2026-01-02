@@ -79,6 +79,7 @@ public class XYcoord {
     }
 
 
+    @Override
     public String toString() {
         return "X: " + x + " Y: " + y + " Is castle move?: " + isCastleMove;
     }
