@@ -1,22 +1,10 @@
 package chessserver.Friends;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class FriendDataResponse {
-    List<FriendDataPair> dataResponse;
-
-    public FriendDataResponse(List<FriendDataPair> dataResponse) {
-        this.dataResponse = dataResponse;
-    }
-
-    public FriendDataResponse() {
-    }
-
-    public List<FriendDataPair> getDataResponse() {
-        return dataResponse;
-    }
-
-    public void setDataResponse(List<FriendDataPair> dataResponse) {
-        this.dataResponse = dataResponse;
+public record FriendDataResponse(List<ServerFriendData> dataResponse){
+    public static FriendDataResponse empty(){
+        return new FriendDataResponse(new ArrayList<>());
     }
 }

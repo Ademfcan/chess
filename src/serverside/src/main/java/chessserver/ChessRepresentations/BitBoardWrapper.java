@@ -146,24 +146,12 @@ public class BitBoardWrapper {
         HashSet<Integer>[] pieces = isWhitePiece ? whitePieces : blackPieces;
         for (int index : pieces[pieceIndex]) {
             switch (pieceIndex) {
-                case ChessConstants.PAWNINDEX -> {
-                    mask |= BitFunctions.calculatePawnAttackMask(index, isWhitePiece, this);
-                }
-                case ChessConstants.KNIGHTINDEX -> {
-                    mask |= BitFunctions.calculateKnightAttackBitBoard(index, isWhitePiece, this);
-                }
-                case ChessConstants.BISHOPINDEX -> {
-                    mask |= BitFunctions.calculateBishopAttackBitBoard(index, isWhitePiece, true, this);
-                }
-                case ChessConstants.ROOKINDEX -> {
-                    mask |= BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true, this);
-                }
-                case ChessConstants.QUEENINDEX -> {
-                    mask |= BitFunctions.calculateQueenAtackBitboard(index, isWhitePiece, true, this);
-                }
-                case ChessConstants.KINGINDEX -> {
-                    mask |= BitFunctions.calculateKingAttackBitboard(index, isWhitePiece, this);
-                }
+                case ChessConstants.PAWNINDEX -> mask |= BitFunctions.calculatePawnAttackMask(index, isWhitePiece, this);
+                case ChessConstants.KNIGHTINDEX -> mask |= BitFunctions.calculateKnightAttackBitBoard(index, isWhitePiece, this);
+                case ChessConstants.BISHOPINDEX -> mask |= BitFunctions.calculateBishopAttackBitBoard(index, isWhitePiece, true, this);
+                case ChessConstants.ROOKINDEX -> mask |= BitFunctions.calculateRookAttackBitBoard(index, isWhitePiece, true, this);
+                case ChessConstants.QUEENINDEX -> mask |= BitFunctions.calculateQueenAtackBitboard(index, isWhitePiece, true, this);
+                case ChessConstants.KINGINDEX -> mask |= BitFunctions.calculateKingAttackBitboard(index, isWhitePiece, this);
             }
         }
 //        System.out.println(GeneralChessFunctions.getPieceType(pieceIndex) + " Mask");

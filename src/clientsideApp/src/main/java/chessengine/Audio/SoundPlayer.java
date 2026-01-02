@@ -1,10 +1,16 @@
 package chessengine.Audio;
 
+import chessengine.FXInitQueue;
+import chessengine.Graphics.UserConfigurable;
+import chessengine.TriggerRegistry;
 import chessserver.ChessRepresentations.ChessMove;
+import chessserver.Communication.User;
+import chessserver.User.UserPreferences;
+import chessserver.User.UserWGames;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class SoundPlayer {
+public class SoundPlayer implements UserConfigurable {
     private final static Logger logger = LogManager.getLogger("Sound_Player");
     private final double defaultVolume = .5d;
     private final double defaultBGVolume = .3d;
@@ -25,11 +31,25 @@ public class SoundPlayer {
 
 
     public SoundPlayer() {
-        this.currentVolumeBackground = defaultBGVolume;
-        this.currentVolumeEffects = defaultVolume;
-        this.currentSong = getNextSong();
+        TriggerRegistry.addTriggerable(this);
 
+        FXInitQueue.runAfterInit(() -> {
+            this.currentSong = getNextSong();
+            this.currentVolumeBackground = defaultBGVolume;
+            this.currentVolumeEffects = defaultVolume;
+        });
+    }
 
+    public void adjustToUserPreferences(UserPreferences userPreferences) {
+        if (!userPreferences.isBackgroundMusic()) {
+            pauseSong(true);
+        } else {
+            playSong(true);
+        }
+        setEffectsMuted(!userPreferences.isEffectSounds());
+
+        changeVolumeBackground(userPreferences.getBackgroundVolume());
+        changeVolumeEffects(userPreferences.getEffectVolume());
     }
 
     public boolean isEffectsMuted() {
@@ -148,5 +168,10 @@ public class SoundPlayer {
     public void changeVolumeBackground(double newVolume) {
         this.currentVolumeBackground = newVolume;
         currentSong.clip.setVolume(newVolume);
+    }
+
+    @Override
+    public void updateWithUser(UserWGames userWGames) {
+        adjustToUserPreferences(userWGames.user().preferences());
     }
 }

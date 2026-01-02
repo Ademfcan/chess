@@ -4,9 +4,7 @@ import chessengine.Graphics.TextUtils;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 
 public abstract class Option {
     public String name;
@@ -18,16 +16,14 @@ public abstract class Option {
 
     protected abstract Region createInnerNode();
 
-    public Region getOptionNode(){
+    public Region getOptionNode(Pane parent){
         HBox outerContainer = new HBox();
         outerContainer.setAlignment(Pos.CENTER);
 
+        outerContainer.prefHeightProperty().bind(parent.widthProperty().divide(2));
+
         VBox infoContainer = new VBox();
-        infoContainer.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        infoContainer.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        infoContainer.setAlignment(Pos.TOP_CENTER);
-        infoContainer.prefWidthProperty().bind(infoContainer.widthProperty().multiply(0.4));
-        infoContainer.prefHeightProperty().bind(infoContainer.heightProperty());
+        infoContainer.setAlignment(Pos.CENTER);
 
         Label title = new Label(name);
         Label desc = new Label(description);
@@ -37,13 +33,9 @@ public abstract class Option {
         Region innerNode = createInnerNode();
         HBox innerNodeWrapper = new HBox(innerNode);
         innerNodeWrapper.setAlignment(Pos.CENTER);
-        innerNodeWrapper.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        innerNodeWrapper.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-
-        innerNodeWrapper.prefWidthProperty().bind(outerContainer.widthProperty().divide(0.6));
-        innerNodeWrapper.prefHeightProperty().bind(outerContainer.heightProperty());
-
         outerContainer.getChildren().addAll(infoContainer, innerNodeWrapper);
+
+        outerContainer.setSpacing(10);
 
         return outerContainer;
 
