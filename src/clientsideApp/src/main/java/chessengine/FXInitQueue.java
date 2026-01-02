@@ -1,3 +1,4 @@
+package chessengine;
 
 import javafx.application.Platform;
 
