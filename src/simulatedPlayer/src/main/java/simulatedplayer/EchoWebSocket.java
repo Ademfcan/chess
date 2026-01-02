@@ -1,3 +1,4 @@
+package simulatedplayer;
 import jakarta.websocket.*;
 
 import jakarta.websocket.server.ServerEndpoint;
