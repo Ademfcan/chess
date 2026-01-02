@@ -1,3 +1,4 @@
+package chessengine;
 
 import chessengine.Crypto.TokenStore;
 import chessengine.Net.AuthenticatedMessageSender;
