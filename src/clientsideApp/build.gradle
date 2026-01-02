@@ -29,6 +29,8 @@ dependencies {
     // FontAwesome5 icon pack
     implementation 'org.kordamp.ikonli:ikonli-fontawesome5-pack:12.3.1'
 
+    // yaml reader
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.3'
 
     implementation project(':serverside')
 }

@@ -1,0 +1,7 @@
+- name: difficulty
+  description: Difficulty level of the game
+  defaultValue: normal
+  options:
+    - easy
+    - normal
+    - hard

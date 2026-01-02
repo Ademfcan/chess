@@ -21,27 +21,23 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<StackPane fx:id="fullScreen" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.MainScreenController">
+<StackPane fx:id="fullScreen" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="chessengine.Graphics.MainScreenController">
    <children>
-      <HBox fx:id="content" alignment="CENTER_LEFT" spacing="5.0">
+      <HBox fx:id="content" alignment="CENTER" spacing="5.0">
          <children>
-            <VBox fx:id="gameContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0">
+            <VBox fx:id="gameContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="350.0" HBox.hgrow="ALWAYS">
                <children>
-                  <HBox fx:id="chessBoardTop" alignment="BOTTOM_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="ALWAYS">
+                  <HBox fx:id="chessBoardTop" alignment="BOTTOM_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="257.0" spacing="5.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label fx:id="topAdvantage" text="Label" />
-                        <HBox fx:id="topEatenContainer" prefHeight="100.0" prefWidth="200.0" />
-                        <HBox fx:id="topPlayerBox" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="15.0">
+                        <HBox fx:id="topPlayerLabels">
                            <children>
-                              <HBox fx:id="topPlayerTurnContainer" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                                 <children>
-                                    <VBox fx:id="topPlayerTurnIndicator" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="100.0">
-                                       <children>
-                                          <Label fx:id="topPlayerTurnTime" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
+                              <Label fx:id="topPlayerTurnTime" />
+                              <Label fx:id="topAdvantage" text="Label" />
+                           </children>
+                        </HBox>
+                        <HBox fx:id="topEatenContainer" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" />
+                        <HBox fx:id="topPlayerBox" alignment="CENTER" maxHeight="-Infinity" spacing="15.0">
+                           <children>
                               <Label fx:id="topPlayerName" text="label" />
                               <ImageView fx:id="topPlayerIcon" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -50,14 +46,14 @@
                               </ImageView>
                            </children>
                         </HBox>
-                        <HBox fx:id="topRightSpacer" prefHeight="100.0" prefWidth="200.0">
+                        <HBox fx:id="topRightSpacer" alignment="TOP_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="10.0">
                            <children>
                               <Button fx:id="openSidePanel" mnemonicParsing="false" />
                            </children>
                         </HBox>
                      </children>
                   </HBox>
-                  <HBox fx:id="chessBoardAndEvalContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0">
+                  <HBox fx:id="chessBoardAndEvalContainer" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="319.0" prefWidth="320.0">
                      <children>
                         <StackPane fx:id="chessBoardContainer" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="300.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS">
                            <children>
@@ -185,21 +181,17 @@
                         </VBox>
                      </children>
                   </HBox>
-                  <HBox fx:id="chessBoardBottom" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="100.0" prefWidth="200.0" spacing="5.0" VBox.vgrow="ALWAYS">
+                  <HBox fx:id="chessBoardBottom" alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="295.0" spacing="5.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <Label fx:id="bottomAdvantage" text="Label" />
-                        <HBox fx:id="bottomEatenContainer" prefHeight="100.0" prefWidth="200.0" />
-                        <HBox fx:id="bottomPlayerBox" alignment="CENTER_RIGHT" spacing="15.0">
+                        <HBox fx:id="bottomPlayerLabels">
                            <children>
-                              <HBox fx:id="bottomPlayerTurnContainer" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                                 <children>
-                                    <VBox fx:id="bottomPlayerTurnIndicator" alignment="CENTER_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="26.0" prefWidth="100.0">
-                                       <children>
-                                          <Label fx:id="bottomPlayerTurnTime" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
+                              <Label fx:id="bottomPlayerTurnTime" />
+                              <Label fx:id="bottomAdvantage" text="Label" />
+                           </children>
+                        </HBox>
+                        <HBox fx:id="bottomEatenContainer" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" />
+                        <HBox fx:id="bottomPlayerBox" alignment="CENTER" maxHeight="-Infinity" spacing="15.0">
+                           <children>
                               <Label fx:id="bottomPlayerName" text="Label" />
                               <ImageView fx:id="bottomPlayerIcon" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -208,16 +200,19 @@
                               </ImageView>
                            </children>
                         </HBox>
-                        <HBox fx:id="bottomRightSpacer" prefHeight="100.0" prefWidth="200.0" />
+                        <HBox fx:id="bottomRightSpacer" alignment="TOP_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="10.0">
+                           <children>
+                              <Button fx:id="inlineHomeButton" mnemonicParsing="false" />
+                           </children></HBox>
                      </children>
                   </HBox>
                </children>
             </VBox>
-            <VBox fx:id="sidePanelInline" prefHeight="200.0" prefWidth="100.0">
+            <VBox fx:id="sidePanelInline" alignment="CENTER" maxWidth="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="183.0" HBox.hgrow="NEVER">
                <children>
                   <StackPane fx:id="sidePanel" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
                      <children>
-                        <ScrollPane fx:id="settingsScroller" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS" visible="false">
+                        <ScrollPane fx:id="settingsScroller" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" prefHeight="200.0" prefWidth="200.0" vbarPolicy="ALWAYS" visible="false" StackPane.alignment="CENTER">
                            <content>
                               <VBox fx:id="settingsScreen" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                                  <children>
@@ -483,7 +478,7 @@
       <HBox fx:id="sidePanelPopup" alignment="TOP_RIGHT" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="100.0" StackPane.alignment="TOP_RIGHT">
          <children>
             <Button fx:id="hideSidePanel" mnemonicParsing="false" />
-            <VBox fx:id="sidePanelPopupContent" alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0" />
+            <VBox fx:id="sidePanelPopupContent" alignment="TOP_RIGHT" prefHeight="200.0" prefWidth="100.0" style="-fx-border-color: white; -fx-border-radius: 2; -fx-border-width: 2;" />
          </children>
       </HBox>
    </children>
