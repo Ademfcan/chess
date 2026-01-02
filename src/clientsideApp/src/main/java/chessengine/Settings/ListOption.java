@@ -4,6 +4,8 @@ import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+
+import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.util.Arrays;
 import java.util.List;

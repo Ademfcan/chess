@@ -28,7 +28,6 @@ import chessserver.User.UserPreferences;
 import jakarta.websocket.DeploymentException;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.application.Preloader;
 import javafx.application.Preloader.ProgressNotification;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
