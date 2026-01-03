@@ -1,14 +1,18 @@
 package chessengine.Puzzle;
 
+import chessengine.TriggerRegistry;
+import chessengine.Triggers.Closable;
+
 import java.util.Map;
 
-public class PuzzleManager {
+public class PuzzleManager implements Closable {
     private final int binSize = 50;
     private final int maxBinLen = 2000;
     private final int batchSize = (int) 1e6;
     private final PuzzleReader reader = new PuzzleReader();
     private final Map<Integer, RandomList<PuzzleEntry>> puzzleMap;
     public PuzzleManager() {
+        TriggerRegistry.addTriggerable(this);
         puzzleMap = reader.readNewBatchBinned(batchSize, binSize, maxBinLen);
     }
 
@@ -45,7 +49,11 @@ public class PuzzleManager {
         return max;
     }
 
-    public void close() {
+    @Override
+    public void onClose() {
+        System.out.println("b");
         reader.close();
+
+        System.out.println("Reader closed.");
     }
 }

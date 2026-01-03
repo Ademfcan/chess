@@ -10,10 +10,14 @@ public enum MainScreenState {
     PUZZLE;
 
     public static boolean isSaveableState(MainScreenState state){
-        return state == LOCAL || state == ONLINE || state == CAMPAIGN;
+        return state == LOCAL || state == ONLINE ||  state == CAMPAIGN;
     }
     public static boolean isEvalAllowed(MainScreenState state){
         return state == VIEWER || state == SANDBOX;
+    }
+
+    public static boolean isLogicAllowed(MainScreenState state){
+        return state != SANDBOX;
     }
 
     public static boolean isMovesPlayedShown(MainScreenState state){
