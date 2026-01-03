@@ -24,8 +24,12 @@ dependencies {
 
     // This dependency is used by the application.
 
-    implementation 'javax.servlet:javax.servlet-api:4.0.1'
-    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.21'
+    implementation 'org.eclipse.jetty:jetty-server:11.0.20'
+    implementation 'org.eclipse.jetty:jetty-servlet:11.0.20'
+    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.25'
+    implementation 'jakarta.websocket:jakarta.websocket-api:2.1.0'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.5'
+
 
     implementation 'com.zaxxer:HikariCP:5.0.1' // Or the latest version
 }
@@ -33,7 +37,7 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(20)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 
 }
