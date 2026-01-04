@@ -9,21 +9,27 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
 
+    implementation 'org.eclipse.jetty:jetty-server:11.0.20'
+    implementation 'org.eclipse.jetty:jetty-servlet:11.0.20'
+    implementation 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.25'
+    implementation 'jakarta.websocket:jakarta.websocket-api:2.1.0'
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.1.5'
-    implementation project(':serverside')
-    implementation project(':clientsideApp')
+
+
+//    implementation project(':serverside')
+//    implementation project(':clientsideApp')
 
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(20)
+        languageVersion = JavaLanguageVersion.of(23)
     }
 }
 
 
 application {
-    mainClass = 'simulatedplayer.main'
+    mainClass = 'simulatedplayer.EmbeddedServer'
 }
 
 tasks.named('test') {

@@ -1,3 +1,4 @@
+package chessserver;
 
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import java.io.File;
