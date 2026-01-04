@@ -1,12 +1,13 @@
 package chessserver.Friends;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class Friend {
-    private int UUID;
+    private UUID UUID;
     private String currentUsername;
 
-    public Friend(String currentUsername, int UUID) {
+    public Friend(String currentUsername, UUID UUID) {
         this.UUID = UUID;
         this.currentUsername = currentUsername;
     }
@@ -27,11 +28,11 @@ public class Friend {
         return Objects.hash(UUID, currentUsername);
     }
 
-    public int getUUID() {
+    public UUID getUUID() {
         return UUID;
     }
 
-    public void setUUID(int UUID) {
+    public void setUUID(UUID UUID) {
         this.UUID = UUID;
     }
 

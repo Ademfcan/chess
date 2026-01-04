@@ -9,14 +9,18 @@ import java.awt.event.MouseEvent;
 import java.beans.EventHandler;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ListOption<T> extends Option{
-    private final T defaultValue;
+    private T defaultValue;
     private final List<? extends T> options;
-    public ListOption(String name, String description, T defaultValue, List<? extends T> options) {
+    private final Consumer<T> onUpdate;
+
+    public ListOption(String name, String description, T defaultValue, List<? extends T> options, Consumer<T> onUpdate) {
         super(name, description);
         this.defaultValue = defaultValue;
         this.options = options;
+        this.onUpdate = onUpdate;
 
 
         if(options.stream().noneMatch(t -> t.equals(defaultValue))){
@@ -24,12 +28,12 @@ public class ListOption<T> extends Option{
         }
     }
 
-
     @Override
     protected Region createInnerNode() {
         ComboBox<T> comboBox = new ComboBox<>();
         comboBox.getItems().addAll(options);
         comboBox.getSelectionModel().select(defaultValue);
+        comboBox.setOnAction(e -> onUpdate.accept(comboBox.getValue()));
 
         return comboBox;
     }

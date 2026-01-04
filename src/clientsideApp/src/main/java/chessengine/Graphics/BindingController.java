@@ -1,33 +1,38 @@
 package chessengine.Graphics;
 
 import chessengine.App;
-import chessengine.Enums.Window;
+import chessengine.FXInitQueue;
 import javafx.beans.binding.*;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
+import javax.annotation.Nullable;
+
 
 public class BindingController {
 
-    private final int extraSmallMaxSize = 10;
-    private final double extraSmallParentToTextSize = (double) 1 / 63;
-    private final int smallMaxSize = 15;
-    private final double smallParentToTextSize = (double) 1 / 50;
-    private final int medMaxSize = 22;
-    private final double medParentToTextSize = (double) 1 / 40;
-    private final int lgMaxSize = 30;
-    private final double lgParentToTextSize = (double) 1 / 30;
-    private final int xlMaxSize = 35;
+    private static final int extraSmallMaxSize = 10;
+    private static final double extraSmallParentToTextSize = (double) 1 / 63;
+    private static final int smallMaxSize = 15;
+    private static final double smallParentToTextSize = (double) 1 / 50;
+    private static final int medMaxSize = 22;
+    private static final double medParentToTextSize = (double) 1 / 40;
+    private static final int lgMaxSize = 30;
+    private static final double lgParentToTextSize = (double) 1 / 30;
+    private static final int xlMaxSize = 35;
 
-    private final double xlParentToTextSize = (double) 1 / 25;
-    private final Region mainScreenFullScreen;
-    private final Region startScreenFullScreen;
+    private static final double xlParentToTextSize = (double) 1 / 25;
+    private static final DoubleProperty stageHeight = new SimpleDoubleProperty();
+    private static final DoubleProperty stageWidth = new SimpleDoubleProperty();
 
-    public BindingController(Region mainScreenFullScreen, Region startScreenFullScreen) {
-        this.mainScreenFullScreen = mainScreenFullScreen;
-        this.startScreenFullScreen = startScreenFullScreen;
+    static {
+        FXInitQueue.runAfterInit(() -> {
+            stageHeight.bind(App.mainScene.heightProperty());
+            stageWidth.bind(App.mainScene.widthProperty());
+        });
     }
 
     public static void bindRegionToStyle(Region region, NumberExpression reference, String style, double scaleFactor, String extraStyles) {
@@ -72,216 +77,104 @@ public class BindingController {
 
     }
 
-    public static void bindChildTextToParentWidth(Region parent, Region child, double parentToChildScaleFactor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
-    }
-
-    public static void bindChildTextToParentHeight(Region parent, Region child, double parentToChildScaleFactor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
-    }
-
-    public static void bindChildTextToParentWidth(Region parent, Region child, double parentToChildScaleFactor, String textColor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.widthProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(), "; -fx-text-fill: ", textColor));
-    }
-
-    public static void bindChildTextToParentHeight(Region parent, Region child, double parentToChildScaleFactor, String textColor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(parent.heightProperty().multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(), "; -fx-text-fill: ", textColor));
-    }
-
-    public static void bindChildTextToParentMin(Region parent, Region child, double parentToChildScaleFactor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.min(parent.heightProperty(), parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
-    }
-
-    public static void bindChildTextToParentMax(Region parent, Region child, double parentToChildScaleFactor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.max(parent.heightProperty(), parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString()));
-    }
-
-    public static void bindChildTextToParentValuesMin(Region parent, Region child, double parentToChildScaleFactor, String textColor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.min(parent.heightProperty(), parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(), "; -fx-text-fill: ", textColor));
-    }
-
-    public static void bindChildTextToParentValuesMax(Region parent, Region child, double parentToChildScaleFactor, String textColor) {
-        DoubleProperty fontSize = new SimpleDoubleProperty();
-        fontSize.bind(Bindings.max(parent.heightProperty(), parent.widthProperty()).multiply(parentToChildScaleFactor).multiply(App.dpiScaleFactor));
-        child.styleProperty().bind(Bindings.concat("-fx-font-size: ", fontSize.asString(), "; -fx-text-fill: ", textColor));
-    }
-
-    public void bindChildWidthToParentWidthWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        child.prefWidthProperty().bind(sizeBinding);
-
-    }
-
-    public void bindChildHeightToParentWidthWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        child.prefHeightProperty().bind(sizeBinding);
-
-    }
-
-    public void bindChildWidthToParentHeightWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        child.prefWidthProperty().bind(sizeBinding);
-
-    }
-
-    public void bindChildHeightToParentHeightWithMaxSize(Region parent, Region child, int maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        child.prefHeightProperty().bind(sizeBinding);
-
-    }
-
-    public void bindCustom(DoubleExpression parent, DoubleProperty child, double maxSize, double percentExpectedSize){
-        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize*App.dpiScaleFactor,percentExpectedSize);
-        child.bind(sizeBinding);
-    }
-
-    public void bindXSmallText(Node text, Window window, String textColor) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, extraSmallMaxSize, extraSmallParentToTextSize, " -fx-text-fill: "+ textColor);
-    }
-
-    public void bindSmallTextCustom(Node text, Window window, String extraCss) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, extraCss);
-    }
-
-    public void bindSmallText(Node text, Window window, String textColor) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, smallMaxSize, smallParentToTextSize, " -fx-text-fill: "+ textColor);
-    }
-
-    public void bindMediumTextCustom(Node text, Window window, String extraCss) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, extraCss);
-    }
-
-    public void bindMediumText(Node text, Window window, String textColor) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, medMaxSize, medParentToTextSize, " -fx-text-fill: "+ textColor);
 
 
-    }
-
-    public void bindLargeTextCustom(Node text, Window window, String extraCss) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, lgMaxSize, lgParentToTextSize, extraCss);
-    }
-
-    public void bindLargeText(Node text, Window window, String textColor) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, lgMaxSize, lgParentToTextSize, " -fx-text-fill: "+ textColor);
-
-
-    }
-
-    public void bindXLargeText(Node text, Window window, String textColor) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSizeCustomCss(parent, text, xlMaxSize, xlParentToTextSize, " -fx-text-fill: "+ textColor);
-
-    }
-    // since when one scene is shown, the size of the hidden scene is not guaranteed, we bind to parent elements respective of that scene
-    public void bindXSmallText(Node text, Window window) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSize(parent, text, extraSmallMaxSize, extraSmallParentToTextSize);
-    }
-
-    public void bindSmallText(Node text, Window window) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSize(parent, text, smallMaxSize, smallParentToTextSize);
-    }
-
-    public void bindMediumText(Node text, Window window) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSize(parent, text, medMaxSize, medParentToTextSize);
-
-
-    }
-
-    public void bindLargeText(Node text, Window window) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSize(parent, text, lgMaxSize, lgParentToTextSize);
-
-
-    }
-
-    public void bindXLargeText(Node text, Window window) {
-        Region parent = window == Window.Main ? mainScreenFullScreen : startScreenFullScreen;
-        bindTextToParentMinwMaxSize(parent, text, xlMaxSize, xlParentToTextSize);
-
-
-    }
-
-    public void bindTextToParentWidthWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
-
-    }
-
-    public void bindTextToParentHeightWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize, percentExpectedSize).multiply(App.dpiScaleFactor);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
-
-    }
-
-    public void bindTextToParentMinwMaxSizeCustomCss(Region parent, Node text, double maxSize, double percentExpectedSize, String extraCss) {
-        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; ", extraCss));
-
-    }
-
-    public void bindTextToParentMinwMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize) {
-        NumberBinding sizeBinding = getMaxSizeMin(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
-
-    }
-
-    public void bindTextToParentWidthWithMaxSizeCustomCss(Region parent, Node text, double maxSize, double percentExpectedSize, String extraCss) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; ", extraCss));
-
-    }
-
-    public void bindTextToParentWidthWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize, String color) {
-        NumberBinding sizeBinding = getMaxSizeBindingWidth(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; -fx-text-fill: ", color));
-
-    }
-
-    public void bindTextToParentHeightWithMaxSize(Region parent, Node text, double maxSize, double percentExpectedSize, String color) {
-        NumberBinding sizeBinding = getMaxSizeBindingHeight(parent, maxSize*App.dpiScaleFactor, percentExpectedSize);
-        text.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; -fx-text-fill: ", color));
-
-    }
-
-    private NumberBinding getMaxSizeMin(Region parent, double maxSize, double percentExpectedSize) {
+    private static NumberBinding getMaxSizeMin(Region parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(getMaxSizeBindingWidth(parent, maxSize, percentExpectedSize), getMaxSizeBindingHeight(parent, maxSize, percentExpectedSize));
     }
 
-    private NumberBinding getMaxSizeBindingWidth(Region parent, double maxSize, double percentExpectedSize) {
+    private static NumberBinding getMaxSizeBindingWidth(Region parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(parent.widthProperty().multiply(percentExpectedSize), maxSize);
     }
 
-    private NumberBinding getMaxSizeBindingHeight(Region parent, double maxSize, double percentExpectedSize) {
+    private static NumberBinding getMaxSizeBindingHeight(Region parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(parent.heightProperty().multiply(percentExpectedSize), maxSize);
 
     }
 
-    private NumberBinding getMaxSizeBindingCustom(DoubleExpression parent, double maxSize, double percentExpectedSize) {
+
+    public static void bindCustom(NumberExpression parent, DoubleProperty child, double maxSize, double percentExpectedSize){
+        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize*App.dpiScaleFactor,percentExpectedSize);
+        child.bind(sizeBinding);
+    }
+
+    private static NumberBinding getMaxSizeBindingCustom(NumberExpression parent, double maxSize, double percentExpectedSize) {
         return Bindings.min(parent.multiply(percentExpectedSize), maxSize);
+    }
+
+
+
+
+
+    // text bindings relative to stage
+
+    public static NumberBinding stageMin() {
+        return Bindings.min(stageHeight, stageWidth);
+    }
+
+
+    public static void bindCustomTextCss(NumberBinding parent, Node child, double maxSize, double percentExpectedSize, @Nullable String extraCss){
+        NumberBinding sizeBinding = getMaxSizeBindingCustom(parent,maxSize*App.dpiScaleFactor, percentExpectedSize);
+
+        if(extraCss != null){
+            child.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString(), "; ", extraCss));
+        }
+        else{
+            child.styleProperty().bind(Bindings.concat("-fx-font-size: ", sizeBinding.asString()));
+        }
+    }
+
+
+    public static void bindXSmallText(Node text, String textColor) {
+        bindCustomTextCss(stageMin(), text, extraSmallMaxSize, extraSmallParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+
+    public static void bindSmallTextCustom(Node text, String extraCss) {
+        bindCustomTextCss(stageMin(), text, extraSmallMaxSize, extraSmallParentToTextSize, extraCss);
+    }
+
+    public static void bindSmallText(Node text, String textColor) {
+        bindCustomTextCss(stageMin(), text, smallMaxSize, smallParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+
+    public static void bindMediumTextCustom(Node text, String extraCss) {
+        bindCustomTextCss(stageMin(), text, medMaxSize, medParentToTextSize, extraCss);
+    }
+
+    public static void bindMediumText(Node text, String textColor) {
+        bindCustomTextCss(stageMin(), text, medMaxSize, medParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+
+    public static void bindLargeTextCustom(Node text, String extraCss) {
+        bindCustomTextCss(stageMin(), text, lgMaxSize, lgParentToTextSize, extraCss);
+    }
+
+    public static void bindLargeText(Node text, String textColor) {
+        bindCustomTextCss(stageMin(), text, lgMaxSize, lgParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+
+    public static void bindXLargeText(Node text, String textColor) {
+        bindCustomTextCss(stageMin(), text, xlMaxSize, xlParentToTextSize, " -fx-text-fill: "+ textColor);
+    }
+    // since when one scene is shown, the size of the hidden scene is not guaranteed, we bind to parent elements respective of that scene
+    public static void bindXSmallText(Node text) {
+        bindCustomTextCss(stageMin(), text, extraSmallMaxSize, extraSmallParentToTextSize, null);
+    }
+
+    public static void bindSmallText(Node text) {
+        bindCustomTextCss(stageMin(), text, smallMaxSize, smallParentToTextSize, null);
+    }
+
+    public static void bindMediumText(Node text) {
+        bindCustomTextCss(stageMin(), text, medMaxSize, medParentToTextSize, null);
+    }
+
+    public static void bindLargeText(Node text) {
+        bindCustomTextCss(stageMin(), text, lgMaxSize, lgParentToTextSize, null);
+    }
+
+    public static void bindXLargeText(Node text) {
+        bindCustomTextCss(stageMin(), text, xlMaxSize, xlParentToTextSize, null);
     }
 
 
